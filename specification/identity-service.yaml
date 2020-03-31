@@ -1,10 +1,7 @@
-# This is an OpenAPI Specification (https://swagger.io/specification/)
-# for the Personal Demographics Service (PDS) API
-# owned by NHS Digital (https://digital.nhs.uk/)
 openapi: "3.0.0"
 info:
   version: "{VERSION}"
-  title: Template API
+  title: Identity Service API
   description: |
     ## Overview
     TODO
@@ -70,13 +67,15 @@ info:
     ## Endpoints
     TODO
   contact:
-    name: Template API Support
+    name: API Management Support
     url: 'https://tbc.api.nhs.net'
     email: tbc-api-support@nhs.net
 servers:
-  - url: 'https://emea-demo8-test.apigee.net/TODO sandbox endpoint'
-    description: Sandbox service.
+  - url: 'https://sandbox.api.service.nhs.uk/identity-service/oauth/v2'
+    description: Identity sandbox.
 tags:
-  - name: #TODO declare tags
+  - name: identity
+    description: identity related tag
 paths:
-#TODO add endpoints
+  /oauth/v2:
+    summary: OAuth endpoint

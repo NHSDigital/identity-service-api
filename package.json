@@ -3,8 +3,7 @@
   "version": "0.0.1",
   "description": "OAS (Swagger v3) API Definition for Template API",
   "scripts": {
-    "lint": "node_modules/.bin/speccy lint specification/template-api.yaml --skip default-and-example-are-redundant",
-    "test": "node_modules/.bin/newman run tests/e2e/template-api-sandbox.json -e $API_TEST_ENV_FILE_PATH --reporters html,cli,htmlextra --reporter-htmlextra-logs --reporter-htmlextra-darkTheme",
+    "lint": "node_modules/.bin/speccy lint specification/identity-service.yaml --skip default-and-example-are-redundant",
     "publish": "mkdir -p build && node_modules/.bin/speccy resolve specification/template-api.yaml -i | poetry run python scripts/yaml2json.py | poetry run python scripts/set_version.py > build/template-api.json",
     "serve": "node_modules/.bin/speccy serve build/template-api.json",
     "check-licenses": "node_modules/.bin/license-checker --failOn GPL --failOn LGPL"
