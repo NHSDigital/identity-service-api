@@ -69,4 +69,5 @@ build-proxy:
 
 release: clean publish build-proxy
 	mkdir -p dist
+  cp -r terraform dist
 	cp -r build/. dist
