@@ -1,6 +1,6 @@
 SHELL=/bin/bash -euo pipefail
 
-install: install-node install-python install-fhir-validator install-hooks
+install: install-node install-python
 
 install-python:
 	poetry install
