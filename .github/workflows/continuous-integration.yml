@@ -44,18 +44,6 @@ jobs:
       - name: Install repo
         run: make install
 
-      - name: Check licenses
-        run: make check-licenses
-
-      - name: Lint
-        run: make lint
-
-      - name: Compile spec
-        run: make publish
-
-      - name: Generate Release
-        run: make release
-
       - name: Set SPEC_VERSION env var
         run: echo ::set-env name=SPEC_VERSION::$(poetry run python scripts/calculate_version.py)
 
