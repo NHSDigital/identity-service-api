@@ -1,3 +1,5 @@
+name: "$(SPEC_VERSION)+$(BuildID)"
+
 trigger:
 - master
 
