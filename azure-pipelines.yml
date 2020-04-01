@@ -1,10 +1,12 @@
-name: "$(Version)+$(BuildID)"
+name: "$(BranchName)+$(BuildID)"
 
 variables:
   Version: 'test'
 
 trigger:
-- master
+  tags:
+    include:
+      - v*
 
 pr:
   branches:
