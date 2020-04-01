@@ -1,4 +1,7 @@
-name: "$(SPEC_VERSION)+$(BuildID)"
+name: "$(Version)+$(BuildID)"
+
+variables:
+  Version: 'test'
 
 trigger:
 - master
