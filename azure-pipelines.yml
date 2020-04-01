@@ -1,7 +1,4 @@
-name: "$(BranchName)+$(BuildID)"
-
-variables:
-  Version: 'test'
+name: "$(SourceBranchName)+$(BuildID)"
 
 trigger:
   tags:
