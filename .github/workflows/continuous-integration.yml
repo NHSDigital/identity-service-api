@@ -57,9 +57,3 @@ jobs:
         with:
           tag_name: ${{ env.SPEC_VERSION }}
           release_name: ${{ env.SPEC_VERSION }}
-
-      - name: Store distributable schema
-        uses: actions/upload-artifact@v1
-        with:
-          name: personal-demographics-${{ env.SPEC_VERSION }}+${{ github.run_id }}.json
-          path: ./build/personal-demographics.json
