@@ -1,6 +1,9 @@
 name: "$(SourceBranchName)+$(BuildID)"
 
 trigger:
+  branches:
+    include:
+      - tags/refs/v*
   tags:
     include:
       - v*
