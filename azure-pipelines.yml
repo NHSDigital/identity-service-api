@@ -65,11 +65,8 @@ jobs:
       - bash: "make publish"
         displayName: Compile Spec
 
-      - bash: 'echo "##vso[task.setvariable variable=SPEC_VERSION]$(poetry run python scripts/calculate_version.py)"'
-        displayName: Set SPEC_VERSION
-
       - bash: "make release"
         displayName: Build Release Package
 
       - publish: dist/
-        artifact: identity-service-$(SPEC_VERSION)+$(Build.BuildNumber)
+        artifact: identity-service-$(Build.BuildNumber)
