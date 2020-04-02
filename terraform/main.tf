@@ -18,4 +18,5 @@ module "identity-service" {
   path               = "identity-service"
   apigee_environment = var.apigee_environment
   proxy_type         = "live"
+  namespace          = var.namespace
 }
