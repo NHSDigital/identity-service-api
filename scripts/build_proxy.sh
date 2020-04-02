@@ -7,4 +7,6 @@ set -o nounset errexit pipefail
 
 rm -rf build/proxies
 mkdir -p build/proxies/live
-cp -Rv apiproxy build/proxies/live
+mkdir -p build/proxies/sandbox
+cp -Rv proxies/live build/proxies/live
+cp -Rv proxies/sandbox build/proxies/sandbox
