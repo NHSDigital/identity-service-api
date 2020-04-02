@@ -136,7 +136,7 @@
     </Flows>
     <HTTPProxyConnection>
         <!-- Cannot be parameterised / dynamic as it's part of callback URI registered with the identity provider -->
-        <BasePath>/oauth2/v1</BasePath>
+        <BasePath>$(SERVICE_BASE_PATH)</BasePath>
         <Properties/>
         <VirtualHost>secure</VirtualHost>
     </HTTPProxyConnection>
