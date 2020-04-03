@@ -24,7 +24,6 @@ jobs:
     steps:
       - checkout: self
 
-
       - bash: 'echo "##vso[build.updatebuildnumber]$(System.PullRequest.SourceBranch)+$(Build.BuildID)"'
         condition: eq(variables['Build.SourceBranchName'], 'merge')
         displayName: Update build ID if this is a pull request
