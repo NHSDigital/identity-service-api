@@ -1,4 +1,4 @@
-name: "$(System.PullRequest.SourceBranchName)$(SourceBranchName)+$(BuildID)"
+name: "$(System.PullRequest.SourceBranch)$(SourceBranchName)+$(BuildID)"
 
 trigger:
   branches:
