@@ -25,7 +25,8 @@ jobs:
       - checkout: self
 
 
-      - bash: 'if [ "$(SourceBranch)" -eq "merge" ]; then echo "##vso[build.updatebuildnumber]$(System.PullRequest.SourceBranch)+$(BuildID)" ; fi'
+      - bash: 'echo "##vso[build.updatebuildnumber]$(System.PullRequest.SourceBranch)+$(BuildID)"'
+        condition: eq(variables['SourceBranchName'], "merge")
         displayName: Update build ID if this is a pull request
 
       - task: UsePythonVersion@0
