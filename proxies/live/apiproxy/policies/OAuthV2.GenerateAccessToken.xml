@@ -4,7 +4,7 @@
     <ExternalAccessToken>externalAccessToken</ExternalAccessToken>
     <ExternalRefreshToken>externalRefreshToken</ExternalRefreshToken>
     <RedirectUri>request.formparam.redirect_uri</RedirectUri>
-    <ExpiresIn ref="expires_in">1800000</ExpiresIn>
+    <ExpiresIn ref="expires_in">600000</ExpiresIn>
     <RefreshTokenExpiresIn>-1</RefreshTokenExpiresIn>
     <SupportedGrantTypes>
         <GrantType>authorization_code</GrantType>
