@@ -1,4 +1,7 @@
-name: "$(System.PullRequest.SourceBranch)$(SourceBranchName)+$(BuildID)"
+${{ if eq(variables['SourceBranchName'], 'merge') }}:
+  name: "$(System.PullRequest.SourceBranch)+$(BuildID)"
+${{ if ne(variables['SourceBranchName'], 'merge') }}:
+  name: "$(SourceBranchName)+$(BuildID)"
 
 trigger:
   branches:
