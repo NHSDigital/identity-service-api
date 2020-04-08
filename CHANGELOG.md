@@ -1,5 +1,8 @@
 # Changelog
 
+## Now
+* DO NOT MERGE
+
 ## 2020-03-02
 * Add `NHSD-Session-URID` header to specification.
 * Rename `from_asid` header to `NHSD-ASID`
