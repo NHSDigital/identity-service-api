@@ -11,4 +11,7 @@
     </SupportedGrantTypes>
     <GenerateResponse enabled="false"/>
     <StoreToken>true</StoreToken>
+    <Attributes>
+      <Attribute name="id_token" ref="externalIdToken" display="true"/>
+    </Attributes>
 </OAuthV2>

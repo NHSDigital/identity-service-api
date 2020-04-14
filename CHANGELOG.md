@@ -1,5 +1,8 @@
 # Changelog
 
+## 2020-04-09
+* Store the JWT from the IdP as an attribute of the generated OAuth token for later use/retrieval
+
 ## 2020-03-02
 * Add `NHSD-Session-URID` header to specification.
 * Rename `from_asid` header to `NHSD-ASID`
