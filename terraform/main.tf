@@ -13,7 +13,7 @@ terraform {
 }
 
 module "identity-service" {
-  source             = "github.com/NHSDigital/api-platform-service-module?ref=apm-501-change-proxy-location"
+  source             = "github.com/NHSDigital/api-platform-service-module"
   name               = "identity-service"
   path               = "identity-service"
   apigee_environment = var.apigee_environment
