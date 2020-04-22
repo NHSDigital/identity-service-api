@@ -1,5 +1,8 @@
 # Changelog
 
+## 2020-04-22
+* Add step in pipeline to replace invalid characters in the branch name 
+
 ## 2020-04-09
 * Store the JWT from the IdP as an attribute of the generated OAuth token for later use/retrieval
 
