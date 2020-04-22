@@ -24,7 +24,7 @@ jobs:
     steps:
       - checkout: self
 
-      - bash: echo $(System.PullRequest.SourceBranch) | sed -r 's/[/|\\@":<>?*]+/-/g'
+      - bash: $(System.PullRequest.SourceBranch)=$( echo $(System.PullRequest.SourceBranch) | sed -r 's/[/|\\@":<>?*]+/-/g' )
         displayName: Check for invalid characters
 
       - bash: 'echo "##vso[build.updatebuildnumber]$(System.PullRequest.SourceBranch)+$(Build.BuildID)"'
