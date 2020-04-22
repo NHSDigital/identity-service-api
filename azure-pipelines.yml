@@ -24,10 +24,10 @@ jobs:
     steps:
       - checkout: self
 
-      - bash: System.PullRequest.SourceBranch=$( echo $(System.PullRequest.SourceBranch) | sed -r 's/[/|\\@":<>?*]+/-/g' )
+      - bash: export BRANCH_NAME=$( echo $(System.PullRequest.SourceBranch) | sed -r 's/[/|\\@":<>?*]+/-/g' )
         displayName: Check for invalid characters
 
-      - bash: 'echo "##vso[build.updatebuildnumber]$(System.PullRequest.SourceBranch)+$(Build.BuildID)"'
+      - bash: 'echo "##vso[build.updatebuildnumber]$BRANCH_NAME+$(Build.BuildID)"'
         condition: eq(variables['Build.SourceBranchName'], 'merge')
         displayName: Update build ID if this is a pull request
 
