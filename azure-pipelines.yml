@@ -24,7 +24,7 @@ jobs:
     steps:
       - checkout: self
 
-      - bash: echo "##vso[task.setvariable variable=BRANCH_NAME]`echo $(System.PullRequest.SourceBranch) | sed -r 's/[/|\\@:<>?*]+/-/g'`
+      - bash: echo "##vso[task.setvariable variable=BRANCH_NAME]`echo $(System.PullRequest.SourceBranch) | sed -r 's/[/|\\@":<>?*]+/-/g'`"
         displayName: Check for invalid characters
 
       - bash: 'echo "##vso[build.updatebuildnumber]$(BRANCH_NAME)+$(Build.BuildID)"'
