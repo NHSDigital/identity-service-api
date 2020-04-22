@@ -1,7 +1,5 @@
 # Changelog
 
-# Test with slash in name DO NOT MERGE
-
 ## 2020-04-09
 * Store the JWT from the IdP as an attribute of the generated OAuth token for later use/retrieval
 
