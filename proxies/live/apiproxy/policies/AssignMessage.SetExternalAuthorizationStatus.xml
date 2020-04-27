@@ -1,11 +1,10 @@
 <AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.SetExternalAuthorizationStatus">
   <AssignVariable>
+    <!-- A magic variable indicating external authorization success.
+      See https://docs.apigee.com/api-platform/security/oauth/use-third-party-oauth-system
+    -->
     <Name>oauth_external_authorization_status</Name>
     <Value>true</Value>
-  </AssignVariable>
-  <AssignVariable>
-    <Name>response_type</Name>
-    <Value>code</Value>
   </AssignVariable>
   <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
 </AssignMessage>

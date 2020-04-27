@@ -55,9 +55,6 @@
                     <Name>KeyValueMapOperations.GetApigeeOauthCredentials</Name>
                 </Step>
                 <Step>
-                    <Name>BasicAuthentication.Encode</Name>
-                </Step>
-                <Step>
                     <Name>ServiceCallout.PostToken</Name>
                 </Step>
                 <Step>
@@ -65,9 +62,6 @@
                 </Step>
                 <Step>
                     <Name>AssignMessage.SetExternalAuthorizationStatus</Name>
-                </Step>
-                <Step>
-                    <Name>AssignMessage.SetAuthorization</Name>
                 </Step>
                 <Step>
                     <Name>OAuthV2.GenerateAccessToken</Name>
