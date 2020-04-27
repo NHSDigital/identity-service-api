@@ -93,9 +93,6 @@
                     <Name>ExtractVariables.ReadCacheJson</Name>
                 </Step>
                 <Step>
-                    <Name>AssignMessage.SetExternalAuthorizationStatus</Name>
-                </Step>
-                <Step>
                     <Name>OAuthV2.GenerateAuthCode</Name>
                 </Step>
             </Request>
