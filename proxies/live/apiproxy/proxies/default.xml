@@ -61,9 +61,6 @@
                     <Name>ExtractVariables.AccessToken</Name>
                 </Step>
                 <Step>
-                    <Name>AssignMessage.SetExternalAuthorizationStatus</Name>
-                </Step>
-                <Step>
                     <Name>OAuthV2.GenerateAccessToken</Name>
                 </Step>
             </Request>
