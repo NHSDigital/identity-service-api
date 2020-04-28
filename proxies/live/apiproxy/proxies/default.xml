@@ -73,6 +73,20 @@
                 </Step>
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "authorization_code")</Condition>
+          </Flow>
+          <Flow name="Flow.PostRefreshToken">
+            <Description>OAuth Refresh Token Endpoint</Description>
+            <Request>
+              <Step>
+                <Name>OAuthV2.GenerateRefreshToken</Name>
+              </Step>
+            </Request>
+            <Response>
+                <Step>
+                    <Name>AssignMessage.GenerateRefreshTokenResponse</Name>
+                </Step>
+            </Response>
+            <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "refresh_token")</Condition>
         </Flow>
         <Flow name="Flow.GetCallback">
             <Description>Flow to catch the Code response</Description>

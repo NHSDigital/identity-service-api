@@ -1,0 +1,18 @@
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.GenerateRefreshTokenResponse">
+  <Set>
+    <Payload contentType="application/json">
+      {
+        "access_token": "{oauthv2accesstoken.OAuthV2.GenerateRefreshToken.access_token}",
+        "token_type": "{token_type}",
+        "expires_in": "{oauthv2accesstoken.OAuthV2.GenerateRefreshToken.expires_in}",
+        "refresh_token": "{oauthv2accesstoken.OAuthV2.GenerateRefreshToken.refresh_token}",
+        "id_token": "{oauthv2accesstoken.OAuthV2.GenerateRefreshToken.id_token}",
+        "refresh_token_expires_in": "{oauthv2accesstoken.OAuthV2.GenerateRefreshToken.refresh_token_expires_in}",
+        "refresh_count": "{oauthv2accesstoken.OAuthV2.GenerateRefreshToken.refresh_count}",
+        "token_type": "Bearer"
+      }
+    </Payload>
+  </Set>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+<AssignTo createNew="false" transport="http" type="request"/>
+</AssignMessage>
