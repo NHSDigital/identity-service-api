@@ -1,8 +1,5 @@
 <OAuthV2 async="false" continueOnError="false" enabled="true" name="OAuthV2.GenerateAccessToken">
     <Operation>GenerateAccessToken</Operation>
-    <ExternalAuthorization>true</ExternalAuthorization>
-    <ExternalAccessToken>externalAccessToken</ExternalAccessToken>
-    <ExternalRefreshToken>externalRefreshToken</ExternalRefreshToken>
     <RedirectUri>request.formparam.redirect_uri</RedirectUri>
     <ExpiresIn ref="expires_in">600000</ExpiresIn>
     <RefreshTokenExpiresIn>-1</RefreshTokenExpiresIn>
@@ -10,7 +7,6 @@
         <GrantType>authorization_code</GrantType>
     </SupportedGrantTypes>
     <GenerateResponse enabled="false"/>
-    <StoreToken>true</StoreToken>
     <Attributes>
       <Attribute name="id_token" ref="externalIdToken" display="true"/>
     </Attributes>
