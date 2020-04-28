@@ -1,8 +1,10 @@
 <OAuthV2 async="false" continueOnError="false" enabled="true" name="OAuthV2.GenerateAccessToken">
     <Operation>GenerateAccessToken</Operation>
     <RedirectUri>request.formparam.redirect_uri</RedirectUri>
+    <!-- 10 minutes: -->
     <ExpiresIn ref="expires_in">600000</ExpiresIn>
-    <RefreshTokenExpiresIn>-1</RefreshTokenExpiresIn>
+    <!-- 10 hours: -->
+    <RefreshTokenExpiresIn>36000000</RefreshTokenExpiresIn>
     <SupportedGrantTypes>
         <GrantType>authorization_code</GrantType>
     </SupportedGrantTypes>
