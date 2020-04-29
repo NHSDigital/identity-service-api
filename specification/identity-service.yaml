@@ -78,6 +78,7 @@ servers:
     description: Identity sandbox.
 tags:
   - name: authorize
+  - name: token
 paths:
   /authorize:
     get:
@@ -95,57 +96,31 @@ paths:
               properties:
                 response_type:
                   type: string
+                  enum:
+                    - code
+                  description: Tells the authorization server which grant to execute
                 client_id:
                   type: string
+                  description: The id of the application that asks for authorization
                 redirect_uri:
                   type: string
+                  format: uri
+                  description: Holds a URL. A successful response from this endpoint results in a redirect to this URL
+                  example: https://example.app.nhs.net
                 scope:
                   type: string
+                  description: A space-delimited list of permissions that the application requires
+                  example: openid
                 state:
                   type: string
+                  description: |
+                    An opaque value, used for security purposes. If this request parameter is set in the request, then it is returned to the application as part of the redirect_uri.
+
+                    Note: The parameter should be used for preventing cross-site request forgery
+                  example: d04a38c3-e508-4c43-9918-76c7203c7ade
               required:
                 - response_type
                 - client_id
-      # parameters:
-      #   - in: query
-      #     name: response_type
-      #     description: Tells the authorization server which grant to execute
-      #     required: true
-      #     schema:
-      #       type: string
-      #       enum:
-      #         - code
-      #   - in: query
-      #     name: client_id
-      #     description: The id of the application that asks for authorization
-      #     required: true
-      #     schema:
-      #       type: string
-      #   - in: query
-      #     name: redirect_uri
-      #     description: Holds a URL. A successful response from this endpoint results in a redirect to this URL
-      #     required: false
-      #     schema:
-      #       type: string
-      #       format: uri
-      #       example: https://example.app.nhs.net
-      #   - in: query
-      #     name: scope
-      #     description: A space-delimited list of permissions that the application requires
-      #     required: false
-      #     schema:
-      #       type: string
-      #       example: openid
-      #   - in: query
-      #     name: state
-      #     description: |
-      #       An opaque value, used for security purposes. If this request parameter is set in the request, then it is returned to the application as part of the redirect_uri.
-
-      #       Note: The parameter SHOULD be used for preventing cross-site request forgery
-      #     required: false
-      #     schema:
-      #       type: string
-      #       example: d04a38c3-e508-4c43-9918-76c7203c7ade
       responses:
         '302':
           description: A successful authorization containing a authorization code and redirects to redirect_uri
@@ -160,3 +135,122 @@ paths:
                     type: string
                 required:
                   - code
+        default:
+          description: Authorization Error
+          content:
+            application/x-www-form-urlencoded:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: A single ASCII error code
+                    enum:
+                      - invalid_request
+                      - unauthorized_client
+                      - access_denied
+                      - unsupported_response_type
+                      - invalid_scope
+                      - server_error
+                      - temporarily_unavailable
+                  error_description:
+                    type: string
+                    description: Human-readable ASCII text providing additional information, used to assist the client developer in understanding the error that occurred.
+                  error_uri:
+                    type: string
+                    format: uri
+                    example: https://example.app.nhs.net
+                required:
+                  - error
+  /token:
+    get:
+      tags:
+        - token
+      summary: Obtain an access token
+      operationId: token
+      description: The token endpoint is used by the client to obtain an access token by presenting its authorization grant or refresh token.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                grant_type:
+                  type: string
+                  enum:
+                    - authorization_code
+                code:
+                  type: string
+                  description: The authorization code.
+                redirect_uri:
+                  type: string
+                  format: uri
+                  description: The redirect_uri used in the authorization request
+                  example: https://example.app.nhs.net
+                client_id:
+                  type: string
+                  description: The id of the application that asks for authorization
+                client_secret:
+                  type: string
+                  description: The application's secret
+              required:
+                - grant_type
+                - code
+                - redirect_uri
+                - client_id
+                - client_secret
+      responses:
+        '200':
+          description: A successful token exchange request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    description: The access token issued by the authorization server.
+                  token_type:
+                    type: string
+                    description: The type of the token issued.
+                  expires_in:
+                    type: integer
+                    description: The lifetime in seconds of the access token.
+                  refresh_token:
+                    type: string
+                    description: The refresh token, which can be used to obtain new access tokens 
+                  scope:
+                    type: string
+                    description: A space-delimited list of permissions that the application requires
+                required:
+                  - access_token
+                  - token_type
+        default:
+          description: Token Exchange Error
+          content:
+            application/x-www-form-urlencoded:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: A single ASCII error code
+                    enum:
+                      - invalid_request
+                      - unauthorized_client
+                      - access_denied
+                      - unsupported_response_type
+                      - invalid_scope
+                      - server_error
+                      - temporarily_unavailable
+                  error_description:
+                    type: string
+                    description: Human-readable ASCII text providing additional information, used to assist the client developer in understanding the error that occurred.
+                  error_uri:
+                    type: string
+                    format: uri
+                    example: https://example.app.nhs.net
+                required:
+                  - error
+              
