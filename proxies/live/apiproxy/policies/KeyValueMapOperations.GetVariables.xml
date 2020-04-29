@@ -25,4 +25,9 @@
       <Parameter>redirect_uri</Parameter>
     </Key>
   </Get>
+  <Get assignTo="private.apigee.max_token_refreshes_allowed" index="1">
+    <Key>
+      <Parameter>max_token_refreshes_allowed</Parameter>
+    </Key>
+  </Get>
 </KeyValueMapOperations>

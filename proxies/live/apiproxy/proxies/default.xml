@@ -83,6 +83,13 @@
               <Step>
                 <Name>OAuthV2.GenerateRefreshToken</Name>
               </Step>
+              <Step>
+                <Name>KeyValueMapOperations.GetVariables</Name>
+              </Step>
+              <Step>
+                <Name>RaiseFault.MaxRefreshExceeded</Name>
+                <Condition>oauthv2accesstoken.OAuthV2.GenerateRefreshToken.refresh_count > private.apigee.max_token_refreshes_allowed</Condition>
+              </Step>
             </Request>
             <Response>
                 <Step>
