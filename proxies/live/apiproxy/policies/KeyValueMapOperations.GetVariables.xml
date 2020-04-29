@@ -2,8 +2,8 @@
     async="false"
     continueOnError="false"
     enabled="true"
-    name="KeyValueMapOperations.GetApigeeOauthCredentials"
-    mapIdentifier="oauth-credentials"
+    name="KeyValueMapOperations.GetVariables"
+    mapIdentifier="identity-service-variables"
   >
   <Get assignTo="private.apigee.access_token_path" index="1">
     <Key>
@@ -18,11 +18,6 @@
   <Get assignTo="private.apigee.client_id" index="1">
     <Key>
       <Parameter>client_id</Parameter>
-    </Key>
-  </Get>
-  <Get assignTo="private.apigee.client_secret" index="1">
-    <Key>
-      <Parameter>client_secret</Parameter>
     </Key>
   </Get>
   <Get assignTo="private.apigee.redirect_uri" index="1">
