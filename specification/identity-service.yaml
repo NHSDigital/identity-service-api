@@ -136,9 +136,9 @@ paths:
                 required:
                   - code
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: 'components/responses/InvalidRequest.yaml'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: 'components/responses/Unauthorized.yaml'
   /token:
     post:
       tags:
@@ -203,46 +203,7 @@ paths:
                 required:
                   - access_token
                   - token_type
-        default:
-          description: Token Exchange Error
-          content:
-            application/x-www-form-urlencoded:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    description: A single ASCII error code
-                    enum:
-                      - invalid_request
-                      - unauthorized_client
-                      - access_denied
-                      - unsupported_response_type
-                      - invalid_scope
-                      - server_error
-                      - temporarily_unavailable
-                  error_description:
-                    type: string
-                    description: Human-readable ASCII text providing additional information, used to assist the client developer in understanding the error that occurred.
-                  error_uri:
-                    type: string
-                    format: uri
-                    example: https://example.app.nhs.net
-                required:
-                  - error
-
-# Description of common components
-components:
-  responses:
-    BadRequest:
-      description: Invalid request
-      content:
-        application/json:
-          schema:
-            $ref: 'components/schemas/ErrorResponse.yaml'
-    Unauthorized: 
-      description: Unauthorized
-      content:
-        application/json:
-          schema:
-            $ref: 'components/schemas/ErrorResponse.yaml'
+        '400':
+          $ref: 'components/responses/InvalidRequest.yaml'
+        '401':
+          $ref: 'components/responses/Unauthorized.yaml'
