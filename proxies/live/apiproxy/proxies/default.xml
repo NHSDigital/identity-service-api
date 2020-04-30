@@ -81,6 +81,9 @@
             <Description>OAuth Refresh Token Endpoint</Description>
             <Request>
               <Step>
+                <Name>KeyValueMapOperations.GetVariables</Name>
+              </Step>
+              <Step>
                 <Name>OAuthV2.GenerateRefreshToken</Name>
               </Step>
               <Step>

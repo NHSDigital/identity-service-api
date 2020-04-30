@@ -2,7 +2,7 @@
   <Operation>RefreshAccessToken</Operation>
   <GenerateResponse enabled="false"/>
   <!-- 10 minutes: -->
-  <ExpiresIn ref="expires_in">600000</ExpiresIn>
+  <ExpiresIn ref="private.apigee.access_token_expiry_ms">600000</ExpiresIn>
   <!-- 10 hours: -->
-  <RefreshTokenExpiresIn>36000000</RefreshTokenExpiresIn>
+  <RefreshTokenExpiresIn ref="private.apigee.refresh_token_expiry_ms">36000000</RefreshTokenExpiresIn>
 </OAuthV2>
