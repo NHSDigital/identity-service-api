@@ -90,8 +90,11 @@
                 <Name>KeyValueMapOperations.GetVariables</Name>
               </Step>
               <Step>
-                <Name>RaiseFault.MaxRefreshExceeded</Name>
-                <Condition>oauthv2accesstoken.OAuthV2.GenerateRefreshToken.refresh_count > private.apigee.max_token_refreshes_allowed</Condition>
+                <Name>JavaScript.CalculateAccessTokenAge</Name>
+              </Step>
+              <Step>
+                <Name>RaiseFault.TokenRefreshTimelimitExceeded</Name>
+                <Condition>private.apigee.access_token_age_ms > private.apigee.refresh_tokens_validity_ms</Condition>
               </Step>
             </Request>
             <Response>

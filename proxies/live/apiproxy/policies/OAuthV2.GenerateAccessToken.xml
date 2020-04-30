@@ -11,5 +11,6 @@
     <GenerateResponse enabled="false"/>
     <Attributes>
       <Attribute name="id_token" ref="externalIdToken" display="true"/>
+      <Attribute name="_first_issued" ref="system.timestamp" display="false"/>
     </Attributes>
 </OAuthV2>
