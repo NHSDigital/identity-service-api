@@ -1,10 +1,10 @@
-<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.MaxRefreshExceeded">
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.TokenRefreshTimelimitExceeded">
   <FaultResponse>
     <Set>
       <Payload contentType="application/json">
         {
-          "error" : "max_refresh_exceeded",
-          "error_description" :"Cannot refresh token more than {private.apigee.max_token_refreshes_allowed} times"
+          "error" : "refresh_time_limit_exceeded",
+          "error_description" :"Cannot refresh token {private.apigee.refresh_tokens_validity_ms}ms after generation"
         }
       </Payload>
       <StatusCode>400</StatusCode>

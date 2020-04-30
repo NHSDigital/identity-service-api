@@ -3,7 +3,6 @@
       <Payload contentType="application/json">
         {
           "access_token": "{oauthv2accesstoken.OAuthV2.GenerateAccessToken.access_token}",
-          "token_type": "{token_type}",
           "expires_in": "{oauthv2accesstoken.OAuthV2.GenerateAccessToken.expires_in}",
           "refresh_token": "{oauthv2accesstoken.OAuthV2.GenerateAccessToken.refresh_token}",
           "id_token": "{oauthv2accesstoken.OAuthV2.GenerateAccessToken.id_token}",
