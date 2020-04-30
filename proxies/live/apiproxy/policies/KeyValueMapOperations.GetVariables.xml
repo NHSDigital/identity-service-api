@@ -30,4 +30,14 @@
       <Parameter>max_token_refreshes_allowed</Parameter>
     </Key>
   </Get>
+  <Get assignTo="private.apigee.access_token_expiry_ms" index="1">
+    <Key>
+      <Parameter>access_token_expiry_ms</Parameter>
+    </Key>
+  </Get>
+  <Get assignTo="private.apigee.refresh_token_expiry_ms" index="1">
+    <Key>
+      <Parameter>refresh_token_expiry_ms</Parameter>
+    </Key>
+  </Get>
 </KeyValueMapOperations>
