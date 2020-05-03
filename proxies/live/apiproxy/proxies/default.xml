@@ -63,6 +63,33 @@
                 <Step>
                     <Name>ExtractVariables.AccessToken</Name>
                 </Step>
+                <!-- Using pattern from https://community.apigee.com/questions/34110/how-can-i-store-the-results-of-the-servicecallout.html
+                    Steps are:
+                    1. LookupCache.JWKS: Attempt to get JWKS from cache, store in flow variable `jwks`
+                    2. If this fails (`jwks` is null)
+                    2a. ServiceCallout.GetJWKS: Retrieve JWKS from IdP
+                    2b. PopulateCache.JWKS: Store in cache
+                    2c. AssignMessage.JWKS: Assign the JWKS from the service callout to `jwks` flow variable
+                    3. VerifyJWT.FromExternalIdToken: Verify the JWT using the `jwks` flow variable
+                -->
+                <Step>
+                  <Name>LookupCache.JWKS</Name>
+                </Step>
+                <Step>
+                  <Name>ServiceCallout.GetJWKS</Name>
+                  <Condition>jwks = null</Condition>
+                </Step>
+                <Step>
+                  <Name>PopulateCache.JWKS</Name>
+                  <Condition>jwks = null</Condition>
+                </Step>
+                <Step>
+                  <Name>AssignMessage.JWKS</Name>
+                  <Condition>jwks = null</Condition>
+                </Step>
+                <Step>
+                  <Name>VerifyJWT.FromExternalIdToken</Name>
+                </Step>
                 <Step>
                     <Name>OAuthV2.GenerateAccessToken</Name>
                 </Step>

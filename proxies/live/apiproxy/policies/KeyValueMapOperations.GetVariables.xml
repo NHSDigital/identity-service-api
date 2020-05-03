@@ -42,4 +42,9 @@
       <Parameter>refresh_tokens_validity_ms</Parameter>
     </Key>
   </Get>
+  <Get assignTo="private.apigee.jwks_path" index="1">
+    <Key>
+        <Parameter>jwks_path</Parameter>
+    </Key>
+  </Get>
 </KeyValueMapOperations>
