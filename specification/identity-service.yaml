@@ -212,7 +212,6 @@ paths:
                     type: string
                     description: A space-delimited list of permissions that the application requires
                     example: openid
-                  #TODO add id_token
                 required:
                   - access_token
                   - token_type
