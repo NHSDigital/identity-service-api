@@ -102,6 +102,7 @@ paths:
                 client_id:
                   type: string
                   description: The id of the application that asks for authorization
+                  example: ibyNIVIZ5RcAAMNluoArhIisALU3OLMr
                 redirect_uri:
                   type: string
                   format: uri
@@ -131,8 +132,11 @@ paths:
                 properties:
                   code:
                     type: string
+                    enum:
+                      - code
                   state:
                     type: string
+                    example: d04a38c3-e508-4c43-9918-76c7203c7ade
                 required:
                   - code
         '400':
@@ -160,6 +164,7 @@ paths:
                 code:
                   type: string
                   description: The authorization code.
+                  example: frVpKg-TirVwU1APwiboHaWrto8
                 redirect_uri:
                   type: string
                   format: uri
@@ -168,8 +173,10 @@ paths:
                 client_id:
                   type: string
                   description: The id of the application that asks for authorization
+                  example: ibyNIVIZ5RcAAMNluoArhIisALU3OLMr
                 client_secret:
                   type: string
+                  example: UdsgcsZEksvC0Z2u
                   description: The application's secret
               required:
                 - grant_type
@@ -188,18 +195,24 @@ paths:
                   access_token:
                     type: string
                     description: The access token issued by the authorization server.
+                    example: Gzjxmf2rBoy8Amyba_I8R2njcOU
                   token_type:
                     type: string
                     description: The type of the token issued.
+                    example: Bearer
                   expires_in:
                     type: integer
                     description: The lifetime in seconds of the access token.
+                    example: 599
                   refresh_token:
                     type: string
-                    description: The refresh token, which can be used to obtain new access tokens 
+                    description: The refresh token, which can be used to obtain new access tokens
+                    example: pUDyf17ZD29QjQ7tjaHZnbVItztmM9bI
                   scope:
                     type: string
                     description: A space-delimited list of permissions that the application requires
+                    example: openid
+                  #TODO add id_token
                 required:
                   - access_token
                   - token_type

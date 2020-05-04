@@ -14,6 +14,7 @@ properties:
   error_description:
     type: string
     description: Human-readable ASCII text providing additional information, used to assist the client developer in understanding the error that occurred.
+    example: 'Missing param : username'
   error_uri:
     type: string
     format: uri
