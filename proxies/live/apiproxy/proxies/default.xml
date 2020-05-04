@@ -43,8 +43,13 @@
         <Flow name="Flow.PostToken">
             <Description>OAuth Token Endpoint</Description>
             <Request>
+                <!-- First two steps verify the Client Application using both client_id and client_secret form params -->
                 <Step>
-                    <Name>BasicAuthentication.Decode</Name>
+                  <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
+                </Step>
+                <Step>
+                  <Name>RaiseFault.Unauthorized</Name>
+                  <Condition>request.formparam.client_secret != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.client_secret</Condition>
                 </Step>
                 <Step>
                     <Name>KeyValueMapOperations.GetApigeeOauthCredentials</Name>

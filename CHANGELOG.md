@@ -3,8 +3,11 @@
 ## 2020-05-04
 * Add the /authorize and the /token endpoint to the specification 
 
+## 2020-04-23
+* Client Applications no longer authenticate themselves with both HTTP Basic Auth headers *and* Client ID + Secret in form data during POSTs to `/token` endpoint - now just the latter.
+
 ## 2020-04-22
-* Add step in pipeline to replace invalid characters in the branch name 
+* Add step in pipeline to replace invalid characters in the branch name
 
 ## 2020-04-09
 * Store the JWT from the IdP as an attribute of the generated OAuth token for later use/retrieval
