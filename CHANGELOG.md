@@ -1,5 +1,8 @@
 # Changelog
 
+## 2020-05-04
+* Add the /authorize and the /token endpoint to the specification 
+
 ## 2020-04-22
 * Add step in pipeline to replace invalid characters in the branch name 
 
