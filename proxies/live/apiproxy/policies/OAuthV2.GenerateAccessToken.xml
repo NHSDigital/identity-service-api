@@ -1,17 +1,18 @@
 <OAuthV2 async="false" continueOnError="false" enabled="true" name="OAuthV2.GenerateAccessToken">
     <Operation>GenerateAccessToken</Operation>
-    <ExternalAuthorization>true</ExternalAuthorization>
-    <ExternalAccessToken>externalAccessToken</ExternalAccessToken>
-    <ExternalRefreshToken>externalRefreshToken</ExternalRefreshToken>
     <RedirectUri>request.formparam.redirect_uri</RedirectUri>
-    <ExpiresIn ref="expires_in">600000</ExpiresIn>
-    <RefreshTokenExpiresIn>-1</RefreshTokenExpiresIn>
+    <!-- 10 minutes: -->
+    <ExpiresIn ref="private.apigee.access_token_expiry_ms">600000</ExpiresIn>
+    <!-- 10 hours: -->
+    <RefreshTokenExpiresIn ref="private.apigee.refresh_token_expiry_ms">36000000</RefreshTokenExpiresIn>
     <SupportedGrantTypes>
         <GrantType>authorization_code</GrantType>
     </SupportedGrantTypes>
     <GenerateResponse enabled="false"/>
-    <StoreToken>true</StoreToken>
     <Attributes>
       <Attribute name="id_token" ref="externalIdToken" display="true"/>
+      <Attribute name="id_token-subject" ref="jwt.VerifyJWT.FromExternalIdToken.claim.subject" display="true"/>
+      <Attribute name="id_token-issuer" ref="jwt.VerifyJWT.FromExternalIdToken.claim.issuer" display="true"/>
+      <Attribute name="_first_issued" ref="system.timestamp" display="false"/>
     </Attributes>
 </OAuthV2>

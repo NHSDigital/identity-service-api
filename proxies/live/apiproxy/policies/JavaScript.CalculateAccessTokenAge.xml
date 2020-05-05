@@ -1,0 +1,3 @@
+<Javascript async="false" continueOnError="false" enabled="true" timeLimit="200" name="JavaScript.CalculateAccessTokenAge">
+  <ResourceURL>jsc://calculate-token-age.js</ResourceURL>
+</Javascript>
