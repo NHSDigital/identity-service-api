@@ -74,7 +74,7 @@ info:
     url: 'https://tbc.api.nhs.net'
     email: tbc-api-support@nhs.net
 servers:
-  - url: 'https://sandbox.api.service.nhs.uk/identity-service/oauth2'
+  - url: 'https://sandbox.api.service.nhs.uk/oauth2'
     description: Identity sandbox.
 tags:
   - name: authorize
@@ -87,41 +87,47 @@ paths:
       summary: Request token or authorization codes via the browser
       operationId: authorize
       description: The Authorization endpoint is used to interact with the resource owner and get the authorization to access the protected resource.
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              properties:
-                response_type:
-                  type: string
-                  enum:
-                    - code
-                  description: Tells the authorization server which grant to execute
-                client_id:
-                  type: string
-                  description: The id of the application that asks for authorization
-                  example: ibyNIVIZ5RcAAMNluoArhIisALU3OLMr
-                redirect_uri:
-                  type: string
-                  format: uri
-                  description: Holds a URL. A successful response from this endpoint results in a redirect to this URL
-                  example: https://example.app.nhs.net
-                scope:
-                  type: string
-                  description: A space-delimited list of permissions that the application requires
-                  example: openid
-                state:
-                  type: string
-                  description: |
-                    An opaque value, used for security purposes. If this request parameter is set in the request, then it is returned to the application as part of the redirect_uri.
+      parameters:
+        - in: query
+          name: response_type
+          description: Tells the authorization server which grant to execute
+          required: true
+          schema:
+            type: string
+            enum:
+              - code
+        - in: query
+          name: client_id
+          description: The id of the application that asks for authorization
+          required: true
+          schema:
+            type: string
+            example: ibyNIVIZ5RcAAMNluoArhIisALU3OLMr
+        - in: query
+          name: redirect_uri
+          description: Holds a URL. A successful response from this endpoint results in a redirect to this URL
+          required: false
+          schema:
+            type: string
+            format: uri
+            example: https://example.app.nhs.net
+        - in: query
+          name: scope
+          description: A space-delimited list of permissions that the application requires
+          required: false
+          schema:
+            type: string
+            example: openid
+        - in: query
+          name: state
+          description: |
+            An opaque value, used for security purposes. If this request parameter is set in the request, then it is returned to the application as part of the redirect_uri.
 
-                    Note: The parameter should be used for preventing cross-site request forgery
-                  example: d04a38c3-e508-4c43-9918-76c7203c7ade
-              required:
-                - response_type
-                - client_id
+            Note: The parameter SHOULD be used for preventing cross-site request forgery
+          required: false
+          schema:
+            type: string
+            example: d04a38c3-e508-4c43-9918-76c7203c7ade
       responses:
         '302':
           description: A successful authorization containing a authorization code and redirects to redirect_uri
