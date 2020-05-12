@@ -1,5 +1,8 @@
 # Changelog
 
+## 2020-05-12
+* Remove the scope query parameter from the callback redirection (scope-less OAuth)
+
 ## 2020-04-23
 * Client Applications no longer authenticate themselves with both HTTP Basic Auth headers *and* Client ID + Secret in form data during POSTs to `/token` endpoint - now just the latter.
 
