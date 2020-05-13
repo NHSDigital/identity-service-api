@@ -68,7 +68,7 @@ info:
     To see details for specific endpoints, select from the list on the left hand side of the page:
     * `GET /authorize` - request token or authorization codes via the browser
     * `POST /token` - request or refresh tokens
-    TODO: Add /callback and /userinfo enpoints
+    * TODO: Add /callback and /userinfo enpoints
   contact:
     name: Identity Service API Support
     url: 'https://tbc.api.nhs.net'

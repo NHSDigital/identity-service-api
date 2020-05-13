@@ -1,5 +1,9 @@
 # Changelog
 
+## 2020-05-13
+* Remove id_token from the /token endpoint
+* Update the specification to include the refresh parameters
+
 ## 2020-05-04
 * Add the /authorize and the /token endpoint to the specification 
 
