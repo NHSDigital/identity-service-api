@@ -1,6 +1,6 @@
 <PopulateCache async="false" continueOnError="false" enabled="true" name="PopulateCache.OriginalClientInfo">
   <CacheKey>
-    <KeyFragment>{state}</KeyFragment>
+    <KeyFragment ref="apigee.state" />
     <KeyFragment>original_client</KeyFragment>
   </CacheKey>
   <CacheResource>client-state</CacheResource>

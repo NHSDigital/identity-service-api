@@ -21,7 +21,7 @@
                     <Condition>request.queryparam.redirect_uri != verifyapikey.VerifyAPIKey.ClientId.redirection_uris</Condition>
                 </Step>
                 <Step>
-                    <Name>KeyValueMapOperations.GetApigeeOauthCredentials</Name>
+                    <Name>KeyValueMapOperations.GetVariables</Name>
                 </Step>
                 <Step>
                     <Name>AssignMessage.GenerateState</Name>
@@ -43,14 +43,19 @@
         <Flow name="Flow.PostToken">
             <Description>OAuth Token Endpoint</Description>
             <Request>
+                <!-- First two steps verify the Client Application using both client_id and client_secret form params -->
                 <Step>
-                    <Name>BasicAuthentication.Decode</Name>
+                  <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
                 </Step>
                 <Step>
-                    <Name>KeyValueMapOperations.GetApigeeOauthCredentials</Name>
+                  <Name>RaiseFault.Unauthorized</Name>
+                  <Condition>request.formparam.client_secret != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.client_secret</Condition>
                 </Step>
                 <Step>
-                    <Name>BasicAuthentication.Encode</Name>
+                    <Name>KeyValueMapOperations.GetVariables</Name>
+                </Step>
+                <Step>
+                    <Name>KeyValueMapOperations.GetSecureVariables</Name>
                 </Step>
                 <Step>
                     <Name>ServiceCallout.PostToken</Name>
@@ -58,11 +63,32 @@
                 <Step>
                     <Name>ExtractVariables.AccessToken</Name>
                 </Step>
+                <!-- Using pattern from https://community.apigee.com/questions/34110/how-can-i-store-the-results-of-the-servicecallout.html
+                    Steps are:
+                    1. LookupCache.JWKS: Attempt to get JWKS from cache, store in flow variable `jwks`
+                    2. If this fails (`jwks` is null)
+                    2a. ServiceCallout.GetJWKS: Retrieve JWKS from IdP
+                    2b. PopulateCache.JWKS: Store in cache
+                    2c. AssignMessage.JWKS: Assign the JWKS from the service callout to `jwks` flow variable
+                    3. VerifyJWT.FromExternalIdToken: Verify the JWT using the `jwks` flow variable
+                -->
                 <Step>
-                    <Name>AssignMessage.SetExternalAuthorizationStatus</Name>
+                  <Name>LookupCache.JWKS</Name>
                 </Step>
                 <Step>
-                    <Name>AssignMessage.SetAuthorization</Name>
+                  <Name>ServiceCallout.GetJWKS</Name>
+                  <Condition>jwks = null</Condition>
+                </Step>
+                <Step>
+                  <Name>PopulateCache.JWKS</Name>
+                  <Condition>jwks = null</Condition>
+                </Step>
+                <Step>
+                  <Name>AssignMessage.JWKS</Name>
+                  <Condition>jwks = null</Condition>
+                </Step>
+                <Step>
+                  <Name>VerifyJWT.FromExternalIdToken</Name>
                 </Step>
                 <Step>
                     <Name>OAuthV2.GenerateAccessToken</Name>
@@ -77,6 +103,33 @@
                 </Step>
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "authorization_code")</Condition>
+          </Flow>
+          <Flow name="Flow.PostRefreshToken">
+            <Description>OAuth Refresh Token Endpoint</Description>
+            <Request>
+              <Step>
+                <Name>KeyValueMapOperations.GetVariables</Name>
+              </Step>
+              <Step>
+                <Name>OAuthV2.GenerateRefreshToken</Name>
+              </Step>
+              <Step>
+                <Name>KeyValueMapOperations.GetVariables</Name>
+              </Step>
+              <Step>
+                <Name>JavaScript.CalculateAccessTokenAge</Name>
+              </Step>
+              <Step>
+                <Name>RaiseFault.TokenRefreshTimelimitExceeded</Name>
+                <Condition>private.apigee.access_token_age_ms > private.apigee.refresh_tokens_validity_ms</Condition>
+              </Step>
+            </Request>
+            <Response>
+                <Step>
+                    <Name>AssignMessage.GenerateRefreshTokenResponse</Name>
+                </Step>
+            </Response>
+            <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "refresh_token")</Condition>
         </Flow>
         <Flow name="Flow.GetCallback">
             <Description>Flow to catch the Code response</Description>
@@ -86,9 +139,6 @@
                 </Step>
                 <Step>
                     <Name>ExtractVariables.ReadCacheJson</Name>
-                </Step>
-                <Step>
-                    <Name>AssignMessage.SetExternalAuthorizationStatus</Name>
                 </Step>
                 <Step>
                     <Name>OAuthV2.GenerateAuthCode</Name>
