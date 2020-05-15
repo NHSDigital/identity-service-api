@@ -1,4 +1,4 @@
-# template-api
+# identity-service-api
 
 ![Build](https://github.com/NHSDigital/template-api/workflows/Build/badge.svg?branch=master)
 

@@ -1,10 +1,10 @@
-<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.CheckRedirectUri">
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.TokenRefreshTimelimitExceeded">
   <FaultResponse>
     <Set>
       <Payload contentType="application/json">
         {
-          "error" : "invalid_request",
-          "error_description" :"Invalid redirection uri {request.queryparam.redirect_uri}"
+          "error" : "refresh_time_limit_exceeded",
+          "error_description" :"Cannot refresh token {private.apigee.refresh_tokens_validity_ms}ms after generation"
         }
       </Payload>
       <StatusCode>400</StatusCode>
