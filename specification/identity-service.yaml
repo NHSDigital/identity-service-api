@@ -4,19 +4,19 @@ info:
   title: Identity Service API
   description: |
     ## Overview
-    TODO
+    Use this API to access the OAuth capabilities of the Identity Service
     
     You can:
-    * TODO
+    * Get authorization code
+    * Exchange authorization code for access token
 
     You cannot currently use this API to:
-    * TODO
-    
+    * Request user information
+
     You can access the following data:
-    * TODO
+    - TODO
 
     ## Related APIs
-    TODO
     
     ## API status and roadmap
     TODO
@@ -65,17 +65,163 @@ info:
     More details to follow.
 
     ## Endpoints
-    TODO
+    To see details for specific endpoints, select from the list on the left hand side of the page:
+    * `GET /authorize` - request token or authorization codes via the browser
+    * `POST /token` - request or refresh tokens
+    TODO: Add /callback and /userinfo enpoints
   contact:
-    name: API Management Support
+    name: Identity Service API Support
     url: 'https://tbc.api.nhs.net'
     email: tbc-api-support@nhs.net
 servers:
-  - url: 'https://sandbox.api.service.nhs.uk/identity-service/oauth/v2'
+  - url: 'https://sandbox.api.service.nhs.uk/oauth2'
     description: Identity sandbox.
 tags:
-  - name: identity
-    description: identity related tag
+  - name: authorize
+  - name: token
 paths:
-  /oauth/v2:
-    summary: OAuth endpoint
+  /authorize:
+    get:
+      tags:
+        - authorize
+      summary: Request token or authorization codes via the browser
+      operationId: authorize
+      description: The Authorization endpoint is used to interact with the resource owner and get the authorization to access the protected resource.
+      parameters:
+        - in: query
+          name: response_type
+          description: Tells the authorization server which grant to execute
+          required: true
+          schema:
+            type: string
+            enum:
+              - code
+        - in: query
+          name: client_id
+          description: The id of the application that asks for authorization
+          required: true
+          schema:
+            type: string
+            example: ibyNIVIZ5RcAAMNluoArhIisALU3OLMr
+        - in: query
+          name: redirect_uri
+          description: Holds a URL. A successful response from this endpoint results in a redirect to this URL
+          required: false
+          schema:
+            type: string
+            format: uri
+            example: https://example.app.nhs.net
+        - in: query
+          name: scope
+          description: A space-delimited list of permissions that the application requires
+          required: false
+          schema:
+            type: string
+            example: openid
+        - in: query
+          name: state
+          description: |
+            An opaque value, used for security purposes. If this request parameter is set in the request, then it is returned to the application as part of the redirect_uri.
+
+            Note: The parameter SHOULD be used for preventing cross-site request forgery
+          required: false
+          schema:
+            type: string
+            example: d04a38c3-e508-4c43-9918-76c7203c7ade
+      responses:
+        '302':
+          description: A successful authorization containing a authorization code and redirects to redirect_uri
+          content:
+            application/x-www-form-urlencoded:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - code
+                  state:
+                    type: string
+                    example: d04a38c3-e508-4c43-9918-76c7203c7ade
+                required:
+                  - code
+        '400':
+          $ref: 'components/responses/InvalidRequest.yaml'
+        '401':
+          $ref: 'components/responses/Unauthorized.yaml'
+  /token:
+    post:
+      tags:
+        - token
+      summary: Obtain an access token
+      operationId: token
+      description: The token endpoint is used by the client to obtain an access token by presenting its authorization grant or refresh token.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                grant_type:
+                  type: string
+                  enum:
+                    - authorization_code
+                code:
+                  type: string
+                  description: The authorization code.
+                  example: frVpKg-TirVwU1APwiboHaWrto8
+                redirect_uri:
+                  type: string
+                  format: uri
+                  description: The redirect_uri used in the authorization request
+                  example: https://example.app.nhs.net
+                client_id:
+                  type: string
+                  description: The id of the application that asks for authorization
+                  example: ibyNIVIZ5RcAAMNluoArhIisALU3OLMr
+                client_secret:
+                  type: string
+                  example: UdsgcsZEksvC0Z2u
+                  description: The application's secret
+              required:
+                - grant_type
+                - code
+                - redirect_uri
+                - client_id
+                - client_secret
+      responses:
+        '200':
+          description: A successful token exchange request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    description: The access token issued by the authorization server.
+                    example: Gzjxmf2rBoy8Amyba_I8R2njcOU
+                  token_type:
+                    type: string
+                    description: The type of the token issued.
+                    example: Bearer
+                  expires_in:
+                    type: integer
+                    description: The lifetime in seconds of the access token.
+                    example: 599
+                  refresh_token:
+                    type: string
+                    description: The refresh token, which can be used to obtain new access tokens
+                    example: pUDyf17ZD29QjQ7tjaHZnbVItztmM9bI
+                  scope:
+                    type: string
+                    description: A space-delimited list of permissions that the application requires
+                    example: openid
+                required:
+                  - access_token
+                  - token_type
+        '400':
+          $ref: 'components/responses/InvalidRequest.yaml'
+        '401':
+          $ref: 'components/responses/Unauthorized.yaml'
