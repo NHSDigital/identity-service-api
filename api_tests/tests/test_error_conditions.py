@@ -101,18 +101,119 @@ class TestOauthErrorConditionsSuite:
     @pytest.mark.errors
     @pytest.mark.token_endpoint
     @pytest.mark.parametrize('request_data', [
+        # condition 1: invalid grant type
         {
             'expected_status_code': 400,
             'params': {
                 'client_id': config.CLIENT_ID,
                 'client_secret': config.CLIENT_SECRET,
                 'redirect_uri': config.REDIRECT_URI,
-                'grant_type': 'invalid',  # invalid grant_type
+                'grant_type': 'invalid',
             },
             'expected_response': {
                 'error': 'invalid_request',
-                'error_description':
-                    'invalid grant_type'
+                'error_description': 'invalid grant_type'
+            }
+        },
+
+        # condition 2: missing grant_type
+        {
+            'expected_status_code': 400,
+            'params': {
+                'client_id': config.CLIENT_ID,
+                'client_secret': config.CLIENT_SECRET,
+                'redirect_uri': config.REDIRECT_URI,
+            },
+            'expected_response': {
+                'error': 'invalid_request',
+                'error_description': 'The request is missing a required parameter : grant_type'
+            }
+        },
+
+        # condition 3: invalid client id
+        {
+            'expected_status_code': 400,
+            'params': {
+                'client_id': 'THISisANinvalidCLIENTid12345678',
+                'client_secret': config.CLIENT_SECRET,
+                'redirect_uri': config.REDIRECT_URI,
+                'grant_type': 'authorization_code',
+            },
+            'expected_response': {
+                'error': 'invalid_request',
+                'error_description': 'invalid client_id'
+            }
+        },
+
+        # condition 4: missing client_id
+        {
+            'expected_status_code': 400,
+            'params': {
+                'client_secret': config.CLIENT_SECRET,
+                'redirect_uri': config.REDIRECT_URI,
+                'grant_type': 'authorization_code',
+            },
+            'expected_response': {
+                'error': 'invalid_request',
+                'error_description': 'The request is missing a required parameter : client_id'
+            }
+        },
+
+        # condition 5: invalid redirect uri
+        {
+            'expected_status_code': 400,
+            'params': {
+                'client_id': config.CLIENT_ID,
+                'client_secret': config.CLIENT_SECRET,
+                'redirect_uri': f'{config.REDIRECT_URI}/invalid',
+                'grant_type': 'authorization_code',
+            },
+            'expected_response': {
+                'error': 'invalid_request',
+                'error_description': 'invalid redirect_uri'
+            }
+        },
+
+        # condition 6: missing redirect_uri
+        {
+            'expected_status_code': 400,
+            'params': {
+                'client_id': config.CLIENT_ID,
+                'client_secret': config.CLIENT_SECRET,
+                'grant_type': 'authorization_code',
+            },
+            'expected_response': {
+                'error': 'invalid_request',
+                'error_description': 'The request is missing a required parameter : redirect_uri'
+            }
+        },
+
+        # condition 7: invalid client secret
+        {
+            'expected_status_code': 400,
+            'params': {
+                'client_id': config.CLIENT_ID,
+                'client_secret': 'ThisSecretIsInvalid',
+                'redirect_uri': config.REDIRECT_URI,
+                'grant_type': 'authorization_code',
+            },
+            'expected_response': {
+                'error': 'invalid_request',
+                'error_description': 'invalid secret_id'
+            }
+        },
+
+        # condition 8: missing client secret
+        {
+            'expected_status_code': 400,
+            'params': {
+                'client_id': config.CLIENT_ID,
+                'redirect_uri': config.REDIRECT_URI,
+                'grant_type': 'authorization_code',
+            },
+            'expected_response': {
+                'error': 'invalid_request',
+                'error_description': 'The request is missing a required parameter : secret_id'
             }
         },
     ], ids=repr)
