@@ -3,7 +3,7 @@
     continueOnError="false"
     enabled="true"
     name="KeyValueMapOperations.GetSecureVariables"
-    mapIdentifier="identity-service-variables-encrypted"
+    mapIdentifier="{{ ENCRYPTED_VARIABLES_KVM or  'identity-service-variables-encrypted'}}"
   >
   <Get assignTo="private.apigee.client_secret" index="1">
     <Key>
