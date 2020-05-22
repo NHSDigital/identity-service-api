@@ -1,5 +1,9 @@
 # Changelog
 
+## 2020-05-13
+* Remove id_token from the /token endpoint
+* Update the specification to include the refresh parameters
+
 ## 2020-05-12
 * Remove the scope query parameter from the callback redirection (scope-less OAuth)
 
