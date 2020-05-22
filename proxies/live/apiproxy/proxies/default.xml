@@ -144,7 +144,12 @@
                     <Name>OAuthV2.GenerateAuthCode</Name>
                 </Step>
             </Request>
-            <Response/>
+            <Response>
+              <!-- Re-create the redirect so scope query param isn't included -->
+              <Step>
+                <Name>AssignMessage.AuthCodeRedirect</Name>
+              </Step>
+            </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/callback") and (request.verb = "GET")</Condition>
         </Flow>
         <Flow name="Flow.GetUserInfo">
