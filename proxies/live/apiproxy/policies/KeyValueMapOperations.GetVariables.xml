@@ -3,7 +3,7 @@
     continueOnError="false"
     enabled="true"
     name="KeyValueMapOperations.GetVariables"
-    mapIdentifier="identity-service-variables"
+    mapIdentifier="{{ VARIABLES_KVM }}"
   >
   <Get assignTo="private.apigee.access_token_path" index="1">
     <Key>
