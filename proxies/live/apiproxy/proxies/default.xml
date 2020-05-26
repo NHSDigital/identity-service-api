@@ -101,10 +101,6 @@
                   <Condition>(request.formparam._refresh_token_expiry_ms != null) and (request.formparam._refresh_token_expiry_ms LesserThan private.apigee.refresh_token_expiry_ms)</Condition>
                 </Step>
                 <Step>
-                  <Name>AssignMessage.RefreshTokensValidityOverride</Name>
-                  <Condition>(request.formparam._refresh_tokens_validity_ms != null) and (request.formparam._refresh_tokens_validity_ms LesserThan private.apigee.refresh_tokens_validity_ms)</Condition>
-                </Step>
-                <Step>
                     <Name>OAuthV2.GenerateAccessToken</Name>
                 </Step>
             </Request>
