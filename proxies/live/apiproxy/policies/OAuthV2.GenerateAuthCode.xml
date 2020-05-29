@@ -8,5 +8,5 @@
     <ExternalAuthorization>true</ExternalAuthorization>
     <ExternalAuthorizationCode>request.queryparam.code</ExternalAuthorizationCode>
     <StoreToken>true</StoreToken>
-    <GenerateResponse enabled="true"/>
+    <GenerateResponse enabled="false"/>
 </OAuthV2>
