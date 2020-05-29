@@ -57,8 +57,9 @@ class Base:
         self._validate_response(response)
 
         data = json.loads(response.text)
-        actual_keys = data.keys()
-        assert actual_keys == expected_keys, "Actual headers keys are different from what is expected"
+        actual_keys = list(data.keys())
+        assert sorted(actual_keys) == sorted(expected_keys), \
+            "Expected: {sorted(expected_keys)} but got: {sorted(actual_keys)}"
 
         assert response.status_code == expected_status_code, f"Status code is incorrect, " \
                                                              f"expected {expected_status_code} " \
@@ -69,6 +70,10 @@ class Base:
                         expected_response: dict or str) -> bool:
         """Check a given response has returned the expected key value pairs"""
         self._validate_response(response)
+
+        assert response.status_code == expected_status_code, f"Status code is incorrect, " \
+                                                             f"expected {expected_status_code} " \
+                                                             f"but got {response.status_code}"
 
         try:
             data = json.loads(response.text)
@@ -83,9 +88,6 @@ class Base:
             assert actual_response.replace('\n', '').replace(' ', '').strip() == expected_response.replace('\n', '')\
                 .replace(' ', '').strip(), "Actual response is different from the expected response"
 
-        assert response.status_code == expected_status_code, f"Status code is incorrect, " \
-                                                             f"expected {expected_status_code} " \
-                                                             f"but got {response.status_code}"
         return True
 
     def has_header(self, response: 'response type', header_key: str) -> bool:
@@ -104,10 +106,13 @@ class Base:
         params = self.get_params_from_url(url)
         return params[param]
 
-    def get_value_from_response(self, response: 'response type', key: str) -> str:
-        """Returns the content of the response, in unicode"""
+    def get_all_values_from_json_response(self, response: 'response type') -> dict:
         self._validate_response(response)
-        data = json.loads(response.text)
+        return json.loads(response.text)
+
+    def get_value_from_json_response(self, response: 'response type', key: str) -> str:
+        """Returns the content of the response, in unicode"""
+        data = self.get_all_values_from_json_response(response)
         try:
             return data[key]
         except KeyError:

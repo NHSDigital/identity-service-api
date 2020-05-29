@@ -1,5 +1,5 @@
 """ A repository bank which hold large bits of information in a dictionary format.
-the keys are based on the name of tests to better identify which data belongs to which test."""
+the keys are based on the name of tests to better identify what data belongs to which test."""
 
 BANK = {
     'test_authorize_endpoint': {
