@@ -1,6 +1,21 @@
 <ProxyEndpoint name="default">
     <Description/>
-    <FaultRules/>
+    <FaultRules>
+      <FaultRule name="allow_raisefaults">
+        <!-- Fault rule to prevent the DefaultFaultRule from executing when
+        RaiseFault is used in a flow -->
+        <Step>
+          <Name>AssignMessage.CatchallErrorMessage</Name>
+          <Condition>(fault.name NotEquals "RaiseFault")</Condition>
+        </Step>
+        <Condition>(fault.name Equals "RaiseFault")</Condition>
+      </FaultRule>
+    </FaultRules>
+    <DefaultFaultRule>
+      <Step>
+        <Name>AssignMessage.CatchallErrorMessage</Name>
+      </Step>
+    </DefaultFaultRule>
     <PreFlow name="PreFlow">
         <Request/>
         <Response/>
