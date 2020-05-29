@@ -4,7 +4,7 @@
   <Timeout>55000</Timeout>
   <HTTPTargetConnection>
     <LoadBalancer>
-      <Server name="identity-server"/>
+      <Server name="{{ IDENTITY_TARGET_SERVER }}"/>
     </LoadBalancer>
     <SSLInfo>
       <Enabled>true</Enabled>

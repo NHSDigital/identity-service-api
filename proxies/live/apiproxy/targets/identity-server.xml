@@ -8,7 +8,7 @@
       <Enabled>true</Enabled>
     </SSLInfo>
     <LoadBalancer>
-      <Server name="identity-server" />
+      <Server name="{{ IDENTITY_TARGET_SERVER }}" />
     </LoadBalancer>
   </HTTPTargetConnection>
 </TargetEndpoint>
