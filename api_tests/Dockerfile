@@ -1,7 +1,7 @@
 FROM python:3.8-slim
 
 # Maintainers
-MAINTAINER API Management Team <..@..>
+MAINTAINER API Management Team
 
 # Update if required
 RUN mkdir -p /var/api_tests/
