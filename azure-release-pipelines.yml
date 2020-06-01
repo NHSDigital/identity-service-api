@@ -11,14 +11,16 @@ pool:
   vmImage: 'ubuntu-18.04'
 
 stages:
-- stage: internal-dev
+- stage: DeployService
+  displayName: internal-dev
   jobs:
   - job: DeployInternalDev
     pool:
       vmImage: 'ubuntu-18.04'
     steps:
     - script: echo my first build job
-- stage: internal-dev (sandbox)
+- stage: DeployService
+  displayName: internal-dev (sandbox)
   jobs:
   - job: DeployInternalDevSandbox
     pool:
