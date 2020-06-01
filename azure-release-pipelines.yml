@@ -1,7 +1,17 @@
 name: Identity Service Release
 
-trigger:
-- master
+resources:
+  pipelines:
+  - pipeline: Identity Service API
+    source: NHSDigital.identity-service-api
+    trigger:
+      branches:
+      - master
+
+trigger: none
+
+pool:
+  vmImage: 'ubuntu-18.04'
 
 stages:
 - stage: Build
