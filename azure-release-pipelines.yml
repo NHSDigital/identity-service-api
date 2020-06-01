@@ -4,8 +4,8 @@ trigger: none
 
 resources:
   pipelines:
-  - pipeline: identity-service-api-artifact
-    source: $(SourceBranchName)+$(BuildID)
+  - pipeline: IdentityServiceApiArtifact
+    source: "$(SourceBranchName)+$(BuildID)"
 
 pool:
   vmImage: 'ubuntu-18.04'
@@ -13,14 +13,14 @@ pool:
 stages:
 - stage: internal-dev
   jobs:
-  - job: Deploy internal-dev
+  - job: DeployInternalDev
     pool:
       vmImage: 'ubuntu-18.04'
     steps:
     - script: echo my first build job
 - stage: internal-dev (sandbox)
   jobs:
-  - job: Deploy internal-dev (sandbox)
+  - job: DeployInternalDevSandbox
     pool:
       vmImage: 'ubuntu-18.04'
     steps:
