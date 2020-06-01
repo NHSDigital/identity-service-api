@@ -1,34 +1,27 @@
 name: Identity Service Release
 
+trigger: none
+
 resources:
   pipelines:
-  - pipeline: Identity Service API
-    source: NHSDigital.identity-service-api
-    trigger:
-      branches:
-      - master
-
-trigger: none
+  - pipeline: identity-service-api-artifact
+    source: $(SourceBranchName)+$(BuildID)
 
 pool:
   vmImage: 'ubuntu-18.04'
 
 stages:
-- stage: Build
+- stage: internal-dev
   jobs:
-  - job: BuildJob
+  - job: Deploy internal-dev
+    pool:
+      vmImage: 'ubuntu-18.04'
     steps:
-    - script: echo Building!
-- stage: Test
+    - script: echo my first build job
+- stage: internal-dev (sandbox)
   jobs:
-  - job: TestOnWindows
+  - job: Deploy internal-dev (sandbox)
+    pool:
+      vmImage: 'ubuntu-18.04'
     steps:
-    - script: echo Testing on Windows!
-  - job: TestOnLinux
-    steps:
-    - script: echo Testing on Linux!
-- stage: Deploy
-  jobs:
-  - job: Deploy
-    steps:
-    - script: echo Deploying the code!
+    - script: echo second stage
