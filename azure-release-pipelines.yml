@@ -4,8 +4,8 @@ trigger: none
 
 resources:
   pipelines:
-  - pipeline: IdentityServiceApiArtifact
-    source: "$(SourceBranchName)+$(BuildID)"
+  - pipeline: IdentityServiceAPIArtifact
+    source: NHSDigital.identity-service-api
 
 pool:
   vmImage: 'ubuntu-18.04'
