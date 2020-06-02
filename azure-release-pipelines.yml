@@ -17,13 +17,17 @@ stages:
   - group: apigee-nonprod
   - group: env-internal-dev
   jobs:
-    - job: DeployService
+    - deployment: DeployService
       displayName: Deploy Service
-      steps:
-        - template: templates/identity-service-templating.yml
-          parameters:
-            SERVICE_NAME: identity-service
-        - template: templates/deploy-service.yml
+      environment: 'internal-dev'
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - template: templates/identity-service-templating.yml
+                parameters:
+                  SERVICE_NAME: identity-service
+              - template: templates/deploy-service.yml
 
 - stage: DeployInternalDevSandbox
   displayName: internal-dev (sandbox)
