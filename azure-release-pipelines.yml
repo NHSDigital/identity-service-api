@@ -29,7 +29,5 @@ stages:
   displayName: internal-dev (sandbox)
   jobs:
   - job: DeployInternalDevSandbox
-    pool:
-      vmImage: 'ubuntu-18.04'
     steps:
     - script: echo second stage
