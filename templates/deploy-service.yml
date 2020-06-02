@@ -19,7 +19,7 @@ jobs:
         poetry install
       displayName: 'Deploy $(SERVICE_NAME) > Set up utils'
 
-    - template: templates/setup-terraform
+    - template: templates/setup-terraform.yml
 
     - bash: |
         sudo apt-get install oathtool gnupg2 jq -y
