@@ -27,6 +27,9 @@ stages:
               - template: templates/identity-service-templating.yml
                 parameters:
                   SERVICE_NAME: IdentityService
+                  VARIABLES_KVM: identity-service-variables
+                  ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+                  IDENTITY_TARGET_SERVER: identity-server
               - template: templates/deploy-service.yml
 
 - stage: DeployInternalDevSandbox
