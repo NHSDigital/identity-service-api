@@ -23,7 +23,7 @@ jobs:
 
     - bash: |
         set -euo pipefail
-        cd ..
+        ls
         export SERVICE_ARTIFACT_NAME=`ls ${{ parameters.SERVICE_NAME}}`
         echo "##vso[task.setvariable variable=SERVICE_ARTIFACT_NAME]$SERVICE_ARTIFACT_NAME"
       displayName: 'Set SERVICE_ARTIFACT_NAME'
