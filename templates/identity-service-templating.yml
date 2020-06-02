@@ -8,8 +8,6 @@ steps:
     inputs:
       versionSpec: 3.8
 
-  - bash: pwd
-
   - bash: |
       sudo apt-get install git -y
       git clone https://github.com/NHSDigital/api-management-utils.git utils
@@ -22,6 +20,7 @@ steps:
   - bash: |
       set -euo pipefail
       ls
+      ls $(System.ArtifactsDirectory)
       export SERVICE_ARTIFACT_NAME=`ls ${{ parameters.SERVICE_NAME }}`
       echo "##vso[task.setvariable variable=SERVICE_ARTIFACT_NAME]$SERVICE_ARTIFACT_NAME"
     displayName: 'Set SERVICE_ARTIFACT_NAME'
