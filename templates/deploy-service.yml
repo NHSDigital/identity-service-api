@@ -19,10 +19,75 @@ jobs:
         poetry install
       displayName: 'Deploy $(SERVICE_NAME) > Set up utils'
 
-    - template: templates/setup-terraform.yml
+    - template: setup-terraform.yml
 
     - bash: |
         sudo apt-get install oathtool gnupg2 jq -y
         export MFA_CODE=`oathtool --totp -b '$(APIGEE_OTP_KEY)'`
         echo "##vso[task.setvariable variable=secret.MFACode;issecret=true]$MFA_CODE"
       displayName: 'Deploy $(SERVICE_NAME) > Get MFA Code'
+
+    - bash: |
+        curl -X POST https://login.apigee.com/oauth/token \
+          -H "Content-Type: application/x-www-form-urlencoded" \
+          -H "Accept: application/json;charset=utf-8" \
+          -H "Authorization: Basic ZWRnZWNsaTplZGdlY2xpc2VjcmV0" \
+          -d "username=$(APIGEE_USERNAME)&password=$(APIGEE_PASSWORD)&mfa_token=$(secret.MFACode)&grant_type=password" | jq .access_token > .token
+        
+        # Set token into variable
+        echo "##vso[task.setvariable variable=secret.AccessToken;issecret=true]`cat .token`"
+      displayName: 'Deploy $(SERVICE_NAME) > Get Access Token'
+
+    - bash: |
+        set -euo pipefail
+        
+        echo "!!! If you get an error here, it is because '$(SERVICE_NAME)' is not the source alias name of the artifact"
+        export SERVICE_ARTIFACT_NAME=`ls $(SERVICE_NAME)`
+        echo "##vso[task.setvariable variable=SERVICE_ARTIFACT_NAME]$SERVICE_ARTIFACT_NAME"
+        echo "Deploying $SERVICE_ARTIFACT_NAME to $(SERVICE_BASE_PATH) on $(ENV_URL)"
+        echo "Using custom terraform: $(USE_CUSTOM_TERRAFORM)"
+      displayName: 'Deploy $(SERVICE_NAME) > Deploy Info'
+
+    - bash: |
+        set -euo pipefail
+      
+        export PROXIES_DIR="$(System.DefaultWorkingDirectory)/$(SERVICE_NAME)/$(SERVICE_ARTIFACT_NAME)/proxies"
+        export SERVICE_BASE_PATH="$(SERVICE_BASE_PATH)"
+        export APIGEE_ENVIRONMENT="$(APIGEE_ENVIRONMENT)"
+        
+        make --no-print-directory -C utils/ansible template-proxies
+      displayName: 'Deploy $(SERVICE_NAME) > template proxies'
+
+    - bash: |
+        set -euo pipefail
+        
+        cd $(SERVICE_NAME)/$(SERVICE_ARTIFACT_NAME)/terraform
+        
+        terraform init -no-color -backend-config="storage_account_name=hawdonnhsddevopssacc" -backend-config="container_name=$(APIGEE_ORGANIZATION)" -backend-config="key=$(APIGEE_ENVIRONMENT)-$(SERVICE_NAME).tfstate" -backend-config="sas_token=$(SAS_TOKEN)"
+        
+        export API_ACCESS_TOKEN="$(secret.AccessToken)"
+        
+        cat > ./tmp.tfvars.tmp <<'_EOF'
+        apigee_token = "${API_ACCESS_TOKEN}"
+        apigee_environment = "$(APIGEE_ENVIRONMENT)"
+        apigee_organization = "$(APIGEE_ORGANIZATION)"
+        namespace = ""
+        status_cake_username = "$(STATUS_CAKE_USERNAME)"
+        status_cake_api_key = "$(STATUS_CAKE_API_KEY)"
+        status_cake_contact_group = "$(STATUS_CAKE_CONTACT_GROUP)"
+        covid-19-testing-channel-availability-host = "$(COVID_19_TCA_HOST)"
+        dps-submission-api-host = "$(DPS_SUBMISSION_API_HOST)"
+        _EOF
+        
+        envsubst < ./tmp.tfvars.tmp > ./tmp.tfvars
+        
+        terraform plan -input=false -no-color  -var-file=./tmp.tfvars -out tfplan.out
+        terraform apply -no-color -auto-approve tfplan.out
+      displayName: 'Deploy $(SERVICE_NAME) > Deploy'
+    
+    - bash: |
+        set -euo pipefail
+        
+        # TODO re-enable once i figure out how to get alternative SANs to work
+        # curl --fail -I $(CURL_ARGUMENTS)
+      displayName: 'Deploy $(SERVICE_NAME) > Smoke test'
