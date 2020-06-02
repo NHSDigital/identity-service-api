@@ -19,8 +19,8 @@ steps:
 
   - bash: |
       set -euo pipefail
-      ls
-      ls $(System.ArtifactsDirectory)
+      ls -a
+      ls -a $(System.ArtifactsDirectory)
       export SERVICE_ARTIFACT_NAME=`ls ${{ parameters.SERVICE_NAME }}`
       echo "##vso[task.setvariable variable=SERVICE_ARTIFACT_NAME]$SERVICE_ARTIFACT_NAME"
     displayName: 'Set SERVICE_ARTIFACT_NAME'
