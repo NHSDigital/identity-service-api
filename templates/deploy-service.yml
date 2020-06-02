@@ -1,0 +1,28 @@
+
+
+jobs:
+- job: DeployService
+  pool:
+    vmImage: 'ubuntu-18.04'
+  steps:
+    - task: UsePythonVersion@0
+      displayName: 'Use Python 3.8'
+      inputs:
+        versionSpec: 3.8
+
+    - bash: |
+        sudo apt-get install git -y
+        git clone https://github.com/NHSDigital/api-management-utils.git utils
+        cd utils
+        pip install --upgrade pip setuptools
+        pip install poetry
+        poetry install
+      displayName: 'Deploy $(SERVICE_NAME) > Set up utils'
+
+    - template: templates/setup-terraform
+
+    - bash: |
+        sudo apt-get install oathtool gnupg2 jq -y
+        export MFA_CODE=`oathtool --totp -b '$(APIGEE_OTP_KEY)'`
+        echo "##vso[task.setvariable variable=secret.MFACode;issecret=true]$MFA_CODE"
+      displayName: 'Deploy $(SERVICE_NAME) > Get MFA Code'
