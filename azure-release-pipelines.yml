@@ -13,6 +13,9 @@ pool:
 stages:
 - stage: DeployInternalDev
   displayName: internal-dev
+  variables:
+  - group: apigee-nonprod
+  - group: env-internal-dev
   jobs:
   - template: templates/identity-service-templating.yml
     parameters:
