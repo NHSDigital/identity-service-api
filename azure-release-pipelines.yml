@@ -4,7 +4,7 @@ trigger: none
 
 resources:
   pipelines:
-  - pipeline: IdentityServiceAPIArtifact
+  - pipeline: IdentityService
     source: NHSDigital.identity-service-api
 
 pool:
@@ -26,7 +26,7 @@ stages:
             steps:
               - template: templates/identity-service-templating.yml
                 parameters:
-                  SERVICE_NAME: identity-service
+                  SERVICE_NAME: IdentityService
               - template: templates/deploy-service.yml
 
 - stage: DeployInternalDevSandbox
