@@ -33,6 +33,7 @@ stages:
               - template: templates/deploy-service.yml
                 parameters:
                   SERVICE_NAME: IdentityService
+                  SERVICE_BASE_PATH: /oauth2
 
 - stage: DeployInternalDevSandbox
   displayName: internal-dev (sandbox)

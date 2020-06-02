@@ -1,6 +1,8 @@
 parameters:
   - name: SERVICE_NAME
     type: string
+  - name: SERVICE_BASE_PATH
+    type: string
 
 steps:
   - task: UsePythonVersion@0
@@ -42,7 +44,7 @@ steps:
       echo "!!! If you get an error here, it is because '${{ parameters.SERVICE_NAME }}' is not the source alias name of the artifact"
       export SERVICE_ARTIFACT_NAME=`ls $(Pipeline.Workspace)/${{ parameters.SERVICE_NAME }}`
       echo "##vso[task.setvariable variable=SERVICE_ARTIFACT_NAME]$SERVICE_ARTIFACT_NAME"
-      echo "Deploying $SERVICE_ARTIFACT_NAME to $(SERVICE_BASE_PATH) on $(ENV_URL)"
+      echo "Deploying $SERVICE_ARTIFACT_NAME to ${{ parameters.SERVICE_BASE_PATH }} on $(ENV_URL)"
       echo "Using custom terraform: $(USE_CUSTOM_TERRAFORM)"
     displayName: 'Deploy ${{ parameters.SERVICE_NAME }} > Deploy Info'
 
@@ -50,7 +52,7 @@ steps:
       set -euo pipefail
     
       export PROXIES_DIR="$(Pipeline.Workspace)/${{ parameters.SERVICE_NAME }}/$(SERVICE_ARTIFACT_NAME)/proxies"
-      export SERVICE_BASE_PATH="$(SERVICE_BASE_PATH)"
+      export SERVICE_BASE_PATH="${{ parameters.SERVICE_BASE_PATH }}"
       export APIGEE_ENVIRONMENT="$(APIGEE_ENVIRONMENT)"
       
       make --no-print-directory -C utils/ansible template-proxies
