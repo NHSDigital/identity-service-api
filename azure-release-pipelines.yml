@@ -31,6 +31,8 @@ stages:
                   ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
                   IDENTITY_TARGET_SERVER: identity-server
               - template: templates/deploy-service.yml
+                parameters:
+                  SERVICE_NAME: IdentityService
 
 - stage: DeployInternalDevSandbox
   displayName: internal-dev (sandbox)
