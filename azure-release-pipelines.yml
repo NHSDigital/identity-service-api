@@ -19,7 +19,7 @@ stages:
   jobs:
   - template: templates/identity-service-templating.yml
     parameters:
-      SERVICE_NAME: $(SERVICE_NAME)
+      SERVICE_NAME: identity-service
 
 - stage: DeployInternalDevSandbox
   displayName: internal-dev (sandbox)
