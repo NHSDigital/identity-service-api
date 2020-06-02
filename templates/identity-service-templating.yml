@@ -8,6 +8,8 @@ steps:
     inputs:
       versionSpec: 3.8
 
+  - bash: ls
+
   - bash: |
       sudo apt-get install git -y
       git clone https://github.com/NHSDigital/api-management-utils.git utils
