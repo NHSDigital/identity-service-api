@@ -4,14 +4,7 @@ steps:
     inputs:
       versionSpec: 3.8
 
-  - bash: |
-      sudo apt-get install git -y
-      git clone https://github.com/NHSDigital/api-management-utils.git utils
-      cd utils
-      pip install --upgrade pip setuptools
-      pip install poetry
-      poetry install
-    displayName: 'Set up utils'
+  - template: ../components/setup-utils.yml
 
   - bash: |
       set -euo pipefail
