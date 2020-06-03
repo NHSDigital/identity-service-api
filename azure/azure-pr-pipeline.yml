@@ -3,8 +3,10 @@ name: Identity Service Pull Request
 pr:
   branches:
     include:
-    - APM-*
-    - apm-*
+      - APM-*
+      - apm-*
+    exclude:
+      - master
 
 variables:
   SERVICE_NAME: IdentityService
