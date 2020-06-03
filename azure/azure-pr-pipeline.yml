@@ -5,6 +5,10 @@ pr:
 
 variables:
   SERVICE_NAME: IdentityService
+  SERVICE_BASE_PATH: /oauth2
+  VARIABLES_KVM: identity-service-variables
+  ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+  IDENTITY_TARGET_SERVER: identity-server
 
 resources:
   pipelines:
@@ -29,9 +33,5 @@ stages:
           deploy:
             steps:
               - template: templates/identity-service-templating.yml
-                parameters:
-                  SERVICE_NAME: IdentityService
-                  VARIABLES_KVM: identity-service-variables
-                  ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
-                  IDENTITY_TARGET_SERVER: identity-server
+
               - template: templates/deploy-namespaced-service.yml
