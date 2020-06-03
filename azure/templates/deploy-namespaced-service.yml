@@ -5,42 +5,19 @@ steps:
     inputs:
       versionSpec: 3.8
 
-  - bash: |
-      sudo apt-get install git -y
-      git clone https://github.com/NHSDigital/api-management-utils.git utils
-      cd utils
-      pip install --upgrade pip setuptools
-      pip install poetry
-      poetry install
-    displayName: 'Deploy $(SERVICE_NAME) > Set up utils'
+  - template: ../components/setup-utils.yml
 
   - template: setup-terraform.yml
 
-  - bash: |
-      # Install requirements 
-      sudo apt-get install oathtool gnupg2 jq -y
-      
-      # Save code to variable
-      export MFA_CODE=`oathtool --totp -b '$(APIGEE_OTP_KEY)'`
-      echo "##vso[task.setvariable variable=secret.MFACode;issecret=true]$MFA_CODE"
-    displayName: 'Deploy $(SERVICE_NAME) > Get MFA Code'
+  - template: ../components/get-mfa-code.yml
 
-  - bash: |
-      curl -X POST https://login.apigee.com/oauth/token \
-        -H "Content-Type: application/x-www-form-urlencoded" \
-        -H "Accept: application/json;charset=utf-8" \
-        -H "Authorization: Basic ZWRnZWNsaTplZGdlY2xpc2VjcmV0" \
-        -d "username=$(APIGEE_USERNAME)&password=$(APIGEE_PASSWORD)&mfa_token=$(secret.MFACode)&grant_type=password" | jq .access_token > .token
-      
-      # Set token into variable
-      echo "##vso[task.setvariable variable=secret.AccessToken;issecret=true]`cat .token`"
-    displayName: 'Deploy $(SERVICE_NAME) > Get Access Token'
+  - template: ../components/get-access-token.yml
 
   - bash: |
       set -euo pipefail
       
       echo "!!! If you get an error here, it is because '$(SERVICE_NAME)' is not the source alias name of the artifact"
-      export SERVICE_ARTIFACT_NAME=`ls $(SERVICE_NAME)`
+      export SERVICE_ARTIFACT_NAME=`ls $(Pipeline.Workspace)/$(SERVICE_NAME)`
       
       if [ "$(NAMESPACE)" == "from_branchname" ]; then
         export NAMESPACE=`echo $(Release.Artifacts.$(SERVICE_NAME).BuildNumber) | tr '+' '\n' | head -n 1 | sed -e "s/\./_/g"`
@@ -62,7 +39,7 @@ steps:
   - bash: |
       set -euo pipefail
       
-      export PROXIES_DIR="$(System.DefaultWorkingDirectory)/$(SERVICE_NAME)/$(SERVICE_ARTIFACT_NAME)/proxies"
+      export PROXIES_DIR="$(Pipeline.Workspace)/$(SERVICE_NAME)/$(SERVICE_ARTIFACT_NAME)/proxies"
       export SERVICE_BASE_PATH="$(SERVICE_BASE_PATH)-$(_NAMESPACE)"
       export APIGEE_ENVIRONMENT="$(APIGEE_ENVIRONMENT)"
       
@@ -77,7 +54,7 @@ steps:
       touch logs/terraform-crash.log
       
       # Move to terraform context of this service
-      cd $(SERVICE_NAME)/$(SERVICE_ARTIFACT_NAME)/terraform
+      cd $(Pipeline.Workspace)/$(SERVICE_NAME)/$(SERVICE_ARTIFACT_NAME)/terraform
       
       
       cat > ./tmp.tfvars.tmp <<'_EOF'
