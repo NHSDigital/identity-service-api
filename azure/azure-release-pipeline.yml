@@ -1,0 +1,44 @@
+name: Identity Service Release
+
+trigger: none
+
+variables:
+  SERVICE_NAME: IdentityService
+
+resources:
+  pipelines:
+  - pipeline: IdentityService
+    source: NHSDigital.identity-service-api
+
+pool:
+  vmImage: 'ubuntu-18.04'
+
+stages:
+- stage: DeployInternalDev
+  displayName: internal-dev
+  variables:
+  - group: apigee-nonprod
+  - group: env-internal-dev
+  jobs:
+    - deployment: DeployService
+      displayName: Deploy Service
+      environment: 'internal-dev'
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - template: templates/identity-service-templating.yml
+                parameters:
+                  VARIABLES_KVM: identity-service-variables
+                  ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+                  IDENTITY_TARGET_SERVER: identity-server
+              - template: templates/deploy-service.yml
+                parameters:
+                  SERVICE_BASE_PATH: /oauth2
+
+- stage: DeployInternalDevSandbox
+  displayName: internal-dev (sandbox)
+  jobs:
+  - job: DeployInternalDevSandbox
+    steps:
+    - script: echo second stage
