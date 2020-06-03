@@ -7,7 +7,7 @@ steps:
 
   - template: ../components/setup-utils.yml
 
-  - template: setup-terraform.yml
+  - template: ../components/setup-terraform.yml
 
   - template: ../components/get-mfa-code.yml
 
