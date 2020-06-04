@@ -1,3 +1,7 @@
+parameters:
+  - name: NAME
+    type: string
+    
 steps:
   - bash: |
       sudo apt-get install git -y
@@ -6,4 +10,4 @@ steps:
       pip install --upgrade pip setuptools
       pip install poetry
       poetry install
-    displayName: 'Deploy $(SERVICE_NAME) > Set up utils'
+    displayName: 'Deploy ${{ parameters.NAME }} > Set up utils'

@@ -5,12 +5,20 @@ steps:
       versionSpec: 3.8
 
   - template: ../components/setup-utils.yml
+    parameters:
+      NAME: $(SERVICE_NAME)
 
   - template: ../components/setup-terraform.yml
+    parameters:
+      NAME: $(SERVICE_NAME)
 
   - template: ../components/get-mfa-code.yml
+    parameters:
+      NAME: $(SERVICE_NAME)
 
   - template: ../components/get-access-token.yml
+    parameters:
+      NAME: $(SERVICE_NAME)
 
   - bash: |
       set -euo pipefail
