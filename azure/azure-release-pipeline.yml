@@ -5,6 +5,8 @@ trigger:
     include:
       - refs/tags/v*
 
+pr: none
+
 variables:
   SERVICE_NAME: IdentityService
   SERVICE_BASE_PATH: /oauth2
@@ -28,11 +30,15 @@ stages:
   - group: apigee-nonprod
   - group: env-internal-dev
   jobs:
-    - job: DeployService
+    - deployment: DeployService
       displayName: Deploy Service
-      steps:
-        - template: templates/identity-service-templating.yml
-        - template: templates/deploy-service.yml
+      environment: 'internal-dev'
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - template: templates/identity-service-templating.yml
+              - template: templates/deploy-service.yml
 
 - stage: DeployInternalQA
   displayName: internal-qa
