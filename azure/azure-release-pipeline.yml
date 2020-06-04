@@ -28,15 +28,11 @@ stages:
   - group: apigee-nonprod
   - group: env-internal-dev
   jobs:
-    - deployment: DeployService
+    - job: DeployService
       displayName: Deploy Service
-      environment: 'internal-dev'
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-              - template: templates/identity-service-templating.yml
-              - template: templates/deploy-service.yml
+      steps:
+        - template: templates/identity-service-templating.yml
+        - template: templates/deploy-service.yml
 
 - stage: DeployInternalQA
   displayName: internal-qa
@@ -107,108 +103,108 @@ stages:
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
-- stage: DeployDev
-  displayName: dev
-  dependsOn: 
-    - DeployRef
-  variables:
-    - group: apigee-prod
-    - group: env-dev
-  jobs:
-    - deployment: DeployService
-      displayName: Deploy Service
-      environment: 'dev'
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-              - template: templates/identity-service-templating.yml
-              - template: templates/deploy-service.yml
+# - stage: DeployDev
+#   displayName: dev
+#   dependsOn: 
+#     - DeployRef
+#   variables:
+#     - group: apigee-prod
+#     - group: env-dev
+#   jobs:
+#     - deployment: DeployService
+#       displayName: Deploy Service
+#       environment: 'dev'
+#       strategy:
+#         runOnce:
+#           deploy:
+#             steps:
+#               - template: templates/identity-service-templating.yml
+#               - template: templates/deploy-service.yml
 
-- stage: DeployProd
-  displayName: prod
-  dependsOn: 
-    - DeployRef
-  variables:
-    - group: apigee-prod
-    - group: env-prod
-  jobs:
-    - deployment: DeployService
-      displayName: Deploy Service
-      environment: 'prod'
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-              - template: templates/identity-service-templating.yml
-              - template: templates/deploy-service.yml
+# - stage: DeployProd
+#   displayName: prod
+#   dependsOn: 
+#     - DeployRef
+#   variables:
+#     - group: apigee-prod
+#     - group: env-prod
+#   jobs:
+#     - deployment: DeployService
+#       displayName: Deploy Service
+#       environment: 'prod'
+#       strategy:
+#         runOnce:
+#           deploy:
+#             steps:
+#               - template: templates/identity-service-templating.yml
+#               - template: templates/deploy-service.yml
 
-- stage: DeploySandbox
-  displayName: sandbox
-  dependsOn: 
-    - DeployRef
-  variables:
-    - group: apigee-prod
-    - group: env-sandbox
-  jobs:
-    - deployment: DeployService
-      displayName: Deploy Service
-      environment: 'sandbox'
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-              - template: templates/identity-service-templating.yml
-              - template: templates/deploy-service.yml
+# - stage: DeploySandbox
+#   displayName: sandbox
+#   dependsOn: 
+#     - DeployRef
+#   variables:
+#     - group: apigee-prod
+#     - group: env-sandbox
+#   jobs:
+#     - deployment: DeployService
+#       displayName: Deploy Service
+#       environment: 'sandbox'
+#       strategy:
+#         runOnce:
+#           deploy:
+#             steps:
+#               - template: templates/identity-service-templating.yml
+#               - template: templates/deploy-service.yml
 
-- stage: DeployInt
-  displayName: int
-  dependsOn: 
-    - DeployRef
-  variables:
-    - group: apigee-prod
-    - group: env-int
-  jobs:
-    - deployment: DeployService
-      displayName: Deploy Service
-      environment: 'int'
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-              - template: templates/identity-service-templating.yml
-              - template: templates/deploy-service.yml
+# - stage: DeployInt
+#   displayName: int
+#   dependsOn: 
+#     - DeployRef
+#   variables:
+#     - group: apigee-prod
+#     - group: env-int
+#   jobs:
+#     - deployment: DeployService
+#       displayName: Deploy Service
+#       environment: 'int'
+#       strategy:
+#         runOnce:
+#           deploy:
+#             steps:
+#               - template: templates/identity-service-templating.yml
+#               - template: templates/deploy-service.yml
 
-- stage: DeployIntNoSmartCard
-  displayName: int no-smartcard
-  dependsOn: 
-    - DeployRef
-  variables:
-    - group: apigee-prod
-    - group: env-int
-  jobs:
-    - deployment: DeployService
-      displayName: Deploy Service
-      environment: 'int-no-smartcard'
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-              - template: templates/identity-service-templating.yml
-              - template: templates/deploy-service.yml
+# - stage: DeployIntNoSmartCard
+#   displayName: int no-smartcard
+#   dependsOn: 
+#     - DeployRef
+#   variables:
+#     - group: apigee-prod
+#     - group: env-int
+#   jobs:
+#     - deployment: DeployService
+#       displayName: Deploy Service
+#       environment: 'int-no-smartcard'
+#       strategy:
+#         runOnce:
+#           deploy:
+#             steps:
+#               - template: templates/identity-service-templating.yml
+#               - template: templates/deploy-service.yml
 
-- stage: DeployPortal
-  displayName: portal
-  dependsOn: []
-  variables:
-    - group: apigee-prod
-    - group: env-portal
-  jobs:
-    - deployment: DeploySpecs
-      displayName: Deploy Specs
-      environment: 'portal'
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-              - template: templates/deploy-specs.yml
+# - stage: DeployPortal
+#   displayName: portal
+#   dependsOn: []
+#   variables:
+#     - group: apigee-prod
+#     - group: env-portal
+#   jobs:
+#     - deployment: DeploySpecs
+#       displayName: Deploy Specs
+#       environment: 'portal'
+#       strategy:
+#         runOnce:
+#           deploy:
+#             steps:
+#               - template: templates/deploy-specs.yml
