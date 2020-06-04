@@ -5,8 +5,6 @@ pr:
     include:
       - APM-*
       - apm-*
-    exclude:
-      - master
 
 variables:
   SERVICE_NAME: IdentityService
@@ -40,5 +38,4 @@ stages:
           deploy:
             steps:
               - template: templates/identity-service-templating.yml
-
               - template: templates/deploy-namespaced-service.yml
