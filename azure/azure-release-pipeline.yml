@@ -67,3 +67,19 @@ stages:
             steps:
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
+
+- stage: DeployInternalQPortal
+  displayName: internal-portal
+  dependsOn: DeployInternalDev
+  variables:
+    - group: apigee-nonprod
+    - group: env-internal-portal
+  jobs:
+    - deployment: DeployService
+      displayName: Deploy Service
+      environment: 'internal-portal'
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - template: templates/deploy-specs.yml
