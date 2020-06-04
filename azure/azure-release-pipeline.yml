@@ -32,11 +32,11 @@ stages:
           deploy:
             steps:
               - template: templates/identity-service-templating.yml
-
               - template: templates/deploy-service.yml
 
-- stage: DeployInternalDevSandbox
+- stage: DeployInternalQA
   displayName: internal-qa
+  dependsOn: DeployInternalDev
   variables:
     - group: apigee-nonprod
     - group: env-internal-qa
@@ -49,5 +49,21 @@ stages:
           deploy:
             steps:
               - template: templates/identity-service-templating.yml
+              - template: templates/deploy-service.yml
 
+- stage: DeployInternalQASandbox
+  displayName: internal-qa-sandbox
+  dependsOn: DeployInternalDev
+  variables:
+    - group: apigee-nonprod
+    - group: env-internal-qa-sandbox
+  jobs:
+    - deployment: DeployService
+      displayName: Deploy Service
+      environment: 'internal-qa-sandbox'
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
