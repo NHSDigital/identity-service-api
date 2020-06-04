@@ -1,6 +1,9 @@
 name: Identity Service Release
 
-trigger: none
+trigger:
+  branches:
+    include:
+      - refs/tags/v*
 
 variables:
   SERVICE_NAME: IdentityService
@@ -84,3 +87,22 @@ stages:
           deploy:
             steps:
               - template: templates/deploy-specs.yml
+
+- stage: DeployRef
+  displayName: ref
+  dependsOn: 
+    - DeployInternalQA
+    - DeployInternalQASandbox
+  variables:
+    - group: apigee-nonprod
+    - group: env-ref
+  jobs:
+    - deployment: DeployService
+      displayName: Deploy Service
+      environment: 'ref'
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - template: templates/identity-service-templating.yml
+              - template: templates/deploy-service.yml
