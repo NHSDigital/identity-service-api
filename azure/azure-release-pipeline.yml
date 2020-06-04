@@ -30,7 +30,7 @@ stages:
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
-      # environment: 'internal-dev'
+      environment: 'internal-dev'
       strategy:
         runOnce:
           deploy:
@@ -47,7 +47,7 @@ stages:
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
-      # environment: 'internal-qa'
+      environment: 'internal-qa'
       strategy:
         runOnce:
           deploy:
@@ -64,7 +64,7 @@ stages:
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
-      # environment: 'internal-qa-sandbox'
+      environment: 'internal-qa-sandbox'
       strategy:
         runOnce:
           deploy:
@@ -81,7 +81,7 @@ stages:
   jobs:
     - deployment: DeploySpecs
       displayName: Deploy Specs
-      # environment: 'internal-portal'
+      environment: 'internal-portal'
       strategy:
         runOnce:
           deploy:
@@ -99,7 +99,7 @@ stages:
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
-      # environment: 'ref'
+      environment: 'ref'
       strategy:
         runOnce:
           deploy:
@@ -117,7 +117,7 @@ stages:
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
-      # environment: 'dev'
+      environment: 'dev'
       strategy:
         runOnce:
           deploy:
@@ -135,7 +135,7 @@ stages:
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
-      # environment: 'prod'
+      environment: 'prod'
       strategy:
         runOnce:
           deploy:
@@ -153,7 +153,7 @@ stages:
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
-      # environment: 'sandbox'
+      environment: 'sandbox'
       strategy:
         runOnce:
           deploy:
@@ -171,7 +171,7 @@ stages:
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
-      # environment: 'int'
+      environment: 'int'
       strategy:
         runOnce:
           deploy:
@@ -189,7 +189,7 @@ stages:
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
-      # environment: 'int-no-smartcard'
+      environment: 'int-no-smartcard'
       strategy:
         runOnce:
           deploy:
@@ -206,7 +206,7 @@ stages:
   jobs:
     - deployment: DeploySpecs
       displayName: Deploy Specs
-      # environment: 'portal'
+      environment: 'portal'
       strategy:
         runOnce:
           deploy:
