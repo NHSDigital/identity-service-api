@@ -8,6 +8,7 @@ variables:
   VARIABLES_KVM: identity-service-variables
   ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
   IDENTITY_TARGET_SERVER: identity-server
+  SPEC_FILE_NAME: identity-service
 
 resources:
   pipelines:
