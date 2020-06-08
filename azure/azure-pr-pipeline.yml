@@ -11,7 +11,8 @@ pr:
 resources:
   pipelines:
   - pipeline: IdentityService
-    source: Build-Pipeline
+    source: "Identity-Service-Build-Pipeline"
+
 
 parameters:
   - name : artifactBranch
