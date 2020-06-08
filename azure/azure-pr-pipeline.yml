@@ -13,7 +13,6 @@ resources:
   - pipeline: IdentityService
     source: NHSDigital.identity-service-api
 
-
 parameters:
   - name : artifactBranch
     displayName: Artifact Branch (e.g. feature/myfeature)
