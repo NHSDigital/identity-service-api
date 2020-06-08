@@ -54,6 +54,7 @@ stages:
             buildType: 'specific'
             project: '$(resources.pipeline.IdentityService.projectID)'
             definition: '$(resources.pipeline.IdentityService.pipelineID)'
+            downloadType: 'specific'
             ${{ if eq(parameters.artifactBuildId, 'latest') }}:
               buildVersionToDownload: 'latestFromBranch'
             ${{ if ne(parameters.artifactBuildId, 'latest') }}:
@@ -63,7 +64,6 @@ stages:
               branchName: '$(Build.SourceBranch)'
             ${{ if ne(parameters.artifactBranch, '$(Build.SourceBranch)') }}:
               branchName: 'refs/heads/${{ parameters.artifactBranch }}'
-              artifactName: '$(ARTIFACT_SERVICE_NAME)-${{ parameters.artifactBranch }}+${{ parameters.artifactBuildId }}'
             downloadPath: '$(Pipeline.Workspace)'
         - template: templates/identity-service-templating.yml
         - template: templates/deploy-namespaced-service.yml
