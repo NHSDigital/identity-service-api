@@ -10,6 +10,7 @@ pr:
 
 variables:
   SERVICE_NAME: IdentityService
+  ARTIFACT_SERVICE_NAME: identity-service
   SERVICE_BASE_PATH: /oauth2
   VARIABLES_KVM: identity-service-variables
   ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
