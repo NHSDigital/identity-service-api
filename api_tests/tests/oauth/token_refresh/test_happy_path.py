@@ -14,15 +14,12 @@ class TestOauthTokenErrorConditionSuite:
             verb='GET',
             endpoint='api',
             expected_status_code=200,
-            expected_response={
-                "message": "Hello User!"
-            },
+            expected_response={"message": "Hello User!"},
             headers={
                 'Authorization': f'Bearer {self.token}',
                 'NHSD-Session-URID': 'ROLD-ID',
             }
         )
-
 
     @pytest.mark.apm_801
     @pytest.mark.happy_path

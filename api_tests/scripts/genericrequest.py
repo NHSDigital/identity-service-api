@@ -3,7 +3,7 @@ import json
 from urllib import parse
 
 
-class Base:
+class GenericRequest:
     """ This is a base class for OAuth requests used for holding
     reusable components & functions that can be shared between test cases"""
     def __init__(self):
@@ -107,6 +107,7 @@ class Base:
         return params[param]
 
     def get_all_values_from_json_response(self, response: 'response type') -> dict:
+        """Convert json response string into a python dictionary"""
         self._validate_response(response)
         return json.loads(response.text)
 

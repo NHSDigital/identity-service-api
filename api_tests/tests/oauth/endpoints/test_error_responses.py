@@ -1,5 +1,6 @@
 from api_tests.config_files import config
 import pytest
+import random
 
 
 @pytest.mark.usefixtures("setup")
@@ -21,7 +22,7 @@ class TestOauthErrorConditionsSuite:
                 'client_id': config.CLIENT_ID,
                 'redirect_uri': f'{config.REDIRECT_URI}/invalid',  # invalid redirect uri
                 'response_type': 'code',
-                'state': ''
+                'state': random.getrandbits(32)
             },
         },
 
@@ -35,7 +36,7 @@ class TestOauthErrorConditionsSuite:
             'params': {
                 'client_id': config.CLIENT_ID,
                 'response_type': 'code',
-                'state': ''
+                'state': random.getrandbits(32)
             },
         },
 
@@ -50,7 +51,7 @@ class TestOauthErrorConditionsSuite:
                 'client_id': 'THISisANinvalidCLIENTid12345678',  # invalid client id
                 'redirect_uri': config.REDIRECT_URI,
                 'response_type': 'code',
-                'state': ''
+                'state': random.getrandbits(32)
             },
         },
 
@@ -64,7 +65,7 @@ class TestOauthErrorConditionsSuite:
             'params': {
                 'redirect_uri': config.REDIRECT_URI,
                 'response_type': 'code',
-                'state': ''
+                'state': random.getrandbits(32)
             },
         },
 
@@ -79,7 +80,7 @@ class TestOauthErrorConditionsSuite:
                 'client_id': config.CLIENT_ID,
                 'redirect_uri': config.REDIRECT_URI,
                 'response_type': 'invalid',  # invalid response type
-                'state': ''
+                'state': random.getrandbits(32)
             },
         },
 
@@ -93,7 +94,7 @@ class TestOauthErrorConditionsSuite:
             'params': {
                 'client_id': config.CLIENT_ID,
                 'redirect_uri': config.REDIRECT_URI,
-                'state': ''
+                'state': random.getrandbits(32)
             },
         }
     ])

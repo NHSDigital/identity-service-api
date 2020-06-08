@@ -3,9 +3,8 @@ FROM python:3.8-slim
 # Maintainers
 MAINTAINER API Management Team
 
-# Update if required
+# Create working directory
 RUN mkdir -p /var/api_tests/
-RUN apt update -y && apt upgrade -y
 
 # Set up test environment
 COPY "." "/var/api_tests"
