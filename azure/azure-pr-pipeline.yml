@@ -33,12 +33,10 @@ stages:
   - group: apigee-nonprod
   - group: env-internal-dev
   jobs:
-    - deployment: DeployService
-      displayName: Deploy Service
-      environment: 'internal-dev'
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-              - template: templates/identity-service-templating.yml
-              - template: templates/deploy-namespaced-service.yml
+    - job: DeployService
+      steps:
+        - checkout: none
+        - task: DownloadBuildArtifacts@0
+          displayName: 'Download Build Artifacts'
+        - template: templates/identity-service-templating.yml
+        - template: templates/deploy-namespaced-service.yml
