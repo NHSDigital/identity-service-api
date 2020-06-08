@@ -1,4 +1,4 @@
-name: "Identity-Service-Build-Pipeline"
+name: "$(SourceBranchName)+$(BuildID)"
 
 trigger:
   branches:

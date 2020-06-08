@@ -11,7 +11,7 @@ pr:
 resources:
   pipelines:
   - pipeline: IdentityService
-    source: "Identity-Service-Build-Pipeline"
+    source: NHSDigital.identity-service-api
 
 
 parameters:
