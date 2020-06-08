@@ -2,12 +2,6 @@ name: Identity Service Pull Request
 
 trigger: none
 
-pr:
-  branches:
-    include:
-      - APM-*
-      - apm-*
-
 resources:
   pipelines:
   - pipeline: IdentityService
