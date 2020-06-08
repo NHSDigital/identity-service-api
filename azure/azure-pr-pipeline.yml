@@ -2,20 +2,11 @@ name: Identity Service Pull Request
 
 trigger: none
 
-resources:
-  pipelines:
-  - pipeline: IdentityService
-    source: NHSDigital.identity-service-api
-
-parameters:
-  - name : artifactBranch
-    displayName: Artifact Branch (e.g. feature/myfeature)
-    type: string
-    default: $(Build.SourceBranch)
-  - name : artifactBuildId
-    displayName: Artifact Build Id (e.g. run Id for the build to download). Overrides Artifact Branch if not "latest".
-    type: string
-    default: latest
+pr:
+  branches:
+    include:
+      - APM-*
+      - apm-*
 
 variables:
   SERVICE_NAME: IdentityService
@@ -25,6 +16,11 @@ variables:
   IDENTITY_TARGET_SERVER: identity-server
   FORCE_SANDBOX: false
   NAMESPACE: from_branchname
+
+resources:
+  pipelines:
+  - pipeline: IdentityService
+    source: NHSDigital.identity-service-api
 
 pool:
   vmImage: 'ubuntu-18.04'
@@ -36,25 +32,12 @@ stages:
   - group: apigee-nonprod
   - group: env-internal-dev
   jobs:
-    - job: DeployService
+    - deployment: DeployService
       displayName: Deploy Service
-      steps:
-        - checkout: none
-        - task: DownloadBuildArtifacts@0
-          displayName: 'Download Build Artifact'
-          inputs:
-            buildType: 'specific'
-            project: '$(resources.pipeline.IdentityService.projectID)'
-            definition: '$(resources.pipeline.IdentityService.pipelineID)'
-            ${{ if eq(parameters.artifactBuildId, 'latest') }}:
-              buildVersionToDownload: 'latestFromBranch'
-            ${{ if ne(parameters.artifactBuildId, 'latest') }}:
-              buildVersionToDownload: 'specific'
-              runId: '${{ parameters.artifactBuildId }}'
-            ${{ if eq(parameters.artifactBranch, '$(Build.SourceBranch)') }}:
-              branchName: '$(Build.SourceBranch)'
-            ${{ if ne(parameters.artifactBranch, '$(Build.SourceBranch)') }}:
-              branchName: 'refs/heads/${{ parameters.artifactBranch }}'
-            downloadPath: '$(Pipeline.Workspace)'
-        - template: templates/identity-service-templating.yml
-        - template: templates/deploy-namespaced-service.yml
+      environment: 'internal-dev'
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - template: templates/identity-service-templating.yml
+              - template: templates/deploy-namespaced-service.yml
