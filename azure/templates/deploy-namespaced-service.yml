@@ -29,10 +29,11 @@ steps:
       
       if [ "$(NAMESPACE)" == "from_branchname" ]; then
         # Change reference to get from right area
-        export _NAMESPACE=`echo ${$(SERVICE_ARTIFACT_NAME)//$(ARTIFACT_SERVICE_NAME)-/''}`
+        export NAMESPACE=`echo $(Release.Artifacts.$(ARTIFACT_SERVICE_NAME).BuildNumber) | tr '+' '\n' | head -n 1 | sed -e "s/\./_/g"`
       else
         export NAMESPACE="$(NAMESPACE)"
       fi
+      
       
       if [ $(FORCE_SANDBOX) == "true" ]; then
         export NAMESPACE="$NAMESPACE-sandbox"
