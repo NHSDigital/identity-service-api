@@ -26,14 +26,18 @@ steps:
       
       echo "!!! If you get an error here, it is because '$(SERVICE_NAME)' is not the source alias name of the artifact"
       export SERVICE_ARTIFACT_NAME=`ls $(Pipeline.Workspace)/$(SERVICE_NAME)`
+
+      echo $(NAMESPACE)
       
       if [ "$(NAMESPACE)" == "from_branchname" ]; then
         # Change reference to get from right area
         export NAMESPACE=`echo $(Release.Artifacts.$(SERVICE_NAME).BuildNumber) | tr '+' '\n' | head -n 1 | sed -e "s/\./_/g"`
+        echo "From Branch name: $(NAMESPACE)"
       else
         export NAMESPACE="$(NAMESPACE)"
       fi
-      
+
+      echo $(NAMESPACE)
       
       if [ $(FORCE_SANDBOX) == "true" ]; then
         export NAMESPACE="$NAMESPACE-sandbox"
