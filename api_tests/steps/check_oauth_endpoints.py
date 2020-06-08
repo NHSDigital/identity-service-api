@@ -1,9 +1,9 @@
-from api_tests.scripts.base import Base
+from api_tests.scripts.genericrequest import GenericRequest
 from api_tests.config_files import config
 from api_tests.scripts.authenticator import Authenticator
 
 
-class CheckOauthEndpoints(Base):
+class CheckOauthEndpoints(GenericRequest):
     def __init__(self):
         super(CheckOauthEndpoints, self).__init__()
         self.endpoints = {
@@ -66,12 +66,12 @@ class CheckOauthEndpoints(Base):
         code = authenticator.get_code_from_provider(response)
         return code
 
-    def get_token_response(self, timeout: int = 5000):
+    def get_token_response(self, timeout: int = 5000, grant_type: str = 'authorization_code'):
         data = {
             'client_id': config.CLIENT_ID,
             'client_secret': config.CLIENT_SECRET,
             'redirect_uri': config.REDIRECT_URI,
-            'grant_type': 'authorization_code',
+            'grant_type': grant_type,
             'code': self.get_authenticated(config.AUTHENTICATION_PROVIDER),
             '_access_token_expiry_ms': timeout,
         }
