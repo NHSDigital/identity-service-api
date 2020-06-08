@@ -1,4 +1,3 @@
-
 steps:
   - task: UsePythonVersion@0
     displayName: 'Use Python 3.8'
@@ -26,8 +25,6 @@ steps:
       
       echo "!!! If you get an error here, it is because '$(SERVICE_NAME)' is not the source alias name of the artifact"
       export SERVICE_ARTIFACT_NAME=`ls $(Pipeline.Workspace)/$(SERVICE_NAME)`
-      
-      echo "RunID: $(resources.pipeline.$(SERVICE_NAME).runID)"
       
       if [ "$(NAMESPACE)" == "from_branchname" ]; then
         # Change reference to get from right area
