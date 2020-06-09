@@ -25,7 +25,7 @@ parameters:
     default: latest
 
 variables:
-  SERVICE_NAME: IdentityService
+  SERVICE_NAME: identity-service
   SERVICE_BASE_PATH: /oauth2
   VARIABLES_KVM: identity-service-variables
   ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
@@ -80,7 +80,7 @@ stages:
               branchName: '$(Build.SourceBranch)'
             ${{ if ne(parameters.artifactBranch, '$(Build.SourceBranch)') }}:
               branchName: 'refs/heads/${{ parameters.artifactBranch }}'
-            downloadPath: '$(Pipeline.Workspace)'
+            downloadPath: '$(Pipeline.Workspace)/$(SERVICE_NAME)'
         - bash: ls $(Pipeline.Workspace)
         - template: templates/identity-service-templating-temp.yml
         - template: templates/deploy-namespaced-service.yml
