@@ -8,10 +8,10 @@ pr:
       - APM-*
       - apm-*
 
-resources:
-  pipelines:
-  - pipeline: IdentityService
-    source: "NHSDigital.identity-service-api (2)"
+# resources:
+#   pipelines:
+#   - pipeline: IdentityService
+#     source: "NHSDigital.identity-service-api (2)"
 
 
 parameters:
@@ -81,5 +81,6 @@ stages:
             ${{ if ne(parameters.artifactBranch, '$(Build.SourceBranch)') }}:
               branchName: 'refs/heads/${{ parameters.artifactBranch }}'
             downloadPath: '$(Pipeline.Workspace)'
+        - bash: ls $(Pipeline.Workspace)
         - template: templates/identity-service-templating.yml
         - template: templates/deploy-namespaced-service.yml
