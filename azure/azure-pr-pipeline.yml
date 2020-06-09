@@ -42,7 +42,7 @@ pool:
   vmImage: 'ubuntu-18.04'
 
 stages:
-  - stage: DeployInternalDev
+  - stage: DeployInternalDevDeployTask
     displayName: internal-dev
     condition: and(succeeded(), eq(${{ parameters.deployJob }}, True))
     variables:
@@ -59,7 +59,7 @@ stages:
                 - template: templates/identity-service-templating.yml
                 - template: templates/deploy-namespaced-service.yml
 
-  - stage: DeployInternalDev
+  - stage: DeployInternalDevDownloadTask
     displayName: internal-dev
     condition: and(succeeded(), eq(${{ parameters.deployJob }}, False))
     variables:
