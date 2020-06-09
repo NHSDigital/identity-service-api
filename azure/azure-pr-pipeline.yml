@@ -24,18 +24,17 @@ parameters:
     type: string
     default: latest
 
-# variables:
-#   SERVICE_NAME: IdentityService
-#   ARTIFACT_SERVICE_NAME: identity-service
-#   SERVICE_BASE_PATH: /oauth2
-#   VARIABLES_KVM: identity-service-variables
-#   ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
-#   IDENTITY_TARGET_SERVER: identity-server
-#   FORCE_SANDBOX: false
-#   NAMESPACE: from_branchname
+variables:
+  SERVICE_NAME: IdentityService
+  SERVICE_BASE_PATH: /oauth2
+  VARIABLES_KVM: identity-service-variables
+  ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+  IDENTITY_TARGET_SERVER: identity-server
+  FORCE_SANDBOX: false
+  NAMESPACE: from_branchname
 
-# pool:
-#   vmImage: 'ubuntu-18.04'
+pool:
+  vmImage: 'ubuntu-18.04'
 
 # stages:
 #   - stage: DeployInternalDev
