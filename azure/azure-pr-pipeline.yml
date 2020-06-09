@@ -43,7 +43,7 @@ pool:
 
 stages:
   - stage: DeployInternalDevDeployTask
-    displayName: internal-dev-download-task
+    displayName: internal-dev-deploy-task
     condition: and(succeeded(), eq(${{ parameters.deployJob }}, True))
     variables:
     - group: apigee-nonprod
