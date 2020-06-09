@@ -28,7 +28,7 @@ steps:
       
       if [ "$(NAMESPACE)" == "from_branchname" ]; then
         # Change reference to get from right area
-        export NAMESPACE=`echo $(SERVICE_ARTIFACT_NAME) | sed "s/$(ARTIFACT_SERVICE_NAME)-//g"`
+        export NAMESPACE=$(Build.SourceBranchName)
       else
         export NAMESPACE="$(NAMESPACE)"
       fi
