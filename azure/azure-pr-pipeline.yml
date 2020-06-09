@@ -1,4 +1,4 @@
-name: "Identity Service Pull Request"
+name: Identity Service Pull Request
 
 trigger: none
 
@@ -14,19 +14,15 @@ resources:
     source: "NHSDigital.identity-service-api (2)"
 
 
-parameters:
-  - name: deployJob
-    displayName: Deploy using the deploy task
-    type: boolean
-    default: false
-  - name : artifactBranch
-    displayName: Artifact Branch (e.g. feature/myfeature)
-    type: string
-    default: $(Build.SourceBranch)
-  - name : artifactBuildId
-    displayName: Artifact Build Id (e.g. run Id for the build to download). Overrides Artifact Branch if not "latest".
-    type: string
-    default: latest
+# parameters:
+#   - name : artifactBranch
+#     displayName: Artifact Branch (e.g. feature/myfeature)
+#     type: string
+#     default: $(Build.SourceBranch)
+#   - name : artifactBuildId
+#     displayName: Artifact Build Id (e.g. run Id for the build to download). Overrides Artifact Branch if not "latest".
+#     type: string
+#     default: latest
 
 variables:
   SERVICE_NAME: IdentityService
@@ -42,9 +38,8 @@ pool:
   vmImage: 'ubuntu-18.04'
 
 stages:
-  - stage: DeployInternalDevDeployTask
-    displayName: internal-dev-deploy-task
-    condition: and(succeeded(), eq(${{ parameters.deployJob }}, True))
+  - stage: DeployInternalDev
+    displayName: internal-dev
     variables:
     - group: apigee-nonprod
     - group: env-internal-dev
@@ -59,33 +54,33 @@ stages:
                 - template: templates/identity-service-templating.yml
                 - template: templates/deploy-namespaced-service.yml
 
-  - stage: DeployInternalDevDownloadTask
-    displayName: internal-dev-download-task
-    condition: and(succeeded(), eq(${{ parameters.deployJob }}, False))
-    variables:
-    - group: apigee-nonprod
-    - group: env-internal-dev
-    jobs:
-      - job: DeployService
-        displayName: Deploy Service
-        steps:
-          - checkout: none
-          - task: DownloadBuildArtifacts@0
-            displayName: 'Download Build Artifact'
-            inputs:
-              buildType: 'specific'
-              project: '$(resources.pipeline.IdentityService.projectID)'
-              definition: '$(resources.pipeline.IdentityService.pipelineID)'
-              downloadType: 'specific'
-              ${{ if eq(parameters.artifactBuildId, 'latest') }}:
-                buildVersionToDownload: 'latestFromBranch'
-              ${{ if ne(parameters.artifactBuildId, 'latest') }}:
-                buildVersionToDownload: 'specific'
-                runId: '${{ parameters.artifactBuildId }}'
-              ${{ if eq(parameters.artifactBranch, '$(Build.SourceBranch)') }}:
-                branchName: '$(Build.SourceBranch)'
-              ${{ if ne(parameters.artifactBranch, '$(Build.SourceBranch)') }}:
-                branchName: 'refs/heads/${{ parameters.artifactBranch }}'
-              downloadPath: '$(Pipeline.Workspace)'
-          - template: templates/identity-service-templating.yml
-          - template: templates/deploy-namespaced-service.yml
+# stages:
+# - stage: DeployInternalDev
+#   displayName: internal-dev
+#   variables:
+#   - group: apigee-nonprod
+#   - group: env-internal-dev
+#   jobs:
+#     - job: DeployService
+#       displayName: Deploy Service
+#       steps:
+#         - checkout: none
+#         - task: DownloadBuildArtifacts@0
+#           displayName: 'Download Build Artifact'
+#           inputs:
+#             buildType: 'specific'
+#             project: '$(resources.pipeline.IdentityService.projectID)'
+#             definition: '$(resources.pipeline.IdentityService.pipelineID)'
+#             downloadType: 'specific'
+#             ${{ if eq(parameters.artifactBuildId, 'latest') }}:
+#               buildVersionToDownload: 'latestFromBranch'
+#             ${{ if ne(parameters.artifactBuildId, 'latest') }}:
+#               buildVersionToDownload: 'specific'
+#               runId: '${{ parameters.artifactBuildId }}'
+#             ${{ if eq(parameters.artifactBranch, '$(Build.SourceBranch)') }}:
+#               branchName: '$(Build.SourceBranch)'
+#             ${{ if ne(parameters.artifactBranch, '$(Build.SourceBranch)') }}:
+#               branchName: 'refs/heads/${{ parameters.artifactBranch }}'
+#             downloadPath: '$(Pipeline.Workspace)'
+#         - template: templates/identity-service-templating.yml
+#         - template: templates/deploy-namespaced-service.yml
