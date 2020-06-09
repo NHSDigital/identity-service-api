@@ -43,7 +43,7 @@ pool:
 
 stages:
   - stage: DeployInternalDevDeployTask
-    displayName: internal-dev
+    displayName: internal-dev-download-task
     condition: and(succeeded(), eq(${{ parameters.deployJob }}, True))
     variables:
     - group: apigee-nonprod
@@ -60,7 +60,7 @@ stages:
                 - template: templates/deploy-namespaced-service.yml
 
   - stage: DeployInternalDevDownloadTask
-    displayName: internal-dev
+    displayName: internal-dev-download-task
     condition: and(succeeded(), eq(${{ parameters.deployJob }}, False))
     variables:
     - group: apigee-nonprod
