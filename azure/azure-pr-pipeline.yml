@@ -8,10 +8,10 @@ pr:
       - APM-*
       - apm-*
 
-# resources:
-#   pipelines:
-#   - pipeline: IdentityService
-#     source: "NHSDigital.identity-service-api (2)"
+resources:
+  pipelines:
+  - pipeline: IdentityService
+    source: "NHSDigital.identity-service-api (2)"
 
 
 parameters:
