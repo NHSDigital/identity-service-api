@@ -44,7 +44,7 @@ pool:
 stages:
   - stage: DeployInternalDev
     displayName: internal-dev
-    condition: and(succeeded(), eq('${{ parameters.deployJob }}'', true))
+    condition: and(succeeded(), eq('${{ parameters.deployJob }}'', True))
     variables:
     - group: apigee-nonprod
     - group: env-internal-dev
@@ -61,7 +61,7 @@ stages:
 
   - stage: DeployInternalDev
     displayName: internal-dev
-    condition: and(succeeded(), eq('${{ parameters.deployJob }}'', false))
+    condition: and(succeeded(), eq('${{ parameters.deployJob }}'', False))
     variables:
     - group: apigee-nonprod
     - group: env-internal-dev
