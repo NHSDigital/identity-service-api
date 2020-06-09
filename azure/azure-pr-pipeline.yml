@@ -64,13 +64,13 @@ stages:
       displayName: Deploy Service
       steps:
         - checkout: none
-        - task: DownloadBuildArtifacts@0
+        - task: DownloadPipelineArtifact@2
           displayName: 'Download Build Artifact'
           inputs:
-            buildType: 'specific'
+            source: 'specific'
             project: '$(resources.pipeline.IdentityService.projectID)'
             definition: '$(resources.pipeline.IdentityService.pipelineID)'
-            downloadType: 'specific'
+            preferTriggeringPipeline: true
             ${{ if eq(parameters.artifactBuildId, 'latest') }}:
               buildVersionToDownload: 'latestFromBranch'
             ${{ if ne(parameters.artifactBuildId, 'latest') }}:
