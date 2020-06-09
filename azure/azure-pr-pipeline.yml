@@ -82,5 +82,5 @@ stages:
               branchName: 'refs/heads/${{ parameters.artifactBranch }}'
             downloadPath: '$(Pipeline.Workspace)'
         - bash: ls $(Pipeline.Workspace)
-        - template: templates/identity-service-templating.yml
+        - template: templates/identity-service-templating-temp.yml
         - template: templates/deploy-namespaced-service.yml
