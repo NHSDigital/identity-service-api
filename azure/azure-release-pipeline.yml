@@ -82,8 +82,8 @@ stages:
                     ${{ if ne(parameters.artifactBranch, '$(Build.SourceBranch)') }}:
                       branchName: 'refs/heads/${{ parameters.artifactBranch }}'
                     downloadPath: '$(Pipeline.Workspace)/$(SERVICE_NAME)'
-                - bash: ls $(Pipeline.Workspace)
                 - bash: ls $(Pipeline.Workspace)/$(SERVICE_NAME)
+                - bash: ls -R $(Pipeline.Workspace)/$(SERVICE_NAME)
                 - template: templates/identity-service-templating.yml
                 - template: templates/deploy-service.yml
 
