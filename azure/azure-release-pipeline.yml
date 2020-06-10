@@ -7,6 +7,11 @@ trigger:
 
 pr: none
 
+resources:
+  pipelines:
+  - pipeline: IdentityService
+    source: Identity-Service-Build
+
 parameters:
   - name : artifactBranch
     displayName: Artifact Branch (e.g. feature/myfeature)
@@ -18,17 +23,12 @@ parameters:
     default: latest
 
 variables:
-  SERVICE_NAME: IdentityService
+  SERVICE_NAME: identity-service
   SERVICE_BASE_PATH: /oauth2
   VARIABLES_KVM: identity-service-variables
   ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
   IDENTITY_TARGET_SERVER: identity-server
   SPEC_FILE_NAME: identity-service
-
-resources:
-  pipelines:
-  - pipeline: IdentityService
-    source: Identity-Service-Build
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -85,7 +85,7 @@ stages:
                 - bash: ls $(Pipeline.Workspace)
                 - bash: ls $(Pipeline.Workspace)/$(SERVICE_NAME)
                 - template: templates/identity-service-templating.yml
-                - template: templates/deploy-namespaced-service.yml
+                - template: templates/deploy-service.yml
 
 # - stage: DeployInternalQA
 #   displayName: internal-qa
@@ -139,7 +139,7 @@ stages:
                 - bash: ls $(Pipeline.Workspace)
                 - bash: ls $(Pipeline.Workspace)/$(SERVICE_NAME)
                 - template: templates/identity-service-templating.yml
-                - template: templates/deploy-namespaced-service.yml
+                - template: templates/deploy-service.yml
 
 # - stage: DeployInternalQASandbox
 #   displayName: internal-qa-sandbox
