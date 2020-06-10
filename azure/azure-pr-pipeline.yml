@@ -11,7 +11,7 @@ pr:
 resources:
   pipelines:
   - pipeline: IdentityService
-    source: "Identity-Service-Build"
+    source: "NHSDigital.identity-service-api (2)"
 
 
 parameters:
@@ -72,36 +72,3 @@ stages:
                 - bash: ls $(Pipeline.Workspace)/$(SERVICE_NAME)
                 - template: templates/identity-service-templating.yml
                 - template: templates/deploy-namespaced-service.yml
-
-# stages:
-# - stage: DeployInternalDev
-#   displayName: internal-dev
-#   variables:
-#   - group: apigee-nonprod
-#   - group: env-internal-dev
-#   jobs:
-#     - job: DeployService
-#       displayName: Deploy Service
-#       steps:
-#         - checkout: none
-#         - task: DownloadPipelineArtifact@2
-#           displayName: 'Download Build Artifact'
-#           inputs:
-#             source: 'specific'
-#             project: '$(resources.pipeline.IdentityService.projectID)'
-#             definition: '$(resources.pipeline.IdentityService.pipelineID)'
-#             preferTriggeringPipeline: true
-#             ${{ if eq(parameters.artifactBuildId, 'latest') }}:
-#               buildVersionToDownload: 'latestFromBranch'
-#             ${{ if ne(parameters.artifactBuildId, 'latest') }}:
-#               buildVersionToDownload: 'specific'
-#               runId: '${{ parameters.artifactBuildId }}'
-#             ${{ if eq(parameters.artifactBranch, '$(Build.SourceBranch)') }}:
-#               branchName: '$(Build.SourceBranch)'
-#             ${{ if ne(parameters.artifactBranch, '$(Build.SourceBranch)') }}:
-#               branchName: 'refs/heads/${{ parameters.artifactBranch }}'
-#             downloadPath: '$(Pipeline.Workspace)/$(SERVICE_NAME)'
-#         - bash: ls $(Pipeline.Workspace)
-#         - bash: ls $(Pipeline.Workspace)/$(SERVICE_NAME)
-#         - template: templates/identity-service-templating.yml
-#         - template: templates/deploy-namespaced-service.yml
