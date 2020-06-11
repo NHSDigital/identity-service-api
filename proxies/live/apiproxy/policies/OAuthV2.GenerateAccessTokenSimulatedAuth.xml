@@ -1,0 +1,17 @@
+<OAuthV2 async="false" continueOnError="false" enabled="true" name="OAuthV2.GenerateAccessTokenSimulatedAuth">
+  <Operation>GenerateAccessToken</Operation>
+  <RedirectUri>request.formparam.redirect_uri</RedirectUri>
+  <!-- 10 minutes: -->
+  <ExpiresIn ref="private.apigee.access_token_expiry_ms">600000</ExpiresIn>
+  <!-- 10 hours: -->
+  <RefreshTokenExpiresIn ref="private.apigee.refresh_token_expiry_ms">36000000</RefreshTokenExpiresIn>
+  <SupportedGrantTypes>
+      <GrantType>authorization_code</GrantType>
+  </SupportedGrantTypes>
+  <GenerateResponse enabled="false"/>
+  <Attributes>
+    <Attribute name="id_token-subject" display="true">dummy-subject</Attribute>
+    <Attribute name="id_token-issuer" display="true">dummy-issuer</Attribute>
+    <Attribute name="_first_issued" ref="system.timestamp" display="false"/>
+  </Attributes>
+</OAuthV2>

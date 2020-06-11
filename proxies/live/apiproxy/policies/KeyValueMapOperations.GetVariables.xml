@@ -47,4 +47,11 @@
         <Parameter>jwks_path</Parameter>
     </Key>
   </Get>
+  <!-- Set to 'true' where we want this identity service to perform it's own *SIMULATED* authorization
+  See docs/simulated_idp.md for info -->
+  <Get assignTo="identity_service.simulated_idp" index="1">
+    <Key>
+        <Parameter>simulated_idp</Parameter>
+    </Key>
+  </Get>
 </KeyValueMapOperations>
