@@ -5,7 +5,8 @@
         <Payload contentType="application/json">
           {
             "error": "unknown_error",
-            "error_description": "An unknown error occurred processing this request. Contact us for assistance diagnosing this issue: https://digital.nhs.uk/developer/help-and-support"
+            "error_description": "An unknown error occurred processing this request. Contact us for assistance diagnosing this issue: https://digital.nhs.uk/developer/help-and-support quoting Message ID",
+            "message_id": "{messageid}"
           }
         </Payload>
         <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>

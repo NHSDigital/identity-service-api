@@ -4,7 +4,8 @@
       <Payload contentType="application/json">
         {
           "error" : "invalid_request",
-          "error_description" :"Invalid redirection uri {request.queryparam.redirect_uri}"
+          "error_description" :"Invalid redirection uri {request.queryparam.redirect_uri}",
+          "message_id": "{messageid}"
         }
       </Payload>
       <StatusCode>400</StatusCode>
