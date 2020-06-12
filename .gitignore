@@ -9,3 +9,6 @@ newman/
 
 __pycache__/
 .envrc
+.idea/
+.pytest_cache/
+docker.env
