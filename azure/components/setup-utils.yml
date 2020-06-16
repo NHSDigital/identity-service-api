@@ -1,5 +1,5 @@
 parameters:
-  - name: NAME
+  - name: serviceName
     type: string
     
 steps:
@@ -10,4 +10,4 @@ steps:
       pip install --upgrade pip setuptools
       pip install poetry
       poetry install
-    displayName: 'Deploy ${{ parameters.NAME }} > Set up utils'
+    displayName: 'Deploy ${{ parameters.serviceName }} > Set up utils'

@@ -1,3 +1,7 @@
+parameters:
+  - name: useCustomTerraform
+    type: string
+
 steps:
   - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
     displayName: 'Install Terraform 0.12.24'
@@ -7,9 +11,9 @@ steps:
   - bash: |
       mkdir -p ~/.terraform.d/plugins
       
-      echo "Using custom terraform: $(USE_CUSTOM_TERRAFORM)"
+      echo "Using custom terraform: ${{ parameters.useCustomTerraform }}"
       
-      export USE_CUSTOM_TERRAFORM=$(USE_CUSTOM_TERRAFORM)
+      export USE_CUSTOM_TERRAFORM=${{ parameters.useCustomTerraform }}
       if [ "$USE_CUSTOM_TERRAFORM" = "yes" ]; then
         # Build from source 
         git clone -b apm-749-fix-incosistent-apply https://github.com/NHSDigital/terraform-provider-apigee.git
@@ -24,4 +28,3 @@ steps:
       
       ls ~/.terraform.d/plugins
     displayName: 'Install apigee terraform provider'
-          
