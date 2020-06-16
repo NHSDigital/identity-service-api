@@ -49,23 +49,11 @@ stages:
           runOnce:
             deploy:
               steps:
-                - download: none
-                - task: DownloadPipelineArtifact@2
-                  displayName: 'Download Build Artifact'
-                  inputs:
-                    source: 'specific'
-                    project: '$(resources.pipeline.IdentityService.projectID)'
-                    definition: '$(resources.pipeline.IdentityService.pipelineID)'
-                    preferTriggeringPipeline: true
-                    ${{ if eq(parameters.artifactBuildId, 'latest') }}:
-                      buildVersionToDownload: 'latestFromBranch'
-                    ${{ if ne(parameters.artifactBuildId, 'latest') }}:
-                      buildVersionToDownload: 'specific'
-                      runId: '${{ parameters.artifactBuildId }}'
-                    ${{ if eq(parameters.artifactBranch, '$(Build.SourceBranch)') }}:
-                      branchName: '$(Build.SourceBranch)'
-                    ${{ if ne(parameters.artifactBranch, '$(Build.SourceBranch)') }}:
-                      branchName: 'refs/heads/${{ parameters.artifactBranch }}'
-                    downloadPath: '$(Pipeline.Workspace)/$(SERVICE_NAME)'
+                - template: templates/download-build-artifact.yml
+                  parameters:
+                    serviceName: $(SERVICE_NAME)
+                    artifactBuildId: ${{ parameters.artifactBuildId }}
+                    artifactBranch: ${{ parameters.artifactBranch }}
+                    pipelineAlias: IdentityService
                 - template: templates/identity-service-templating.yml
                 - template: templates/deploy-namespaced-service.yml
