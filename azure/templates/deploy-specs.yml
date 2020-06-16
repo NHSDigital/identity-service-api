@@ -13,15 +13,18 @@ steps:
 
 - template: ../components/setup-utils.yml
   parameters:
-   NAME: $(APIGEE_ENVIRONMENT)
+    serviceName: $(SERVICE_NAME)
 
 - template: ../components/get-mfa-code.yml
   parameters:
-   NAME: $(APIGEE_ENVIRONMENT)
+    serviceName: $(SERVICE_NAME)
+    apigeeOTPKey: $(APIGEE_OTP_KEY)
 
 - template: ../components/get-access-token.yml
   parameters:
-   NAME: $(APIGEE_ENVIRONMENT)
+    serviceName: $(SERVICE_NAME)
+    apigeeUsername: $(APIGEE_USERNAME)
+    apigeePassword: $(APIGEE_PASSWORD)
 
 - bash: |
    cd utils

@@ -13,7 +13,6 @@ resources:
   - pipeline: IdentityService
     source: "Identity-Service-Build"
 
-
 parameters:
   - name : artifactBranch
     displayName: Artifact Branch (e.g. feature/myfeature)

@@ -6,7 +6,7 @@ steps:
 
   - template: ../components/setup-utils.yml
     parameters:
-      NAME: $(SERVICE_NAME)
+      serviceName: $(SERVICE_NAME)
 
   - bash: |
       set -euo pipefail
