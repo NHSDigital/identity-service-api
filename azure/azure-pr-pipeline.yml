@@ -1,7 +1,5 @@
 name: "$(SourceBranchName)+$(BuildID)"
 
-trigger: none
-
 pr:
   branches:
     include:
