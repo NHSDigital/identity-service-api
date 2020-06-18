@@ -1,4 +1,4 @@
-name: Identity Service Pull Request
+name: "$(SourceBranchName)+$(BuildID)"
 
 trigger: none
 
