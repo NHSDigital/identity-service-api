@@ -1,4 +1,4 @@
-name: Identity Service Release
+name: "$(SourceBranchName)+$(BuildID)"
 
 trigger:
   branches:
