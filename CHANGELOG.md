@@ -1,5 +1,8 @@
 # Changelog
 
+## 2020-06-18
+* Move release and pull request pipelines into source control
+
 ## 2020-05-26
 * Additional template hooks to configure KVMs and Target Server
 

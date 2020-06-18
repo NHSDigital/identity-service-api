@@ -1,0 +1,57 @@
+name: "$(SourceBranchName)+$(BuildID)"
+
+pr:
+  branches:
+    include:
+      - APM-*
+      - apm-*
+
+resources:
+  pipelines:
+  - pipeline: IdentityService
+    source: "Identity-Service-Build"
+
+parameters:
+  - name : artifactBranch
+    displayName: Artifact Branch (e.g. feature/myfeature)
+    type: string
+    default: $(Build.SourceBranch)
+  - name : artifactBuildId
+    displayName: Artifact Build Id (e.g. run Id for the build to download). Overrides Artifact Branch if not "latest".
+    type: string
+    default: latest
+
+variables:
+  SERVICE_NAME: identity-service
+  SERVICE_BASE_PATH: /oauth2
+  VARIABLES_KVM: identity-service-variables
+  ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+  IDENTITY_TARGET_SERVER: identity-server
+  FORCE_SANDBOX: false
+  NAMESPACE: from_branchname
+
+pool:
+  vmImage: 'ubuntu-18.04'
+
+stages:
+  - stage: DeployInternalDev
+    displayName: internal-dev
+    variables:
+    - group: apigee-nonprod
+    - group: env-internal-dev
+    jobs:
+      - deployment: DeployService
+        displayName: Deploy Service
+        environment: 'internal-dev'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: templates/download-build-artifact.yml
+                  parameters:
+                    serviceName: $(SERVICE_NAME)
+                    artifactBuildId: ${{ parameters.artifactBuildId }}
+                    artifactBranch: ${{ parameters.artifactBranch }}
+                    pipelineAlias: IdentityService
+                - template: templates/identity-service-templating.yml
+                - template: templates/deploy-namespaced-service.yml
