@@ -1,10 +1,12 @@
 name: "$(SourceBranchName)+$(BuildID)"
 
+trigger: none
+
 pr:
   branches:
     include:
-      - APM-*
-      - apm-*
+    - APM-*
+    - apm-*
 
 resources:
   pipelines:
