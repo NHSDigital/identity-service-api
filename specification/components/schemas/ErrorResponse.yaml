@@ -19,5 +19,8 @@ properties:
     type: string
     format: uri
     example: https://example.app.nhs.net
+  message_id:
+    type: string
+    description: Unique message identitier.
 required:
   - error

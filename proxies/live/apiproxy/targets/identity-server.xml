@@ -1,4 +1,9 @@
 <TargetEndpoint name="identity-server">
+  <DefaultFaultRule>
+    <Step>
+      <Name>AssignMessage.CatchallErrorMessage</Name>
+    </Step>
+  </DefaultFaultRule>
   <PreFlow>
     <Request>
     </Request>
