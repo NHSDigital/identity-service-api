@@ -10,7 +10,15 @@ parameters:
 
 steps:
   - download: none
-  - bash: echo "${{ parameters.artifactBuildId }}+${{ parameters.artifactBranch }} Source $(Build.SourceBranch)"
+  - bash: |
+      echo "${{ parameters.artifactBranch }}+${{ parameters.artifactBuildId }} Source $(Build.SourceBranch)"
+      if [[ "${{ parameters.artifactBranch }}" =~ ^v ]];
+      then
+        echo "##vso[task.setvariable variable=GIT_BRANCH]'tags'";
+      else
+        echo "##vso[task.setvariable variable=GIT_BRANCH]'heads'";
+      fi
+    displayName: Determine Artifact Location
   - task: DownloadPipelineArtifact@2
     displayName: 'Download Build Artifact'
     inputs:
@@ -26,5 +34,5 @@ steps:
       ${{ if eq(parameters.artifactBranch, '$(Build.SourceBranch)') }}:
         branchName: '$(Build.SourceBranch)'
       ${{ if ne(parameters.artifactBranch, '$(Build.SourceBranch)') }}:
-        branchName: 'refs/heads/${{ parameters.artifactBranch }}'
+        branchName: 'refs/$(GIT_BRANCH)/${{ parameters.artifactBranch }}'
       downloadPath: '$(Pipeline.Workspace)/${{ parameters.serviceName }}'
