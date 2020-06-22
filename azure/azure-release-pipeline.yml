@@ -17,7 +17,7 @@ variables:
 
 parameters:
   - name : artifactBranch
-    displayName: Artifact Branch (e.g. feature/myfeature)
+    displayName: Artifact Branch (e.g. feature/myfeature or v1.0.0-alpha)
     type: string
     default: $(Build.SourceBranch)
   - name : artifactBuildId
