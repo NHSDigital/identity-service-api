@@ -1,10 +1,6 @@
 name: "$(SourceBranchName)+$(BuildID)"
 
-trigger: 
-  branches:
-    include:
-      - apm-*
-      - APM-*
+trigger: none
 
 pr:
   branches:
