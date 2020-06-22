@@ -1,9 +1,6 @@
 name: "$(SourceBranchName)+$(BuildID)"
 
-trigger:
-  branches:
-    include:
-      - refs/tags/v*
+trigger: none
 
 pr: none
 
@@ -29,6 +26,10 @@ resources:
   pipelines:
   - pipeline: IdentityService
     source: "Identity-Service-Build"
+    trigger:
+      branches:
+        include:
+          - refs/tags/v*
 
 pool:
   vmImage: 'ubuntu-latest'
