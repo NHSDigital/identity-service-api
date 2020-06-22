@@ -10,6 +10,7 @@ parameters:
 
 steps:
   - download: none
+  - bash: echo "${{ parameters.artifactBuildId }}+${{ parameters.artifactBranch }} Source $(Build.SourceBranch)"
   - task: DownloadPipelineArtifact@2
     displayName: 'Download Build Artifact'
     inputs:
