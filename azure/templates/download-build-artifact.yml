@@ -18,7 +18,7 @@ steps:
         export TYPE="heads";
       fi
       echo "##vso[task.setvariable variable=GIT_BRANCH_TYPE]$TYPE";
-      echo "Retrieving Artifact from: $TYPE/${{ parameters.artifactBranch }} BuildId: ${{ parameters.artifactBuildId }}"
+      echo "Retrieving Artifact from: ${{ parameters.artifactBranch }} BuildId: ${{ parameters.artifactBuildId }}"
     displayName: Determine Artifact Location
   - task: DownloadPipelineArtifact@2
     displayName: 'Download Build Artifact'
