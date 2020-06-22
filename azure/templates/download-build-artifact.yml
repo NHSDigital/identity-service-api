@@ -26,7 +26,7 @@ steps:
       #   export ARTIFACT_BRANCH="${{ parameters.artifactBranch }}";
       # fi
       # echo "##vso[task.setvariable variable=ARTIFACT_BRANCH]$ARTIFACT_BRANCH";
-
+      echo "Parameter: ${{ parameters.artifactBranch }} Source: $(Build.SourceBranch)"
       echo "Retrieving Artifact from: ${{ parameters.artifactBranch }} BuildId: ${{ parameters.artifactBuildId }}"
     displayName: Determine Artifact Location
   - task: DownloadPipelineArtifact@2
