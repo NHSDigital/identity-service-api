@@ -21,7 +21,7 @@ steps:
 
       if [[ "${{ parameters.artifactBranch }}" =~ ^refs\/tags\/v ]];
       then
-        export ARTIFACT_BRANCH="ref/heads/master";
+        export ARTIFACT_BRANCH="refs/heads/master";
       else
         export ARTIFACT_BRANCH="${{ parameters.artifactBranch }}";
       fi
