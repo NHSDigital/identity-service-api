@@ -14,11 +14,12 @@ steps:
       echo "${{ parameters.artifactBranch }}+${{ parameters.artifactBuildId }} Source $(Build.SourceBranch)"
       if [[ "${{ parameters.artifactBranch }}" =~ ^v ]];
       then
-        echo "##vso[task.setvariable variable=GIT_BRANCH]'tags'";
+        export BRANCH="tags";
       else
-        echo "##vso[task.setvariable variable=GIT_BRANCH]'heads'";
+        export BRANCH="heads";
       fi
-      echo $(GIT_BRANCH)
+      echo "##vso[task.setvariable variable=GIT_BRANCH]$BRANCH";
+      echo $BRANCH
     displayName: Determine Artifact Location
   - task: DownloadPipelineArtifact@2
     displayName: 'Download Build Artifact'
