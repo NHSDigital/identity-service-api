@@ -228,6 +228,13 @@
             <Condition>1=1</Condition>
         </Flow>
     </Flows>
+    <PostClientFlow>
+      <Response>
+        <Step>
+          <Name>FlowCallout.Logging</Name>
+        </Step>
+      </Response>
+    </PostClientFlow>
     <HTTPProxyConnection>
         <!-- Cannot be parameterised / dynamic as it's part of callback URI registered with the identity provider -->
         <BasePath>{{ SERVICE_BASE_PATH }}</BasePath>
