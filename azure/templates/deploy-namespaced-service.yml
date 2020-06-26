@@ -58,6 +58,19 @@ steps:
 
   - bash: |
       set -euo pipefail
+
+      export SERVICE_DIR=`realpath "$(Pipeline.Workspace)/$(SERVICE_NAME)/$(SERVICE_ARTIFACT_NAME)"`
+      export PROXY_DIR="$SERVICE_DIR/proxies/$(PROXY_NAME)"
+      export SERVICE_NAME="$(SERVICE_NAME)-$(APIGEE_ENVIRONMENT)"
+      export SERVICE_BASE_PATH="$(SERVICE_BASE_PATH)"
+      export APIGEE_ACCESS_TOKEN="$(secret.AccessToken)"
+
+      cd utils
+      poetry run ansible-playbook ansible/deploy-apigee-proxy.yml
+    displayName: 'Deploy $(SERVICE_NAME) > Deploy Proxy'
+
+  - bash: |
+      set -euo pipefail
       
       # Set up a logging directory and logfile
       mkdir logs
@@ -90,4 +103,4 @@ steps:
       
       TF_LOG_PATH=$(System.DefaultWorkingDirectory)/logs/terraform-crash.log terraform apply -no-color -auto-approve tfplan.out
       rm tfplan.out
-    displayName: 'Deploy $(SERVICE_NAME) > Deploy'
+    displayName: 'Deploy $(SERVICE_NAME) > Deploy Product'

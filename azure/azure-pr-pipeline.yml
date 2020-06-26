@@ -30,6 +30,7 @@ variables:
   IDENTITY_TARGET_SERVER: identity-server
   FORCE_SANDBOX: false
   NAMESPACE: from_branchname
+  PROXY_NAME: live
 
 pool:
   vmImage: 'ubuntu-latest'
