@@ -1,6 +1,13 @@
 <ProxyEndpoint name="default">
     <Description/>
-    <FaultRules/>
+    <FaultRules>
+      <FaultRule>
+        <Step>
+          <Name>AssignMessage.RefreshTokenExpired</Name>
+        </Step>
+        <Condition>oauthV2.OAuthV2.GenerateRefreshToken.failed = "true"</Condition>
+      </FaultRule>
+    </FaultRules>
     <PreFlow name="PreFlow">
         <Request/>
         <Response/>

@@ -1,0 +1,13 @@
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.RefreshTokenExpired">
+  <Set>
+    <StatusCode>401</StatusCode>
+    <ReasonPhrase>Unauthorized</ReasonPhrase>
+    <Payload contentType="application/json">{
+    "error" : "{oauthV2.OAuthV2.GenerateRefreshToken.fault.name}",
+    "error_description" :"{oauthV2.OAuthV2.GenerateRefreshToken.fault.cause}"
+    }
+  </Payload>
+</Set>
+<IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+<AssignTo createNew="false" transport="http" type="request"/>
+</AssignMessage>
