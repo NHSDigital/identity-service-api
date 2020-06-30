@@ -1,3 +1,4 @@
 steps:
-  - download: IdentityService
-
+  - task: DownloadPipelineArtifact@2
+    inputs:
+      source: 'current'
