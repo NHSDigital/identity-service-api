@@ -71,36 +71,44 @@ steps:
 
   - bash: |
       set -euo pipefail
-      
+
+      if [ -d  $(SERVICE_NAME)/$(SERVICE_ARTIFACT_NAME)/terraform ]; then
       # Set up a logging directory and logfile
       mkdir logs
       touch logs/terraform-crash.log
-      
+
       # Move to terraform context of this service
-      cd $(Pipeline.Workspace)/$(SERVICE_NAME)/$(SERVICE_ARTIFACT_NAME)/terraform
-      
-      
-      cat > ./tmp.tfvars.tmp <<'_EOF'
+      cd $(SERVICE_NAME)/$(SERVICE_ARTIFACT_NAME)/terraform
+
+      cat > ./tmp.tfvars.tmp << '_EOF'
       apigee_token = "${API_ACCESS_TOKEN}"
       apigee_environment = "$(APIGEE_ENVIRONMENT)"
       apigee_organization = "$(APIGEE_ORGANIZATION)"
       namespace = "-$(_NAMESPACE)"
       force_sandbox = "$(FORCE_SANDBOX)"
-      status_cake_username = "$(STATUS_CAKE_USERNAME)"
-      status_cake_api_key = "$(STATUS_CAKE_API_KEY)"
-      status_cake_contact_group = "$(STATUS_CAKE_CONTACT_GROUP)"
       covid-19-testing-channel-availability-host = "$(COVID_19_TCA_HOST)"
       dps-submission-api-host = "$(DPS_SUBMISSION_API_HOST)"
       _EOF
-      
+
       export API_ACCESS_TOKEN="$(secret.AccessToken)"
-      
+
       envsubst < ./tmp.tfvars.tmp > ./tmp.tfvars
-      
+
       terraform init -no-color -backend-config="storage_account_name=hawdonnhsddevopssacc" -backend-config="container_name=$(APIGEE_ORGANIZATION)" -backend-config="key=$(APIGEE_ENVIRONMENT)-$(SERVICE_NAME)-$(_NAMESPACE).tfstate" -backend-config="sas_token=$(SAS_TOKEN)"
-      
+
+      export TERRAFORM_SERVICE_NAME="$(SERVICE_NAME)"
+
+      if [ "$(SERVICE_NAME)" == "personal-demographics" ]; then
+        export TERRAFORM_SERVICE_NAME="personal-demographics-service"
+      fi
+
+      # Uncomment this if you remove something from terraform management and need
+      # to blast the state to stop terraform attempting to destroy it
+      terraform state rm "module.$TERRAFORM_SERVICE_NAME"
+
       terraform plan -input=false -no-color -var-file=./tmp.tfvars -out tfplan.out
-      
+
       TF_LOG_PATH=$(System.DefaultWorkingDirectory)/logs/terraform-crash.log terraform apply -no-color -auto-approve tfplan.out
       rm tfplan.out
+      fi
     displayName: 'Deploy $(SERVICE_NAME) > Deploy Product'
