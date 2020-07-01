@@ -10,10 +10,11 @@ resources:
   - pipeline: identity-service
     source: Identity-Service-Build
     trigger:
-      exclude:
-        - "master"
-        - "refs/heads/master"
-        - "refs/tags/v*"
+      branches:
+        exclude:
+          - "master"
+          - "refs/heads/master"
+          - "refs/tags/v*"
 
 variables:
   SERVICE_NAME: identity-service
