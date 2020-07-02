@@ -63,7 +63,4 @@ steps:
   
   - bash: |
       set -euo pipefail
-      
-      # TODO re-enable once i figure out how to get alternative SANs to work
-      # curl --fail -I $(CURL_ARGUMENTS)
     displayName: 'Deploy $(SERVICE_NAME) > Smoke test'
