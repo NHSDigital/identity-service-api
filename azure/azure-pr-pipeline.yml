@@ -43,7 +43,6 @@ stages:
           runOnce:
             deploy:
               steps:
-                - template: templates/download-build-artifact.yml
                 - template: templates/identity-service-templating.yml
                 - template: templates/setup-build-name.yml
                 - template: templates/deploy-namespaced-service.yml
