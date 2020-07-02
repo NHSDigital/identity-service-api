@@ -4,4 +4,3 @@ steps:
   - task: DownloadPipelineArtifact@2
     inputs:
       source: 'current'
-      preferTriggeringPipeline: true
