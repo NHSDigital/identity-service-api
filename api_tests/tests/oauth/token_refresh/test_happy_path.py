@@ -1,6 +1,8 @@
 import pytest
 from time import sleep
 
+from api_tests.config_files import config
+
 
 @pytest.mark.usefixtures("setup")
 class TestOauthTokenErrorConditionSuite:
@@ -25,30 +27,24 @@ class TestOauthTokenErrorConditionSuite:
     @pytest.mark.happy_path
     @pytest.mark.usefixtures('get_token')
     def test_refresh_token(self):
-        # Get token with a timeout set to 5 second &
-        # wait until token has expired
         assert self.test.check_endpoint(
-            verb='GET',
-            endpoint='api',
+            verb='POST',
+            endpoint='token',
             expected_status_code=200,
-            expected_response={"message": "Hello User!"},
+            expected_response=[
+                'access_token',
+                'expires_in',
+                'refresh_count',
+                'refresh_token',
+                'refresh_token_expires_in',
+                'token_type'
+            ],
             headers={
-                'Authorization': f'Bearer {self.token}',
                 'NHSD-Session-URID': '',
-            }
-        )
-
-        # Wait for token to expire
-        sleep(5)
-
-        # Check refresh token still works after access token has expired
-        assert self.test.check_endpoint(
-            verb='GET',
-            endpoint='api',
-            expected_status_code=200,
-            expected_response={"message": "Hello User!"},
-            headers={
-                'Authorization': f'Bearer {self.refresh_token}',
-                'NHSD-Session-URID': '',
-            }
-        )
+            },
+            data={
+                'client_id': config.CLIENT_ID,
+                'client_secret': config.CLIENT_SECRET,
+                'grant_type': 'refresh_token',
+                'refresh_token': self.refresh_token,
+            })
