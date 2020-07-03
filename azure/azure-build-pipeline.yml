@@ -41,13 +41,13 @@ jobs:
 
       - bash: "wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -"
         displayName: Add apt-key
-        
+
       - bash: "curl -sL https://deb.nodesource.com/setup_13.x | sudo -E bash -"
         displayName: Setup node
 
       - bash: sudo apt-get install -y nodejs
         displayName: Install node
-        
+
       - bash: "python -m pip install --upgrade pip setuptools wheel && pip install poetry"
         displayName: Install python dependencies
 
