@@ -1,7 +1,13 @@
 # Changelog
 
+## 2020-06-18
+* Move release and pull request pipelines into source control
+
 ## 2020-05-26
 * Additional template hooks to configure KVMs and Target Server
+
+## 2020-05-15
+* Created an api testing framework to help facilitate automation
 
 ## 2020-05-13
 * Remove id_token from the /token endpoint

@@ -1,6 +1,6 @@
 # identity-service-api
 
-![Build](https://github.com/NHSDigital/template-api/workflows/Build/badge.svg?branch=master)
+![Build](https://github.com/NHSDigital/identity-service-api/workflows/Build/badge.svg?branch=master)
 
 This is a RESTful HL7® FHIR® API specification for the *Template API*.
 

@@ -1,0 +1,39 @@
+parameters:
+  - name: serviceName
+    type: string
+  - name: artifactBuildId
+    type: string
+  - name: artifactBranch
+    type: string
+  - name: pipelineAlias
+    type: string
+
+steps:
+  - download: none
+  - bash: |
+      if [[ "${{ parameters.artifactBranch }}" =~ ^v ]];
+      then
+        export TYPE="tags";
+      else
+        export TYPE="heads";
+      fi
+      echo "##vso[task.setvariable variable=GIT_BRANCH_TYPE]$TYPE";
+      echo "Retrieving Artifact from: ${{ parameters.artifactBranch }} BuildId: ${{ parameters.artifactBuildId }}"
+    displayName: Determine Artifact Location
+  - task: DownloadPipelineArtifact@2
+    displayName: 'Download Build Artifact'
+    inputs:
+      source: 'specific'
+      project: '$(resources.pipeline.${{ parameters.pipelineAlias }}.projectID)'
+      definition: '$(resources.pipeline.${{ parameters.pipelineAlias }}.pipelineID)'
+      preferTriggeringPipeline: true
+      ${{ if eq(parameters.artifactBuildId, 'latest') }}:
+        buildVersionToDownload: 'latestFromBranch'
+      ${{ if ne(parameters.artifactBuildId, 'latest') }}:
+        buildVersionToDownload: 'specific'
+        runId: '${{ parameters.artifactBuildId }}'
+      ${{ if eq(parameters.artifactBranch, '$(Build.SourceBranch)') }}:
+        branchName: '$(Build.SourceBranch)'
+      ${{ if ne(parameters.artifactBranch, '$(Build.SourceBranch)') }}:
+        branchName: 'refs/$(GIT_BRANCH_TYPE)/${{ parameters.artifactBranch }}'
+      downloadPath: '$(Pipeline.Workspace)/${{ parameters.serviceName }}'
