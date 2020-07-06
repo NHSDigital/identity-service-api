@@ -3,16 +3,38 @@ steps:
     displayName: 'Use Python 3.8'
     inputs:
       versionSpec: 3.8
-
+        
   - template: ../components/setup-utils.yml
     parameters:
       serviceName: $(SERVICE_NAME)
 
+
+  - task: DownloadSecureFile@1
+    name: aws_config
+    inputs:
+      secureFile: ptl_aws_config
+
+  - bash: |
+      mkdir -p ~/.aws
+      mv $(aws_config.secureFilePath) ~/.aws/config
+      chmod 400 ~/.aws/config
+    displayName: "Get AWS config"
+
   - bash: |
       set -euo pipefail
+      
       export SERVICE_ARTIFACT_NAME=`ls $(Pipeline.Workspace)/$(SERVICE_NAME)`
       echo "##vso[task.setvariable variable=SERVICE_ARTIFACT_NAME]$SERVICE_ARTIFACT_NAME"
-    displayName: 'Set SERVICE_ARTIFACT_NAME'
+      for secret_name in APIGEE_OTP_KEY \
+                         APIGEE_PASSWORD \
+                         APIGEE_USERNAME; do
+          secret_id="ptl/azure-devops/apigee-nonprod/${secret_name}"
+          secret_details=$(aws --profile apm_ptl secretsmanager get-secret-value --secret-id ${secret_id})
+          secret_value=$(echo $secret_details | jq -re .SecretString)
+          echo "##vso[task.setvariable variable=${secret_name};issecret=true]${secret_value}";
+          unset secret_id secret_details secret_value
+      done
+    displayName: 'Get secrets from AWS and set build variables'
 
   - bash: |
       set -euo pipefail
