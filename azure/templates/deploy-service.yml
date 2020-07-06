@@ -1,13 +1,4 @@
 steps:
-  - task: UsePythonVersion@0
-    displayName: 'Use Python 3.8'
-    inputs:
-      versionSpec: 3.8
-
-  - template: ../components/setup-utils.yml
-    parameters:
-      serviceName: $(SERVICE_NAME)
-
   - template: ../components/setup-terraform.yml
     parameters:
       useCustomTerraform: $(USE_CUSTOM_TERRAFORM)
@@ -72,7 +63,4 @@ steps:
   
   - bash: |
       set -euo pipefail
-      
-      # TODO re-enable once i figure out how to get alternative SANs to work
-      # curl --fail -I $(CURL_ARGUMENTS)
     displayName: 'Deploy $(SERVICE_NAME) > Smoke test'
