@@ -1,7 +1,6 @@
 name: "$(SourceBranchName)+$(BuildID)"
 
 trigger: none
-
 pr: none
 
 variables:
@@ -11,16 +10,6 @@ variables:
   ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
   IDENTITY_TARGET_SERVER: identity-server
   SPEC_FILE_NAME: identity-service
-
-parameters:
-  - name : artifactBranch
-    displayName: Artifact Branch (e.g. feature/myfeature or v1.0.0-alpha)
-    type: string
-    default: $(Build.SourceBranch)
-  - name : artifactBuildId
-    displayName: Artifact Build Id (e.g. run Id for the build to download). Overrides Artifact Branch if not "latest".
-    type: string
-    default: latest
 
 resources:
   pipelines:
@@ -48,12 +37,6 @@ stages:
         runOnce:
           deploy:
             steps:
-              - template: templates/download-build-artifact.yml
-                parameters:
-                  serviceName: $(SERVICE_NAME)
-                  artifactBuildId: ${{ parameters.artifactBuildId }}
-                  artifactBranch: ${{ parameters.artifactBranch }}
-                  pipelineAlias: IdentityService
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -71,12 +54,6 @@ stages:
         runOnce:
           deploy:
             steps:
-              - template: templates/download-build-artifact.yml
-                parameters:
-                  serviceName: $(SERVICE_NAME)
-                  artifactBuildId: ${{ parameters.artifactBuildId }}
-                  artifactBranch: ${{ parameters.artifactBranch }}
-                  pipelineAlias: IdentityService
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -94,12 +71,6 @@ stages:
         runOnce:
           deploy:
             steps:
-              - template: templates/download-build-artifact.yml
-                parameters:
-                  serviceName: $(SERVICE_NAME)
-                  artifactBuildId: ${{ parameters.artifactBuildId }}
-                  artifactBranch: ${{ parameters.artifactBranch }}
-                  pipelineAlias: IdentityService
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -117,12 +88,6 @@ stages:
         runOnce:
           deploy:
             steps:
-              - template: templates/download-build-artifact.yml
-                parameters:
-                  serviceName: $(SERVICE_NAME)
-                  artifactBuildId: ${{ parameters.artifactBuildId }}
-                  artifactBranch: ${{ parameters.artifactBranch }}
-                  pipelineAlias: IdentityService
               - template: templates/deploy-specs.yml
 
 - stage: DeployRef
@@ -141,12 +106,6 @@ stages:
         runOnce:
           deploy:
             steps:
-              - template: templates/download-build-artifact.yml
-                parameters:
-                  serviceName: $(SERVICE_NAME)
-                  artifactBuildId: ${{ parameters.artifactBuildId }}
-                  artifactBranch: ${{ parameters.artifactBranch }}
-                  pipelineAlias: IdentityService
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -165,12 +124,6 @@ stages:
         runOnce:
           deploy:
             steps:
-              - template: templates/download-build-artifact.yml
-                parameters:
-                  serviceName: $(SERVICE_NAME)
-                  artifactBuildId: ${{ parameters.artifactBuildId }}
-                  artifactBranch: ${{ parameters.artifactBranch }}
-                  pipelineAlias: IdentityService
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -189,12 +142,6 @@ stages:
         runOnce:
           deploy:
             steps:
-              - template: templates/download-build-artifact.yml
-                parameters:
-                  serviceName: $(SERVICE_NAME)
-                  artifactBuildId: ${{ parameters.artifactBuildId }}
-                  artifactBranch: ${{ parameters.artifactBranch }}
-                  pipelineAlias: IdentityService
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -213,12 +160,6 @@ stages:
         runOnce:
           deploy:
             steps:
-              - template: templates/download-build-artifact.yml
-                parameters:
-                  serviceName: $(SERVICE_NAME)
-                  artifactBuildId: ${{ parameters.artifactBuildId }}
-                  artifactBranch: ${{ parameters.artifactBranch }}
-                  pipelineAlias: IdentityService
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -237,12 +178,6 @@ stages:
         runOnce:
           deploy:
             steps:
-              - template: templates/download-build-artifact.yml
-                parameters:
-                  serviceName: $(SERVICE_NAME)
-                  artifactBuildId: ${{ parameters.artifactBuildId }}
-                  artifactBranch: ${{ parameters.artifactBranch }}
-                  pipelineAlias: IdentityService
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -261,12 +196,6 @@ stages:
         runOnce:
           deploy:
             steps:
-              - template: templates/download-build-artifact.yml
-                parameters:
-                  serviceName: $(SERVICE_NAME)
-                  artifactBuildId: ${{ parameters.artifactBuildId }}
-                  artifactBranch: ${{ parameters.artifactBranch }}
-                  pipelineAlias: IdentityService
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -285,10 +214,4 @@ stages:
         runOnce:
           deploy:
             steps:
-              - template: templates/download-build-artifact.yml
-                parameters:
-                  serviceName: $(SERVICE_NAME)
-                  artifactBuildId: ${{ parameters.artifactBuildId }}
-                  artifactBranch: ${{ parameters.artifactBranch }}
-                  pipelineAlias: IdentityService
               - template: templates/deploy-specs.yml
