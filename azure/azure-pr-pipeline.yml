@@ -1,26 +1,20 @@
 name: "$(SourceBranchName)+$(BuildID)"
 
+# Prevents building every commit or on PR
 trigger: none
+pr: none
 
-pr:
-  branches:
-    include:
-      - master
-
+# Consume an artifact from the build pipeline as soon as it becomes available.
 resources:
   pipelines:
-  - pipeline: IdentityService
-    source: "Identity-Service-Build"
-
-parameters:
-  - name : artifactBranch
-    displayName: Artifact Branch (e.g. feature/myfeature or v1.0.0-alpha)
-    type: string
-    default: $(Build.SourceBranch)
-  - name : artifactBuildId
-    displayName: Artifact Build Id (e.g. run Id for the build to download). Overrides Artifact Branch if not "latest".
-    type: string
-    default: latest
+  - pipeline: identity-service
+    source: Identity-Service-Build
+    trigger:
+      branches:
+        exclude:
+          - "master"
+          - "refs/heads/master"
+          - "refs/tags/v*"
 
 variables:
   SERVICE_NAME: identity-service
@@ -30,6 +24,7 @@ variables:
   IDENTITY_TARGET_SERVER: identity-server
   FORCE_SANDBOX: false
   NAMESPACE: from_branchname
+  PROXY_NAME: live
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -48,11 +43,6 @@ stages:
           runOnce:
             deploy:
               steps:
-                - template: templates/download-build-artifact.yml
-                  parameters:
-                    serviceName: $(SERVICE_NAME)
-                    artifactBuildId: ${{ parameters.artifactBuildId }}
-                    artifactBranch: ${{ parameters.artifactBranch }}
-                    pipelineAlias: IdentityService
                 - template: templates/identity-service-templating.yml
+                - template: templates/setup-build-name.yml
                 - template: templates/deploy-namespaced-service.yml
