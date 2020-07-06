@@ -57,9 +57,13 @@ class GenericRequest:
         self._validate_response(response)
 
         data = json.loads(response.text)
-        actual_keys = list(data.keys())
-        assert sorted(actual_keys) == sorted(expected_keys), \
-            "Expected: {sorted(expected_keys)} but got: {sorted(actual_keys)}"
+
+        if 'error' in data:
+            assert data == expected_keys
+        else:
+            actual_keys = list(data.keys())
+            assert sorted(actual_keys) == sorted(expected_keys), \
+                "Expected: {sorted(expected_keys)} but got: {sorted(actual_keys)}"
 
         assert response.status_code == expected_status_code, f"Status code is incorrect, " \
                                                              f"expected {expected_status_code} " \
