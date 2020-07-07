@@ -10,6 +10,7 @@ variables:
   ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
   IDENTITY_TARGET_SERVER: identity-server
   SPEC_FILE_NAME: identity-service
+  PROXY_NAME: live
 
 resources:
   pipelines:
