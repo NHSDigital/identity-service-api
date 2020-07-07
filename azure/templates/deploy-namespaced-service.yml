@@ -51,7 +51,7 @@ steps:
       set -euo pipefail
 
       export SERVICE_DIR=`realpath "$(Pipeline.Workspace)/$(SERVICE_NAME)/$(SERVICE_ARTIFACT_NAME)"`
-      export PROXY_DIR="$SERVICE_DIR/proxies/$(PROXY_NAME)"
+      export PROXY_DIR="$SERVICE_DIR/proxies/live"
       export SERVICE_NAME="$(SERVICE_NAME)-$(APIGEE_ENVIRONMENT)-$(_NAMESPACE)"
       export SERVICE_BASE_PATH="$(SERVICE_BASE_PATH)"
       export APIGEE_ACCESS_TOKEN="$(secret.AccessToken)"
