@@ -1,0 +1,3 @@
+steps:
+  - bash: 'echo "##vso[artifact.associate type=gitref;artifactname=$(SERVICE_ARTIFACT_NAME)]refs/heads/$(BRANCH_NAME)"'
+    displayName: Update information about which branch this PR applies to (attempts to fix github checks issue)
