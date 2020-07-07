@@ -37,6 +37,7 @@ steps:
   - bash: |
       set -euo pipefail
       
+      if [ -d  $(SERVICE_NAME)/$(SERVICE_ARTIFACT_NAME)/terraform ]; then
       cd $(Pipeline.Workspace)/$(SERVICE_NAME)/$(SERVICE_ARTIFACT_NAME)/terraform
       
       terraform init -no-color -backend-config="storage_account_name=hawdonnhsddevopssacc" -backend-config="container_name=$(APIGEE_ORGANIZATION)" -backend-config="key=$(APIGEE_ENVIRONMENT)-$(SERVICE_NAME).tfstate" -backend-config="sas_token=$(SAS_TOKEN)"
@@ -59,6 +60,7 @@ steps:
       
       terraform plan -input=false -no-color  -var-file=./tmp.tfvars -out tfplan.out
       terraform apply -no-color -auto-approve tfplan.out
+      fi
     displayName: 'Deploy $(SERVICE_NAME) > Deploy'
   
   - bash: |

@@ -13,7 +13,7 @@ variables:
 
 resources:
   pipelines:
-  - pipeline: IdentityService
+  - pipeline: identity-service
     source: "Identity-Service-Build"
     trigger:
       branches:
