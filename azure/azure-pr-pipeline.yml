@@ -33,8 +33,6 @@ stages:
   - stage: DeployInternalDev
     displayName: internal-dev
     variables:
-    # - group: apigee-nonprod
-    # - group: env-internal-dev
     - name: aws-label-ptl-or-prod
       value: ptl
     - name: aws-label-apigee-org
