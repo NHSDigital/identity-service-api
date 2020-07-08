@@ -239,6 +239,8 @@ stages:
       value: apigee-prod
     - name: aws-label-apigee-env
       value: env-int
+    - name: IDENTITY_TARGET_SERVER
+      value: identity-server-no-smartcard
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
