@@ -25,7 +25,6 @@ variables:
   FORCE_SANDBOX: false
   NAMESPACE: from_branchname
   PROXY_NAME: live
-  GITHUB_ACCESS_TOKEN: $(GITHUB_ACCESS_TOKEN)
 
 
 pool:
@@ -49,8 +48,8 @@ stages:
           runOnce:
             deploy:
               steps:
-                - template: components/notify-github-pending.yml
                 - template: components/get-aws-secrets-and-ssm-params.yml
+                - template: components/notify-github-pending.yml
                 - template: templates/identity-service-templating.yml
                 - template: templates/setup-build-name.yml
                 - template: templates/deploy-namespaced-service.yml
