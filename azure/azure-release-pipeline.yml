@@ -241,6 +241,8 @@ stages:
       value: env-int
     - name: IDENTITY_TARGET_SERVER
       value: identity-server-no-smartcard
+    - name: SERVICE_BASE_PATH
+      value: oauth2-no-smartcard
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
