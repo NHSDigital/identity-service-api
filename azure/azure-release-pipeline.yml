@@ -78,7 +78,7 @@ stages:
     - name: aws-label-apigee-org
       value: apigee-nonprod
     - name: aws-label-apigee-env
-     value: env-internal-qa-sandbox
+      value: env-internal-qa-sandbox
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
