@@ -20,7 +20,6 @@ jobs:
       vmImage: 'ubuntu-latest'
     variables:
       API_TEST_ENV_FILE_PATH: "tests/e2e/environments/local.postman_environment.json"
-      PIP_CACHE_DIR: ".poetry"
       SERVICE_NAME: "identity-service"
     steps:
       - checkout: self
@@ -46,24 +45,6 @@ jobs:
 
       - bash: "python -m pip install --upgrade pip setuptools wheel && pip install poetry"
         displayName: Install python dependencies
-
-      - task: Cache@2
-        displayName: "Cache Python Dependencies"
-        inputs:
-          key: '"$(Agent.OS)" | "python" | poetry.lock'
-          path: ".poetry"
-          restoreKeys: |
-            "$(Agent.OS)" | "python" | poetry.lock
-            "$(Agent.OS)" | "python"
-
-      - task: Cache@2
-        displayName: "Cache Package NPM Dependencies"
-        inputs:
-          key: '"$(Agent.OS)" | "node" | package-lock.json'
-          path: "node_modules"
-          restoreKeys: |
-            "$(Agent.OS)" | "node" | package-lock.json
-            "$(Agent.OS)" | "node"
 
       - bash: "make install"
         displayName: Install repo
