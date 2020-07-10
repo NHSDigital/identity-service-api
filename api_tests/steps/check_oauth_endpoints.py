@@ -1,4 +1,4 @@
-from api_tests.scripts.genericrequest import GenericRequest
+from api_tests.scripts.generic_request import GenericRequest
 from api_tests.config_files import config
 from api_tests.scripts.authenticator import Authenticator
 
@@ -66,15 +66,19 @@ class CheckOauthEndpoints(GenericRequest):
         code = authenticator.get_code_from_provider(response)
         return code
 
-    def get_token_response(self, timeout: int = 5000, grant_type: str = 'authorization_code'):
+    def get_token_response(self, timeout: int = 3000, grant_type: str = 'authorization_code', refresh_token: str = None):
         data = {
             'client_id': config.CLIENT_ID,
             'client_secret': config.CLIENT_SECRET,
-            'redirect_uri': config.REDIRECT_URI,
             'grant_type': grant_type,
-            'code': self.get_authenticated(config.AUTHENTICATION_PROVIDER),
-            '_access_token_expiry_ms': timeout,
         }
+        if refresh_token is not None:
+            data['refresh_token'] = refresh_token
+            data['_refresh_token_expiry_ms'] = timeout
+        else:
+            data['redirect_uri'] = config.REDIRECT_URI
+            data['code'] = self.get_authenticated(config.AUTHENTICATION_PROVIDER)
+            data['_access_token_expiry_ms'] = timeout
 
         response = self.post(self.endpoints['token'], data=data)
         return self.get_all_values_from_json_response(response)

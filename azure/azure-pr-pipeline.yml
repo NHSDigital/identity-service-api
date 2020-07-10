@@ -26,6 +26,7 @@ variables:
   NAMESPACE: from_branchname
   PROXY_NAME: live
 
+
 pool:
   vmImage: 'ubuntu-latest'
 
@@ -33,8 +34,12 @@ stages:
   - stage: DeployInternalDev
     displayName: internal-dev
     variables:
-    - group: apigee-nonprod
-    - group: env-internal-dev
+    - name: aws-label-ptl-or-prod
+      value: ptl
+    - name: aws-label-apigee-org
+      value: apigee-nonprod
+    - name: aws-label-apigee-env
+      value: env-internal-dev
     jobs:
       - deployment: DeployService
         displayName: Deploy Service
@@ -43,6 +48,9 @@ stages:
           runOnce:
             deploy:
               steps:
+                - template: components/get-aws-secrets-and-ssm-params.yml
+                - template: components/notify-github-pending.yml
                 - template: templates/identity-service-templating.yml
                 - template: templates/setup-build-name.yml
                 - template: templates/deploy-namespaced-service.yml
+                - template: components/notify-github-finished.yml

@@ -1,6 +1,8 @@
 import pytest
 from time import sleep
 
+from api_tests.config_files import config
+
 
 @pytest.mark.usefixtures("setup")
 class TestOauthTokensSuite:
@@ -78,3 +80,26 @@ class TestOauthTokensSuite:
                 'NHSD-Session-URID': '',
             }
         )
+
+    @pytest.mark.apm_1010
+    @pytest.mark.errors
+    @pytest.mark.usefixtures('get_token')
+    def test_refresh_token_does_expire(self):
+        sleep(5)
+        assert self.test.check_endpoint(
+            verb='POST',
+            endpoint='token',
+            expected_status_code=401,
+            expected_response={
+                "error": "invalid_request",
+                "error_description": "Refresh Token expired"
+            },
+            headers={
+                'NHSD-Session-URID': '',
+            },
+            data={
+                'client_id': config.CLIENT_ID,
+                'client_secret': config.CLIENT_SECRET,
+                'grant_type': 'refresh_token',
+                'refresh_token': self.refresh_token
+            })
