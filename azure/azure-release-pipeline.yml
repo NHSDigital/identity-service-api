@@ -142,7 +142,7 @@ stages:
     - DeployRef
   variables:
     - name: aws-label-ptl-or-prod
-      value: prod
+      value: ptl
     - name: aws-label-apigee-org
       value: apigee-prod
     - name: aws-label-apigee-env
@@ -165,7 +165,7 @@ stages:
     - DeployRef
   variables:
     - name: aws-label-ptl-or-prod
-      value: prod
+      value: ptl
     - name: aws-label-apigee-org
       value: apigee-prod
     - name: aws-label-apigee-env
@@ -188,7 +188,7 @@ stages:
     - DeployRef
   variables:
     - name: aws-label-ptl-or-prod
-      value: prod
+      value: ptl
     - name: aws-label-apigee-org
       value: apigee-prod
     - name: aws-label-apigee-env
@@ -211,7 +211,7 @@ stages:
     - DeployRef
   variables:
     - name: aws-label-ptl-or-prod
-      value: prod
+      value: ptl
     - name: aws-label-apigee-org
       value: apigee-prod
     - name: aws-label-apigee-env
@@ -234,7 +234,7 @@ stages:
     - DeployRef
   variables:
     - name: aws-label-ptl-or-prod
-      value: prod
+      value: ptl
     - name: aws-label-apigee-org
       value: apigee-prod
     - name: aws-label-apigee-env
@@ -260,7 +260,7 @@ stages:
   dependsOn: []
   variables:
     - name: aws-label-ptl-or-prod
-      value: prod
+      value: ptl
     - name: aws-label-apigee-org
       value: apigee-prod
     - name: aws-label-apigee-env
