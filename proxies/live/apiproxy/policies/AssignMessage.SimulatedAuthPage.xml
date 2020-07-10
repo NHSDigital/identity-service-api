@@ -58,21 +58,14 @@
           <form class="form-signin" method="post">
             <h1 class="h3 mb-3 font-weight-normal">Simulated login page</h1>
             <p>
-              This simulated login dialogue allows ...
+              This facility can be used to develop your OAuth 2 Client Application without needing a smartcard and smartcard reader.
             </p>
-            <label for="inputUsername" class="sr-only">Email address</label>
-            <input type="text" id="inputUsername" class="form-control" placeholder="Any Username" />
-            <label for="inputPassword" class="sr-only">Password</label>
-            <input type="password" id="inputPassword" class="form-control" placeholder="Any Password" />
+            <p>
+              See our documentation on <a href="https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/user-restricted-restful-apis">User-restricted RESTful APIs</a> for more information.
+            </p>
             <input type="hidden" name="state" value="{request.queryparam.state}" />
-            <div class="checkbox mb-3">
-              <label>
-                <input type="checkbox" value="remember-me" />
-                Remember me
-              </label>
-            </div>
             <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
-            <p class="mt-5 mb-3 text-muted">Link to docs?</p>
+            <p class="mt-5 mb-3 text-muted">NHS Digital</p>
           </form>
         </body>
       </html>
