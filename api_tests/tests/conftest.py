@@ -13,9 +13,12 @@ def _get_parametrized_values(request):
 @pytest.fixture()
 def get_token(request):
     """Get the token and assign it to the test instance"""
-    token = CheckOauthEndpoints().get_token_response()
+    oauth_endpoints = CheckOauthEndpoints()
+    token = oauth_endpoints.get_token_response()
     setattr(request.cls, 'token', token['access_token'])
-    setattr(request.cls, 'refresh_token', token['refresh_token'])
+
+    refresh_token = oauth_endpoints.get_token_response(grant_type='refresh_token', refresh_token=token['refresh_token'])
+    setattr(request.cls, 'refresh_token', refresh_token['refresh_token'])
 
 
 @pytest.fixture(scope='function')

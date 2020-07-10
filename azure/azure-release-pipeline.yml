@@ -10,10 +10,11 @@ variables:
   ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
   IDENTITY_TARGET_SERVER: identity-server
   SPEC_FILE_NAME: identity-service
+  PROXY_NAME: live
 
 resources:
   pipelines:
-  - pipeline: IdentityService
+  - pipeline: identity-service
     source: "Identity-Service-Build"
     trigger:
       branches:
@@ -27,8 +28,13 @@ stages:
 - stage: DeployInternalDev
   displayName: internal-dev
   variables:
-  - group: apigee-nonprod
-  - group: env-internal-dev
+  - name: aws-label-ptl-or-prod
+    value: ptl
+  - name: aws-label-apigee-org
+    value: apigee-nonprod
+  - name: aws-label-apigee-env
+    value: env-internal-dev
+
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
@@ -37,6 +43,7 @@ stages:
         runOnce:
           deploy:
             steps:
+              - template: components/get-aws-secrets-and-ssm-params.yml
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -44,8 +51,12 @@ stages:
   displayName: internal-qa
   dependsOn: DeployInternalDev
   variables:
-    - group: apigee-nonprod
-    - group: env-internal-qa
+    - name: aws-label-ptl-or-prod
+      value: ptl
+    - name: aws-label-apigee-org
+      value: apigee-nonprod
+    - name: aws-label-apigee-env
+      value: env-internal-qa
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
@@ -54,6 +65,7 @@ stages:
         runOnce:
           deploy:
             steps:
+              - template: components/get-aws-secrets-and-ssm-params.yml
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -61,8 +73,12 @@ stages:
   displayName: internal-qa-sandbox
   dependsOn: DeployInternalDev
   variables:
-    - group: apigee-nonprod
-    - group: env-internal-qa-sandbox
+    - name: aws-label-ptl-or-prod
+      value: ptl
+    - name: aws-label-apigee-org
+      value: apigee-nonprod
+    - name: aws-label-apigee-env
+      value: env-internal-qa-sandbox
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
@@ -71,6 +87,7 @@ stages:
         runOnce:
           deploy:
             steps:
+              - template: components/get-aws-secrets-and-ssm-params.yml
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -78,8 +95,12 @@ stages:
   displayName: internal-portal
   dependsOn: DeployInternalDev
   variables:
-    - group: apigee-nonprod
-    - group: env-internal-portal
+    - name: aws-label-ptl-or-prod
+      value: ptl
+    - name: aws-label-apigee-org
+      value: apigee-nonprod
+    - name: aws-label-apigee-env
+      value: env-internal-portal
   jobs:
     - deployment: DeploySpecs
       displayName: Deploy Specs
@@ -88,6 +109,7 @@ stages:
         runOnce:
           deploy:
             steps:
+              - template: components/get-aws-secrets-and-ssm-params.yml
               - template: templates/deploy-specs.yml
 
 - stage: DeployRef
@@ -96,8 +118,12 @@ stages:
     - DeployInternalQA
     - DeployInternalQASandbox
   variables:
-    - group: apigee-nonprod
-    - group: env-ref
+    - name: aws-label-ptl-or-prod
+      value: ptl
+    - name: aws-label-apigee-org
+      value: apigee-nonprod
+    - name: aws-label-apigee-env
+      value: env-ref
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
@@ -106,6 +132,7 @@ stages:
         runOnce:
           deploy:
             steps:
+              - template: components/get-aws-secrets-and-ssm-params.yml
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -114,8 +141,12 @@ stages:
   dependsOn: 
     - DeployRef
   variables:
-    - group: apigee-prod
-    - group: env-dev
+    - name: aws-label-ptl-or-prod
+      value: prod
+    - name: aws-label-apigee-org
+      value: apigee-prod
+    - name: aws-label-apigee-env
+      value: env-dev
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
@@ -124,6 +155,7 @@ stages:
         runOnce:
           deploy:
             steps:
+              - template: components/get-aws-secrets-and-ssm-params.yml
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -132,8 +164,12 @@ stages:
   dependsOn: 
     - DeployRef
   variables:
-    - group: apigee-prod
-    - group: env-prod
+    - name: aws-label-ptl-or-prod
+      value: prod
+    - name: aws-label-apigee-org
+      value: apigee-prod
+    - name: aws-label-apigee-env
+      value: env-prod
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
@@ -142,6 +178,7 @@ stages:
         runOnce:
           deploy:
             steps:
+              - template: components/get-aws-secrets-and-ssm-params.yml
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -150,8 +187,12 @@ stages:
   dependsOn: 
     - DeployRef
   variables:
-    - group: apigee-prod
-    - group: env-sandbox
+    - name: aws-label-ptl-or-prod
+      value: prod
+    - name: aws-label-apigee-org
+      value: apigee-prod
+    - name: aws-label-apigee-env
+      value: env-sandbox
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
@@ -160,6 +201,7 @@ stages:
         runOnce:
           deploy:
             steps:
+              - template: components/get-aws-secrets-and-ssm-params.yml
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -168,8 +210,12 @@ stages:
   dependsOn: 
     - DeployRef
   variables:
-    - group: apigee-prod
-    - group: env-int
+    - name: aws-label-ptl-or-prod
+      value: prod
+    - name: aws-label-apigee-org
+      value: apigee-prod
+    - name: aws-label-apigee-env
+      value: env-int
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
@@ -178,6 +224,7 @@ stages:
         runOnce:
           deploy:
             steps:
+              - template: components/get-aws-secrets-and-ssm-params.yml
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -186,8 +233,16 @@ stages:
   dependsOn: 
     - DeployRef
   variables:
-    - group: apigee-prod
-    - group: env-int
+    - name: aws-label-ptl-or-prod
+      value: prod
+    - name: aws-label-apigee-org
+      value: apigee-prod
+    - name: aws-label-apigee-env
+      value: env-int
+    - name: IDENTITY_TARGET_SERVER
+      value: identity-server-no-smartcard
+    - name: SERVICE_BASE_PATH
+      value: oauth2-no-smartcard
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
@@ -196,6 +251,7 @@ stages:
         runOnce:
           deploy:
             steps:
+              - template: components/get-aws-secrets-and-ssm-params.yml
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -203,8 +259,12 @@ stages:
   displayName: portal
   dependsOn: []
   variables:
-    - group: apigee-prod
-    - group: env-portal
+    - name: aws-label-ptl-or-prod
+      value: prod
+    - name: aws-label-apigee-org
+      value: apigee-prod
+    - name: aws-label-apigee-env
+      value: env-portal
   jobs:
     - deployment: DeploySpecs
       displayName: Deploy Specs
@@ -214,4 +274,5 @@ stages:
         runOnce:
           deploy:
             steps:
+              - template: components/get-aws-secrets-and-ssm-params.yml
               - template: templates/deploy-specs.yml
