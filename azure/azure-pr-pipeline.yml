@@ -1,60 +1,42 @@
 name: "$(SourceBranchName)+$(BuildID)"
 
-# Prevents building every commit or on PR
 trigger: none
 pr: none
 
-# Consume an artifact from the build pipeline as soon as it becomes available.
 resources:
+  repositories:
+    - repository: common
+      type: github
+      name: NHSDigital/api-management-utils
+      ref: refs/heads/apm-1191-common-pipelines
+      endpoint: NHSDigital
   pipelines:
-  - pipeline: identity-service
+  - pipeline: Identity-Service-Build
     source: Identity-Service-Build
     trigger:
       branches:
         exclude:
-          - "master"
-          - "refs/heads/master"
-          - "refs/tags/v*"
-
-variables:
-  SERVICE_NAME: identity-service
-  SERVICE_BASE_PATH: /oauth2
-  VARIABLES_KVM: identity-service-variables
-  ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
-  IDENTITY_TARGET_SERVER: identity-server
-  FORCE_SANDBOX: false
-  NAMESPACE: from_branchname
-  PROXY_NAME: live
+          - master
+          - refs/heads/master
+          - refs/tags/v*
 
 pool:
   vmImage: 'ubuntu-latest'
 
-stages:
-  - stage: DeployInternalDev
-    displayName: internal-dev
-    jobs:
-      - deployment: DeployService
-        displayName: Deploy Service
-        environment: 'internal-dev'
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - template: components/get-aws-secrets-and-ssm-params.yml
-                  parameters:
-                    SECRET_IDS: >
-                      ptl/azure-devops/apigee-nonprod/APIGEE_OTP_KEY
-                      ptl/azure-devops/apigee-nonprod/APIGEE_PASSWORD
-                      ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
-                    PARAM_NAMES: >
-                      /ptl/azure-devops/apigee-nonprod/APIGEE_USERNAME
-                      /ptl/azure-devops/apigee-nonprod/APIGEE_ORGANIZATION
-                      /ptl/azure-devops/env-internal-dev/APIGEE_ENVIRONMENT
-                      /ptl/azure-devops/env-internal-dev/ENV_URL
-                      /ptl/azure-devops/env-internal-dev/IDENTITY_URL
-                      /ptl/azure-devops/GITHUB_USER
-                - template: components/notify-github-pending.yml
-                - template: templates/identity-service-templating.yml
-                - template: templates/setup-build-name.yml
-                - template: templates/deploy-namespaced-service.yml
-                - template: components/notify-github-finished.yml
+variables:
+  - template: project-vars.yml
+
+extends:
+  template: azure/common/apigee-deployment.yml@common
+  parameters:
+    service_name: ${{ variables.service_name }}
+    service_base_path: ${{ variables.service_base_path }}
+    product_display_name: ${{ variables.product_display_name }}
+    product_description: ${{ variables.product_description }}
+    pre_template:
+      - template: "templates/identity-service-templating.yml"
+        parameters:
+          service_name: ${{ variables.service_name }}
+          variables_kvm: "identity-service-variables"
+          encrypted_variables_kvm: "identity-service-variables-encrypted"
+          identity_target_server: "identity-server"
