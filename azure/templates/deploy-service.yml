@@ -11,12 +11,10 @@ steps:
   - template: ../components/get-access-token.yml
     parameters:
       serviceName: $(SERVICE_NAME)
-      apigeeUsername: $(APIGEE_USERNAME)
-      apigeePassword: $(APIGEE_PASSWORD)
 
   - bash: |
       set -euo pipefail
-      
+
       echo "!!! If you get an error here, it is because '$(SERVICE_NAME)' is not the source alias name of the artifact"
       export SERVICE_ARTIFACT_NAME=`ls $(Pipeline.Workspace)/$(SERVICE_NAME)`
       echo "##vso[task.setvariable variable=SERVICE_ARTIFACT_NAME]$SERVICE_ARTIFACT_NAME"
@@ -26,11 +24,11 @@ steps:
 
   - bash: |
       set -euo pipefail
-    
+
       export PROXIES_DIR="$(Pipeline.Workspace)/$(SERVICE_NAME)/$(SERVICE_ARTIFACT_NAME)/proxies"
       export SERVICE_BASE_PATH="$(SERVICE_BASE_PATH)"
       export APIGEE_ENVIRONMENT="$(APIGEE_ENVIRONMENT)"
-      
+
       make --no-print-directory -C utils/ansible template-proxies
     displayName: 'Deploy $(SERVICE_NAME) > template proxies'
 
