@@ -149,3 +149,12 @@ Successful deployment of the API Proxy requires:
     1. Key: `NHSD-ASID`, Value: Accredited System ID (ASID) identifying the API Gateway
 
 :bulb: For Sandbox-running environments (`test`) these need to be present for successful deployment but can be set to empty/dummy values.
+
+## Configuration
+
+### Simulated Authentication
+
+Instead of relying on an external Identity Provider to authorize the user, the Identity Service
+can perform its own, simulated, authorization.
+
+See the [setup instructions](./docs/simulated_idp.md).
