@@ -23,8 +23,6 @@ steps:
 - template: ../components/get-access-token.yml
   parameters:
     serviceName: $(SERVICE_NAME)
-    apigeeUsername: $(APIGEE_USERNAME)
-    apigeePassword: $(APIGEE_PASSWORD)
 
 - bash: |
    cd utils
