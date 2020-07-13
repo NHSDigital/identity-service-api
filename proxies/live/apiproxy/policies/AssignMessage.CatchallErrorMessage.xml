@@ -9,7 +9,7 @@
             "message_id": "{messageid}"
           }
         </Payload>
-        <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
-        <AssignTo createNew="false" transport="https" type="request"/>
     </Set>
+    <AssignTo createNew="false" transport="https" type="request"/>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
 </AssignMessage>

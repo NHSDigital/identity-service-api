@@ -1,0 +1,8 @@
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.GenerateSimulatedAuthCode">
+  <AssignVariable>
+      <Name>authorization_code</Name>
+      <Template>{createUuid()}</Template>
+  </AssignVariable>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <AssignTo createNew="false" transport="http" type="request"/>
+</AssignMessage>
