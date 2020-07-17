@@ -54,7 +54,6 @@ stages:
 - stage: DeployInternalQA
   displayName: internal-qa
   dependsOn: DeployInternalDev
-  variables:
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
@@ -109,13 +108,6 @@ stages:
 - stage: DeployInternalPortal
   displayName: internal-portal
   dependsOn: DeployInternalDev
-  variables:
-    - name: aws-label-ptl-or-prod
-      value: ptl
-    - name: aws-label-apigee-org
-      value: apigee-nonprod
-    - name: aws-label-apigee-env
-      value: env-internal-portal
   jobs:
     - deployment: DeploySpecs
       displayName: Deploy Specs
@@ -181,12 +173,12 @@ stages:
               - template: components/get-aws-secrets-and-ssm-params.yml
                 parameters:
                   SECRET_IDS: >
-                    ptl/azure-devops/apigee-prod/APIGEE_OTP_KEY
-                    ptl/azure-devops/apigee-prod/APIGEE_PASSWORD
+                    ptl/azure-devops/apigee-nonprod/APIGEE_OTP_KEY
+                    ptl/azure-devops/apigee-nonprod/APIGEE_PASSWORD
                     ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
                   PARAM_NAMES: >
-                    /ptl/azure-devops/apigee-prod/APIGEE_USERNAME
-                    /ptl/azure-devops/apigee-prod/APIGEE_ORGANIZATION
+                    /prod/azure-devops/apigee-prod/APIGEE_USERNAME
+                    /prod/azure-devops/apigee-prod/APIGEE_ORGANIZATION
                     /ptl/azure-devops/env-dev/APIGEE_ENVIRONMENT
                     /ptl/azure-devops/env-dev/ENV_URL
                     /ptl/azure-devops/env-dev/IDENTITY_URL
@@ -198,13 +190,6 @@ stages:
   displayName: prod
   dependsOn: 
     - DeployRef
-  variables:
-    - name: aws-label-ptl-or-prod
-      value: ptl
-    - name: aws-label-apigee-org
-      value: apigee-prod
-    - name: aws-label-apigee-env
-      value: env-prod
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
@@ -248,8 +233,8 @@ stages:
                     ptl/azure-devops/apigee-nonprod/APIGEE_PASSWORD
                     ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
                   PARAM_NAMES: >
-                    /ptl/azure-devops/apigee-nonprod/APIGEE_USERNAME
-                    /ptl/azure-devops/apigee-nonprod/APIGEE_ORGANIZATION
+                    /prod/azure-devops/apigee-prod/APIGEE_USERNAME
+                    /prod/azure-devops/apigee-prod/APIGEE_ORGANIZATION
                     /plt/azure-devops/env-sandbox/APIGEE_ENVIRONMENT
                     /plt/azure-devops/env-sandbox/ENV_URL
                     /plt/azure-devops/env-sandbox/IDENTITY_URL
@@ -261,13 +246,6 @@ stages:
   displayName: int
   dependsOn: 
     - DeployRef
-  variables:
-    - name: aws-label-ptl-or-prod
-      value: ptl
-    - name: aws-label-apigee-org
-      value: apigee-prod
-    - name: aws-label-apigee-env
-      value: env-int
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
@@ -283,8 +261,8 @@ stages:
                     ptl/azure-devops/apigee-nonprod/APIGEE_PASSWORD
                     ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
                   PARAM_NAMES: >
-                    /ptl/azure-devops/apigee-nonprod/APIGEE_USERNAME
-                    /ptl/azure-devops/apigee-nonprod/APIGEE_ORGANIZATION
+                    /prod/azure-devops/apigee-prod/APIGEE_USERNAME
+                    /prod/azure-devops/apigee-prod/APIGEE_ORGANIZATION
                     /plt/azure-devops/env-int/APIGEE_ENVIRONMENT
                     /plt/azure-devops/env-int/ENV_URL
                     /plt/azure-devops/env-int/IDENTITY_URL
@@ -316,8 +294,8 @@ stages:
                     ptl/azure-devops/apigee-nonprod/APIGEE_PASSWORD
                     ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
                   PARAM_NAMES: >
-                    /ptl/azure-devops/apigee-nonprod/APIGEE_USERNAME
-                    /ptl/azure-devops/apigee-nonprod/APIGEE_ORGANIZATION
+                    /prod/azure-devops/apigee-prod/APIGEE_USERNAME
+                    /prod/azure-devops/apigee-prod/APIGEE_ORGANIZATION
                     /plt/azure-devops/env-int/APIGEE_ENVIRONMENT
                     /plt/azure-devops/env-int/ENV_URL
                     /plt/azure-devops/env-int/IDENTITY_URL
