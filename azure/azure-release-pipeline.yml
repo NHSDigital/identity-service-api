@@ -54,7 +54,6 @@ stages:
 - stage: DeployInternalQA
   displayName: internal-qa
   dependsOn: DeployInternalDev
-  variables:
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
@@ -109,13 +108,6 @@ stages:
 - stage: DeployInternalPortal
   displayName: internal-portal
   dependsOn: DeployInternalDev
-  variables:
-    - name: aws-label-ptl-or-prod
-      value: ptl
-    - name: aws-label-apigee-org
-      value: apigee-nonprod
-    - name: aws-label-apigee-env
-      value: env-internal-portal
   jobs:
     - deployment: DeploySpecs
       displayName: Deploy Specs
@@ -198,13 +190,6 @@ stages:
   displayName: prod
   dependsOn: 
     - DeployRef
-  variables:
-    - name: aws-label-ptl-or-prod
-      value: ptl
-    - name: aws-label-apigee-org
-      value: apigee-prod
-    - name: aws-label-apigee-env
-      value: env-prod
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
@@ -261,13 +246,6 @@ stages:
   displayName: int
   dependsOn: 
     - DeployRef
-  variables:
-    - name: aws-label-ptl-or-prod
-      value: ptl
-    - name: aws-label-apigee-org
-      value: apigee-prod
-    - name: aws-label-apigee-env
-      value: env-int
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
