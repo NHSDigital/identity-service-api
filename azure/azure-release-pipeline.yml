@@ -27,14 +27,6 @@ pool:
 stages:
 - stage: DeployInternalDev
   displayName: internal-dev
-  variables:
-  - name: aws-label-ptl-or-prod
-    value: ptl
-  - name: aws-label-apigee-org
-    value: apigee-nonprod
-  - name: aws-label-apigee-env
-    value: env-internal-dev
-
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
@@ -44,6 +36,18 @@ stages:
           deploy:
             steps:
               - template: components/get-aws-secrets-and-ssm-params.yml
+                parameters:
+                  SECRET_IDS: >
+                    ptl/azure-devops/apigee-nonprod/APIGEE_OTP_KEY
+                    ptl/azure-devops/apigee-nonprod/APIGEE_PASSWORD
+                    ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
+                  PARAM_NAMES: >
+                    /ptl/azure-devops/apigee-nonprod/APIGEE_USERNAME
+                    /ptl/azure-devops/apigee-nonprod/APIGEE_ORGANIZATION
+                    /ptl/azure-devops/env-internal-dev/APIGEE_ENVIRONMENT
+                    /ptl/azure-devops/env-internal-dev/ENV_URL
+                    /ptl/azure-devops/env-internal-dev/IDENTITY_URL
+                    /ptl/azure-devops/GITHUB_USER
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -51,12 +55,6 @@ stages:
   displayName: internal-qa
   dependsOn: DeployInternalDev
   variables:
-    - name: aws-label-ptl-or-prod
-      value: ptl
-    - name: aws-label-apigee-org
-      value: apigee-nonprod
-    - name: aws-label-apigee-env
-      value: env-internal-qa
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
@@ -66,19 +64,24 @@ stages:
           deploy:
             steps:
               - template: components/get-aws-secrets-and-ssm-params.yml
+                parameters:
+                  SECRET_IDS: >
+                    ptl/azure-devops/apigee-nonprod/APIGEE_OTP_KEY
+                    ptl/azure-devops/apigee-nonprod/APIGEE_PASSWORD
+                    ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
+                  PARAM_NAMES: >
+                    /ptl/azure-devops/apigee-nonprod/APIGEE_USERNAME
+                    /ptl/azure-devops/apigee-nonprod/APIGEE_ORGANIZATION
+                    /ptl/azure-devops/env-internal-qa/APIGEE_ENVIRONMENT
+                    /ptl/azure-devops/env-internal-qa/ENV_URL
+                    /ptl/azure-devops/env-internal-qa/IDENTITY_URL
+                    /ptl/azure-devops/GITHUB_USER
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
 - stage: DeployInternalQASandbox
   displayName: internal-qa-sandbox
   dependsOn: DeployInternalDev
-  variables:
-    - name: aws-label-ptl-or-prod
-      value: ptl
-    - name: aws-label-apigee-org
-      value: apigee-nonprod
-    - name: aws-label-apigee-env
-      value: env-internal-qa-sandbox
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
@@ -88,6 +91,18 @@ stages:
           deploy:
             steps:
               - template: components/get-aws-secrets-and-ssm-params.yml
+                parameters:
+                  SECRET_IDS: >
+                    ptl/azure-devops/apigee-nonprod/APIGEE_OTP_KEY
+                    ptl/azure-devops/apigee-nonprod/APIGEE_PASSWORD
+                    ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
+                  PARAM_NAMES: >
+                    /ptl/azure-devops/apigee-nonprod/APIGEE_USERNAME
+                    /ptl/azure-devops/apigee-nonprod/APIGEE_ORGANIZATION
+                    /ptl/azure-devops/env-internal-qa-sandbox/APIGEE_ENVIRONMENT
+                    /ptl/azure-devops/env-internal-qa-sandbox/ENV_URL
+                    /ptl/azure-devops/env-internal-qa-sandbox/IDENTITY_URL
+                    /ptl/azure-devops/GITHUB_USER
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -110,6 +125,16 @@ stages:
           deploy:
             steps:
               - template: components/get-aws-secrets-and-ssm-params.yml
+                parameters:
+                  SECRET_IDS: >
+                    ptl/azure-devops/apigee-nonprod/APIGEE_OTP_KEY
+                    ptl/azure-devops/apigee-nonprod/APIGEE_PASSWORD
+                    ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
+                  PARAM_NAMES: >
+                    /ptl/azure-devops/apigee-nonprod/APIGEE_USERNAME
+                    /ptl/azure-devops/apigee-nonprod/APIGEE_ORGANIZATION
+                    /ptl/azure-devops/env-internal-portal/APIGEE_ENVIRONMENT
+                    /ptl/azure-devops/GITHUB_USER
               - template: templates/deploy-specs.yml
 
 - stage: DeployRef
@@ -117,13 +142,6 @@ stages:
   dependsOn: 
     - DeployInternalQA
     - DeployInternalQASandbox
-  variables:
-    - name: aws-label-ptl-or-prod
-      value: ptl
-    - name: aws-label-apigee-org
-      value: apigee-nonprod
-    - name: aws-label-apigee-env
-      value: env-ref
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
@@ -133,6 +151,18 @@ stages:
           deploy:
             steps:
               - template: components/get-aws-secrets-and-ssm-params.yml
+                parameters:
+                  SECRET_IDS: >
+                    ptl/azure-devops/apigee-nonprod/APIGEE_OTP_KEY
+                    ptl/azure-devops/apigee-nonprod/APIGEE_PASSWORD
+                    ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
+                  PARAM_NAMES: >
+                    /ptl/azure-devops/apigee-nonprod/APIGEE_USERNAME
+                    /ptl/azure-devops/apigee-nonprod/APIGEE_ORGANIZATION
+                    /ptl/azure-devops/env-ref/APIGEE_ENVIRONMENT
+                    /ptl/azure-devops/env-ref/ENV_URL
+                    /ptl/azure-devops/env-ref/IDENTITY_URL
+                    /ptl/azure-devops/GITHUB_USER
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -140,13 +170,6 @@ stages:
   displayName: dev
   dependsOn: 
     - DeployRef
-  variables:
-    - name: aws-label-ptl-or-prod
-      value: prod
-    - name: aws-label-apigee-org
-      value: apigee-prod
-    - name: aws-label-apigee-env
-      value: env-dev
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
@@ -156,6 +179,18 @@ stages:
           deploy:
             steps:
               - template: components/get-aws-secrets-and-ssm-params.yml
+                parameters:
+                  SECRET_IDS: >
+                    ptl/azure-devops/apigee-prod/APIGEE_OTP_KEY
+                    ptl/azure-devops/apigee-prod/APIGEE_PASSWORD
+                    ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
+                  PARAM_NAMES: >
+                    /ptl/azure-devops/apigee-prod/APIGEE_USERNAME
+                    /ptl/azure-devops/apigee-prod/APIGEE_ORGANIZATION
+                    /ptl/azure-devops/env-dev/APIGEE_ENVIRONMENT
+                    /ptl/azure-devops/env-dev/ENV_URL
+                    /ptl/azure-devops/env-dev/IDENTITY_URL
+                    /ptl/azure-devops/GITHUB_USER
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -165,7 +200,7 @@ stages:
     - DeployRef
   variables:
     - name: aws-label-ptl-or-prod
-      value: prod
+      value: ptl
     - name: aws-label-apigee-org
       value: apigee-prod
     - name: aws-label-apigee-env
@@ -179,6 +214,18 @@ stages:
           deploy:
             steps:
               - template: components/get-aws-secrets-and-ssm-params.yml
+                parameters:
+                  SECRET_IDS: >
+                    prod/azure-devops/apigee-prod/APIGEE_OTP_KEY
+                    prod/azure-devops/apigee-prod/APIGEE_PASSWORD
+                    ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
+                  PARAM_NAMES: >
+                    /prod/azure-devops/apigee-prod/APIGEE_USERNAME
+                    /prod/azure-devops/apigee-prod/APIGEE_ORGANIZATION
+                    /prod/azure-devops/env-prod/APIGEE_ENVIRONMENT
+                    /prod/azure-devops/env-prod/ENV_URL
+                    /prod/azure-devops/env-prod/IDENTITY_URL
+                    /ptl/azure-devops/GITHUB_USER
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -186,13 +233,6 @@ stages:
   displayName: sandbox
   dependsOn: 
     - DeployRef
-  variables:
-    - name: aws-label-ptl-or-prod
-      value: prod
-    - name: aws-label-apigee-org
-      value: apigee-prod
-    - name: aws-label-apigee-env
-      value: env-sandbox
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
@@ -202,6 +242,18 @@ stages:
           deploy:
             steps:
               - template: components/get-aws-secrets-and-ssm-params.yml
+                parameters:
+                  SECRET_IDS: >
+                    ptl/azure-devops/apigee-nonprod/APIGEE_OTP_KEY
+                    ptl/azure-devops/apigee-nonprod/APIGEE_PASSWORD
+                    ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
+                  PARAM_NAMES: >
+                    /ptl/azure-devops/apigee-nonprod/APIGEE_USERNAME
+                    /ptl/azure-devops/apigee-nonprod/APIGEE_ORGANIZATION
+                    /plt/azure-devops/env-sandbox/APIGEE_ENVIRONMENT
+                    /plt/azure-devops/env-sandbox/ENV_URL
+                    /plt/azure-devops/env-sandbox/IDENTITY_URL
+                    /ptl/azure-devops/GITHUB_USER
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -211,7 +263,7 @@ stages:
     - DeployRef
   variables:
     - name: aws-label-ptl-or-prod
-      value: prod
+      value: ptl
     - name: aws-label-apigee-org
       value: apigee-prod
     - name: aws-label-apigee-env
@@ -225,6 +277,18 @@ stages:
           deploy:
             steps:
               - template: components/get-aws-secrets-and-ssm-params.yml
+                parameters:
+                  SECRET_IDS: >
+                    ptl/azure-devops/apigee-nonprod/APIGEE_OTP_KEY
+                    ptl/azure-devops/apigee-nonprod/APIGEE_PASSWORD
+                    ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
+                  PARAM_NAMES: >
+                    /ptl/azure-devops/apigee-nonprod/APIGEE_USERNAME
+                    /ptl/azure-devops/apigee-nonprod/APIGEE_ORGANIZATION
+                    /plt/azure-devops/env-int/APIGEE_ENVIRONMENT
+                    /plt/azure-devops/env-int/ENV_URL
+                    /plt/azure-devops/env-int/IDENTITY_URL
+                    /ptl/azure-devops/GITHUB_USER
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
@@ -233,12 +297,6 @@ stages:
   dependsOn: 
     - DeployRef
   variables:
-    - name: aws-label-ptl-or-prod
-      value: prod
-    - name: aws-label-apigee-org
-      value: apigee-prod
-    - name: aws-label-apigee-env
-      value: env-int
     - name: IDENTITY_TARGET_SERVER
       value: identity-server-no-smartcard
     - name: SERVICE_BASE_PATH
@@ -252,19 +310,24 @@ stages:
           deploy:
             steps:
               - template: components/get-aws-secrets-and-ssm-params.yml
+                parameters:
+                  SECRET_IDS: >
+                    ptl/azure-devops/apigee-nonprod/APIGEE_OTP_KEY
+                    ptl/azure-devops/apigee-nonprod/APIGEE_PASSWORD
+                    ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
+                  PARAM_NAMES: >
+                    /ptl/azure-devops/apigee-nonprod/APIGEE_USERNAME
+                    /ptl/azure-devops/apigee-nonprod/APIGEE_ORGANIZATION
+                    /plt/azure-devops/env-int/APIGEE_ENVIRONMENT
+                    /plt/azure-devops/env-int/ENV_URL
+                    /plt/azure-devops/env-int/IDENTITY_URL
+                    /ptl/azure-devops/GITHUB_USER
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
 
 - stage: DeployPortal
   displayName: portal
   dependsOn: []
-  variables:
-    - name: aws-label-ptl-or-prod
-      value: prod
-    - name: aws-label-apigee-org
-      value: apigee-prod
-    - name: aws-label-apigee-env
-      value: env-portal
   jobs:
     - deployment: DeploySpecs
       displayName: Deploy Specs
@@ -275,4 +338,14 @@ stages:
           deploy:
             steps:
               - template: components/get-aws-secrets-and-ssm-params.yml
+                parameters:
+                  SECRET_IDS: >
+                    ptl/azure-devops/apigee-nonprod/APIGEE_OTP_KEY
+                    ptl/azure-devops/apigee-nonprod/APIGEE_PASSWORD
+                    ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
+                  PARAM_NAMES: >
+                    /ptl/azure-devops/apigee-prod/APIGEE_USERNAME
+                    /ptl/azure-devops/apigee-prod/APIGEE_ORGANIZATION
+                    /plt/azure-devops/env-portal/APIGEE_ENVIRONMENT
+                    /ptl/azure-devops/GITHUB_USER
               - template: templates/deploy-specs.yml
