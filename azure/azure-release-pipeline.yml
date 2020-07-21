@@ -302,6 +302,8 @@ stages:
                     /ptl/azure-devops/GITHUB_USER
               - template: templates/identity-service-templating.yml
               - template: templates/deploy-service.yml
+                parameters:
+                  SERVICE_NAME_SUFFIX: no-smartcard
 
 - stage: DeployPortal
   displayName: portal
