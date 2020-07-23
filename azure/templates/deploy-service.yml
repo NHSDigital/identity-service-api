@@ -1,3 +1,8 @@
+parameters:
+  - name: SERVICE_NAME_SUFFIX
+    default: ''
+    type: string
+
 steps:
   - template: ../components/setup-terraform.yml
     parameters:
@@ -37,7 +42,11 @@ steps:
 
       export SERVICE_DIR=`realpath "$(Pipeline.Workspace)/$(SERVICE_NAME)/$(SERVICE_ARTIFACT_NAME)"`
       export PROXY_DIR="$SERVICE_DIR/proxies/$(PROXY_NAME)"
-      export SERVICE_NAME="$(SERVICE_NAME)-$(APIGEE_ENVIRONMENT)"
+
+      service_name_parts=($(SERVICE_NAME) $(APIGEE_ENVIRONMENT) ${{ parameters.SERVICE_NAME_SUFFIX }})
+      service_name=$(printf "%s-" ${service_name_parts[@]}) # join with dashes (ignores empty suffix)
+      export SERVICE_NAME=${service_name::-1} # remove trailing dash
+
       export SERVICE_BASE_PATH="$(SERVICE_BASE_PATH)"
       export APIGEE_ACCESS_TOKEN="$(secret.AccessToken)"
       export PRODUCT_DISPLAY_NAME="Identity Service"
