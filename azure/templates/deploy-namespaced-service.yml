@@ -53,7 +53,7 @@ steps:
       export SERVICE_NAME="$(SERVICE_NAME)-$(APIGEE_ENVIRONMENT)-$(_NAMESPACE)"
       export SERVICE_BASE_PATH="$(SERVICE_BASE_PATH)"
       export APIGEE_ACCESS_TOKEN="$(secret.AccessToken)"
-      export PRODUCT_DISPLAY_NAME="Identity Service"
+      export PRODUCT_DISPLAY_NAME="Identity Service $(_NAMESPACE)"
       export PRODUCT_DESCRIPTION="OAuth provider for NHS ID"
 
       cd utils
