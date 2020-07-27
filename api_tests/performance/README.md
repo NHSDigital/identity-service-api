@@ -20,12 +20,11 @@
     * ``` LOCUST_HOST ``` which is the domain in which the requests are fired to for example '{domain}/hello' e.g. "https://internal-dev.api.service.nhs.uk"
     * ``` CLIENT_ID ``` the API key used to identify the client during authentication.
     * ``` CLIENT_SECRET ``` the API secret used for client authorisation.
-    * ``` BASE_PATH ``` the base path of the API e.g. "/personal-demographics"
-    * ``` PATIENT_SEARCH ``` the api request parameters for e.g. 90000000001 or "?family=Jane" etc.
+    * ``` NAMESPACE ``` the branch that you are working on. this resolves to working proxy e.g. '/oauth-NAMESPACE'
 
 ## Run
 
 * To run the locust script:
-    * ```$ locust -f ./tests/performance/locustfile.py```
+    * ```$ locust -f ./api_tests/performance/locustfile.py```
     * The ``` -f ``` option is the path of the locust file 
     * This can be run with ```--headless``` to run within the CLI

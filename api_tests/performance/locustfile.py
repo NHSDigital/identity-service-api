@@ -2,6 +2,7 @@ import os
 import json
 import urllib.parse as urlparse
 from urllib.parse import parse_qs
+# from api_tests.config_files import config
 from locust import HttpUser, TaskSet, task, between
 
 class IdentityServiceUser(HttpUser):
@@ -9,24 +10,33 @@ class IdentityServiceUser(HttpUser):
 
     def on_start(self):
         self.base_url = os.environ["LOCUST_HOST"]
+        # self.base_url = config.BASE_URL
+        self.identity_proxy = self._identity_proxy_name()
         self.client_id = os.environ["CLIENT_ID"]
         self.client_secret = os.environ["CLIENT_SECRET"]
         self.callback_url = os.environ["CALLBACK_URL"]
-    
+
+    def _identity_proxy_name(self):
+        try: 
+            namespace = os.environ["NAMESPACE"]
+            return f"oauth2-{namespace}"
+        except:
+            return "oauth2"
+        
     @task
     def authenticate(self):
-        state = self.get_state()
-        redirect_uri = self.get_redirect_callback(state)
-        auth_code = self.get_auth_code(redirect_uri)
-        self.get_access_token(auth_code)
+        state = self._get_state()
+        redirect_uri = self._get_redirect_callback(state)
+        auth_code = self._get_auth_code(redirect_uri)
+        self._get_access_token(auth_code)
 
-    def get_state(self):
-        with self.client.get(f"/oauth2/authorize?client_id={self.client_id}&redirect_uri={self.callback_url}&response_type=code&state=1234567890") as response:
+    def _get_state(self):
+        with self.client.get(f"/{self.identity_proxy}/authorize?client_id={self.client_id}&redirect_uri={self.callback_url}&response_type=code&state=1234567890") as response:
             parsed = urlparse.urlparse(response.url)
             return parse_qs(parsed.query)['state'][0]
 
-    def get_redirect_callback(self, state):
-        url = f"/oauth2/simulated_auth?response_type=code&client_id=some-client-id&redirect_uri={self.base_url}/callback&scope=openid&state={state}"
+    def _get_redirect_callback(self, state):
+        url = f"/{self.identity_proxy}/simulated_auth?response_type=code&client_id=some-client-id&redirect_uri={self.base_url}/callback&scope=openid&state={state}"
         headers = {
             "Accept": "*/*",
             "Accept-Encoding": "gzip,deflate",
@@ -40,13 +50,13 @@ class IdentityServiceUser(HttpUser):
             redirect_uri = response.headers['Location']
             return redirect_uri
 
-    def get_auth_code(self, redirect_uri):
+    def _get_auth_code(self, redirect_uri):
         with self.client.get(redirect_uri, allow_redirects=False) as response:
             parsed = urlparse.urlparse(response.headers['Location'])
             return parse_qs(parsed.query)["code"][0]
     
-    def get_access_token(self, auth_code):
-        url = "/oauth2/token"
+    def _get_access_token(self, auth_code):
+        url = f"/{self.identity_proxy}/token"
         headers = {
             "Accept": "*/*",
             "connection": "keep-alive",
