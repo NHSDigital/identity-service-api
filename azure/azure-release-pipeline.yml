@@ -279,6 +279,10 @@ stages:
       value: identity-server-no-smartcard
     - name: SERVICE_BASE_PATH
       value: oauth2-no-smartcard
+    - name: VARIABLES_KVM
+      value: identity-service-variables-no-smartcard
+    - name: ENCRYPTED_VARIABLES_KVM
+      value: identity-service-variables-encrypted
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
