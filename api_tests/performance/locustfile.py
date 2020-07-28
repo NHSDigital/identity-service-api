@@ -2,7 +2,6 @@ import os
 import json
 import urllib.parse as urlparse
 from urllib.parse import parse_qs
-# from api_tests.config_files import config
 from locust import HttpUser, TaskSet, task, between
 
 class IdentityServiceUser(HttpUser):
@@ -10,13 +9,13 @@ class IdentityServiceUser(HttpUser):
 
     def on_start(self):
         self.base_url = os.environ["LOCUST_HOST"]
-        # self.base_url = config.BASE_URL
         self.identity_proxy = self._identity_proxy_name()
         self.client_id = os.environ["CLIENT_ID"]
         self.client_secret = os.environ["CLIENT_SECRET"]
         self.callback_url = os.environ["CALLBACK_URL"]
 
     def _identity_proxy_name(self):
+        # Currently won't work with namespace proxy as heroku app is not setup for any other proxy
         try: 
             namespace = os.environ["NAMESPACE"]
             return f"oauth2-{namespace}"
