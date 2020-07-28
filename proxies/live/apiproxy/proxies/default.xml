@@ -59,7 +59,7 @@
         <Flow name="Flow.PostToken">
             <Description>OAuth Token Endpoint</Description>
             <Request>
-                <!-- First two steps verify the Client Application using both client_id and client_secret form params -->
+                <!-- Verify the Client Application using both client_id and client_secret form params -->
                 <Step>
                   <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
                 </Step>
@@ -130,6 +130,13 @@
         <Flow name="Flow.PostTokenSimulatedAuth">
             <Description>OAuth Token Endpoint - SIMULATED AUTH</Description>
             <Request>
+                <!-- In the documentation we specify that the Client ID and Client Secret must be sent as form params
+                However Apigee interactive documenttion ("Try it now") feature sends them as HTTP Basic Auth, so
+                we will allow this, but ONLY when in 'simulated_idp' mode and when they haven't been sent in the form params -->
+                <Step>
+                  <Name>BasicAuthentication.DecodeClientIdAndSecret</Name>
+                  <Condition>(request.header.Authorization IsNot null) and ((request.formparam.client_id Is null) or (request.formparam.client_secret Is null))</Condition>
+                </Step>
                 <!-- First two steps verify the Client Application using both client_id and client_secret form params -->
                 <Step>
                   <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
