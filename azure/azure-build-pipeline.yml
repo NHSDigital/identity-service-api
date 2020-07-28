@@ -24,6 +24,13 @@ jobs:
     steps:
       - checkout: self
 
+      - template: components/get-aws-secrets-and-ssm-params.yml
+        parameters:
+          SECRET_IDS: >
+            ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
+          PARAM_NAMES: >
+            /ptl/azure-devops/GITHUB_USER
+
       - template: components/notify-github-pending.yml
 
       - template: templates/setup-build-name.yml
