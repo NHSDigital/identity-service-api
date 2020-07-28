@@ -8,8 +8,6 @@ steps:
     parameters:
       serviceName: $(SERVICE_NAME)
 
-
-
   - bash: |
       set -euo pipefail
       
