@@ -6,8 +6,6 @@ pr: none
 variables:
   SERVICE_NAME: identity-service
   SERVICE_BASE_PATH: /oauth2
-  VARIABLES_KVM: identity-service-variables
-  ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
   IDENTITY_TARGET_SERVER: identity-server
   SPEC_FILE_NAME: identity-service
   PROXY_NAME: live
@@ -31,6 +29,11 @@ stages:
     - deployment: DeployService
       displayName: Deploy Service
       environment: 'internal-dev'
+      variables:
+        - name: VARIABLES_KVM
+          value: identity-service-variables
+        - name: ENCRYPTED_VARIABLES_KVM
+          value: identity-service-variables-encrypted
       strategy:
         runOnce:
           deploy:
@@ -58,6 +61,11 @@ stages:
     - deployment: DeployService
       displayName: Deploy Service
       environment: 'internal-qa'
+      variables:
+        - name: VARIABLES_KVM
+          value: identity-service-variables
+        - name: ENCRYPTED_VARIABLES_KVM
+          value: identity-service-variables-encrypted
       strategy:
         runOnce:
           deploy:
@@ -85,6 +93,11 @@ stages:
     - deployment: DeployService
       displayName: Deploy Service
       environment: 'internal-qa-sandbox'
+      variables:
+        - name: VARIABLES_KVM
+          value: identity-service-variables
+        - name: ENCRYPTED_VARIABLES_KVM
+          value: identity-service-variables-encrypted
       strategy:
         runOnce:
           deploy:
@@ -112,6 +125,11 @@ stages:
     - deployment: DeploySpecs
       displayName: Deploy Specs
       environment: 'internal-portal'
+      variables:
+        - name: VARIABLES_KVM
+          value: identity-service-variables
+        - name: ENCRYPTED_VARIABLES_KVM
+          value: identity-service-variables-encrypted
       strategy:
         runOnce:
           deploy:
@@ -138,6 +156,11 @@ stages:
     - deployment: DeployService
       displayName: Deploy Service
       environment: 'ref'
+      variables:
+        - name: VARIABLES_KVM
+          value: identity-service-variables
+        - name: ENCRYPTED_VARIABLES_KVM
+          value: identity-service-variables-encrypted
       strategy:
         runOnce:
           deploy:
@@ -166,6 +189,11 @@ stages:
     - deployment: DeployService
       displayName: Deploy Service
       environment: 'dev'
+      variables:
+        - name: VARIABLES_KVM
+          value: identity-service-variables
+        - name: ENCRYPTED_VARIABLES_KVM
+          value: identity-service-variables-encrypted
       strategy:
         runOnce:
           deploy:
@@ -194,6 +222,11 @@ stages:
     - deployment: DeployService
       displayName: Deploy Service
       environment: 'prod'
+      variables:
+        - name: VARIABLES_KVM
+          value: identity-service-variables
+        - name: ENCRYPTED_VARIABLES_KVM
+          value: identity-service-variables-encrypted
       strategy:
         runOnce:
           deploy:
@@ -222,6 +255,11 @@ stages:
     - deployment: DeployService
       displayName: Deploy Service
       environment: 'sandbox'
+      variables:
+        - name: VARIABLES_KVM
+          value: identity-service-variables
+        - name: ENCRYPTED_VARIABLES_KVM
+          value: identity-service-variables-encrypted
       strategy:
         runOnce:
           deploy:
@@ -250,6 +288,11 @@ stages:
     - deployment: DeployService
       displayName: Deploy Service
       environment: 'int'
+      variables:
+        - name: VARIABLES_KVM
+          value: identity-service-variables
+        - name: ENCRYPTED_VARIABLES_KVM
+          value: identity-service-variables-encrypted
       strategy:
         runOnce:
           deploy:
@@ -291,6 +334,7 @@ stages:
         runOnce:
           deploy:
             steps:
+              - bash: "echo $(ENCRYPTED_VARIABLES_KVM) $(VARIABLES_KVM)"
               - template: components/get-aws-secrets-and-ssm-params.yml
                 parameters:
                   SECRET_IDS: >
