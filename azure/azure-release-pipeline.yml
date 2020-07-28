@@ -282,7 +282,7 @@ stages:
     - name: VARIABLES_KVM
       value: identity-service-variables-no-smartcard
     - name: ENCRYPTED_VARIABLES_KVM
-      value: identity-service-variables-encrypted
+      value: identity-service-variables-encrypted-no-smartcard
   jobs:
     - deployment: DeployService
       displayName: Deploy Service
