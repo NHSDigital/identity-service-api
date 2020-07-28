@@ -24,6 +24,8 @@ jobs:
     steps:
       - checkout: self
 
+      - template: components/notify-github-pending.yml
+
       - template: templates/setup-build-name.yml
 
       - task: UsePythonVersion@0
@@ -63,3 +65,5 @@ jobs:
 
       - publish: dist/
         artifact: $(Build.BuildNumber)
+
+      - template: components/notify-github-finished.yml
