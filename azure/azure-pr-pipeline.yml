@@ -57,5 +57,4 @@ stages:
                 - template: templates/identity-service-templating.yml
                 - template: templates/setup-build-name.yml
                 - template: templates/deploy-namespaced-service.yml
-                - template: templates/execute-api-tests.yml
                 - template: components/notify-github-finished.yml

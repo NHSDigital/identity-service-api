@@ -1,5 +1,0 @@
-steps:
-  - bash: |
-      cd $(Pipeline.Workspace)/$(SERVICE_NAME)/$(SERVICE_ARTIFACT_NAME)/api_tests
-      make setup
-    displayName: Build Test Docker Image
