@@ -56,10 +56,6 @@ test-happy-path :
 	@echo "Executing tests with the mark: happy_path..."
 	docker-compose $(BASE) run -T test_env pytest -m happy_path -sq --tb=line $(TEST_REPORT) $(DOCKER_TEST_DIR)/tests/
 
-test-performance :
-	@echo "Executing performance tests..."
-	locust -f ./performance/locustfile.py --headless --runtime 30s -u 50 -H $(LOCUST_HOST) 
-
 test :
 ifdef id
 	@echo "Executing test-id: " + $(id) + "..."
