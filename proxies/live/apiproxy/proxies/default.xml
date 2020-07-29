@@ -26,6 +26,12 @@
     </PreFlow>
     <PostFlow name="PostFlow">
         <Request/>
+          <Step>
+            <Name>Quota</Name>
+          </Step>
+          <Step>	
+            <Name>SpikeArrest</Name>	
+          </Step>
         <Response/>
     </PostFlow>
     <Flows>
