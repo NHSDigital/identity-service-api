@@ -8,6 +8,4 @@ set -o nounset errexit pipefail
 rm -rf build/proxies
 mkdir -p build/proxies/live
 mkdir -p build/proxies/sandbox
-mkdir -p build/api_tests
 cp -Rv proxies/. build/proxies
-cp -Rv api_tests/. build/api_tests
