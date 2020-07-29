@@ -334,7 +334,6 @@ stages:
         runOnce:
           deploy:
             steps:
-              - bash: "echo $(ENCRYPTED_VARIABLES_KVM) $(VARIABLES_KVM)"
               - template: components/get-aws-secrets-and-ssm-params.yml
                 parameters:
                   SECRET_IDS: >
