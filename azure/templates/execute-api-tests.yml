@@ -1,0 +1,5 @@
+steps:
+  - bash: |
+      cd /api_tests
+      make setup
+    displayName: Build Test Docker Image
