@@ -25,14 +25,15 @@
         <Response/>
     </PreFlow>
     <PostFlow name="PostFlow">
-        <Request/>
-          <Step>
+      <Request>
+        <Step>
             <Name>Quota</Name>
-          </Step>
-          <Step>	
-            <Name>SpikeArrest</Name>	
-          </Step>
-        <Response/>
+        </Step>
+        <Step>
+            <Name>SpikeArrest</Name>
+        </Step>
+      </Request>
+      <Response/>
     </PostFlow>
     <Flows>
         <Flow name="Flow.GetAuthorization">
