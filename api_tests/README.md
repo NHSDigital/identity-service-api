@@ -4,6 +4,7 @@ This is a collection of end-to-end test suits to verify the oauth api is working
 
 * `config_files/` This contains all the configuration for running the tests.
 * `scripts/` A set of methods, classes and scripts to help facilitate the test cases
+* `performance/` A set of requests to stimulate multiple users on the service
 * `steps/` Reusable steps for a set of test cases
 * `tests/` The tests are defined here (this is also where we execute the tests from)
 

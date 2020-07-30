@@ -1,7 +1,7 @@
 FROM python:3.8-slim
 
 # Maintainers
-MAINTAINER API Management Team
+LABEL maintainer="API Management Team"
 
 # Create working directory
 RUN mkdir -p /var/api_tests/
