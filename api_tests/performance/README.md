@@ -1,9 +1,12 @@
 # Performance Testing
 
+## Requirements
+* python 3.8
+
 ## Install dependancies
 
 * To install the project dependancies:  
-    * ```$ poetry install```
+    * ```$ pip install -r requirements.txt ```
 
 ## Locust parameters
 
@@ -19,7 +22,6 @@
     * ``` CALLBACK_URL ``` the test app to use for authentication e.g. "https://nhsd-apim-testing.com"
     * ``` LOCUST_HOST ``` which is the domain in which the requests are fired to for example '{domain}/hello' e.g. "https://internal-dev.api.service.nhs.uk"
     * ``` CLIENT_ID ``` the API key used to identify the client during authentication.
-    * ``` CLIENT_SECRET ``` the API secret used for client authorisation.
     * ``` NAMESPACE ``` the branch that you are working on. this resolves to working proxy e.g. '/oauth-NAMESPACE'
 
 ## Run
