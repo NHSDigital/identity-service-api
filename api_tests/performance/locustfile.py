@@ -1,5 +1,6 @@
 import os
-from locust import HttpUser, TaskSet, task, between
+from locust import HttpUser, task, between
+
 
 class IdentityServiceUser(HttpUser):
     wait_time = between(2, 5)
@@ -10,12 +11,18 @@ class IdentityServiceUser(HttpUser):
         self.callback_url = os.environ["CALLBACK_URL"]
 
     def _identity_proxy_name(self):
-        try: 
+        try:
             namespace = os.environ["NAMESPACE"]
             return f"oauth2-{namespace}"
-        except:
+        except KeyError:
             return "oauth2"
 
     @task
     def authorize_endpoint(self):
-        self.client.get(f"/{self.identity_proxy}/authorize?client_id={self.client_id}&redirect_uri={self.callback_url}&response_type=code&state=1234567890")
+        params = {
+            "client_id": self.client_id,
+            "redirect_uri": self.callback_url,
+            "response_type": "code",
+            "state": "1234567890"
+        }
+        self.client.get(f"/{self.identity_proxy}/authorize", params=params)
