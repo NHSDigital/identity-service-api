@@ -26,12 +26,13 @@
     </PreFlow>
     <PostFlow name="PostFlow">
       <Request>
-        <Step>
+        <!-- Temporarily disable rate-limiting as broken in current state -->
+        <!-- <Step>
             <Name>Quota</Name>
         </Step>
         <Step>
             <Name>SpikeArrest</Name>
-        </Step>
+        </Step> -->
       </Request>
       <Response/>
     </PostFlow>
