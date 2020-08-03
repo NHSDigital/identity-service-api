@@ -11,4 +11,8 @@
     <Name>apiproduct.developer.quota.timeunit</Name>
     <Ref>verifyapikey.VerifyAPIKey.ClientId.apiproduct.developer.quota.timeunit</Ref>
   </AssignVariable>
+  <AssignVariable>
+    <Name>apiproduct.ratelimit</Name>
+    <Ref>verifyapikey.VerifyAPIKey.ClientId.apiproduct.ratelimit</Ref>
+  </AssignVariable>
 </AssignMessage>

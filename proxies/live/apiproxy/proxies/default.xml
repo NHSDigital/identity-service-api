@@ -44,6 +44,15 @@
                     <Name>VerifyAPIKey.ClientId</Name>
                 </Step>
                 <Step>
+                    <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicy</Name>
+                </Step>
+                <Step>
+                    <Name>Quota</Name>
+                </Step>
+                <Step>
+                    <Name>SpikeArrest</Name>
+                </Step>
+                <Step>
                     <Name>RaiseFault.CheckRedirectUri</Name>
                     <Condition>request.queryparam.redirect_uri != verifyapikey.VerifyAPIKey.ClientId.redirection_uris</Condition>
                 </Step>
