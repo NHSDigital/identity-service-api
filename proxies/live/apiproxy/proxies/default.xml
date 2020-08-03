@@ -25,15 +25,7 @@
         <Response/>
     </PreFlow>
     <PostFlow name="PostFlow">
-      <Request>
-        <!-- Temporarily disable rate-limiting as broken in current state -->
-        <!-- <Step>
-            <Name>Quota</Name>
-        </Step>
-        <Step>
-            <Name>SpikeArrest</Name>
-        </Step> -->
-      </Request>
+      <Request/>
       <Response/>
     </PostFlow>
     <Flows>
@@ -240,7 +232,7 @@
                 <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
               </Step>
               <Step>
-                <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyClientId</Name>
+                <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
               </Step>
               <Step>
                 <Name>Quota</Name>
