@@ -44,7 +44,7 @@
                     <Name>VerifyAPIKey.ClientId</Name>
                 </Step>
                 <Step>
-                    <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicy</Name>
+                    <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyClientId</Name>
                 </Step>
                 <Step>
                     <Name>RaiseFault.CheckRedirectUri</Name>
@@ -85,7 +85,7 @@
                   <Condition>request.formparam.client_secret != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.client_secret</Condition>
                 </Step>
                 <Step>
-                    <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicy</Name>
+                    <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
                 </Step>
                 <Step>
                     <Name>Quota</Name>
@@ -181,7 +181,7 @@
                 </Step>
                 <!-- Next 3 verify that the request is within the set rate limits -->
                 <Step>
-                  <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicy</Name>
+                  <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
                 </Step>
                 <Step>
                   <Name>Quota</Name>
