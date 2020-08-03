@@ -179,6 +179,16 @@
                   <Name>RaiseFault.Unauthorized</Name>
                   <Condition>(authorization_code Is null)</Condition>
                 </Step>
+                <!-- Next 3 verify that the request is within the set rate limits -->
+                <Step>
+                  <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicy</Name>
+                </Step>
+                <Step>
+                  <Name>Quota</Name>
+                </Step>
+                <Step>
+                  <Name>SpikeArrest</Name>
+                </Step>
                 <!-- Next 2 steps allow optional REDUCTION of access_token_expiry and refresh_token_expiry  KVM values
                 using _access_token_expiry_ms/_refresh_token_expiry_ms (respectively) form params -->
                 <Step>
