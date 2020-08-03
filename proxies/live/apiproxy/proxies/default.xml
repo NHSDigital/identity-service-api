@@ -47,12 +47,6 @@
                     <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicy</Name>
                 </Step>
                 <Step>
-                    <Name>Quota</Name>
-                </Step>
-                <Step>
-                    <Name>SpikeArrest</Name>
-                </Step>
-                <Step>
                     <Name>RaiseFault.CheckRedirectUri</Name>
                     <Condition>request.queryparam.redirect_uri != verifyapikey.VerifyAPIKey.ClientId.redirection_uris</Condition>
                 </Step>
@@ -64,6 +58,12 @@
                 </Step>
                 <Step>
                     <Name>PopulateCache.OriginalClientInfo</Name>
+                </Step>
+                <Step>
+                    <Name>Quota</Name>
+                </Step>
+                <Step>
+                    <Name>SpikeArrest</Name>
                 </Step>
             </Request>
             <Response>
@@ -83,6 +83,15 @@
                 <Step>
                   <Name>RaiseFault.Unauthorized</Name>
                   <Condition>request.formparam.client_secret != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.client_secret</Condition>
+                </Step>
+                <Step>
+                    <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicy</Name>
+                </Step>
+                <Step>
+                    <Name>Quota</Name>
+                </Step>
+                <Step>
+                    <Name>SpikeArrest</Name>
                 </Step>
                 <Step>
                     <Name>KeyValueMapOperations.GetSecureVariables</Name>
