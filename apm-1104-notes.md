@@ -23,7 +23,7 @@ apiproduct.ratelimit
  * Flow.PostRefreshToken (Done)
     * OAuthV2.GenerateRefreshToken
 
- * Flow.GetCallback - Can't
+ * Flow.GetCallback
     * OAuthV2.GenerateAuthCode
 
  * Flow.SimulatedUserAuth - Won't

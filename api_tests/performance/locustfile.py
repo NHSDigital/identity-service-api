@@ -97,5 +97,4 @@ class IdentityServiceUser(HttpUser):
             "client_secret": self.client_secret,
             "refresh_token": refresh_token
         }
-        with self.client.post(f"/{self.identity_proxy}/token", headers=headers, data=payload) as response:
-            print(response.text)
+        self.client.post(f"/{self.identity_proxy}/token", headers=headers, data=payload)

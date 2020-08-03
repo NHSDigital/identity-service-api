@@ -262,13 +262,25 @@
             <Description>Flow to catch the Code response</Description>
             <Request>
                 <Step>
-                    <Name>LookupCache.OriginalClientInfo</Name>
+                  <Name>LookupCache.OriginalClientInfo</Name>
                 </Step>
                 <Step>
-                    <Name>ExtractVariables.ReadCacheJson</Name>
+                  <Name>ExtractVariables.ReadCacheJson</Name>
                 </Step>
                 <Step>
-                    <Name>OAuthV2.GenerateAuthCode</Name>
+                  <Name>VerifyAPIKey.FromJSON</Name>
+                </Step>
+                <Step>
+                  <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJSON</Name>
+                </Step>
+                <Step>
+                  <Name>Quota</Name>
+                </Step>
+                <Step>
+                  <Name>SpikeArrest</Name>
+                </Step>
+                <Step>
+                  <Name>OAuthV2.GenerateAuthCode</Name>
                 </Step>
             </Request>
             <Response>
