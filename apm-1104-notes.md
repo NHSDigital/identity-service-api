@@ -10,14 +10,14 @@ apiproduct.ratelimit
 
 
 
- * Flow.GetAuthorization
+ * Flow.GetAuthorization (Done)
     * VerifyAPIKey.ClientId
         VerifyAPIKey.ClientId.... -> apiproduct.developer.quota.interval
 
- * Flow.PostToken
+ * Flow.PostToken (Done)
     * VerifyAPIKey.FromClientSecretFormParam
 
- * Flow.PostTokenSimulatedAuth
+ * Flow.PostTokenSimulatedAuth (Done)
     * VerifyAPIKey.FromClientSecretFormParam
 
  * Flow.PostRefreshToken

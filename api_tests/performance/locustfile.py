@@ -27,7 +27,8 @@ class IdentityServiceUser(HttpUser):
         state = self._get_state()
         redirect_uri = self._get_redirect_callback(state)
         auth_code = self._get_auth_code(redirect_uri)
-        self._get_access_token(auth_code)
+        credentials = self._get_access_token(auth_code)
+        self._refresh_token(credentials["refresh_token"])
 
     def _get_state(self):
         params = {
@@ -84,4 +85,17 @@ class IdentityServiceUser(HttpUser):
         }
         with self.client.post(url, data=payload, headers=headers) as response:
             credentials = json.loads(response.text)
-            print(credentials)
+            return credentials
+
+    def _refresh_token(self, refresh_token):
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+        payload = {
+            "grant_type": "refresh_token",
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+            "refresh_token": refresh_token
+        }
+        with self.client.post(f"/{self.identity_proxy}/token", headers=headers, data=payload) as response:
+            print(response.text)
