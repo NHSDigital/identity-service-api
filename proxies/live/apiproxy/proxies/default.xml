@@ -44,9 +44,6 @@
                     <Name>VerifyAPIKey.ClientId</Name>
                 </Step>
                 <Step>
-                    <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyClientId</Name>
-                </Step>
-                <Step>
                     <Name>RaiseFault.CheckRedirectUri</Name>
                     <Condition>request.queryparam.redirect_uri != verifyapikey.VerifyAPIKey.ClientId.redirection_uris</Condition>
                 </Step>
@@ -58,6 +55,9 @@
                 </Step>
                 <Step>
                     <Name>PopulateCache.OriginalClientInfo</Name>
+                </Step>
+                <Step>
+                    <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyClientId</Name>
                 </Step>
                 <Step>
                     <Name>Quota</Name>
@@ -235,6 +235,18 @@
               <Step>
                 <Name>AssignMessage.RefreshTokensValidityOverride</Name>
                 <Condition>(request.formparam._refresh_tokens_validity_ms != null) and (request.formparam._refresh_tokens_validity_ms LesserThan private.apigee.refresh_tokens_validity_ms)</Condition>
+              </Step>
+              <Step>
+                <Name>VerifyAPIKey.ClientId</Name>
+              </Step>
+              <Step>
+                <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyClientId</Name>
+              </Step>
+              <Step>
+                <Name>Quota</Name>
+              </Step>
+              <Step>
+                <Name>SpikeArrest</Name>
               </Step>
               <Step>
                 <Name>OAuthV2.GenerateRefreshToken</Name>
