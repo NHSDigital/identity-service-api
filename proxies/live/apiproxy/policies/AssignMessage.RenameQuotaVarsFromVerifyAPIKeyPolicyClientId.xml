@@ -1,4 +1,4 @@
-<AssignMessage name="AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicy">
+<AssignMessage name="AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyClientId">
   <AssignVariable>
     <Name>apiproduct.developer.quota.limit</Name>
     <Ref>verifyapikey.VerifyAPIKey.ClientId.apiproduct.developer.quota.limit</Ref>
