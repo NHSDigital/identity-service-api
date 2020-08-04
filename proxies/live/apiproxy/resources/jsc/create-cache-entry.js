@@ -1,5 +1,10 @@
 client_id = context.getVariable('request.queryparam.client_id');
-state = context.getVariable('request.queryparam.state');
+// We will permit this for simulated_idp, but not for real authorization
+if (context.getVariable('identity_service.simulated_idp') == 'true') {
+  state = context.getVariable('request.queryparam.state') || "";
+} else {
+  state = context.getVariable('request.queryparam.state');
+}
 redirect_uri = context.getVariable('request.queryparam.redirect_uri');
 response_type = context.getVariable('request.queryparam.response_type');
 scope = context.getVariable('request.queryparam.scope');
