@@ -5,11 +5,13 @@ build/
 public/
 newman/
 
+
 .#*
 
 __pycache__/
 .envrc
 .idea/
+.vscode
 .pytest_cache/
 docker.env
 
