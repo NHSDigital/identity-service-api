@@ -35,11 +35,14 @@ extends:
       - environment: internal-dev
       - environment: internal-qa
       - environment: internal-qa-sandbox
+      - environment: ref
+      - environment: dev
       - environment: int
       - environment: int
         fully_qualified_service_name: pipeline-service-int-no-smartcard
         service_base_path: dummy-no-smartcard
         stage_name: int_no_smartcard
+      - environment: prod
     pre_template:
       - template: "templates/identity-service-templating.yml"
         parameters:
