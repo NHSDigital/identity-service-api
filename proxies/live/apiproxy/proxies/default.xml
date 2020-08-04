@@ -322,21 +322,27 @@
           <Condition>(identity_service.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/simulated_auth") and (request.verb Equals "POST")</Condition>
         </Flow>
         <Flow name="Flow.GetUserInfo">
-            <Description/>
-            <Request>
-                <Step>
-                    <Name>OAuthV2.VerifyAccessToken</Name>
-                </Step>
-            </Request>
-            <Response/>
-            <Condition>(proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET" || request.verb = "POST" )</Condition>
+          <Description/>
+          <Request>
+            <Step>
+              <Name>OAuthV2.VerifyAccessToken</Name>
+            </Step>
+            <Step>
+              <Name>Quota</Name>
+            </Step>
+            <Step>
+              <Name>SpikeArrest</Name>
+            </Step>
+          </Request>
+          <Response/>
+          <Condition>(proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET" || request.verb = "POST" )</Condition>
         </Flow>
-        <Flow name="Flow.GetWellKnown">
+        <!-- <Flow name="Flow.GetWellKnown">
             <Description/>
             <Request/>
             <Response/>
             <Condition>(proxy.pathsuffix MatchesPath "/.well-known/*") and (request.verb = "GET")</Condition>
-        </Flow>
+        </Flow> -->
         <Flow name="Flow.OptionsCors">
             <Description/>
             <Request/>
