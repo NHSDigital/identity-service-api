@@ -3,17 +3,15 @@ name: "$(SourceBranchName)+$(BuildID)"
 trigger: none
 pr: none
 
-variables:
-  SERVICE_NAME: identity-service
-  SERVICE_BASE_PATH: /oauth2
-  IDENTITY_TARGET_SERVER: identity-server
-  SPEC_FILE_NAME: identity-service
-  PROXY_NAME: live
-
 resources:
+  repositories:
+    - repository: common
+      type: github
+      name: NHSDigital/api-management-utils
+      endpoint: NHSDigital
   pipelines:
-  - pipeline: identity-service
-    source: "Identity-Service-Build"
+  - pipeline: Identity-Service-Build
+    source: Identity-Service-Build
     trigger:
       branches:
         include:
@@ -22,357 +20,32 @@ resources:
 pool:
   vmImage: 'ubuntu-latest'
 
-stages:
-- stage: DeployInternalDev
-  displayName: internal-dev
-  jobs:
-    - deployment: DeployService
-      displayName: Deploy Service
-      environment: 'internal-dev'
-      variables:
-        - name: VARIABLES_KVM
-          value: identity-service-variables
-        - name: ENCRYPTED_VARIABLES_KVM
-          value: identity-service-variables-encrypted
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-              - template: components/get-aws-secrets-and-ssm-params.yml
-                parameters:
-                  SECRET_IDS: >
-                    ptl/azure-devops/apigee-nonprod/APIGEE_OTP_KEY
-                    ptl/azure-devops/apigee-nonprod/APIGEE_PASSWORD
-                    ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
-                  PARAM_NAMES: >
-                    /ptl/azure-devops/apigee-nonprod/APIGEE_USERNAME
-                    /ptl/azure-devops/apigee-nonprod/APIGEE_ORGANIZATION
-                    /ptl/azure-devops/env-internal-dev/APIGEE_ENVIRONMENT
-                    /ptl/azure-devops/env-internal-dev/ENV_URL
-                    /ptl/azure-devops/env-internal-dev/IDENTITY_URL
-                    /ptl/azure-devops/GITHUB_USER
-              - template: templates/identity-service-templating.yml
-              - template: templates/deploy-service.yml
+variables:
+  - template: project.yml
 
-- stage: DeployInternalQA
-  displayName: internal-qa
-  dependsOn: DeployInternalDev
-  jobs:
-    - deployment: DeployService
-      displayName: Deploy Service
-      environment: 'internal-qa'
-      variables:
-        - name: VARIABLES_KVM
-          value: identity-service-variables
-        - name: ENCRYPTED_VARIABLES_KVM
-          value: identity-service-variables-encrypted
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-              - template: components/get-aws-secrets-and-ssm-params.yml
-                parameters:
-                  SECRET_IDS: >
-                    ptl/azure-devops/apigee-nonprod/APIGEE_OTP_KEY
-                    ptl/azure-devops/apigee-nonprod/APIGEE_PASSWORD
-                    ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
-                  PARAM_NAMES: >
-                    /ptl/azure-devops/apigee-nonprod/APIGEE_USERNAME
-                    /ptl/azure-devops/apigee-nonprod/APIGEE_ORGANIZATION
-                    /ptl/azure-devops/env-internal-qa/APIGEE_ENVIRONMENT
-                    /ptl/azure-devops/env-internal-qa/ENV_URL
-                    /ptl/azure-devops/env-internal-qa/IDENTITY_URL
-                    /ptl/azure-devops/GITHUB_USER
-              - template: templates/identity-service-templating.yml
-              - template: templates/deploy-service.yml
-
-- stage: DeployInternalQASandbox
-  displayName: internal-qa-sandbox
-  dependsOn: DeployInternalDev
-  jobs:
-    - deployment: DeployService
-      displayName: Deploy Service
-      environment: 'internal-qa-sandbox'
-      variables:
-        - name: VARIABLES_KVM
-          value: identity-service-variables
-        - name: ENCRYPTED_VARIABLES_KVM
-          value: identity-service-variables-encrypted
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-              - template: components/get-aws-secrets-and-ssm-params.yml
-                parameters:
-                  SECRET_IDS: >
-                    ptl/azure-devops/apigee-nonprod/APIGEE_OTP_KEY
-                    ptl/azure-devops/apigee-nonprod/APIGEE_PASSWORD
-                    ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
-                  PARAM_NAMES: >
-                    /ptl/azure-devops/apigee-nonprod/APIGEE_USERNAME
-                    /ptl/azure-devops/apigee-nonprod/APIGEE_ORGANIZATION
-                    /ptl/azure-devops/env-internal-qa-sandbox/APIGEE_ENVIRONMENT
-                    /ptl/azure-devops/env-internal-qa-sandbox/ENV_URL
-                    /ptl/azure-devops/env-internal-qa-sandbox/IDENTITY_URL
-                    /ptl/azure-devops/GITHUB_USER
-              - template: templates/identity-service-templating.yml
-              - template: templates/deploy-service.yml
-
-- stage: DeployInternalPortal
-  displayName: internal-portal
-  dependsOn: DeployInternalDev
-  jobs:
-    - deployment: DeploySpecs
-      displayName: Deploy Specs
-      environment: 'internal-portal'
-      variables:
-        - name: VARIABLES_KVM
-          value: identity-service-variables
-        - name: ENCRYPTED_VARIABLES_KVM
-          value: identity-service-variables-encrypted
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-              - template: components/get-aws-secrets-and-ssm-params.yml
-                parameters:
-                  SECRET_IDS: >
-                    ptl/azure-devops/apigee-nonprod/APIGEE_OTP_KEY
-                    ptl/azure-devops/apigee-nonprod/APIGEE_PASSWORD
-                    ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
-                  PARAM_NAMES: >
-                    /ptl/azure-devops/apigee-nonprod/APIGEE_USERNAME
-                    /ptl/azure-devops/apigee-nonprod/APIGEE_ORGANIZATION
-                    /ptl/azure-devops/env-internal-portal/APIGEE_ENVIRONMENT
-                    /ptl/azure-devops/GITHUB_USER
-              - template: templates/deploy-specs.yml
-
-- stage: DeployRef
-  displayName: ref
-  dependsOn: 
-    - DeployInternalQA
-    - DeployInternalQASandbox
-  jobs:
-    - deployment: DeployService
-      displayName: Deploy Service
-      environment: 'ref'
-      variables:
-        - name: VARIABLES_KVM
-          value: identity-service-variables
-        - name: ENCRYPTED_VARIABLES_KVM
-          value: identity-service-variables-encrypted
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-              - template: components/get-aws-secrets-and-ssm-params.yml
-                parameters:
-                  SECRET_IDS: >
-                    ptl/azure-devops/apigee-nonprod/APIGEE_OTP_KEY
-                    ptl/azure-devops/apigee-nonprod/APIGEE_PASSWORD
-                    ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
-                  PARAM_NAMES: >
-                    /ptl/azure-devops/apigee-nonprod/APIGEE_USERNAME
-                    /ptl/azure-devops/apigee-nonprod/APIGEE_ORGANIZATION
-                    /ptl/azure-devops/env-ref/APIGEE_ENVIRONMENT
-                    /ptl/azure-devops/env-ref/ENV_URL
-                    /ptl/azure-devops/env-ref/IDENTITY_URL
-                    /ptl/azure-devops/GITHUB_USER
-              - template: templates/identity-service-templating.yml
-              - template: templates/deploy-service.yml
-
-- stage: DeployDev
-  displayName: dev
-  dependsOn: 
-    - DeployRef
-  jobs:
-    - deployment: DeployService
-      displayName: Deploy Service
-      environment: 'dev'
-      variables:
-        - name: VARIABLES_KVM
-          value: identity-service-variables
-        - name: ENCRYPTED_VARIABLES_KVM
-          value: identity-service-variables-encrypted
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-              - template: components/get-aws-secrets-and-ssm-params.yml
-                parameters:
-                  SECRET_IDS: >
-                    prod/azure-devops/apigee-prod/APIGEE_OTP_KEY
-                    prod/azure-devops/apigee-prod/APIGEE_PASSWORD
-                    ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
-                  PARAM_NAMES: >
-                    /prod/azure-devops/apigee-prod/APIGEE_USERNAME
-                    /prod/azure-devops/apigee-prod/APIGEE_ORGANIZATION
-                    /ptl/azure-devops/env-dev/APIGEE_ENVIRONMENT
-                    /ptl/azure-devops/env-dev/ENV_URL
-                    /ptl/azure-devops/env-dev/IDENTITY_URL
-                    /ptl/azure-devops/GITHUB_USER
-              - template: templates/identity-service-templating.yml
-              - template: templates/deploy-service.yml
-
-- stage: DeployProd
-  displayName: prod
-  dependsOn: 
-    - DeployRef
-  jobs:
-    - deployment: DeployService
-      displayName: Deploy Service
-      environment: 'prod'
-      variables:
-        - name: VARIABLES_KVM
-          value: identity-service-variables
-        - name: ENCRYPTED_VARIABLES_KVM
-          value: identity-service-variables-encrypted
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-              - template: components/get-aws-secrets-and-ssm-params.yml
-                parameters:
-                  SECRET_IDS: >
-                    prod/azure-devops/apigee-prod/APIGEE_OTP_KEY
-                    prod/azure-devops/apigee-prod/APIGEE_PASSWORD
-                    ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
-                  PARAM_NAMES: >
-                    /prod/azure-devops/apigee-prod/APIGEE_USERNAME
-                    /prod/azure-devops/apigee-prod/APIGEE_ORGANIZATION
-                    /prod/azure-devops/env-prod/APIGEE_ENVIRONMENT
-                    /prod/azure-devops/env-prod/ENV_URL
-                    /prod/azure-devops/env-prod/IDENTITY_URL
-                    /ptl/azure-devops/GITHUB_USER
-              - template: templates/identity-service-templating.yml
-              - template: templates/deploy-service.yml
-
-- stage: DeploySandbox
-  displayName: sandbox
-  dependsOn: 
-    - DeployRef
-  jobs:
-    - deployment: DeployService
-      displayName: Deploy Service
-      environment: 'sandbox'
-      variables:
-        - name: VARIABLES_KVM
-          value: identity-service-variables
-        - name: ENCRYPTED_VARIABLES_KVM
-          value: identity-service-variables-encrypted
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-              - template: components/get-aws-secrets-and-ssm-params.yml
-                parameters:
-                  SECRET_IDS: >
-                    prod/azure-devops/apigee-prod/APIGEE_OTP_KEY
-                    prod/azure-devops/apigee-prod/APIGEE_PASSWORD
-                    ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
-                  PARAM_NAMES: >
-                    /prod/azure-devops/apigee-prod/APIGEE_USERNAME
-                    /prod/azure-devops/apigee-prod/APIGEE_ORGANIZATION
-                    /ptl/azure-devops/env-sandbox/APIGEE_ENVIRONMENT
-                    /ptl/azure-devops/env-sandbox/ENV_URL
-                    /ptl/azure-devops/env-sandbox/IDENTITY_URL
-                    /ptl/azure-devops/GITHUB_USER
-              - template: templates/identity-service-templating.yml
-              - template: templates/deploy-service.yml
-
-- stage: DeployInt
-  displayName: int
-  dependsOn:
-    - DeployRef
-  jobs:
-    - deployment: DeployService
-      displayName: Deploy Service
-      environment: 'int'
-      variables:
-        - name: VARIABLES_KVM
-          value: identity-service-variables
-        - name: ENCRYPTED_VARIABLES_KVM
-          value: identity-service-variables-encrypted
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-              - template: components/get-aws-secrets-and-ssm-params.yml
-                parameters:
-                  SECRET_IDS: >
-                    prod/azure-devops/apigee-prod/APIGEE_OTP_KEY
-                    prod/azure-devops/apigee-prod/APIGEE_PASSWORD
-                    ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
-                  PARAM_NAMES: >
-                    /prod/azure-devops/apigee-prod/APIGEE_USERNAME
-                    /prod/azure-devops/apigee-prod/APIGEE_ORGANIZATION
-                    /ptl/azure-devops/env-int/APIGEE_ENVIRONMENT
-                    /ptl/azure-devops/env-int/ENV_URL
-                    /ptl/azure-devops/env-int/IDENTITY_URL
-                    /ptl/azure-devops/GITHUB_USER
-              - template: templates/identity-service-templating.yml
-              - template: templates/deploy-service.yml
-
-- stage: DeployIntNoSmartCard
-  displayName: int no-smartcard
-  dependsOn: 
-    - DeployRef
-  variables:
-    - name: IDENTITY_TARGET_SERVER
-      value: identity-server-no-smartcard
-    - name: SERVICE_BASE_PATH
-      value: oauth2-no-smartcard
-    - name: VARIABLES_KVM
-      value: identity-service-variables-no-smartcard
-    - name: ENCRYPTED_VARIABLES_KVM
-      value: identity-service-variables-encrypted-no-smartcard
-  jobs:
-    - deployment: DeployService
-      displayName: Deploy Service
-      environment: 'int-no-smartcard'
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-              - template: components/get-aws-secrets-and-ssm-params.yml
-                parameters:
-                  SECRET_IDS: >
-                    prod/azure-devops/apigee-prod/APIGEE_OTP_KEY
-                    prod/azure-devops/apigee-prod/APIGEE_PASSWORD
-                    ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
-                  PARAM_NAMES: >
-                    /prod/azure-devops/apigee-prod/APIGEE_USERNAME
-                    /prod/azure-devops/apigee-prod/APIGEE_ORGANIZATION
-                    /ptl/azure-devops/env-int/APIGEE_ENVIRONMENT
-                    /ptl/azure-devops/env-int/ENV_URL
-                    /ptl/azure-devops/env-int/IDENTITY_URL
-                    /ptl/azure-devops/GITHUB_USER
-              - template: templates/identity-service-templating.yml
-              - template: templates/deploy-service.yml
-                parameters:
-                  SERVICE_NAME_SUFFIX: no-smartcard
-
-- stage: DeployPortal
-  displayName: portal
-  dependsOn: []
-  jobs:
-    - deployment: DeploySpecs
-      displayName: Deploy Specs
-      condition: false
-      environment: 'portal'
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-              - template: components/get-aws-secrets-and-ssm-params.yml
-                parameters:
-                  SECRET_IDS: >
-                    prod/azure-devops/apigee-prod/APIGEE_OTP_KEY
-                    prod/azure-devops/apigee-prod/APIGEE_PASSWORD
-                    ptl/access-tokens/github/repo-status-update/GITHUB_ACCESS_TOKEN
-                  PARAM_NAMES: >
-                    /prod/azure-devops/apigee-prod/APIGEE_USERNAME
-                    /prod/azure-devops/apigee-prod/APIGEE_ORGANIZATION
-                    /ptl/azure-devops/env-portal/APIGEE_ENVIRONMENT
-                    /ptl/azure-devops/GITHUB_USER
-              - template: templates/deploy-specs.yml
+extends:
+  template: azure/common/apigee-deployment.yml@common
+  parameters:
+    service_name: ${{ variables.service_name }}
+    service_base_path: ${{ variables.service_base_path }}
+    product_display_name: ${{ variables.product_display_name }}
+    product_description: ${{ variables.product_description }}
+    apigee_deployments:
+      - environment: internal-dev
+      - environment: internal-qa
+      - environment: internal-qa-sandbox
+      - environment: ref
+      - environment: dev
+      - environment: int
+      - environment: int
+        fully_qualified_service_name: pipeline-service-int-no-smartcard
+        service_base_path: dummy-no-smartcard
+        stage_name: int_no_smartcard
+      - environment: prod
+    pre_template:
+      - template: "templates/identity-service-templating.yml"
+        parameters:
+          service_name: ${{ variables.service_name }}
+          variables_kvm: "identity-service-variables"
+          encrypted_variables_kvm: "identity-service-variables-encrypted"
+          identity_target_server: "identity-server"
