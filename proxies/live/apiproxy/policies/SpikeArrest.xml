@@ -2,5 +2,4 @@
 <SpikeArrest name="SpikeArrest">
   <DisplayName>SpikeArrest</DisplayName>
   <Rate ref="apiproduct.ratelimit">5ps</Rate>
-  <UseEffectiveCount>true</UseEffectiveCount>
 </SpikeArrest>
