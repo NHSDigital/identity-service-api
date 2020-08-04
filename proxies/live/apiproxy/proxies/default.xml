@@ -52,10 +52,10 @@
                     <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyClientId</Name>
                 </Step>
                 <Step>
-                    <Name>Quota</Name>
+                    <Name>SpikeArrest</Name>
                 </Step>
                 <Step>
-                    <Name>SpikeArrest</Name>
+                    <Name>Quota</Name>
                 </Step>
             </Request>
             <Response>
@@ -80,10 +80,10 @@
                     <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
                 </Step>
                 <Step>
-                    <Name>Quota</Name>
+                    <Name>SpikeArrest</Name>
                 </Step>
                 <Step>
-                    <Name>SpikeArrest</Name>
+                    <Name>Quota</Name>
                 </Step>
                 <Step>
                     <Name>KeyValueMapOperations.GetSecureVariables</Name>
@@ -176,10 +176,10 @@
                   <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
                 </Step>
                 <Step>
-                  <Name>Quota</Name>
+                  <Name>SpikeArrest</Name>
                 </Step>
                 <Step>
-                  <Name>SpikeArrest</Name>
+                  <Name>Quota</Name>
                 </Step>
                 <!-- Next 2 steps allow optional REDUCTION of access_token_expiry and refresh_token_expiry  KVM values
                 using _access_token_expiry_ms/_refresh_token_expiry_ms (respectively) form params -->
@@ -235,10 +235,10 @@
                 <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
               </Step>
               <Step>
-                <Name>Quota</Name>
+                <Name>SpikeArrest</Name>
               </Step>
               <Step>
-                <Name>SpikeArrest</Name>
+                <Name>Quota</Name>
               </Step>
               <Step>
                 <Name>OAuthV2.GenerateRefreshToken</Name>
@@ -274,10 +274,10 @@
                   <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJSON</Name>
                 </Step>
                 <Step>
-                  <Name>Quota</Name>
+                  <Name>SpikeArrest</Name>
                 </Step>
                 <Step>
-                  <Name>SpikeArrest</Name>
+                  <Name>Quota</Name>
                 </Step>
                 <Step>
                   <Name>OAuthV2.GenerateAuthCode</Name>
@@ -328,10 +328,10 @@
               <Name>OAuthV2.VerifyAccessToken</Name>
             </Step>
             <Step>
-              <Name>Quota</Name>
+              <Name>SpikeArrest</Name>
             </Step>
             <Step>
-              <Name>SpikeArrest</Name>
+              <Name>Quota</Name>
             </Step>
           </Request>
           <Response/>
