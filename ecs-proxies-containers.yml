@@ -1,0 +1,4 @@
+docker_containers:
+  - name: identity-service-sandbox
+    dockerfile: "docker/dummy-api/Dockerfile"
+    path: "docker/dummy-api"
