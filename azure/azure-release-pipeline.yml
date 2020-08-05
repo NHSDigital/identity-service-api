@@ -38,8 +38,8 @@ extends:
       - environment: dev
       - environment: int
       - environment: int
-        fully_qualified_service_name: pipeline-service-int-no-smartcard
-        service_base_path: dummy-no-smartcard
+        fully_qualified_service_name: identity-service-int-no-smartcard
+        service_base_path: oauth2-no-smartcard
         stage_name: int_no_smartcard
       - environment: prod
     pre_template:
