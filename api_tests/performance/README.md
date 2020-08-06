@@ -31,3 +31,4 @@
     * ```$ locust -f ./api_tests/performance/locustfile.py```
     * The ``` -f ``` option is the path of the locust file 
     * This can be run with ```--headless``` to run within the CLI
+* See locust configuration: https://docs.locust.io/en/stable/configuration.html
