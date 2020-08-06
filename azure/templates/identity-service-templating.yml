@@ -14,7 +14,7 @@ steps:
 
       cd $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/utils
 
-      ls -R $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)
+      ls -R $(Pipeline.Workspace)
 
       poetry run python scripts/template.py '{"VARIABLES_KVM": "${{ parameters.variables_kvm }}"}' --file=$(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/proxies/live/apiproxy/policies/KeyValueMapOperations.GetVariables.xml > /tmp/live.xml
       mv /tmp/live.xml $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/proxies/live/apiproxy/policies/KeyValueMapOperations.GetVariables.xml
