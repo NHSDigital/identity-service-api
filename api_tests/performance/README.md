@@ -1,34 +1,41 @@
 # Performance Testing
 
-## Requirements
+## Setup
+
+### Pre-Requisites
+
 * python 3.8
+* [poetry](https://github.com/python-poetry/poetry)
 
-## Install dependancies
+### Install
 
-* To install the project dependancies:  
-    * ```$ pip install -r requirements.txt ```
+* `poetry install`
 
-## Locust parameters
+## Configure
 
-* To run the performance tests against a particular service or API the tests need some configuration.
-* In order to run the tests it requires some values to run:
-    * HOST: Which is the domain in which you intend to run against e.g. "https://nhsd-apim-testing.com"
-    * Number of Users: Which is the amount of users you want to be running against the service
-    * Hatch Rate: The amount of user created per second.
+In order to use the Identity Service you need a *App* with access to an appropriate API Product. This will have a *Key* and *Secret*, and be configured with a *Callback URL*.
 
-## Configuration through Environment Varibles
+The association of App to *API Product* will determine the effective **Rate Limiting** in place when making calls to the Identity Service.
 
-* To run the locust script some environment variables must be set to run the performance test aganst the service.
-    * ``` CALLBACK_URL ``` the test app to use for authentication e.g. "https://nhsd-apim-testing.com"
-    * ``` LOCUST_HOST ``` which is the domain in which the requests are fired to for example '{domain}/hello' e.g. "https://internal-dev.api.service.nhs.uk"
-    * ``` CLIENT_ID ``` the API key used to identify the client during authentication.
-    * ``` CLIENT_SECRET ``` the API secret used during authentication.
-    * ``` NAMESPACE ``` the branch that you are working on. this resolves to working proxy e.g. '/oauth-NAMESPACE'
+Configure by setting environment variables:
+
+| Variable        | Description                                                  | Example                            |
+| --------------- | ------------------------------------------------------------ | ---------------------------------- |
+| `CALLBACK_URL`  | From App                                                     | https://example-app.com/callback   |
+| `CLIENT_ID`     | From App                                                     | `wV0D06YOqyyyy2b98AwxxxxG4cpI1111` |
+| `CLIENT_SECRET` | From App                                                     | `7voRLOLRNOPEIsUA`                 |
+| `LOCUST_HOST`   | Hostname and scheme of the deployed identity service         | `https://int.api.service.nhs.uk`   |
+| `NAMESPACE`     | OPTIONAL. For PR-Deployed (namespaced) proxies. Used to create the base path to the identity service, of the format `/oauth2-<NAMESPACE>` | `some-namespace`                   |
+
+:bulb: Use [direnv](https://direnv.net/) for convenience.
 
 ## Run
 
-* To run the locust script:
-    * ```$ locust -f ./api_tests/performance/locustfile.py```
-    * The ``` -f ``` option is the path of the locust file 
-    * This can be run with ```--headless``` to run within the CLI
-* See locust configuration: https://docs.locust.io/en/stable/configuration.html
+1. `pyenv run locust -f  locustfile.py`
+2. Use WebUI at http://localhost:8089/
+
+:bulb: Use `--headless` switch to run from CLI
+
+## Further Info
+
+See locust configuration: https://docs.locust.io/en/stable/configuration.html
