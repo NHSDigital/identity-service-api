@@ -43,9 +43,18 @@ extends:
         stage_name: int_no_smartcard
       - environment: prod
     pre_template:
+      - template: azure/components/update-github-status.yml@common
+        parameters:
+          state: pending
+          description: Deploying PR for identity service
       - template: "templates/identity-service-templating.yml"
         parameters:
           service_name: ${{ variables.service_name }}
           variables_kvm: "identity-service-variables"
           encrypted_variables_kvm: "identity-service-variables-encrypted"
           identity_target_server: "identity-server"
+    post_deploy:
+      - template: azure/components/update-github-status.yml@common
+        parameters:
+          state: success
+          description: Successfully Deployed PR for identity service
