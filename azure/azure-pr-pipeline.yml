@@ -48,4 +48,10 @@ extends:
       - template: azure/components/update-github-status.yml@common
         parameters:
           state: success
-          description: Successfully Deployed PR for identity service
+          description: PR Deploy succeeded
+          on_success: true
+      - template: azure/components/update-github-status.yml@common
+        parameters:
+          state: failure
+          description: PR Deploy failed
+          on_failure: true
