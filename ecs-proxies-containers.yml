@@ -1,4 +1,0 @@
-docker_containers:
-  - name: sandbox
-    dockerfile: "docker/dummy-api/Dockerfile"
-    path: "docker/dummy-api"
