@@ -9,7 +9,6 @@ resources:
       type: github
       name: NHSDigital/api-management-utils
       endpoint: NHSDigital
-      ref: refs/heads/apm-1313-ecs-deploy-in-common-pipelines
   pipelines:
   - pipeline: Identity-Service-Build
     source: Identity-Service-Build
