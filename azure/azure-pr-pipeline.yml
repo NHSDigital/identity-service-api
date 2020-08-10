@@ -34,6 +34,7 @@ extends:
     product_display_name: ${{ variables.product_display_name }}
     product_description: ${{ variables.product_description }}
     pre_template:
+      - bash: echo $(System.PullRequest.SourceCommitId)
       - template: azure/components/update-github-status.yml@common
         parameters:
           state: pending
