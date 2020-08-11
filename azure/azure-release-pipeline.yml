@@ -10,8 +10,8 @@ resources:
       name: NHSDigital/api-management-utils
       endpoint: NHSDigital
   pipelines:
-  - pipeline: Identity-Service-Build
-    source: Identity-Service-Build
+  - pipeline: build_pipeline
+    source: "Identity-Service-Build"
     trigger:
       branches:
         include:
