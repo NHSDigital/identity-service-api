@@ -34,23 +34,8 @@ extends:
     product_display_name: ${{ variables.product_display_name }}
     product_description: ${{ variables.product_description }}
     pre_template:
-      - template: azure/components/update-github-status.yml@common
-        parameters:
-          state: pending
-          description: Deploying PR for identity service
       - template: "templates/identity-service-templating.yml"
         parameters:
           variables_kvm: "identity-service-variables"
           encrypted_variables_kvm: "identity-service-variables-encrypted"
           identity_target_server: "identity-server"
-    post_deploy:
-      - template: azure/components/update-github-status.yml@common
-        parameters:
-          state: success
-          description: PR Deploy succeeded
-          on_success: true
-      - template: azure/components/update-github-status.yml@common
-        parameters:
-          state: failure
-          description: PR Deploy failed
-          on_failure: true
