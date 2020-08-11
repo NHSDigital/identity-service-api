@@ -1,5 +1,8 @@
 # Changelog
 
+## 2020-08-11
+* Added `Simulated OAuth` as an authentication option for the api tests
+
 ## 2020-06-18
 * Move release and pull request pipelines into source control
 
