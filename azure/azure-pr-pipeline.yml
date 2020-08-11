@@ -9,7 +9,7 @@ resources:
       type: github
       name: NHSDigital/api-management-utils
       endpoint: NHSDigital
-      ref: refs/head/APM-1313-github-status
+      ref: refs/heads/APM-1313-github-status
   pipelines:
   - pipeline: Identity-Service-Build
     source: Identity-Service-Build
