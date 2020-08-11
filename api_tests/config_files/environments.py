@@ -6,7 +6,7 @@ def get_env(variable_name: str) -> str:
     """Returns a environment variable"""
     try:
         return os.environ[variable_name]
-    except:
+    except KeyError:
         return ""
 
 

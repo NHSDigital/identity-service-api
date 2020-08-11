@@ -66,13 +66,13 @@ class CheckOauthEndpoints(GenericRequest):
         code = authenticator.get_code_from_provider(response)
         return code
 
-    def get_token_response(self, timeout: int = 3000, grant_type: str = 'authorization_code', refresh_token: str = None):
+    def get_token_response(self, timeout: int = 3000, grant_type: str = 'authorization_code', refresh_token: str = ""):
         data = {
             'client_id': config.CLIENT_ID,
             'client_secret': config.CLIENT_SECRET,
             'grant_type': grant_type,
         }
-        if refresh_token is not None:
+        if refresh_token != "":
             data['refresh_token'] = refresh_token
             data['_refresh_token_expiry_ms'] = timeout
         else:

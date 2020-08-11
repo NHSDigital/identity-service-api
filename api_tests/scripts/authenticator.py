@@ -23,14 +23,46 @@ class Authenticator:
                                              params=params, headers={'Accept-API-Version': 'protocol=1.0,resource=2.1'})
         return self.session.get_value_from_json_response(response, 'authId')
 
+    def _simulated_oauth_prerequisite(self):
+        """Request the login page and retrieve the callback url and assigned state"""
+        login_page_response = self.session.get(config.AUTHENTICATE_URL)
+        assert login_page_response.status_code == 200
+
+        # Login
+        params = {
+            'client_id': config.CLIENT_ID,
+            'redirect_uri': config.REDIRECT_URI,
+            'response_type': 'code',
+            'state': '1234567890'
+        }
+
+        success_response = self.session.get(config.AUTHORIZE_URL, params=params, allow_redirects=False)
+
+        # Confirm request was successful
+        assert success_response.status_code == 302, f"Getting an error: {success_response.text}"
+
+        call_back_url = success_response.headers.get('Location')
+        state = self.session.get_param_from_url(call_back_url, 'state')
+        return call_back_url, state
+
     def _get_request_data(self, provider: str, username: str, password: str, state: str) -> dict:
+        """Get the request data required for authenticating with a given provider"""
         provider = provider.lower().replace(' ', '_')  # Format value
-        url, _ = config.AUTHENTICATE_URL.split('/openam')
+        auth_id = ""
+
+        if provider == 'nhs_identity':
+            # NHS Identity pre-requisites
+            url, _ = config.AUTHENTICATE_URL.split('/openam')
+            auth_id = self._get_auth_id(state)
+        elif provider == 'simulated_oauth':
+            # Simulated OAuth pre-requisites
+            url, state = self._simulated_oauth_prerequisite()
 
         return {
             'nhs_identity': {
+                'url': config.AUTHENTICATE_URL,
                 'payload': {
-                    "authId": f"{self._get_auth_id(state)}",
+                    "authId": auth_id,
                     "template": "",
                     "stage": "DataStore1",
                     "header": "Sign in",
@@ -59,28 +91,41 @@ class Authenticator:
                             f'&scope=openid&state={state}'
                 }
             },
+            "simulated_oauth": {
+                'url': url,
+                'headers': {'Content-Type': 'application/x-www-form-urlencoded'},
+                'params': {},
+                'payload': {'state': state}
+            }
         }.get(provider.lower())
 
     def authenticate(self) -> 'response type':
+        """Send authentication request"""
         sign_in_response = self.session.post(
-            config.AUTHENTICATE_URL,
+            self.data['url'],
             headers=self.data['headers'],
             params=self.data['params'],
-            json=self.data['payload']
+            data=self.data['payload'],
+            allow_redirects=False
         )
 
         # Confirm request was successful
-        assert sign_in_response.status_code == 200, f"Failed to get authenticated " \
+        assert sign_in_response.status_code == 302, f"Failed to get authenticated " \
                                                     f"with error {sign_in_response.status_code}"
         return sign_in_response
 
     def get_code_from_provider(self, sign_in_response: 'response type') -> str:
-        # Extract & follow success url from login response
-        success_url = self.session.get_value_from_json_response(sign_in_response, 'successUrl')
-        success_response = self.session.get(success_url, allow_redirects=False)
+        """Retrieve the code value from an authentication response"""
+        # Extract & follow success url from login response (only required for NHS Identity
+        if config.AUTHENTICATION_PROVIDER == 'NHS Identity':
+            success_url = self.session.get_value_from_json_response(sign_in_response, 'successUrl')
+            success_response = self.session.get(success_url, allow_redirects=False)
 
-        # Confirm request was successful
-        assert success_response.status_code == 302, f"Success url request failed with {sign_in_response.status_code}"
+            # Confirm request was successful
+            assert success_response.status_code == 302, f"Request failed with {sign_in_response.status_code}"
+
+        else:
+            success_response = sign_in_response
 
         # Extract url from location header and make the call back request
         callback_url = success_response.headers.get('Location')
