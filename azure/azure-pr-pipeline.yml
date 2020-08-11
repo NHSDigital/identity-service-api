@@ -9,6 +9,7 @@ resources:
       type: github
       name: NHSDigital/api-management-utils
       endpoint: NHSDigital
+      ref: refs/head/APM-1313-github-status
   pipelines:
   - pipeline: Identity-Service-Build
     source: Identity-Service-Build
@@ -36,6 +37,7 @@ extends:
     pre_template:
       - template: azure/components/update-github-status.yml@common
         parameters:
+          service_name: ${{ variables.service_name }}
           state: pending
           description: Deploying PR for identity service
       - template: "templates/identity-service-templating.yml"
@@ -47,11 +49,13 @@ extends:
     post_deploy:
       - template: azure/components/update-github-status.yml@common
         parameters:
+          service_name: ${{ variables.service_name }}
           state: success
           description: PR Deploy succeeded
           on_success: true
       - template: azure/components/update-github-status.yml@common
         parameters:
+          service_name: ${{ variables.service_name }}
           state: failure
           description: PR Deploy failed
           on_failure: true
