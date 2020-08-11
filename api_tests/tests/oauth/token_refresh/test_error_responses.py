@@ -83,7 +83,7 @@ class TestOauthTokensSuite:
 
     @pytest.mark.apm_1010
     @pytest.mark.errors
-    @pytest.mark.usefixtures('get_token')
+    @pytest.mark.usefixtures('get_refresh_token')
     def test_refresh_token_does_expire(self):
         sleep(5)
         assert self.test.check_endpoint(
