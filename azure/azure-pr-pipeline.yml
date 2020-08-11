@@ -35,7 +35,6 @@ extends:
     product_display_name: ${{ variables.product_display_name }}
     product_description: ${{ variables.product_description }}
     pre_template:
-      - bash: echo $(Build.SourceBranchName)
       - template: azure/components/update-github-status.yml@common
         parameters:
           service_name: ${{ variables.service_name }}
