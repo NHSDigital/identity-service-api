@@ -35,6 +35,7 @@ extends:
     product_display_name: ${{ variables.product_display_name }}
     product_description: ${{ variables.product_description }}
     pre_template:
+      - bash: ls -R $(Pipeline.Workspace)
       - template: azure/components/update-github-status.yml@common
         parameters:
           service_name: ${{ variables.service_name }}
