@@ -36,6 +36,7 @@ extends:
     pre_template:
       - template: "templates/identity-service-templating.yml"
         parameters:
+          service_name: ${{ variables.service_name }}
           variables_kvm: "identity-service-variables"
           encrypted_variables_kvm: "identity-service-variables-encrypted"
           identity_target_server: "identity-server"
