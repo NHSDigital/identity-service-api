@@ -9,6 +9,7 @@ resources:
       type: github
       name: NHSDigital/api-management-utils
       endpoint: NHSDigital
+      ref: apm-1162-fix-pr-run-reporting
   pipelines:
   - pipeline: build_pipeline
     source: "Identity-Service-Build"
