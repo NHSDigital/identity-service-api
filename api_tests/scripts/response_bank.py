@@ -1,9 +1,11 @@
 """ A repository bank which hold large bits of information in a dictionary format.
 the keys are based on the name of tests to better identify what data belongs to which test."""
+from api_tests.config_files import config
+
 
 BANK = {
     'test_authorize_endpoint': {
-        'response':
+        'response_nhs_identity':
             """
                 <!DOCTYPE html>
                 <!--
@@ -40,24 +42,46 @@ BANK = {
                     <script type="text/javascript" src="main.966e6ff32d.js"></script></body>
                 </html>
             """,
+        'response':
+            """
+                <htmllang="en">
+                    <head>
+                       <metahttp-equiv="Content-Type"content="text/html;charset=UTF-8">
+                       <metacharset="utf-8">
+                       <metacontent="width=device-width,initial-scale=1,shrink-to-fit=no"name="viewport">
+                       <linkcrossorigin="anonymous"
+                       href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk"rel="stylesheet">
+                       <style>
+                          html,body{height:100%;}body{display:-ms-flexbox;display:flex;-ms-flex-align:center;
+                          align-items:center;padding-top:40px;padding-bottom:40px;
+                          background-color:#f5f5f5;}.form-signin{width:100%;max-width:330px;padding:15px;margin:auto;}.form-signin.checkbox{font-weight:400;}.form-signin.form-control{position:relative;box-sizing:border-box;height:auto;padding:10px;font-size:16px;}.form-signin.form-control:focus{z-index:2;}.form-signininput[type="email"]{margin-bottom:-1px;border-bottom-right-radius:0;border-bottom-left-radius:0;}.form-signininput[type="password"]{margin-bottom:10px;border-top-left-radius:0;border-top-right-radius:0;}
+                       </style>
+                       <title>SimulatedLoginPage</title>
+                    </head>
+                    <bodyclass="text-center"><formclass="form-signin"method="post"><h1class="h3mb-3font-weight-normal">Simulatedloginpage</h1>
+                    <p>ThisfacilitycanbeusedtodevelopyourOAuth2ClientApplicationwithoutneedingasmartcardandsmartcardreader.</p>
+                    <p>Seeourdocumentationon<ahref="https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/user-restricted-restful-apis">User-restrictedRESTfulAPIs</a>formoreinformation.</p>
+                    <buttonclass="btnbtn-lgbtn-primarybtn-block"type="submit">Signin</button><pclass="mt-5mb-3text-muted">NHSDigital</p></form>
+                    </body>
+                </html>
+            """,
         'redirects': {
             0: {
                 'status_code': 302,
-                'url': 'https://internal-dev.api.service.nhs.uk/oauth2/authorize?'
+                'url': f'{config.BASE_URL}/authorize?'
                        'client_id=Too5BdPayTQACdw1AJK1rD4nKUD0Ag7J'
                        '&redirect_uri=https%3A%2F%2Fnhsd-apim-testing-internal-dev.herokuapp.com%2Fcallback'
                        '&response_type=code',
                 'headers': {
-                    'Location': 'https://am.nhsspit-2.ptl.nhsd-esa.net/openam/oauth2/realms/root/realms/oidc/authorize?'
-                                'response_type=code&client_id=969567331415.apps.national'
-                                '&redirect_uri=https://internal-dev.api.service.nhs.uk/oauth2/callback&scope=openid'
+                    'Location': f'{config.BASE_URL}/simulated_auth?response_type=code&client_id=some-client-id'
+                                f'&redirect_uri={config.BASE_URL}/callback&scope=openid'
                 }
                 },
             1: {
                 'status_code': 302,
                 'url': 'https://am.nhsspit-2.ptl.nhsd-esa.net/openam/oauth2/realms/root/realms/oidc/authorize?'
                        'response_type=code&client_id=969567331415.apps.national&'
-                       'redirect_uri=https://internal-dev.api.service.nhs.uk/oauth2/callback&scope=openid',
+                       f'redirect_uri={config.BASE_URL}/callback&scope=openid',
                 'headers': {
                             'Location': 'https://am.nhsspit-2.ptl.nhsd-esa.net/openam/UI/Login?'
                                         'realm=%2Foidc&goto=https%3A%2F%2Fam.nhsspit-2.ptl.nhsd-esa.net%3A443%2Fopenam'

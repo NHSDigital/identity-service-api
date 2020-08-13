@@ -16,8 +16,15 @@ def get_token(request):
     oauth_endpoints = CheckOauthEndpoints()
     token = oauth_endpoints.get_token_response()
     setattr(request.cls, 'token', token['access_token'])
+    setattr(request.cls, 'refresh', token['refresh_token'])  # This is required if you want to request a refresh token
+    return oauth_endpoints
 
-    refresh_token = oauth_endpoints.get_token_response(grant_type='refresh_token', refresh_token=token['refresh_token'])
+
+@pytest.fixture()
+def get_refresh_token(request, get_token):
+    """Get the refresh token and assign it to the test instance"""
+    # Requesting a refresh token will expire the previous access token
+    refresh_token = get_token.get_token_response(grant_type='refresh_token', refresh_token=request.cls.refresh)
     setattr(request.cls, 'refresh_token', refresh_token['refresh_token'])
 
 

@@ -2,12 +2,12 @@ import os
 
 
 # Configure Test Environment
-def get_env(variable_name: str) -> str:
+def get_env(variable_name: str, default: str = "") -> str:
     """Returns a environment variable"""
     try:
         return os.environ[variable_name]
-    except:
-        return ""
+    except KeyError:
+        return default
 
 
 ENV = {
@@ -17,7 +17,7 @@ ENV = {
         'client_secret': get_env('CLIENT_SECRET'),
         'redirect_uri': get_env('REDIRECT_URI'),
 
-        'authentication_provider': get_env('AUTHENTICATION_PROVIDER'),
+        'authentication_provider': get_env('AUTHENTICATION_PROVIDER', default='Simulated OAuth'),
         'authenticate_url': get_env('AUTHENTICATE_URL'),
         'authenticate_username': get_env('AUTHENTICATE_USERNAME'),
         'authenticate_password': get_env('AUTHENTICATE_PASSWORD'),
