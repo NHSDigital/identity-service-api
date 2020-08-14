@@ -33,10 +33,7 @@ extends:
     service_base_path: ${{ variables.service_base_path }}
     product_display_name: ${{ variables.product_display_name }}
     product_description: ${{ variables.product_description }}
-    pre_template:
-      - template: "templates/identity-service-templating.yml"
-        parameters:
-          service_name: ${{ variables.service_name }}
-          variables_kvm: "identity-service-variables"
-          encrypted_variables_kvm: "identity-service-variables-encrypted"
-          identity_target_server: "identity-server"
+    jinja_templates:
+      IDENTITY_TARGET_SERVER: identity-server
+      VARIABLES_KVM: identity-service-variables
+      ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
