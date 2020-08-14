@@ -30,6 +30,10 @@ extends:
     service_base_path: ${{ variables.service_base_path }}
     product_display_name: ${{ variables.product_display_name }}
     product_description: ${{ variables.product_description }}
+    jinja_templates:
+      IDENTITY_TARGET_SERVER: identity-server
+      VARIABLES_KVM: identity-service-variables
+      ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
     apigee_deployments:
       - environment: internal-dev
       - environment: internal-qa
@@ -38,14 +42,11 @@ extends:
       - environment: dev
       - environment: int
       - environment: int
+        stage_name: int_no_smartcard
         fully_qualified_service_name: identity-service-int-no-smartcard
         service_base_path: oauth2-no-smartcard
-        stage_name: int_no_smartcard
+        jinja_templates:
+          IDENTITY_TARGET_SERVER: identity-server-no-smartcard
+          VARIABLES_KVM: identity-service-variables-no-smartcard
+          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted-no-smartcard
       - environment: prod
-    pre_template:
-      - template: "templates/identity-service-templating.yml"
-        parameters:
-          service_name: ${{ variables.service_name }}
-          variables_kvm: "identity-service-variables"
-          encrypted_variables_kvm: "identity-service-variables-encrypted"
-          identity_target_server: "identity-server"
