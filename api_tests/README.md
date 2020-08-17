@@ -1,6 +1,6 @@
 # Api-Tests
 
-This is a collection of end-to-end test suits to verify the oauth api is working as intended.
+This is a collection of end-to-end test suites to verify the oauth api is working as intended.
 
 * `config_files/` This contains all the configuration for running the tests.
 * `scripts/` A set of methods, classes and scripts to help facilitate the test cases
