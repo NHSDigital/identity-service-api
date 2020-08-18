@@ -1,6 +1,7 @@
 import requests
 import json
 from urllib import parse
+import re
 
 
 class GenericRequest:
@@ -83,12 +84,16 @@ class GenericRequest:
             data = json.loads(response.text)
             # Strip out white spaces
             actual_response = dict(
-                (k.strip() if isinstance(k, str) else k, v.strip() if isinstance(v, str) else v) for k, v in data.items()
+                (k.strip() if isinstance(k, str) else k,
+                 v.strip() if isinstance(v, str) else v
+                 ) for k, v in data.items()
             )
             assert actual_response == expected_response, "Actual response is different from the expected response"
         except json.JSONDecodeError:
             # Might be HTML
-            actual_response = response.text
+            # We need to get rid of the dynamic state here so we can compare the text to the stored value
+            actual_response = re.sub(r'<input name="state" type="hidden" value="\d*">', '', response.text)
+
             assert actual_response.replace('\n', '').replace(' ', '').strip() == expected_response.replace('\n', '')\
                 .replace(' ', '').strip(), "Actual response is different from the expected response"
 

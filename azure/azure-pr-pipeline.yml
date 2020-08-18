@@ -10,8 +10,8 @@ resources:
       name: NHSDigital/api-management-utils
       endpoint: NHSDigital
   pipelines:
-  - pipeline: Identity-Service-Build
-    source: Identity-Service-Build
+  - pipeline: build_pipeline
+    source: "Identity-Service-Build"
     trigger:
       branches:
         exclude:
@@ -29,13 +29,11 @@ extends:
   template: azure/common/apigee-deployment.yml@common
   parameters:
     service_name: ${{ variables.service_name }}
+    short_service_name: ${{ variables.short_service_name }}
     service_base_path: ${{ variables.service_base_path }}
     product_display_name: ${{ variables.product_display_name }}
     product_description: ${{ variables.product_description }}
-    pre_template:
-      - template: "templates/identity-service-templating.yml"
-        parameters:
-          service_name: ${{ variables.service_name }}
-          variables_kvm: "identity-service-variables"
-          encrypted_variables_kvm: "identity-service-variables-encrypted"
-          identity_target_server: "identity-server"
+    jinja_templates:
+      IDENTITY_TARGET_SERVER: identity-server
+      VARIABLES_KVM: identity-service-variables
+      ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted

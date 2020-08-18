@@ -1,6 +1,4 @@
 import pytest
-from time import sleep
-
 from api_tests.config_files import config
 
 
@@ -25,7 +23,7 @@ class TestOauthTokenErrorConditionSuite:
 
     @pytest.mark.apm_801
     @pytest.mark.happy_path
-    @pytest.mark.usefixtures('get_token')
+    @pytest.mark.usefixtures('get_refresh_token')
     def test_refresh_token(self):
         assert self.test.check_endpoint(
             verb='POST',
