@@ -25,15 +25,7 @@
         <Response/>
     </PreFlow>
     <PostFlow name="PostFlow">
-      <Request>
-        <!-- Temporarily disable rate-limiting as broken in current state -->
-        <!-- <Step>
-            <Name>Quota</Name>
-        </Step>
-        <Step>
-            <Name>SpikeArrest</Name>
-        </Step> -->
-      </Request>
+      <Request/>
       <Response/>
     </PostFlow>
     <Flows>
@@ -56,6 +48,15 @@
                 <Step>
                     <Name>PopulateCache.OriginalClientInfo</Name>
                 </Step>
+                <Step>
+                    <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyClientId</Name>
+                </Step>
+                <Step>
+                    <Name>SpikeArrest</Name>
+                </Step>
+                <Step>
+                    <Name>Quota</Name>
+                </Step>
             </Request>
             <Response>
                 <Step>
@@ -74,6 +75,15 @@
                 <Step>
                   <Name>RaiseFault.Unauthorized</Name>
                   <Condition>request.formparam.client_secret != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.client_secret</Condition>
+                </Step>
+                <Step>
+                    <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
+                </Step>
+                <Step>
+                    <Name>SpikeArrest</Name>
+                </Step>
+                <Step>
+                    <Name>Quota</Name>
                 </Step>
                 <Step>
                     <Name>KeyValueMapOperations.GetSecureVariables</Name>
@@ -161,6 +171,16 @@
                   <Name>RaiseFault.Unauthorized</Name>
                   <Condition>(authorization_code Is null)</Condition>
                 </Step>
+                <!-- Next 3 verify that the request is within the set rate limits -->
+                <Step>
+                  <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
+                </Step>
+                <Step>
+                  <Name>SpikeArrest</Name>
+                </Step>
+                <Step>
+                  <Name>Quota</Name>
+                </Step>
                 <!-- Next 2 steps allow optional REDUCTION of access_token_expiry and refresh_token_expiry  KVM values
                 using _access_token_expiry_ms/_refresh_token_expiry_ms (respectively) form params -->
                 <Step>
@@ -209,6 +229,18 @@
                 <Condition>(request.formparam._refresh_tokens_validity_ms != null) and (request.formparam._refresh_tokens_validity_ms LesserThan private.apigee.refresh_tokens_validity_ms)</Condition>
               </Step>
               <Step>
+                <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
+              </Step>
+              <Step>
+                <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
+              </Step>
+              <Step>
+                <Name>SpikeArrest</Name>
+              </Step>
+              <Step>
+                <Name>Quota</Name>
+              </Step>
+              <Step>
                 <Name>OAuthV2.GenerateRefreshToken</Name>
               </Step>
               <Step>
@@ -230,13 +262,25 @@
             <Description>Flow to catch the Code response</Description>
             <Request>
                 <Step>
-                    <Name>LookupCache.OriginalClientInfo</Name>
+                  <Name>LookupCache.OriginalClientInfo</Name>
                 </Step>
                 <Step>
-                    <Name>ExtractVariables.ReadCacheJson</Name>
+                  <Name>ExtractVariables.ReadCacheJson</Name>
                 </Step>
                 <Step>
-                    <Name>OAuthV2.GenerateAuthCode</Name>
+                  <Name>VerifyAPIKey.FromJSON</Name>
+                </Step>
+                <Step>
+                  <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJSON</Name>
+                </Step>
+                <Step>
+                  <Name>SpikeArrest</Name>
+                </Step>
+                <Step>
+                  <Name>Quota</Name>
+                </Step>
+                <Step>
+                  <Name>OAuthV2.GenerateAuthCode</Name>
                 </Step>
             </Request>
             <Response>
@@ -278,21 +322,27 @@
           <Condition>(identity_service.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/simulated_auth") and (request.verb Equals "POST")</Condition>
         </Flow>
         <Flow name="Flow.GetUserInfo">
-            <Description/>
-            <Request>
-                <Step>
-                    <Name>OAuthV2.VerifyAccessToken</Name>
-                </Step>
-            </Request>
-            <Response/>
-            <Condition>(proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET" || request.verb = "POST" )</Condition>
+          <Description/>
+          <Request>
+            <Step>
+              <Name>OAuthV2.VerifyAccessToken</Name>
+            </Step>
+            <Step>
+              <Name>SpikeArrest</Name>
+            </Step>
+            <Step>
+              <Name>Quota</Name>
+            </Step>
+          </Request>
+          <Response/>
+          <Condition>(proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET" || request.verb = "POST" )</Condition>
         </Flow>
-        <Flow name="Flow.GetWellKnown">
+        <!-- <Flow name="Flow.GetWellKnown">
             <Description/>
             <Request/>
             <Response/>
             <Condition>(proxy.pathsuffix MatchesPath "/.well-known/*") and (request.verb = "GET")</Condition>
-        </Flow>
+        </Flow> -->
         <Flow name="Flow.OptionsCors">
             <Description/>
             <Request/>
