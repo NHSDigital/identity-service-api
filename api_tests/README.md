@@ -58,7 +58,7 @@ See list of required variables below
  * `CLIENT_ID` The App client key (You can find this in Apigee in the Apps summary page)
  * `CLIENT_SECRET` The App secret key (You can find this in Apigee in the Apps summary page)
  * `REDIRECT_URI` The redirect URI (You can find this in Apigee in the Apps summary page)
- * `AUTHENTICATION_PROVIDER` The name of the provider you will be using to Authenticate (Default: NHS Identity)
+ * `AUTHENTICATION_PROVIDER` The name of the provider you will be using to Authenticate (Default: Simulated OAuth)
  * `AUTHENTICATE_URL` Url to the authentication provider
  * `AUTHENTICATE_USERNAME` Username for authentication
  * `AUTHENTICATE_PASSWORD` Password for authentication
