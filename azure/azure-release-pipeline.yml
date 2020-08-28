@@ -31,12 +31,14 @@ extends:
     service_base_path: ${{ variables.service_base_path }}
     product_display_name: ${{ variables.product_display_name }}
     product_description: ${{ variables.product_description }}
+    ping: false
     jinja_templates:
       IDENTITY_TARGET_SERVER: identity-server
       VARIABLES_KVM: identity-service-variables
       ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
     apigee_deployments:
       - environment: internal-dev
+      - environment: internal-dev-sandbox
       - environment: internal-qa
       - environment: internal-qa-sandbox
       - environment: ref
