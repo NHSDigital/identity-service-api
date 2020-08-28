@@ -38,6 +38,7 @@ extends:
       ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
     apigee_deployments:
       - environment: internal-dev
+      - environment: internal-dev-sandbox
       - environment: internal-qa
       - environment: internal-qa-sandbox
       - environment: ref
