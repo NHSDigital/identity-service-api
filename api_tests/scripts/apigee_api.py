@@ -52,37 +52,32 @@ class ApigeeDebugApi(GenericRequest):
         return json.loads(response.text)
 
     def get_asid(self) -> list:
-        asid = []
-
         data = self._get_transaction_data()
         executions = [x.get('results', None) for x in data['point'] if x.get('id', "") == "Execution"]
-
         executions = list(filter(lambda x: x != [], executions))
 
         request_messages = []
         variable_accesses = []
+        asid = []
 
-        for result in executions:
-            for item in result:
+        for execution in executions:
+            for item in execution:
                 if item.get('ActionResult', '') == 'RequestMessage':
                     request_messages.append(item)
-
-        for result in executions:
-            for item in result:
-                if item.get('ActionResult', '') == 'VariableAccess':
+                elif item.get('ActionResult', '') == 'VariableAccess':
                     variable_accesses.append(item)
 
-        for x in request_messages:
-            for y in x['headers']:
-                if y['name'] == 'NHSD-ASID':
-                    asid.append(y['value'])
+        for result in request_messages:
+            for item in result['headers']:
+                if item['name'] == 'NHSD-ASID':
+                    asid.append(item['value'])
                     break
             if len(asid) > 0:
                 break
 
-        for x in variable_accesses:
-            for y in x['accessList']:
-                if y.get('Get', {}).get('name', '') == 'app.asid':
-                    asid.append(y.get('Get', {}).get('value', None))
+        for result in variable_accesses:
+            for item in result['accessList']:
+                if item.get('Get', {}).get('name', '') == 'app.asid':
+                    asid.append(item.get('Get', {}).get('value', None))
                     break
         return asid
