@@ -18,11 +18,7 @@ ENV = {
         'client_id': get_env('CLIENT_ID'),
         'client_secret': get_env('CLIENT_SECRET'),
         'redirect_uri': get_env('REDIRECT_URI'),
-
-        'authentication_provider': get_env('AUTHENTICATION_PROVIDER', default='Simulated OAuth'),
         'authenticate_url': get_env('AUTHENTICATE_URL'),
-        'authenticate_username': get_env('AUTHENTICATE_USERNAME'),
-        'authenticate_password': get_env('AUTHENTICATE_PASSWORD'),
 
         # Invalid ASID Application details
         'invalid_asic_client_id': get_env('INVALID_ASID_CLIENT_ID'),
@@ -38,6 +34,6 @@ ENV = {
     },
     'pds': {
         'base_url': get_env('PDS_BASE_URL'),
-        'application_name': get_env('PDS_APPLICATION'),
+        'proxy_name': get_env('PDS_PROXY'),
     }
 }

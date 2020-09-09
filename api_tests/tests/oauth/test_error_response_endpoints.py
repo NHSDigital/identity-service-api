@@ -4,7 +4,7 @@ import random
 
 
 @pytest.mark.usefixtures("setup")
-class TestOauthErrorConditionsSuite:
+class TestOauthEndpointErrorSuite:
     """ A Simple test suit to generate error conditions and ensure the responses are as expected """
 
     @pytest.mark.apm_801

@@ -3,7 +3,7 @@ from api_tests.config_files import config
 
 
 @pytest.mark.usefixtures("setup")
-class TestOauthTokenErrorConditionSuite:
+class TestOauthTokenSuite:
     """ A test suite to confirm Oauth tokens error responses are as expected"""
 
     @pytest.mark.apm_801
