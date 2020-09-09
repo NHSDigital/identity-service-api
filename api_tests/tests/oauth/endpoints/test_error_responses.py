@@ -222,7 +222,7 @@ class TestOauthErrorConditionsSuite:
         },
     ])
     def test_token_error_conditions(self, request_data: dict):
-        request_data['params']['code'] = self.oauth.get_authenticated(config.AUTHENTICATION_PROVIDER)
+        request_data['params']['code'] = self.oauth.get_authenticated()
         assert self.oauth.check_endpoint('POST', 'token', **request_data)
 
     @pytest.mark.errors
