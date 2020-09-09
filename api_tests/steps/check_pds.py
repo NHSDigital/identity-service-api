@@ -1,6 +1,5 @@
 from api_tests.scripts.generic_request import GenericRequest
 from api_tests.config_files import config
-from api_tests.scripts.authenticator import Authenticator
 from api_tests.scripts.apigee_api import ApigeeDebugApi
 
 
@@ -8,10 +7,12 @@ class CheckPds(GenericRequest):
     def __init__(self):
         super(CheckPds, self).__init__()
 
-    def get_patient_response(self, patient_id: str, **kwargs):
+    def get_patient_response(self, patient_id: str, **kwargs) -> 'response type':
+        """Send a Get request to retrieve a patient from PDS"""
         return self.get(f'{config.PDS_API}/{patient_id}', **kwargs)
 
-    def check_asid_parameter(self, expected_status_code: int, expected_asid: list, patient_id, **kwargs):
+    def check_asid_parameter(self, expected_status_code: int, expected_asid: list, patient_id: str, **kwargs) -> bool:
+        """Check the ASID param is behaving as expected"""
         # Start debug session
         debug_session = ApigeeDebugApi(proxy="personal-demographics-internal-dev-apm-1275-asid-per-application")
 
