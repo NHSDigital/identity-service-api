@@ -1,12 +1,52 @@
 import pytest
-from time import sleep
-
 from api_tests.config_files import config
+from time import sleep
 
 
 @pytest.mark.usefixtures("setup")
-class TestOauthTokenErrorSuite:
-    """ A test suite to confirm Oauth tokens are behaving as expected"""
+class TestOauthTokenSuite:
+    """ A test suite to confirm Oauth tokens error responses are as expected"""
+
+    @pytest.mark.apm_801
+    @pytest.mark.happy_path
+    @pytest.mark.usefixtures('get_token')
+    def test_request_with_token(self):
+        assert self.oauth.check_endpoint(
+            verb='GET',
+            endpoint='api',
+            expected_status_code=200,
+            expected_response={"message": "Hello User!"},
+            headers={
+                'Authorization': f'Bearer {self.token}',
+                'NHSD-Session-URID': 'ROLD-ID',
+            }
+        )
+
+    @pytest.mark.apm_801
+    @pytest.mark.happy_path
+    @pytest.mark.usefixtures('get_refresh_token')
+    def test_refresh_token(self):
+        assert self.oauth.check_endpoint(
+            verb='POST',
+            endpoint='token',
+            expected_status_code=200,
+            expected_response=[
+                'access_token',
+                'expires_in',
+                'refresh_count',
+                'refresh_token',
+                'refresh_token_expires_in',
+                'token_type'
+            ],
+            headers={
+                'NHSD-Session-URID': '',
+            },
+            data={
+                'client_id': config.CLIENT_ID,
+                'client_secret': config.CLIENT_SECRET,
+                'grant_type': 'refresh_token',
+                'refresh_token': self.refresh_token,
+            })
 
     @pytest.mark.apm_801
     @pytest.mark.errors
@@ -34,6 +74,7 @@ class TestOauthTokenErrorSuite:
             'Authorization': 'valid_token',  # This placeholder this will automatically  be replaced with a valid token
         },
     ])
+    @pytest.mark.skip(reason="Not implemented")
     def test_invalid_token(self, headers: dict):
         assert self.oauth.check_endpoint(
             verb='POST',
