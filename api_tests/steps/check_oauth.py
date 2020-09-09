@@ -7,29 +7,9 @@ class CheckOauth(GenericRequest):
     def __init__(self):
         super(CheckOauth, self).__init__()
 
-    def _get_authorized(self) -> str:
-        # Get authorized
-        authorize_response = self.get_response('GET', 'authorize', params={
-            'client_id': config.CLIENT_ID,
-            'redirect_uri': config.REDIRECT_URI,
-            'response_type': 'code',
-            'state': ''
-        }, allow_redirects=False)
-
-        # Confirm request was successful
-        assert authorize_response.status_code == 302, f"Authorize request failed with {authorize_response.status_code}"
-
-        # Get login url
-        redirect_url = authorize_response.headers['Location']
-
-        # Navigate to Login Page and complete the request
-        self.get(redirect_url)
-        return self.get_param_from_url(redirect_url, 'state')
-
-    def get_authenticated(self, provider: str) -> str:
+    def get_authenticated(self) -> str:
         """Get the code parameter value required to post to the oauth /token endpoint"""
-        state = self._get_authorized()
-        authenticator = Authenticator(self, provider, config.USERNAME, config.PASSWORD, state)
+        authenticator = Authenticator(self)
         response = authenticator.authenticate()
         code = authenticator.get_code_from_provider(response)
         return code
@@ -45,7 +25,7 @@ class CheckOauth(GenericRequest):
             data['_refresh_token_expiry_ms'] = timeout
         else:
             data['redirect_uri'] = config.REDIRECT_URI
-            data['code'] = self.get_authenticated(config.AUTHENTICATION_PROVIDER)
+            data['code'] = self.get_authenticated()
             data['_access_token_expiry_ms'] = timeout
 
         response = self.post(self.endpoints['token'], data=data)

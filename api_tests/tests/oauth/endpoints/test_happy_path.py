@@ -57,6 +57,6 @@ class TestOauthEndpointSuite:
                 'client_secret': config.CLIENT_SECRET,
                 'redirect_uri': config.REDIRECT_URI,
                 'grant_type': 'authorization_code',
-                'code': self.oauth.get_authenticated(config.AUTHENTICATION_PROVIDER)
+                'code': self.oauth.get_authenticated()
             },
         )
