@@ -14,7 +14,7 @@ class CheckOauth(GenericRequest):
         code = authenticator.get_code_from_provider(response)
         return code
 
-    def get_token_response(self, timeout: int = 5000000, grant_type: str = 'authorization_code', refresh_token: str = ""):
+    def get_token_response(self, timeout: int = 5000, grant_type: str = 'authorization_code', refresh_token: str = ""):
         data = {
             'client_id': config.CLIENT_ID,
             'client_secret': config.CLIENT_SECRET,
