@@ -12,7 +12,7 @@ class TestOauthEndpointSuite:
     @pytest.mark.authorize_endpoint
     def test_authorize_endpoint(self):
         # Test authorize endpoint is redirected and returns a 200
-        assert self.test.check_endpoint(
+        assert self.oauth.check_endpoint(
             verb='GET',
             endpoint='authorize',
             expected_status_code=200,
@@ -25,10 +25,9 @@ class TestOauthEndpointSuite:
         )
 
         # Test the redirects are working as expected
-        assert self.test.check_response_history(
+        assert self.oauth.check_response_history(
             verb='GET',
             endpoint='authorize',
-            expected_status_code=200,
             expected_redirects=BANK.get(self.name)['redirects'],
             params={
                 'client_id': config.CLIENT_ID,
@@ -41,7 +40,7 @@ class TestOauthEndpointSuite:
     @pytest.mark.happy_path
     @pytest.mark.token_endpoint
     def test_token_endpoint(self):
-        assert self.test.check_endpoint(
+        assert self.oauth.check_endpoint(
             verb='POST',
             endpoint='token',
             expected_status_code=200,
@@ -58,6 +57,6 @@ class TestOauthEndpointSuite:
                 'client_secret': config.CLIENT_SECRET,
                 'redirect_uri': config.REDIRECT_URI,
                 'grant_type': 'authorization_code',
-                'code': self.test.get_authenticated(config.AUTHENTICATION_PROVIDER)
+                'code': self.oauth.get_authenticated(config.AUTHENTICATION_PROVIDER)
             },
         )

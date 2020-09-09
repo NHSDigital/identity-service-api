@@ -10,7 +10,7 @@ class TestOauthTokenErrorConditionSuite:
     @pytest.mark.happy_path
     @pytest.mark.usefixtures('get_token')
     def test_request_with_token(self):
-        assert self.test.check_endpoint(
+        assert self.oauth.check_endpoint(
             verb='GET',
             endpoint='api',
             expected_status_code=200,
@@ -25,7 +25,7 @@ class TestOauthTokenErrorConditionSuite:
     @pytest.mark.happy_path
     @pytest.mark.usefixtures('get_refresh_token')
     def test_refresh_token(self):
-        assert self.test.check_endpoint(
+        assert self.oauth.check_endpoint(
             verb='POST',
             endpoint='token',
             expected_status_code=200,

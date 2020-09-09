@@ -19,8 +19,8 @@ class Authenticator:
                     f"&state={state}"
         }
 
-        response = self.session.get_response('POST', expected_status_code=200, endpoint='authenticate',
-                                             params=params, headers={'Accept-API-Version': 'protocol=1.0,resource=2.1'})
+        response = self.session.get_response('POST', endpoint='authenticate', params=params,
+                                             headers={'Accept-API-Version': 'protocol=1.0,resource=2.1'})
         return self.session.get_value_from_json_response(response, 'authId')
 
     def _simulated_oauth_prerequisite(self):
