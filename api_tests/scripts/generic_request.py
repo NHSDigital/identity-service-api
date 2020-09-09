@@ -17,7 +17,7 @@ class GenericRequest:
             raise TypeError("Expected response type object for response argument")
 
     @staticmethod
-    def verify_status_code(status_code: int or str) -> None:
+    def _verify_status_code(status_code: int or str) -> None:
         """Verifies the status code provided is a valid status code"""
         if not type(status_code) == int:
             try:
@@ -71,14 +71,19 @@ class GenericRequest:
                                                              f"but got {response.status_code}"
         return True
 
+    def check_status_code(self, response: 'response type', expected_status_code: int) -> bool:
+        """Compare the actual and expected status code for a given response"""
+        self._validate_response(response)
+        self._verify_status_code(expected_status_code)
+        return response.status_code == expected_status_code
+
     def verify_response(self, response: 'response type', expected_status_code: int,
                         expected_response: dict or str) -> bool:
         """Check a given response has returned the expected key value pairs"""
-        self._validate_response(response)
 
-        assert response.status_code == expected_status_code, f"Status code is incorrect, " \
-                                                             f"expected {expected_status_code} " \
-                                                             f"but got {response.status_code}"
+        assert self.check_status_code(response, expected_status_code), f"Status code is incorrect, " \
+                                                                       f"expected {expected_status_code} " \
+                                                                       f"but got {response.status_code}"
 
         try:
             data = json.loads(response.text)
