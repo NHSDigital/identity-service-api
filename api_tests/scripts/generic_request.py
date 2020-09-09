@@ -12,17 +12,8 @@ class GenericRequest:
         self.session = requests.Session()
         self.endpoints = config.ENDPOINTS
 
-    def get_response(self, verb: str, expected_status_code: int, endpoint: str, **kwargs) -> 'response type':
+    def get_response(self, verb: str, endpoint: str, **kwargs) -> 'response type':
         """Verify the arguments and then send a request and return the response"""
-        # Verify status code is a number and of length 3
-        if not type(expected_status_code) == int:
-            try:
-                int(expected_status_code)
-            except ValueError:
-                raise TypeError('Status code must only consist of numbers')
-        if len(str(expected_status_code)) != 3:
-            raise TypeError('Status code must be a 3 digit number')
-
         # Verify endpoint exists
         try:
             self.endpoints[endpoint]
@@ -110,7 +101,7 @@ class GenericRequest:
         """Check a given request is returning the expected values. NOTE the expected response can be either a dict,
         a string or a list this is because we can expect either json, html or a list of keys from a json response
         respectively."""
-        response = self.get_response(verb, expected_status_code, endpoint, **kwargs)
+        response = self.get_response(verb, endpoint, **kwargs)
 
         if type(expected_response) is list:
             return self.verify_response_keys(response, expected_status_code, expected_keys=expected_response)
@@ -118,10 +109,10 @@ class GenericRequest:
         # Check response
         return self.verify_response(response, expected_status_code, expected_response=expected_response)
 
-    def check_response_history(self, verb: str, endpoint: str, expected_status_code: int,
+    def check_response_history(self, verb: str, endpoint: str,
                                expected_redirects: dict, **kwargs) -> bool:
         """Check the response redirects for a given request is returning the expected values"""
-        response = self.get_response(verb, expected_status_code, endpoint, **kwargs)
+        response = self.get_response(verb, endpoint, **kwargs)
         actual_redirects = self.get_redirects(response)
 
         for actual, expected in zip(actual_redirects.values(), expected_redirects.values()):

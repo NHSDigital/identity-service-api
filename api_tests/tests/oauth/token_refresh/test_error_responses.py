@@ -35,7 +35,7 @@ class TestOauthTokensSuite:
         },
     ])
     def test_invalid_token(self, headers: dict):
-        assert self.test.check_endpoint(
+        assert self.oauth.check_endpoint(
             verb='POST',
             endpoint='api',
             expected_status_code=400,
@@ -49,7 +49,7 @@ class TestOauthTokensSuite:
     def test_token_does_expire(self):
         # Get token with a timeout set to 5 second &
         # wait until token has expired
-        assert self.test.check_endpoint(
+        assert self.oauth.check_endpoint(
             verb='GET',
             endpoint='api',
             expected_status_code=200,
@@ -64,7 +64,7 @@ class TestOauthTokensSuite:
         sleep(5)
 
         # Check refresh token still works after access token has expired
-        assert self.test.check_endpoint(
+        assert self.oauth.check_endpoint(
             verb='GET',
             endpoint='api',
             expected_status_code=401,
@@ -87,7 +87,7 @@ class TestOauthTokensSuite:
     @pytest.mark.skip(reason="There is a bug raised for this: APM-1335")
     def test_refresh_token_does_expire(self):
         sleep(5)
-        assert self.test.check_endpoint(
+        assert self.oauth.check_endpoint(
             verb='POST',
             endpoint='token',
             expected_status_code=401,

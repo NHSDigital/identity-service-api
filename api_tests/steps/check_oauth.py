@@ -9,7 +9,7 @@ class CheckOauth(GenericRequest):
 
     def _get_authorized(self) -> str:
         # Get authorized
-        authorize_response = self.get_response('GET', 200, 'authorize', params={
+        authorize_response = self.get_response('GET', 'authorize', params={
             'client_id': config.CLIENT_ID,
             'redirect_uri': config.REDIRECT_URI,
             'response_type': 'code',

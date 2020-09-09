@@ -8,12 +8,15 @@ class CheckPds(GenericRequest):
     def __init__(self):
         super(CheckPds, self).__init__()
 
-    def check_asid_parameter(self, verb: str, endpoint: str, expected_status_code: int, expected_asid: list, **kwargs):
+    def get_patient_response(self, patient_id: str, **kwargs):
+        return self.get(f'{config.PDS_API}/{patient_id}', **kwargs)
+
+    def check_asid_parameter(self, expected_status_code: int, expected_asid: list, patient_id, **kwargs):
         # Start debug session
         debug_session = ApigeeDebugApi(proxy="personal-demographics-internal-dev-apm-1275-asid-per-application")
 
         # Send a request
-        response = self.get_response(verb, expected_status_code, endpoint, **kwargs)
+        response = self.get_patient_response(patient_id, **kwargs)
 
         # Pull ASID from the request trace
         actual_asid = debug_session.get_asid()

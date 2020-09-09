@@ -99,7 +99,7 @@ class TestOauthErrorConditionsSuite:
         }
     ])
     def test_authorization_error_conditions(self, request_data: dict):
-        assert self.test.check_endpoint('GET', 'authorize', **request_data)
+        assert self.oauth.check_endpoint('GET', 'authorize', **request_data)
 
     @pytest.mark.apm_801
     @pytest.mark.errors
@@ -222,8 +222,8 @@ class TestOauthErrorConditionsSuite:
         },
     ])
     def test_token_error_conditions(self, request_data: dict):
-        request_data['params']['code'] = self.test.get_authenticated(config.AUTHENTICATION_PROVIDER)
-        assert self.test.check_endpoint('POST', 'token', **request_data)
+        request_data['params']['code'] = self.oauth.get_authenticated(config.AUTHENTICATION_PROVIDER)
+        assert self.oauth.check_endpoint('POST', 'token', **request_data)
 
     @pytest.mark.errors
     @pytest.mark.parametrize('request_data', [
@@ -259,4 +259,4 @@ class TestOauthErrorConditionsSuite:
         },
     ])
     def test_token_endpoint_with_invalid_authorization_code(self, request_data: dict):
-        assert self.test.check_endpoint('POST', 'token', **request_data)
+        assert self.oauth.check_endpoint('POST', 'token', **request_data)

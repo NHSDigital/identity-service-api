@@ -20,10 +20,9 @@ class TestAsidSuite:
     def test_missing_asid(self):
         """While missing the ASID parameter Apigee will auto assign a default ASID"""
         assert self.pds.check_asid_parameter(
-            verb='GET',
-            endpoint='pds',
             expected_status_code=200,
             expected_asid=["200000001115", None],
+            patient_id="5900018512",
             headers={
                 'Authorization': f'Bearer {self.token}',
                 'NHSD-Session-URID': 'ROLD-ID',
@@ -34,10 +33,9 @@ class TestAsidSuite:
     @pytest.mark.errors
     def test_invalid_asid(self, switch_to_invalid_asid_application, get_token):
         assert self.pds.check_asid_parameter(
-            verb='GET',
-            endpoint='pds',
             expected_status_code=401,
             expected_asid=["1234", "1234"],
+            patient_id="5900018512",
             headers={
                 'Authorization': f'Bearer {self.token}',
                 'NHSD-Session-URID': 'ROLD-ID',
