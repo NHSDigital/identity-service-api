@@ -1,5 +1,6 @@
 import pytest
-from api_tests.steps.check_oauth_endpoints import CheckOauthEndpoints
+from api_tests.steps.check_oauth import CheckOauth
+from api_tests.steps.check_pds import CheckPds
 
 
 def _get_parametrized_values(request):
@@ -13,7 +14,7 @@ def _get_parametrized_values(request):
 @pytest.fixture()
 def get_token(request):
     """Get the token and assign it to the test instance"""
-    oauth_endpoints = CheckOauthEndpoints()
+    oauth_endpoints = CheckOauth()
     token = oauth_endpoints.get_token_response()
     setattr(request.cls, 'token', token['access_token'])
     setattr(request.cls, 'refresh', token['refresh_token'])  # This is required if you want to request a refresh token
@@ -33,7 +34,7 @@ def update_token_in_parametrized_headers(request):
     # Manually setting this fixture for session use because the pytest
     # session scope is called before any of the markers are set.
     if not hasattr(request.cls, 'setup_done'):
-        token = CheckOauthEndpoints().get_token_response()
+        token = CheckOauth().get_token_response()
         for value in _get_parametrized_values(request):
             if value.get('Authorization', None) == 'valid_token':
                 value['Authorization'] = f'Bearer {token["access_token"]}'
@@ -49,8 +50,11 @@ def setup(request):
     name = (request.node.name, request.node.originalname)[request.node.originalname is not None]
     setattr(request.cls, "name", name)
 
-    test = CheckOauthEndpoints()
-    setattr(request.cls, "test", test)
+    oauth = CheckOauth()
+    setattr(request.cls, "oauth", oauth)
+
+    pds = CheckPds()
+    setattr(request.cls, "pds", pds)
 
     yield  # Handover to test
 
