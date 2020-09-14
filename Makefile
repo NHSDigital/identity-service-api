@@ -49,4 +49,4 @@ build-proxy:
 release: clean publish build-proxy
 	mkdir -p dist
 	cp -r build/. dist
-	cp -r api_tests/. dist
+	cp -r api_tests dist
