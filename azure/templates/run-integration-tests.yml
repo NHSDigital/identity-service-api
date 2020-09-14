@@ -6,7 +6,9 @@ steps:
   - task: DockerInstaller@0
     displayName: 'Install Docker'
 
-  - bash: make setup
+  - bash: |
+      sudo apt-get install gcc python3-dev
+      make setup
     workingDirectory: $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests
-    displayName: Setup Docker
+    displayName: Setup Tests
   
