@@ -3,12 +3,11 @@ parameters:
     type: string
 
 steps:
-  - task: DockerInstaller@0
-    displayName: 'Install Docker'
 
   - bash: |
-      sudo apt-get install gcc python3-dev
-      make setup
+      pip install virtualenv
+      virtualenv test_env
+      ./test_env/scripts/activate
+      pip install -r requirements.txt
     workingDirectory: $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests
     displayName: Setup Tests
-  
