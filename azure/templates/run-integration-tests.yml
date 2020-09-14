@@ -11,7 +11,18 @@ steps:
     workingDirectory: $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests
     displayName: Setup Tests
 
-  - bash: pytest -v tests/ --junitxml=report.xml
+  - bash: |
+      export BASE_URL="https://nhsd-apim-testing-$(APIGEE_ENVIRONMENT).herokuapp.com"
+      export CLIENT_ID=""
+      export CLIENT_SECRET=""
+      export REDIRECT_URI=""
+      export AUTHENTICATE_URL=""
+      export AUTHENTICATE_USERNAME=""
+      export AUTHENTICATE_PASSWORD=""
+      export APIGEE_CLIENT_ID=""
+      export API_URL=""
+
+      pytest -v tests/ --junitxml=test-report.xml
     workingDirectory: $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests
     displayName: Run Integration Tests
 
