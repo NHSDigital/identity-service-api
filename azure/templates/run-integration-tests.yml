@@ -1,0 +1,7 @@
+steps:
+  - task: DockerInstaller@0
+    displayName: 'Install Docker'
+
+  - bash: make setup
+    workingDirectory: $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests
+  

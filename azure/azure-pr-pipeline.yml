@@ -38,3 +38,5 @@ extends:
       IDENTITY_TARGET_SERVER: identity-server
       VARIABLES_KVM: identity-service-variables
       ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+    post_deploy:
+      - template: templates/run-integration-tests.yml
