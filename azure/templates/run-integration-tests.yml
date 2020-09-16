@@ -18,8 +18,8 @@ steps:
 
   - bash: |
       source ./test_env/bin/activate
-      
-      export BASE_URL="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk/oauth2"
+
+      export BASE_URL="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk/$(SERVICE_BASE_PATH)"
       export CLIENT_ID="$(API_KEY)"
       export CLIENT_SECRET="$(secret.API_SECRET)"
       export REDIRECT_URI="$(CALLBACK_URL)"
@@ -34,7 +34,7 @@ steps:
       export PDS_BASE_URL="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk"
       export PDS_PROXY="personal-demographics-$(APIGEE_ENVIRONMENT)"
 
-      pytest -v tests/ --junitxml=test-report.xml
+      pytest -v --junitxml=test-report.xml
     workingDirectory: $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests
     displayName: Run Integration Tests
 
