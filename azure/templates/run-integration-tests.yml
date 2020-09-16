@@ -4,6 +4,11 @@ parameters:
 
 steps:
   - bash: |
+      echo $(API_KEY)
+      echo $(secret.API_SECRET) 
+      echo $(CALLBACK_URL)
+
+  - bash: |
       pip install virtualenv
       virtualenv test_env
       ./test_env/scripts/activate
@@ -13,9 +18,9 @@ steps:
 
   - bash: |
       export BASE_URL="https://nhsd-apim-testing-$(APIGEE_ENVIRONMENT).herokuapp.com"
-      export CLIENT_ID=""
-      export CLIENT_SECRET=""
-      export REDIRECT_URI=""
+      export CLIENT_ID="$(API_KEY)"
+      export CLIENT_SECRET="$(secret.API_SECRET)"
+      export REDIRECT_URI="$(CALLBACK_URL)"
       export AUTHENTICATE_URL=""
       export AUTHENTICATE_USERNAME=""
       export AUTHENTICATE_PASSWORD=""
