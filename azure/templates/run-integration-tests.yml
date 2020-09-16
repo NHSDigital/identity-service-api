@@ -17,7 +17,7 @@ steps:
     displayName: Setup Tests
 
   - bash: |
-      export BASE_URL="https://nhsd-apim-testing-$(APIGEE_ENVIRONMENT).herokuapp.com"
+      export BASE_URL="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk/oauth2"
       export CLIENT_ID="$(API_KEY)"
       export CLIENT_SECRET="$(secret.API_SECRET)"
       export REDIRECT_URI="$(CALLBACK_URL)"
