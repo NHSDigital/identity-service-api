@@ -61,7 +61,7 @@ class Authenticator:
         callback_response = self.session.get(callback_url, allow_redirects=False)
 
         # Confirm request was successful
-        assert callback_response.status_code == 302, f"Callback request failed with {sign_in_response.status_code}"
+        assert callback_response.status_code == 302, f"Callback request failed with {callback_response.status_code}"
 
         # Return code param from location header
         return self.session.get_param_from_url(callback_response.headers.get('Location'), 'code')

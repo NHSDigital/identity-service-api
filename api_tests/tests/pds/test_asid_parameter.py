@@ -34,7 +34,7 @@ class TestAsidSuite:
     def test_invalid_asid(self, switch_to_invalid_asid_application, get_token):
         assert self.pds.check_asid_parameter(
             expected_status_code=401,
-            expected_asid=["1234", "1234"],
+            expected_asid=["12345", "12345"],
             patient_id="5900018512",
             headers={
                 'Authorization': f'Bearer {self.token}',

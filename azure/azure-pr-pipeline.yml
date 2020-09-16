@@ -8,6 +8,7 @@ resources:
     - repository: common
       type: github
       name: NHSDigital/api-management-utils
+      ref: refs/heads/APM-1163-deploy-dev-app
       endpoint: NHSDigital
   pipelines:
   - pipeline: build_pipeline
@@ -33,8 +34,13 @@ extends:
     service_base_path: ${{ variables.service_base_path }}
     product_display_name: ${{ variables.product_display_name }}
     product_description: ${{ variables.product_description }}
+    deploy_test_app: true
     ping: false
     jinja_templates:
       IDENTITY_TARGET_SERVER: identity-server
       VARIABLES_KVM: identity-service-variables
       ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+    post_deploy:
+      - template: templates/run-integration-tests.yml
+        parameters:
+          service_name: ${{ variables.service_name }}
