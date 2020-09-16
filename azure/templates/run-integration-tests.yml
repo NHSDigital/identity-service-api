@@ -30,7 +30,7 @@ steps:
       export APIGEE_API_AUTHENTICATION="$(secret.AccessToken)"
       export APIGEE_API_URL="https://api.enterprise.apigee.com/v1/organizations/nhsd-nonprod
       export PDS_BASE_URL="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk"
-      export PDS_PROXY="perosnal-demographics-$(APIGEE_ENVIRONMENT)"
+      export PDS_PROXY="personal-demographics-$(APIGEE_ENVIRONMENT)"
 
       pytest -v tests/ --junitxml=test-report.xml
     workingDirectory: $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests
