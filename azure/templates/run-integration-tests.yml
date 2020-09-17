@@ -14,7 +14,7 @@ steps:
   - bash: |
       source ./test_env/bin/activate
 
-      export BASE_URL="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk/$(SERVICE_BASE_PATH)"
+      export BASE_URL="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk/oauth2"
       export CLIENT_ID="$(CLIENT_ID)"
       export CLIENT_SECRET="$(CLIENT_SECRET)"
       export REDIRECT_URI="https://nhsd-apim-testing-internal-dev.herokuapp.com/callback"
