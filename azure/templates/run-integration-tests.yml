@@ -11,8 +11,6 @@ steps:
     workingDirectory: $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests
     displayName: Setup Tests
 
-  - bash: echo "$(APIGEE_USERNAME)"
-  
   - bash: |
       source ./test_env/bin/activate
 

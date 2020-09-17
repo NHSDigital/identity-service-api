@@ -9,7 +9,7 @@ class ApigeeDebugApi(GenericRequest):
         super(ApigeeDebugApi, self).__init__()
         self.session_name = self._generate_uuid()
         self.proxy = proxy
-        self.headers = {'Authorization': 'Basic ' + APIGEE_AUTHENTICATION}
+        self.headers = {'Authorization': 'Bearer ' + APIGEE_AUTHENTICATION}
 
         self.revision = self._get_latest_revision()
         self.create_debug_session()
