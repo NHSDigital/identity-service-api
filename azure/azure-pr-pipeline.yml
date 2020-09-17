@@ -34,12 +34,14 @@ extends:
     service_base_path: ${{ variables.service_base_path }}
     product_display_name: ${{ variables.product_display_name }}
     product_description: ${{ variables.product_description }}
-    deploy_test_app: true
     ping: false
     jinja_templates:
       IDENTITY_TARGET_SERVER: identity-server
       VARIABLES_KVM: identity-service-variables
       ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+    config_ids:
+      - ptl/azure-devops/env-internal-dev/test-app/internal-testing-internal-dev/CLIENT_ID
+      - ptl/azure-devops/env-internal-dev/test-app/internal-testing-internal-dev/CLIENT_SECRET
     post_deploy:
       - template: templates/run-integration-tests.yml
         parameters:
