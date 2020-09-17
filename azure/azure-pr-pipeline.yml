@@ -40,8 +40,8 @@ extends:
       VARIABLES_KVM: identity-service-variables
       ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
     config_ids:
-      - ptl/azure-devops/env-internal-dev/test-app/internal-testing-internal-dev/CLIENT_ID
-      - ptl/azure-devops/env-internal-dev/test-app/internal-testing-internal-dev/CLIENT_SECRET
+      - /ptl/azure-devops/env-internal-dev/test-app/internal-testing-internal-dev/CLIENT_ID
+      - /ptl/azure-devops/env-internal-dev/test-app/internal-testing-internal-dev/CLIENT_SECRET
     post_deploy:
       - template: templates/run-integration-tests.yml
         parameters:
