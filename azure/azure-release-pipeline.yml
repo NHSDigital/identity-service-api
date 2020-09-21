@@ -42,10 +42,12 @@ extends:
       - /ptl/azure-devops/env-internal-dev/test-app/internal-testing-internal-dev/CLIENT_SECRET
     apigee_deployments:
       - environment: internal-dev
-        post_deploy:
+        functional_test_steps:
           - template: templates/run-integration-tests.yml
             parameters:
               service_name: ${{ variables.service_name }}
+        non_functional_test_steps:
+          - bash: echo 'this is a test'
       - environment: internal-dev-sandbox
       - environment: internal-qa
       - environment: internal-qa-sandbox
