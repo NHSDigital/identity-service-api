@@ -45,6 +45,8 @@ extends:
               service_name: ${{ variables.service_name }}
         non_functional_test_steps:
           - bash: echo 'this is a test'
+        test_app_attributes:
+          asid: 12345
       - environment: internal-dev-sandbox
       - environment: internal-qa
       - environment: internal-qa-sandbox
