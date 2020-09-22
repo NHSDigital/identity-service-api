@@ -21,13 +21,16 @@ steps:
       export AUTHENTICATE_URL="https://nhsd-apim-testing-$(APIGEE_ENVIRONMENT).herokuapp.com/"
       export API_URL="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk/hello-world/hello/user"
       export APIGEE_CLIENT_ID="969567331415.apps.national"
-      export INVALID_ASID_CLIENT_ID="CcmFtKFN2Tgztgoif32hopLqJhL2cqXQ"
-      export INVALID_ASID_CLIENT_SECRET="aaM7W4a8kp747RvV"
+      export INVALID_ASID_CLIENT_ID=""
+      export INVALID_ASID_CLIENT_SECRET=""
       export INVALID_ASID_REDIRECT_URI="https://example.com/callback"
       export APIGEE_API_AUTHENTICATION="$(secret.AccessToken)"
       export APIGEE_API_URL="https://api.enterprise.apigee.com/v1/organizations/nhsd-nonprod"
       export PDS_BASE_URL="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk"
       export PDS_PROXY="personal-demographics-apm-1275-asid-per-application"
+      export MISSING_ASID_CLIENT_ID=""
+      export MISSING_ASID_CLIENT_SECRET=""
+      export MISSING_ASID_REDIRECT_URI="https://example.com/callback"
 
       pytest -v --junitxml=test-report.xml
     workingDirectory: $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests
