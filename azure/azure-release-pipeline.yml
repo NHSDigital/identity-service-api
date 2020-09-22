@@ -8,7 +8,6 @@ resources:
     - repository: common
       type: github
       name: NHSDigital/api-management-utils
-      ref: refs/heads/APM-1163-deploy-dev-app
       endpoint: NHSDigital
   pipelines:
   - pipeline: build_pipeline
@@ -37,16 +36,15 @@ extends:
       IDENTITY_TARGET_SERVER: identity-server
       VARIABLES_KVM: identity-service-variables
       ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+    config_ids:
+      - /ptl/azure-devops/env-internal-dev/test-app/internal-testing-internal-dev/CLIENT_ID
+      - /ptl/azure-devops/env-internal-dev/test-app/internal-testing-internal-dev/CLIENT_SECRET
     apigee_deployments:
       - environment: internal-dev
-        functional_test_steps:
-          - template: templates/run-integration-tests.yml
+        post_deploy:
+          - template: ./templates/run-integration-tests.yml
             parameters:
               service_name: ${{ variables.service_name }}
-        non_functional_test_steps:
-          - bash: echo 'this is a test'
-        test_app_attributes:
-          asid: 12345
       - environment: internal-dev-sandbox
       - environment: internal-qa
       - environment: internal-qa-sandbox
