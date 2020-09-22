@@ -7,7 +7,6 @@ resources:
   repositories:
     - repository: common
       type: github
-      name: NHSDigital/api-management-utils
       endpoint: NHSDigital
   pipelines:
   - pipeline: build_pipeline
