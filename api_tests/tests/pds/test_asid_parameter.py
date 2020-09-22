@@ -10,14 +10,20 @@ def switch_to_invalid_asid_application():
     config.REDIRECT_URI = ENV['oauth']['invalid_asid_redirect_uri']
 
 
+@pytest.fixture()
+def switch_to_missing_asid_application():
+    config.CLIENT_ID = ENV['oauth']['missing_asic_client_id']
+    config.CLIENT_SECRET = ENV['oauth']['missing_asid_client_secret']
+    config.REDIRECT_URI = ENV['oauth']['missing_asid_redirect_uri']
+
+
 @pytest.mark.usefixtures("setup")
 class TestAsidSuite:
     """ A test suite to confirm the ASID for a PDS request is behaving as expected """
 
     @pytest.mark.apm_1275
     @pytest.mark.happy_path
-    @pytest.mark.usefixtures('get_token')
-    def test_missing_asid(self):
+    def test_missing_asid(self, switch_to_missing_asid_application, get_token):
         """While missing the ASID parameter Apigee will auto assign a default ASID"""
         assert self.pds.check_asid_parameter(
             expected_status_code=200,
@@ -34,7 +40,7 @@ class TestAsidSuite:
     def test_invalid_asid(self, switch_to_invalid_asid_application, get_token):
         assert self.pds.check_asid_parameter(
             expected_status_code=401,
-            expected_asid=["1234", "1234"],
+            expected_asid=["12345", "12345"],
             patient_id="5900018512",
             headers={
                 'Authorization': f'Bearer {self.token}',
