@@ -39,10 +39,10 @@ extends:
     config_ids:
       - /ptl/azure-devops/env-internal-dev/test-app/internal-testing-internal-dev/CLIENT_ID
       - /ptl/azure-devops/env-internal-dev/test-app/internal-testing-internal-dev/CLIENT_SECRET
-      - /ptl/app-credentials/internal-dev/internal-testing-internal-dev-without-asid/key
-      - /ptl/app-credentials/internal-dev/internal-testing-internal-dev-without-asid/secret
-      - /ptl/app-credentials/internal-dev/internal-testing-internal-dev-with-asid/key
-      - /ptl/app-credentials/internal-dev/internal-testing-internal-dev-with-asid/secret
+      - ptl/app-credentials/internal-dev/internal-testing-internal-dev-without-asid/key
+      - ptl/app-credentials/internal-dev/internal-testing-internal-dev-without-asid/secret
+      - ptl/app-credentials/internal-dev/internal-testing-internal-dev-with-asid/key
+      - ptl/app-credentials/internal-dev/internal-testing-internal-dev-with-asid/secret
     apigee_deployments:
       - environment: internal-dev
         post_deploy:
