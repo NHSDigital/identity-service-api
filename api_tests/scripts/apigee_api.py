@@ -67,7 +67,7 @@ class ApigeeDebugApi(GenericRequest):
                 elif item.get('ActionResult', '') == 'VariableAccess':
                     variable_accesses.append(item)
 
-        for result in request_messages:
+        for result in request_messages:  # One being sent as the header
             for item in result['headers']:
                 if item['name'] == 'NHSD-ASID':
                     asid.append(item['value'])
@@ -75,7 +75,7 @@ class ApigeeDebugApi(GenericRequest):
             if len(asid) > 0:
                 break
 
-        for result in variable_accesses:
+        for result in variable_accesses:  # Configured by the application
             for item in result['accessList']:
                 if item.get('Get', {}).get('name', '') == 'app.asid':
                     asid.append(item.get('Get', {}).get('value', None))

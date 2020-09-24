@@ -11,10 +11,10 @@ class CheckPds(GenericRequest):
         """Send a Get request to retrieve a patient from PDS"""
         return self.get(f'{config.PDS_API}/{patient_id}', **kwargs)
 
-    def check_asid_parameter(self, expected_status_code: int, expected_asid: list, patient_id: str, **kwargs) -> bool:
+    def check_asid_parameter(self, expected_status_code: int, expected_asid: list, patient_id: str, proxy: str, **kwargs) -> bool:
         """Check the ASID param is behaving as expected"""
         # Start debug session
-        debug_session = ApigeeDebugApi(proxy="personal-demographics-internal-dev-apm-1275-asid-per-application")
+        debug_session = ApigeeDebugApi(proxy=proxy)
 
         # Send a request
         response = self.get_patient_response(patient_id, **kwargs)
