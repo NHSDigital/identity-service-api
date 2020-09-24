@@ -43,15 +43,13 @@ extends:
       - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITHOUT_ASID_SECRET
       - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITH_ASID_KEY
       - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITH_ASID_SECRET
-    apigee_deployments:
-      - environment: internal-dev
-        post_deploy:
-          - template: azure/common/deploy-app.yml@self
-            parameters:
-              attributes:
-                asid: 12345
-          - bash: echo "test"
-          - template: azure/common/deploy-app.yml@self
-            parameters:
-              attributes:
-                asid: 12345
+    post_deploy:
+      - template: azure/common/deploy-app.yml@self
+        parameters:
+          attributes:
+            asid: 12345
+      - bash: echo "test"
+      - template: azure/common/deploy-app.yml@self
+        parameters:
+          attributes:
+            asid: 12345
