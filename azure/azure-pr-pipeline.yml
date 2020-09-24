@@ -50,5 +50,9 @@ extends:
             parameters:
               attributes:
                 asid: 12345
-              steps:
-                - bash: echo "this is a test"
+          - bash: echo "test"
+          - template: azure/common/deploy-app.yml@common
+            parameters:
+              attributes:
+                asid: 12345
+
