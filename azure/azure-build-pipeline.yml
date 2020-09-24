@@ -17,6 +17,7 @@ resources:
     - repository: common
       type: github
       name: NHSDigital/api-management-utils
+      refs: refs/heads/APM-1163-deploy-dev-app
       endpoint: NHSDigital
 
 variables:
