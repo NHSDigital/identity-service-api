@@ -33,14 +33,26 @@
             <Description>OAuth Authorization Endpoint</Description>
             <Request>
                 <Step>
-                    <Name>VerifyAPIKey.ClientId</Name>
-                </Step>
-                <Step>
-                    <Name>RaiseFault.CheckRedirectUri</Name>
-                    <Condition>request.queryparam.redirect_uri != verifyapikey.VerifyAPIKey.ClientId.redirection_uris</Condition>
+                    <Name>RaiseFault.CheckClientId</Name>
+                    <Condition>request.queryparam.client_id != null</Condition>
                 </Step>
                 <Step>
                     <Name>RaiseFault.CheckResponseType</Name>
+                    <Condition>request.queryparam.response_type != null</Condition>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.CheckState</Name>
+                    <Condition>request.queryparam.state != null</Condition>
+                </Step>
+                <Step>
+                    <Name>VerifyAPIKey.ClientId</Name>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.InvalidRedirectUri</Name>
+                    <Condition>request.queryparam.redirect_uri != verifyapikey.VerifyAPIKey.ClientId.redirection_uris</Condition>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.UnsupportedResponseType</Name>
                     <Condition>request.queryparam.response_type != "code"</Condition>
                 </Step>
                 <Step>

@@ -1,10 +1,10 @@
-<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.CheckResponseType">
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.CheckClientId">
   <FaultResponse>
     <Set>
       <Payload contentType="application/json">
         {
           "error" : "invalid_request",
-          "error_description" :"Missing parameter: response_type",
+          "error_description" :"Missing parameter: client_id",
           "message_id": "{messageid}"
         }
       </Payload>
