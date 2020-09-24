@@ -44,6 +44,8 @@ extends:
       - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITHOUT_ASID_SECRET
       - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITH_ASID_KEY
       - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITH_ASID_SECRET
+      - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITH_VALID_ASID_SECRET
+      - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITH_VALID_ASID_KEY
     apigee_deployments:
       - environment: internal-dev
         post_deploy:
