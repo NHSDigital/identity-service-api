@@ -46,13 +46,12 @@ extends:
     apigee_deployments:
       - environment: internal-dev
         post_deploy:
-          - template: azure/common/deploy-app.yml@common
+          - template: azure/common/deploy-app.yml@self
             parameters:
               attributes:
                 asid: 12345
           - bash: echo "test"
-          - template: azure/common/deploy-app.yml@common
+          - template: azure/common/deploy-app.yml@self
             parameters:
               attributes:
                 asid: 12345
-
