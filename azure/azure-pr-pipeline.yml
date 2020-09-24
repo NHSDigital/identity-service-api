@@ -44,12 +44,12 @@ extends:
       - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITH_ASID_KEY
       - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITH_ASID_SECRET
     post_deploy:
-      - template: azure/common/deploy-app.yml@self
+      - template: azure/common/deploy-app.yml@common
         parameters:
           attributes:
             asid: 12345
       - bash: echo "test"
-      - template: azure/common/deploy-app.yml@self
+      - template: azure/common/deploy-app.yml@common
         parameters:
           attributes:
             asid: 12345
