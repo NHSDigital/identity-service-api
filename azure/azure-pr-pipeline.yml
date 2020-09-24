@@ -39,17 +39,17 @@ extends:
       IDENTITY_TARGET_SERVER: identity-server
       VARIABLES_KVM: identity-service-variables
       ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+    secret_ids:
+      - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITHOUT_ASID_KEY
+      - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITHOUT_ASID_SECRET
+      - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITH_ASID_KEY
+      - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITH_ASID_SECRET
     apigee_deployments:
       - environment: internal-dev
-        tests:
-          functional_test:
-            steps:
-              - template: templates/run-integration-tests.yml
-                parameters:
-                  service_name: ${{ variables.service_name }}
-            test_app_attributes:
-              asid: 12345
-            test_app_callback_url: "test"
-          non_functional_test:
-            steps:
-              - bash: echo 'this is a test'
+        post_deploy:
+          - template: azure/common/deploy-app.yml@common
+            parameters:
+              attributes:
+                asid: 12345
+              steps:
+                - bash: echo "this is a test"
