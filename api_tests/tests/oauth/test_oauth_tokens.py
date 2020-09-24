@@ -14,7 +14,7 @@ class TestOauthTokenSuite:
         assert self.oauth.check_endpoint(
             verb='GET',
             endpoint='api',
-            expected_status_code=400,
+            expected_status_code=200,
             expected_response={"message": "Hello User!"},
             headers={
                 'Authorization': f'Bearer {self.token}',
