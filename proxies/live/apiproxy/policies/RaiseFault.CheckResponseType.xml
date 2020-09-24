@@ -3,8 +3,8 @@
     <Set>
       <Payload contentType="application/json">
         {
-          "error" : "invalid_request",
-          "error_description" :"Invalid response type {request.queryparam.response_type}",
+          "error": "unsupported_response_type",
+          "error_description": "Invalid response type: {request.queryparam.response_type}",
           "message_id": "{messageid}"
         }
       </Payload>
