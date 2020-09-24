@@ -4,7 +4,7 @@
       <Payload contentType="application/json">
         {
           "error" : "invalid_request",
-          "error_description" :"Missing parameter: state",
+          "error_description" :"The request is missing a required parameter: state",
           "message_id": "{messageid}"
         }
       </Payload>
