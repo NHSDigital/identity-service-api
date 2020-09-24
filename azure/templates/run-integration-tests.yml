@@ -38,6 +38,7 @@ steps:
 
   - task: PublishTestResults@2
     displayName: 'Publish integration test results'
+    condition: always()
     inputs:
       testResultsFiles: '$(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests/test-report.xml'
       failTaskOnFailedTests: true
