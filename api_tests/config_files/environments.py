@@ -24,6 +24,11 @@ ENV = {
         'invalid_asic_client_id': get_env('INVALID_ASID_CLIENT_ID'),
         'invalid_asid_client_secret': get_env('INVALID_ASID_CLIENT_SECRET'),
         'invalid_asid_redirect_uri': get_env('INVALID_ASID_REDIRECT_URI'),
+
+        # Missing ASID Application details
+        'missing_asic_client_id': get_env('MISSING_ASID_CLIENT_ID'),
+        'missing_asid_client_secret': get_env('MISSING_ASID_CLIENT_SECRET'),
+        'missing_asid_redirect_uri': get_env('MISSING_ASID_REDIRECT_URI'),
     },
     'apigee': {
         'base_url': get_env('APIGEE_API_URL'),
