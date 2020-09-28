@@ -15,7 +15,7 @@ class TestOauthTokenSuite:
             verb='GET',
             endpoint='api',
             expected_status_code=200,
-            expected_response={"message": "Hello User!"},
+            expected_response={"message": "hello user!"},
             headers={
                 'Authorization': f'Bearer {self.token}',
                 'NHSD-Session-URID': 'ROLD-ID',
@@ -94,7 +94,7 @@ class TestOauthTokenSuite:
             verb='GET',
             endpoint='api',
             expected_status_code=200,
-            expected_response={"message": "Hello User!"},
+            expected_response={"message": "hello user!"},
             headers={
                 'Authorization': f'Bearer {self.token}',
                 'NHSD-Session-URID': '',

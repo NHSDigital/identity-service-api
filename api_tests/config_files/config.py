@@ -38,4 +38,4 @@ ENDPOINTS = {
 }
 
 # Flag to indicate if tests are running locally or remotely i.e. in the pipeline
-IS_REMOTE = True
+IS_REMOTE = False
