@@ -44,7 +44,7 @@
                     <Condition>request.queryparam.response_type != "code"</Condition>
                 </Step>
                 <Step>
-                    <Name>AssignMessage.GenerateState</Name>
+                    <Name>Python.GenerateState</Name>
                 </Step>
                 <Step>
                     <Name>JavaScript.CreateCacheEntry</Name>
