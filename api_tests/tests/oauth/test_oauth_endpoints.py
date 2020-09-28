@@ -32,7 +32,7 @@ class TestOauthEndpointSuite:
             expected_redirects=BANK.get(self.name)['redirects'],
             params={
                 'client_id': config.CLIENT_ID,
-                'redirect_uri': f"{config.REDIRECT_URI}&prompt=login",
+                'redirect_uri': config.REDIRECT_URI,
                 'response_type': 'code',
             },
         )
