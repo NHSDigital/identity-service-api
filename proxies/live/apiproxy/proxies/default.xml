@@ -44,6 +44,9 @@
                     <Condition>request.queryparam.response_type != "code"</Condition>
                 </Step>
                 <Step>
+                    <Name>AssignMessage.GenerateState</Name>
+                </Step>
+                <Step>
                     <Name>Python.GenerateState</Name>
                 </Step>
                 <Step>
