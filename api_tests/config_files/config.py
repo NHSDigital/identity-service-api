@@ -38,4 +38,7 @@ ENDPOINTS = {
 }
 
 # Flag to indicate if tests are running locally or remotely i.e. in the pipeline
+# Toggles token type set:
+#        True: 'Bearer'
+#        False: 'Basic'
 IS_REMOTE = True
