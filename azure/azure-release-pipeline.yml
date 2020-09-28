@@ -57,6 +57,8 @@ extends:
         depends_on: 
           - internal_dev
       - environment: internal-qa-sandbox
+        depends_on: 
+          - internal_dev
       - environment: ref
       - environment: dev
       - environment: int
