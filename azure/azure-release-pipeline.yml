@@ -54,6 +54,8 @@ extends:
               service_name: ${{ variables.service_name }}
       - environment: internal-dev-sandbox
       - environment: internal-qa
+        depends_on: 
+          - internal_dev
       - environment: internal-qa-sandbox
       - environment: ref
       - environment: dev
