@@ -34,7 +34,7 @@
             <Request>
                 <Step>
                     <Name>RaiseFault.CheckClientId</Name>
-                    <Condition>request.queryparam.client_id != null</Condition>
+                    <Condition>request.queryparam.client_id = null</Condition>
                 </Step>
                 <Step>
                     <Name>VerifyAPIKey.ClientId</Name>
