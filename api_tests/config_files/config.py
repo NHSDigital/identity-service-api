@@ -36,3 +36,6 @@ ENDPOINTS = {
     'api': API_URL,
     'pds': PDS_API,
 }
+
+# Flag to indicate if tests are running locally or remotely i.e. in the pipeline
+IS_REMOTE = True
