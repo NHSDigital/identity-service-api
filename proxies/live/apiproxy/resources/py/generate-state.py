@@ -40,4 +40,5 @@ random_very_long_b64 = base64.urlsafe_b64encode(random_very_long_bytes)
 
 # Finally, 54*4 = 216 bits of randomness in a mere 36 url-safe, ascii
 # characters.
+
 flow.setVariable("apigee.state", random_very_long_b64)
