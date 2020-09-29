@@ -36,21 +36,12 @@
                     <Name>VerifyAPIKey.ClientId</Name>
                 </Step>
                 <Step>
-                    <Name>RaiseFault.CheckRedirectUri</Name>
+                    <Name>RaiseFault.InvalidRedirectUri</Name>
                     <Condition>request.queryparam.redirect_uri != verifyapikey.VerifyAPIKey.ClientId.redirection_uris</Condition>
                 </Step>
                 <Step>
-                    <Name>RaiseFault.CheckResponseType</Name>
+                    <Name>RaiseFault.InvalidResponseType</Name>
                     <Condition>request.queryparam.response_type != "code"</Condition>
-                </Step>
-                <Step>
-                    <Name>AssignMessage.GenerateState</Name>
-                </Step>
-                <Step>
-                    <Name>JavaScript.CreateCacheEntry</Name>
-                </Step>
-                <Step>
-                    <Name>PopulateCache.OriginalClientInfo</Name>
                 </Step>
                 <Step>
                     <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyClientId</Name>
@@ -60,6 +51,15 @@
                 </Step>
                 <Step>
                     <Name>Quota</Name>
+                </Step>
+                <Step>
+                    <Name>AssignMessage.GenerateState</Name>
+                </Step>
+                <Step>
+                    <Name>JavaScript.CreateCacheEntry</Name>
+                </Step>
+                <Step>
+                    <Name>PopulateCache.OriginalClientInfo</Name>
                 </Step>
             </Request>
             <Response>

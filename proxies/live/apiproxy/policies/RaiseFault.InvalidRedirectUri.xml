@@ -1,4 +1,4 @@
-<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.CheckRedirectUri">
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.InvalidRedirectUri">
   <FaultResponse>
     <Set>
       <Payload contentType="application/json">
