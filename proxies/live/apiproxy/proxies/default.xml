@@ -37,6 +37,10 @@
                     <Condition>request.queryparam.client_id = null</Condition>
                 </Step>
                 <Step>
+                    <Name>RaiseFault.CheckRedirectUri</Name>
+                    <Condition>request.queryparam.redirect_uri = null</Condition>
+                </Step>
+                <Step>
                     <Name>VerifyAPIKey.ClientId</Name>
                 </Step>
                 <Step>
