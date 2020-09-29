@@ -43,7 +43,7 @@
                 <!-- If redirection doesn't match, check if specified -->
                 <Step>
                     <Name>RaiseFault.CheckRedirectUri</Name>
-                    <Condition>request.queryparam.redirect_uri = null && request.queryparam.redirect_uri != verifyapikey.VerifyAPIKey.ClientId.redirection_uris</Condition>
+                    <Condition>(request.queryparam.redirect_uri = null) and (request.queryparam.redirect_uri != verifyapikey.VerifyAPIKey.ClientId.redirection_uris)</Condition>
                 </Step>
                 <!-- Check redirection uri matches -->
                 <Step>
