@@ -1,0 +1,11 @@
+<AssignMessage name="AssignMessage.InvalidResponseType">
+  <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
+  <AssignVariable>
+    <Name>apigee.error.error</Name>
+    <Value>unsupported_response_type</Value>
+  </AssignVariable>
+  <AssignVariable>
+    <Name>apigee.error.description</Name>
+    <Value>Response type is not supported</Value>
+  </AssignVariable>
+</AssignMessage>

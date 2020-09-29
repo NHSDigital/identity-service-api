@@ -52,7 +52,7 @@
                 </Step>
                 <!-- Verify response_type -->
                 <Step>
-                    <Name>RaiseFault.InvalidResponseType</Name>
+                    <Name>AssignMessage.InvalidResponseType</Name>
                     <Condition>request.queryparam.response_type != "code"</Condition>
                 </Step>
                 <Step>
@@ -77,6 +77,11 @@
             <Response>
                 <Step>
                     <Name>AssignMessage.SetAuthorizationRedirect</Name>
+                    <Condition>(apigee.error.error = null) and (apigee.error.description = null)</Condition>
+                </Step>
+                <Step>
+                    <Name>AssignMessage.SetErrorAuthorizationRedirect</Name>
+                    <Condition>(apigee.error.error != null) and (apigee.error.description != null)</Condition>
                 </Step>
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/authorize") and (request.verb = "GET")</Condition>
