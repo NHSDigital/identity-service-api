@@ -26,7 +26,7 @@ def switch_to_no_asid_application():
 
 @pytest.fixture()
 def switch_to_asid_required_proxy():
-    config.PDS_PROXY = "personal-demographics-asid-required-pr-363"
+    config.PDS_PROXY = "personal-demographics-asid-required-pr-387"
     config.PDS_API = f"{config.PDS_BASE_URL}/{config.PDS_PROXY}/Patient"
 
 
@@ -41,7 +41,7 @@ class TestAsidSuite:
             expected_status_code=200,
             expected_asid=["200000001115", "200000001115"],
             patient_id="5900018512",
-            proxy="personal-demographics-internal-dev-apm-1275-asid-per-application",
+            proxy="personal-demographics-pr-387",
             headers={
                 'Authorization': f'Bearer {self.token}',
                 'NHSD-Session-URID': 'ROLD-ID',
@@ -51,13 +51,13 @@ class TestAsidSuite:
     @pytest.mark.apm_1275
     @pytest.mark.apm_1276
     @pytest.mark.happy_path
-    def test_app_without_asid_to_fallback_to_default_asid(self, switch_to_no_asid_application, get_token):
+    def test_app_without_asid_where_asid_is_not_required(self, switch_to_no_asid_application, get_token):
         """While missing the ASID parameter Apigee will auto assign a default ASID"""
         assert self.pds.check_asid_parameter(
             expected_status_code=200,
             expected_asid=["200000001115", None],
             patient_id="5900018512",
-            proxy="personal-demographics-internal-dev-apm-1275-asid-per-application",
+            proxy="personal-demographics-pr-387",
             headers={
                 'Authorization': f'Bearer {self.token}',
                 'NHSD-Session-URID': 'ROLD-ID',
@@ -66,32 +66,17 @@ class TestAsidSuite:
 
     @pytest.mark.apm_1275
     @pytest.mark.errors
-    def test_app_with_invalid_asid(self, switch_to_invalid_asid_application, get_token):
+    def test_app_with_invalid_asid_where_asid_is_not_required(self, switch_to_invalid_asid_application, get_token):
         """While the application has an invalid ASID the response should error"""
         assert self.pds.check_asid_parameter(
             expected_status_code=401,
             expected_asid=["12345", "12345"],
             patient_id="5900018512",
-            proxy="personal-demographics-internal-dev-apm-1275-asid-per-application",
+            proxy="personal-demographics-pr-387",
             headers={
                 'Authorization': f'Bearer {self.token}',
                 'NHSD-Session-URID': 'ROLD-ID',
                 'X-Request-ID': "7045513c-4673-435a-8486-2ba725d38798",
-            })
-
-    @pytest.mark.apm_1276
-    @pytest.mark.errors
-    def test_app_without_asid_where_asid_is_required(self, switch_to_asid_required_proxy, switch_to_no_asid_application, get_token):
-        """While missing the ASID parameter the response should error stating ASID is missing"""
-        assert self.pds.check_asid_parameter(
-            expected_status_code=400,
-            expected_asid=[None],
-            patient_id="5900018512",
-            proxy="personal-demographics-asid-required-pr-363",
-            headers={
-                'Authorization': f'Bearer {self.token}',
-                'NHSD-Session-URID': 'ROLD-ID',
-                'X-Request-ID': "fac37ac8-c71e-4319-b13a-a1fb629c66e3",
             })
 
     @pytest.mark.apm_1276
@@ -102,9 +87,40 @@ class TestAsidSuite:
             expected_status_code=200,
             expected_asid=['200000001115', '200000001115', '200000001115'],
             patient_id="5900018512",
-            proxy="personal-demographics-asid-required-pr-363",
+            proxy="personal-demographics-asid-required-pr-387",
             headers={
                 'Authorization': f'Bearer {self.token}',
                 'NHSD-Session-URID': 'ROLD-ID',
                 'X-Request-ID': "46081ecd-50d4-4399-a2bf-9edc57da4137",
+            })
+
+    @pytest.mark.apm_1276
+    @pytest.mark.errors
+    def test_app_without_asid_where_asid_is_required(self, switch_to_asid_required_proxy, switch_to_no_asid_application, get_token):
+        """While missing the ASID parameter the response should error stating ASID is missing"""
+        assert self.pds.check_asid_parameter(
+            expected_status_code=400,
+            expected_asid=[None],
+            patient_id="5900018512",
+            proxy="personal-demographics-asid-required-pr-387",
+            headers={
+                'Authorization': f'Bearer {self.token}',
+                'NHSD-Session-URID': 'ROLD-ID',
+                'X-Request-ID': "fac37ac8-c71e-4319-b13a-a1fb629c66e3",
+            })
+
+    @pytest.mark.apm_1275
+    @pytest.mark.errors
+    def test_app_with_invalid_asid_where_asid_is_required(self, switch_to_asid_required_proxy,
+                                                          switch_to_invalid_asid_application, get_token):
+        """While the application has an invalid ASID the response should error"""
+        assert self.pds.check_asid_parameter(
+            expected_status_code=401,
+            expected_asid=["12345", "12345", "12345"],
+            patient_id="5900018512",
+            proxy="personal-demographics-asid-required-pr-387",
+            headers={
+                'Authorization': f'Bearer {self.token}',
+                'NHSD-Session-URID': 'ROLD-ID',
+                'X-Request-ID': "7045513c-4673-435a-8486-2ba725d38798",
             })
