@@ -25,7 +25,7 @@ class TestOauthEndpointSuite:
             },
         )
 
-        # Test the redirects are working as expected
+        # # Test the redirects are working as expected
         assert self.oauth.check_response_history(
             verb='GET',
             endpoint='authorize',
