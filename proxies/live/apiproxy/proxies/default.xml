@@ -65,6 +65,12 @@
                     <Name>Quota</Name>
                 </Step>
                 <Step>
+                    <Name>Python.GenerateState</Name>
+                </Step>
+                <Step>
+                    <Name>JavaScript.CreateCacheEntry</Name>
+                </Step>
+                <Step>
                     <Name>AssignMessage.GenerateState</Name>
                 </Step>
                 <Step>
