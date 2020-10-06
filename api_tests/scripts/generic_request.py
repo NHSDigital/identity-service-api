@@ -145,7 +145,7 @@ class GenericRequest:
         except json.JSONDecodeError:
             # Might be HTML
             # We need to get rid of the dynamic state here so we can compare the text to the stored value
-            actual_response = re.sub(r'<input name="state" type="hidden" value="\d*">', '', response.text)
+            actual_response = re.sub('<input name="state" type="hidden" value="[a-zA-Z0-9_-]{36}">', '', response.text)
 
             assert actual_response.replace('\n', '').replace(' ', '').strip() == expected_response.replace('\n', '')\
                 .replace(' ', '').strip(), "Actual response is different from the expected response"
