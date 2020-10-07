@@ -25,18 +25,6 @@ class TestOauthEndpointSuite:
             },
         )
 
-        # Test the redirects are working as expected
-        assert self.oauth.check_response_history(
-            verb='GET',
-            endpoint='authorize',
-            expected_redirects=BANK.get(self.name)['redirects'],
-            params={
-                'client_id': config.CLIENT_ID,
-                'redirect_uri': config.REDIRECT_URI,
-                'response_type': 'code',
-            },
-        )
-
     @pytest.mark.apm_801
     @pytest.mark.happy_path
     @pytest.mark.token_endpoint

@@ -24,7 +24,7 @@ steps:
       export APIGEE_API_AUTHENTICATION="$(secret.AccessToken)"
       export APIGEE_API_URL="https://api.enterprise.apigee.com/v1/organizations/nhsd-nonprod"
       export PDS_BASE_URL="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk"
-      export PDS_PROXY="personal-demographics-apm-1275-asid-per-application"
+      export PDS_PROXY="personal-demographics-pr-387"
       export INVALID_ASID_CLIENT_ID="$(INTERNAL_TESTING_WITH_ASID_KEY)"
       export INVALID_ASID_CLIENT_SECRET="$(INTERNAL_TESTING_WITH_ASID_SECRET)"
       export VALID_ASID_CLIENT_ID="$(INTERNAL_TESTING_WITH_VALID_ASID_KEY)"

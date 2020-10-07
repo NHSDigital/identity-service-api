@@ -3,6 +3,7 @@ import json
 from urllib import parse
 import re
 from api_tests.config_files import config
+from urllib.parse import urlparse
 
 
 class GenericRequest:
@@ -14,20 +15,31 @@ class GenericRequest:
 
     def get_response(self, verb: str, endpoint: str, **kwargs) -> 'response type':
         """Verify the arguments and then send a request and return the response"""
-        # Verify endpoint exists
         try:
-            self.endpoints[endpoint]
+            url = self.endpoints[endpoint]
         except KeyError:
-            raise Exception("Endpoint not found")
+            if self.is_url(endpoint):
+                url = endpoint
+            else:
+                raise Exception("Endpoint not found")
 
         # Verify http verb is valid
-        if verb.lower() not in ['post', 'get']:
+        if verb.lower() not in ['post', 'get', 'put']:
             raise Exception(f"Verb: {verb} is invalid")
 
-        func = (self.get, self.post)[verb.lower() == 'post']
+        func = ((self.get, self.put)[verb.lower() == 'put'], self.post)[verb.lower() == 'post']
 
         # Get response
-        return func(self.endpoints[endpoint], **kwargs)
+        return func(url, **kwargs)
+
+    @staticmethod
+    def is_url(url: str) -> bool:
+        """Check if a string looks like a URL"""
+        try:
+            result = urlparse(url)
+            return all([result.scheme, result.netloc])
+        except ValueError:
+            return False
 
     @staticmethod
     def _validate_response(response: 'response type') -> None:
@@ -58,6 +70,13 @@ class GenericRequest:
         """Sends a post request and returns the response"""
         try:
             return self.session.post(url, **kwargs)
+        except requests.ConnectionError:
+            raise Exception(f"the url: {url} does not exist or is invalid")
+
+    def put(self, url: str, **kwargs) -> 'response type':
+        """Sends a put request and returns the response"""
+        try:
+            return self.session.put(url, **kwargs)
         except requests.ConnectionError:
             raise Exception(f"the url: {url} does not exist or is invalid")
 
@@ -104,10 +123,14 @@ class GenericRequest:
         response = self.get_response(verb, endpoint, **kwargs)
 
         if type(expected_response) is list:
-            return self.verify_response_keys(response, expected_status_code, expected_keys=expected_response)
+            assert self.verify_response_keys(response, expected_status_code, expected_keys=expected_response), \
+                f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"
+            return True
 
         # Check response
-        return self.verify_response(response, expected_status_code, expected_response=expected_response)
+        assert self.verify_response(response, expected_status_code, expected_response=expected_response), \
+            f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"
+        return True
 
     def check_response_history(self, verb: str, endpoint: str,
                                expected_redirects: dict, **kwargs) -> bool:
