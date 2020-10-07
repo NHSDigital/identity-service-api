@@ -26,4 +26,6 @@ class CheckPds(GenericRequest):
         assert actual_asid == expected_asid, f"Expected ASID: {expected_asid} but got: {actual_asid}"
 
         # Confirm response is correct
-        return self.check_status_code(response, expected_status_code)
+        assert self.check_status_code(response, expected_status_code), \
+            f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"
+        return True
