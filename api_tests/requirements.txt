@@ -2,4 +2,3 @@ requests
 pytest
 pytest-xdist
 pytest-sugar
-locust

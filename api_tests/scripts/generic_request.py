@@ -21,10 +21,10 @@ class GenericRequest:
             raise Exception("Endpoint not found")
 
         # Verify http verb is valid
-        if verb.lower() not in ['post', 'get']:
+        if verb.lower() not in ['post', 'get', 'put']:
             raise Exception(f"Verb: {verb} is invalid")
 
-        func = (self.get, self.post)[verb.lower() == 'post']
+        func = ((self.get, self.put)[verb.lower() == 'put'], self.post)[verb.lower() == 'post']
 
         # Get response
         return func(self.endpoints[endpoint], **kwargs)
@@ -58,6 +58,13 @@ class GenericRequest:
         """Sends a post request and returns the response"""
         try:
             return self.session.post(url, **kwargs)
+        except requests.ConnectionError:
+            raise Exception(f"the url: {url} does not exist or is invalid")
+
+    def put(self, url: str, **kwargs) -> 'response type':
+        """Sends a put request and returns the response"""
+        try:
+            return self.session.put(url, **kwargs)
         except requests.ConnectionError:
             raise Exception(f"the url: {url} does not exist or is invalid")
 
