@@ -30,6 +30,7 @@ def switch_to_asid_required_proxy():
     config.PDS_API = f"{config.PDS_BASE_URL}/{config.PDS_PROXY}/Patient"
 
 
+@pytest.mark.skip(reason="Design Discussion Required")
 @pytest.mark.usefixtures("setup")
 class TestAsidSuite:
     """ A test suite to confirm the ASID for a PDS request is behaving as expected """
