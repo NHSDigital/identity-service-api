@@ -55,7 +55,11 @@ extends:
               service_name: ${{ variables.service_name }}
       - environment: internal-dev-sandbox
       - environment: internal-qa
+        depends_on: 
+          - internal_dev
       - environment: internal-qa-sandbox
+        depends_on: 
+          - internal_dev
       - environment: ref
       - environment: dev
       - environment: int
@@ -67,4 +71,5 @@ extends:
           IDENTITY_TARGET_SERVER: identity-server-no-smartcard
           VARIABLES_KVM: identity-service-variables-no-smartcard
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted-no-smartcard
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
       - environment: prod

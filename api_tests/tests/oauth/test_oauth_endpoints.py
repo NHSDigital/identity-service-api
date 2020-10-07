@@ -260,4 +260,3 @@ class TestOauthEndpointSuite:
     @pytest.mark.skip(reason="Not implemented")
     def test_token_endpoint_with_invalid_authorization_code(self, request_data: dict):
         assert self.oauth.check_endpoint('POST', 'token', **request_data)
-
