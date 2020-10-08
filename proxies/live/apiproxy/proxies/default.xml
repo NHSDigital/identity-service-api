@@ -269,11 +269,11 @@
             <Description>Flow to catch the Code response</Description>
             <Request>
                 <Step>
-                  <Name>LookupCache.OriginalClientInfo</Name>
-                </Step>
-                <Step>
                   <Name>RaiseFault.Unauthorized</Name>
                   <Condition>request.queryparam.client_id NotEquals private.apigee.client_id</Condition>
+                </Step>
+                <Step>
+                  <Name>LookupCache.OriginalClientInfo</Name>
                 </Step>
                 <Step>
                   <Name>ExtractVariables.ReadCacheJson</Name>
