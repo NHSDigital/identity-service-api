@@ -87,9 +87,17 @@
         </Flow>
       <Flow name="Flow.PostTokenClientCredentials">
         <Description>OAuth Token Endpoint - Client Credentials</Description>
-        <Request></Request>
+        <Request>
+          <Step>
+            <Name>RaiseFault.MissingOrInvalidClientAssertionType</Name>
+            <Condition>(request.formparam.client_assertion_type NotEquals "urn:ietf:params:oauth:client-assertion-type:jwt-bearer")</Condition>
+          </Step>
+          <Step>
+            <Name>DecodeJWT.FromClientAssertionFormParam</Name>
+          </Step>
+        </Request>
         <Response></Response>
-        <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "client_credentials"))</Condition>
+        <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Equals "client_credentials"))</Condition>
       </Flow>
       <Flow name="Flow.PostTokenAuthorizationCode">
         <Description>OAuth Token Endpoint - Authorization Code Flow</Description>
