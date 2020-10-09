@@ -10,6 +10,19 @@
         </Step>
         <Condition>(fault.name Equals "RaiseFault")</Condition>
       </FaultRule>
+      <FaultRule name="jwt_faults">
+        <Condition>(JWT.failed Equals true)</Condition>
+        <Step>
+          <Name>AssignMessage.UnsupportedJWTAlgorithmError</Name>
+          <Condition>(fault.name Equals "AlgorithmMismatch")</Condition>
+        </Step>
+        <Step>
+          <Name>AssignMessage.ExpiredJWTError</Name>
+          <Condition>(fault.name Equals "TokenExpired")</Condition>
+        </Step>
+        <Step>AssignMessage.FailedToDecodeJWTError</Step>
+        <Condition>(fault.name Equals "FailedToDecode")</Condition>
+      </FaultRule>
     </FaultRules>
     <DefaultFaultRule>
       <Step>
@@ -72,8 +85,14 @@
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/authorize") and (request.verb = "GET")</Condition>
         </Flow>
-        <Flow name="Flow.PostToken">
-            <Description>OAuth Token Endpoint</Description>
+      <Flow name="Flow.PostTokenClientCredentials">
+        <Description>OAuth Token Endpoint - Client Credentials</Description>
+        <Request></Request>
+        <Response></Response>
+        <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "client_credentials"))</Condition>
+      </Flow>
+      <Flow name="Flow.PostTokenAuthorizationCode">
+        <Description>OAuth Token Endpoint - Authorization Code Flow</Description>
             <Request>
                 <!-- Verify the Client Application using both client_id and client_secret form params -->
                 <Step>
@@ -152,8 +171,8 @@
             </Response>
             <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "authorization_code")</Condition>
           </Flow>
-        <Flow name="Flow.PostTokenSimulatedAuth">
-            <Description>OAuth Token Endpoint - SIMULATED AUTH</Description>
+      <Flow name="Flow.PostTokenAuthorizationCodeSimulatedAuth">
+        <Description>OAuth Token Endpoint - Authorization Code Flow - SIMULATED AUTH</Description>
             <Request>
                 <!-- In the documentation we specify that the Client ID and Client Secret must be sent as form params
                 However Apigee interactive documenttion ("Try it now") feature sends them as HTTP Basic Auth, so
