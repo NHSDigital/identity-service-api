@@ -171,7 +171,15 @@
             </Response>
             <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "authorization_code")</Condition>
           </Flow>
-      <Flow name="Flow.PostTokenAuthorizationCodeSimulatedAuth">
+      <Flow name="Flow.PostTokenInvalidGrantType">
+        <Request>
+          <Step>
+            <Name>RaiseFault.UnsupportedGrantType</Name>
+          </Step>
+        </Request>
+        <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type IsNot null)</Condition>
+      </Flow>
+          <Flow name="Flow.PostTokenAuthorizationCodeSimulatedAuth">
         <Description>OAuth Token Endpoint - Authorization Code Flow - SIMULATED AUTH</Description>
             <Request>
                 <!-- In the documentation we specify that the Client ID and Client Secret must be sent as form params
