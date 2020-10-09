@@ -20,7 +20,9 @@
           <Name>AssignMessage.ExpiredJWTError</Name>
           <Condition>(fault.name Equals "TokenExpired")</Condition>
         </Step>
-        <Step>AssignMessage.FailedToDecodeJWTError</Step>
+        <Step>
+          <Name>AssignMessage.FailedToDecodeJWTError</Name>
+        </Step>
         <Condition>(fault.name Equals "FailedToDecode")</Condition>
       </FaultRule>
     </FaultRules>
