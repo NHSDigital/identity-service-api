@@ -21,9 +21,10 @@
           <Condition>(fault.name Equals "TokenExpired")</Condition>
         </Step>
         <Step>
+          <!-- DecodeJWT will throw this error where the JWT's *header* is invalid -->
           <Name>AssignMessage.FailedToDecodeJWTError</Name>
+          <Condition>(fault.name Equals "FailedToDecode")</Condition>
         </Step>
-        <Condition>(fault.name Equals "FailedToDecode")</Condition>
       </FaultRule>
     </FaultRules>
     <DefaultFaultRule>
@@ -96,6 +97,48 @@
           </Step>
           <Step>
             <Name>DecodeJWT.FromClientAssertionFormParam</Name>
+          </Step>
+          <Step>
+            <!-- The JWT Header may be valid, but the rest of the JWT may be malformed or missing.
+            This catches that eventuality: -->
+            <Name>RaiseFault.WarningDecodingJWT</Name>
+            <Condition>jwt.DecodeJWT.FromClientAssertionFormParam.warning != null</Condition>
+          </Step>
+          <!-- Checks omitted for now:
+            * Expiry omitted
+            * KID omitted
+            * Iss / Sub omitted
+            * Iss / Sub not same
+            * Audience omitted
+            * JTI omitted -->
+          <Step>
+            <Name>LookupCache.JTIClaim</Name>
+          </Step>
+          <Step>
+            <Name>RaiseFault.JTIValueExistsInCache</Name>
+            <Condition>JTICachedValue = jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti</Condition>
+          </Step>
+          <Step>
+            <Name>PopulateCache.JTIClaim</Name>
+          </Step>
+          <Step>
+            <Name>VerifyAPIKey.FromJWT</Name>
+          </Step>
+          <Step>
+            <Name>Javascript.SetServiceCalloutUrl</Name>
+          </Step>
+          <Step>
+            <Name>ServiceCallout.ClientCredentialsGrantGetJWKS</Name>
+          </Step>
+          <!-- Not sure this is necessary
+          <Step>
+            <Name>ExtractVariables.ParseJWKS</Name>
+          </Step> -->
+          <Step>
+            <Name>VerifyJWT.ClientCredentials</Name>
+          </Step>
+          <Step>
+            <Name>OAuthV2.ClientCredentialsGenerateAccessToken</Name>
           </Step>
         </Request>
         <Response></Response>
