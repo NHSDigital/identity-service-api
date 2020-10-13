@@ -138,6 +138,10 @@
             <Name>VerifyJWT.ClientCredentials</Name>
           </Step>
           <Step>
+            <!-- Needed because OAuthV2 'GenerateAccessToken' has to have the Client ID in a specific place -->
+            <Name>AssignMessage.SetClientIdFormParam</Name>
+          </Step>
+          <Step>
             <Name>OAuthV2.ClientCredentialsGenerateAccessToken</Name>
           </Step>
         </Request>

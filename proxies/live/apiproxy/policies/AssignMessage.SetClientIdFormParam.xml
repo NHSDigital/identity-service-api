@@ -1,0 +1,6 @@
+<AssignMessage name="AssignMessage.SetClientIdFormParam">
+  <AssignVariable>
+    <Name>request.formparam.client_id</Name>
+    <Ref>jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.subject</Ref>
+  </AssignVariable>
+</AssignMessage>
