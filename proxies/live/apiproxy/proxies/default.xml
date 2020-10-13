@@ -11,19 +11,28 @@
         <Condition>(fault.name Equals "RaiseFault")</Condition>
       </FaultRule>
       <FaultRule name="jwt_faults">
-        <Condition>(JWT.failed Equals true)</Condition>
+        <Condition>(JWT.failed Equals true) And (fault.name Equals "AlgorithmMismatch")</Condition>
         <Step>
           <Name>AssignMessage.UnsupportedJWTAlgorithmError</Name>
-          <Condition>(fault.name Equals "AlgorithmMismatch")</Condition>
         </Step>
+      </FaultRule>
+      <FaultRule name="expired_jwt">
+        <Condition>(JWT.failed Equals true) And (fault.name Equals "TokenExpired")</Condition>
         <Step>
           <Name>AssignMessage.ExpiredJWTError</Name>
-          <Condition>(fault.name Equals "TokenExpired")</Condition>
         </Step>
+      </FaultRule>
+      <FaultRule name="failed_decoding_jwt">
+        <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToDecode")</Condition>
         <Step>
           <!-- DecodeJWT will throw this error where the JWT's *header* is invalid -->
           <Name>AssignMessage.FailedToDecodeJWTError</Name>
-          <Condition>(fault.name Equals "FailedToDecode")</Condition>
+        </Step>
+      </FaultRule>
+      <FaultRule name="missing_client_assertion">
+        <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToResolveVariable")</Condition>
+        <Step>
+          <Name>AssignMessage.MissingClientAssertion</Name>
         </Step>
       </FaultRule>
     </FaultRules>
