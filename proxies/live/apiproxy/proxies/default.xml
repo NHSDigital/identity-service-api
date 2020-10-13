@@ -109,13 +109,16 @@
           </Step>
           <Step>
             <!-- The JWT Header may be valid, but the rest of the JWT may be malformed or missing.
-            This catches that eventuality: -->
-            <Name>RaiseFault.WarningDecodingJWT</Name>
-            <Condition>jwt.DecodeJWT.FromClientAssertionFormParam.warning != null</Condition>
+              This catches that eventuality: -->
+              <Name>RaiseFault.WarningDecodingJWT</Name>
+              <Condition>jwt.DecodeJWT.FromClientAssertionFormParam.warning != null</Condition>
+            </Step>
+          <Step>
+            <Name>RaiseFault.MissingKidHeader</Name>
+            <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Is null) Or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Equals "")</Condition>
           </Step>
           <!-- Checks omitted for now:
             * Expiry omitted
-            * KID omitted
             * Iss / Sub omitted
             * Iss / Sub not same
             * Audience omitted
