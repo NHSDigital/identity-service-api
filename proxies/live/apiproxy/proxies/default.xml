@@ -145,7 +145,11 @@
             <Name>OAuthV2.ClientCredentialsGenerateAccessToken</Name>
           </Step>
         </Request>
-        <Response></Response>
+        <Response>
+          <Step>
+            <Name>AssignMessage.ClientCredentialsGenerateTokenResponse</Name>
+          </Step>
+        </Response>
         <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Equals "client_credentials"))</Condition>
       </Flow>
       <Flow name="Flow.PostTokenAuthorizationCode">
