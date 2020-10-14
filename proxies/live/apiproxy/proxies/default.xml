@@ -131,8 +131,10 @@
             * Expiry omitted
             * Sub omitted
             * Sub invalid
-            * Audience omitted
-            * JTI omitted -->
+          * Audience omitted-->          <Step>
+            <Name>RaiseFault.MissingJtiClaim</Name>
+            <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti Equals "")</Condition>
+          </Step>
           <Step>
             <Name>LookupCache.JTIClaim</Name>
           </Step>
