@@ -4,7 +4,7 @@
       <Payload contentType="application/json">
         {
           "error": "invalid_request",
-          "error_description": "iss/sub claims missing or invalid (shoud be same)",
+          "error_description": "iss/sub claims missing or invalid (should be same)",
           "message_id": "{messageid}"
         }
 </Payload>
