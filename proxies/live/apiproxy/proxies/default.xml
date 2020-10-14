@@ -117,10 +117,14 @@
             <Name>RaiseFault.MissingKidHeader</Name>
             <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Is null) Or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Equals "")</Condition>
           </Step>
+          <Step>
+            <Name>RaiseFault.MissingOrInvalidIssClaim</Name>
+            <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss Equals "") or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss NotEquals jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.subject)</Condition>
+          </Step>
           <!-- Checks omitted for now:
             * Expiry omitted
-            * Iss / Sub omitted
-            * Iss / Sub not same
+            * Sub omitted
+            * Sub invalid
             * Audience omitted
             * JTI omitted -->
           <Step>
