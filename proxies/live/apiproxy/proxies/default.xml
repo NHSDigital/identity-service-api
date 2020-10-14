@@ -131,13 +131,13 @@
             <Name>RaiseFault.MissingOrInvalidIssClaim</Name>
             <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss Equals "") or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss NotEquals jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.subject)</Condition>
           </Step>
-          <!-- Checks omitted for now:
-            * Expiry omitted
-            * Sub omitted
-            * Sub invalid
-          * Audience omitted-->          <Step>
+          <Step>
             <Name>RaiseFault.MissingJtiClaim</Name>
             <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti Equals "")</Condition>
+          </Step>
+          <Step>
+            <Name>RaiseFault.MissingExpClaim</Name>
+            <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Equals "")</Condition>
           </Step>
           <Step>
             <Name>LookupCache.JTIClaim</Name>
