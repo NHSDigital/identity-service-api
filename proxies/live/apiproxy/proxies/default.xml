@@ -10,7 +10,7 @@
         </Step>
         <Condition>(fault.name Equals "RaiseFault")</Condition>
       </FaultRule>
-      <FaultRule name="jwt_faults">
+      <FaultRule name="jwt_algorithm">
         <Condition>(JWT.failed Equals true) And (fault.name Equals "AlgorithmMismatch")</Condition>
         <Step>
           <Name>AssignMessage.UnsupportedJWTAlgorithmError</Name>
@@ -33,6 +33,12 @@
         <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToResolveVariable")</Condition>
         <Step>
           <Name>AssignMessage.MissingClientAssertion</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="cc_verify_api_key">
+        <Condition>(oauthV2.VerifyAPIKey.FromJWT.failed Equals true)</Condition>
+        <Step>
+          <Name>AssignMessage.ClientCredentialsInvalidSubject</Name>
         </Step>
       </FaultRule>
     </FaultRules>
