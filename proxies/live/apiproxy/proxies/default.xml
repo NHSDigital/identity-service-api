@@ -42,7 +42,7 @@
         </Step>
       </FaultRule>
       <FaultRule name="cc_invalid_aud_claim">
-        <Condition>(JWT.failed Equals true) and error.message Equals (fault.name Equals "Invalid Claim: policy(VerifyJWT.ClientCredentials) claim(aud)")</Condition>
+        <Condition>(JWT.failed Equals true) and (error.message Equals "Invalid Claim: policy(VerifyJWT.ClientCredentials) claim(aud)")</Condition>
         <Name>AssignMessage.AudClaimInvalid</Name>
       </FaultRule>
     </FaultRules>
