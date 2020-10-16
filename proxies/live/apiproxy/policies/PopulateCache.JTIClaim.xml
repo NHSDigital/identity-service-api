@@ -1,0 +1,13 @@
+<PopulateCache async="false" continueOnError="false" enabled="true" name="PopulateCache.JTIClaim">
+  <Source>jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti</Source>
+  <Scope>Application</Scope>
+  <CacheKey>
+    <Prefix>jti</Prefix>
+    <KeyFragment ref="jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.subject" /> <!-- Client ID -->
+    <KeyFragment ref="jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti" />
+  </CacheKey>
+  <ExpirySettings>
+    <!-- 2592000 secs = 30 days -->
+    <TimeoutInSeconds>2592000</TimeoutInSeconds>
+  </ExpirySettings>
+</PopulateCache>
