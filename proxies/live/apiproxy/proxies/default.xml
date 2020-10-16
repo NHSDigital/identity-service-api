@@ -47,6 +47,12 @@
           <Name>AssignMessage.AudClaimInvalid</Name>
         </Step>
       </FaultRule>
+      <FaultRule name="cc_no_matching_pub_key">
+        <Condition>(JWT.failed Equals true) and (fault.name Equals "NoMatchingPublicKey")</Condition>
+        <Step>
+          <Name>AssignMessage.NoMatchingPublicKey</Name>
+        </Step>
+      </FaultRule>
     </FaultRules>
     <DefaultFaultRule>
       <Step>
