@@ -148,6 +148,13 @@
             <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Equals "")</Condition>
           </Step>
           <Step>
+            <Name>JavaScript.CalculateNowPlusSixMins</Name>
+          </Step>
+          <Step>
+            <Name>RaiseFault.ExpClaimTooLong</Name>
+            <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp GreaterThan now_plus_six_mins)</Condition>
+          </Step>
+          <Step>
             <Name>LookupCache.JTIClaim</Name>
           </Step>
           <Step>
