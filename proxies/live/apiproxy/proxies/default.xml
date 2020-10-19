@@ -458,6 +458,9 @@
               <Name>OAuthV2.VerifyAccessToken</Name>
             </Step>
             <Step>
+              <Name>AssignMessage.SetAuthorizationHeader</Name>
+            </Step>
+            <Step>
               <Name>SpikeArrest</Name>
             </Step>
             <Step>

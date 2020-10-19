@@ -10,6 +10,8 @@
     </SupportedGrantTypes>
     <GenerateResponse enabled="false"/>
     <Attributes>
+      <!-- TODO: Should display be false for this? What about when using the refresh token? -->
+      <Attribute name="access_token" ref="externalAccessToken" display="true"/>
       <Attribute name="id_token" ref="externalIdToken" display="true"/>
       <Attribute name="id_token-subject" ref="jwt.VerifyJWT.FromExternalIdToken.claim.subject" display="true"/>
       <Attribute name="id_token-issuer" ref="jwt.VerifyJWT.FromExternalIdToken.claim.issuer" display="true"/>
