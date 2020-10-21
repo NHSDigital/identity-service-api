@@ -315,11 +315,11 @@
                 using _access_token_expiry_ms/_refresh_token_expiry_ms (respectively) form params -->
                 <Step>
                   <Name>AssignMessage.AccessTokenExpiryOverride</Name>
-                  <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan private.apigee.access_token_expiry_ms)</Condition>
+                  <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms &lt; private.apigee.access_token_expiry_ms)</Condition>
                 </Step>
                 <Step>
                   <Name>AssignMessage.RefreshTokenExpiryOverride</Name>
-                  <Condition>request.formparam._refresh_token_expiry_ms &lt; private.apigee.refresh_token_expiry_ms</Condition>
+                  <Condition>(request.formparam._refresh_token_expiry_ms != null) and (request.formparam._refresh_token_expiry_ms &lt; private.apigee.refresh_token_expiry_ms)</Condition>
                 </Step>
                 <Step>
                   <Name>AssignMessage.DummySecretKey</Name>
@@ -348,15 +348,15 @@
               using _access_token_expiry_ms/_refresh_token_expiry_ms/_refresh_tokens_validity_ms (respectively) form params -->
               <Step>
                 <Name>AssignMessage.AccessTokenExpiryOverride</Name>
-                <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan private.apigee.access_token_expiry_ms)</Condition>
+                <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms &lt; private.apigee.access_token_expiry_ms)</Condition>
               </Step>
               <Step>
                 <Name>AssignMessage.RefreshTokenExpiryOverride</Name>
-                <Condition>request.formparam._refresh_token_expiry_ms &lt; private.apigee.refresh_token_expiry_ms</Condition>
+                <Condition>(request.formparam._refresh_token_expiry_ms != null) and (request.formparam._refresh_token_expiry_ms &lt; private.apigee.refresh_token_expiry_ms)</Condition>
               </Step>
               <Step>
                 <Name>AssignMessage.RefreshTokensValidityOverride</Name>
-                <Condition>(request.formparam._refresh_tokens_validity_ms != null) and (request.formparam._refresh_tokens_validity_ms LesserThan private.apigee.refresh_tokens_validity_ms)</Condition>
+                <Condition>(request.formparam._refresh_tokens_validity_ms != null) and (request.formparam._refresh_tokens_validity_ms &lt; private.apigee.refresh_tokens_validity_ms)</Condition>
               </Step>
               <Step>
                 <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
