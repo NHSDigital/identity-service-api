@@ -125,7 +125,7 @@ class TestOauthTokenSuite:
     @pytest.mark.apm_1010
     @pytest.mark.errors
     @pytest.mark.usefixtures('get_refresh_token')
-    @pytest.mark.skip(reason="There is a bug raised for this: APM-1335")
+    # @pytest.mark.skip(reason="There is a bug raised for this: APM-1335")
     def test_refresh_token_does_expire(self):
         sleep(5)
         assert self.oauth.check_endpoint(
