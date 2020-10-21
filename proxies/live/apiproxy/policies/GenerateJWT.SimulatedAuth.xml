@@ -2,7 +2,7 @@
   <Algorithm>HS256</Algorithm>
   <Subject>910000000001</Subject>
   <Issuer ref="virtualhost.name"/>
-  <Audience ref="private.apigee.client_id"/>
+  <Audience ref="apigee.client_id"/>
   <ExpiresIn>1h</ExpiresIn>
   <SecretKey>
     <Id>1234567</Id>

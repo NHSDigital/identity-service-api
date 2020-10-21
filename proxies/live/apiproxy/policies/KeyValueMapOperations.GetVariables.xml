@@ -5,44 +5,44 @@
     name="KeyValueMapOperations.GetVariables"
     mapIdentifier="{{ VARIABLES_KVM }}"
   >
-  <Get assignTo="private.apigee.access_token_path" index="1">
+  <Get assignTo="apigee.access_token_path" index="1">
     <Key>
       <Parameter>access_token_path</Parameter>
     </Key>
   </Get>
-  <Get assignTo="private.apigee.authorize_endpoint" index="1">
+  <Get assignTo="apigee.authorize_endpoint" index="1">
     <Key>
       <Parameter>authorize_endpoint</Parameter>
     </Key>
   </Get>
-  <Get assignTo="private.apigee.client_id" index="1">
+  <Get assignTo="apigee.client_id" index="1">
     <Key>
       <Parameter>client_id</Parameter>
     </Key>
   </Get>
-  <Get assignTo="private.apigee.redirect_uri" index="1">
+  <Get assignTo="apigee.redirect_uri" index="1">
     <Key>
       <Parameter>redirect_uri</Parameter>
     </Key>
   </Get>
-  <Get assignTo="private.apigee.access_token_expiry_ms" index="1">
+  <Get assignTo="apigee.access_token_expiry_ms" index="1">
     <Key>
       <Parameter>access_token_expiry_ms</Parameter>
     </Key>
   </Get>
   <!-- Lifetime of an individual refresh token in ms -->
-  <Get assignTo="private.apigee.refresh_token_expiry_ms" index="1">
+  <Get assignTo="apigee.refresh_token_expiry_ms" index="1">
     <Key>
       <Parameter>refresh_token_expiry_ms</Parameter>
     </Key>
   </Get>
   <!-- Time beyond which a given access token can no longer be refreshed, in ms -->
-  <Get assignTo="private.apigee.refresh_tokens_validity_ms" index="1">
+  <Get assignTo="apigee.refresh_tokens_validity_ms" index="1">
     <Key>
       <Parameter>refresh_tokens_validity_ms</Parameter>
     </Key>
   </Get>
-  <Get assignTo="private.apigee.jwks_path" index="1">
+  <Get assignTo="apigee.jwks_path" index="1">
     <Key>
         <Parameter>jwks_path</Parameter>
     </Key>
