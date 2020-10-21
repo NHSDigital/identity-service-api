@@ -351,10 +351,6 @@
                 <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan private.apigee.access_token_expiry_ms)</Condition>
               </Step>
               <Step>
-                <Name>RaiseFault.TestExpiryValues</Name>
-                <Condition>request.formparam._refresh_token_expiry_ms != null</Condition>
-              </Step>
-              <Step>
                 <Name>AssignMessage.RefreshTokenExpiryOverride</Name>
                 <Condition>(request.formparam._refresh_token_expiry_ms != null) and (request.formparam._refresh_token_expiry_ms LesserThan private.apigee.refresh_token_expiry_ms)</Condition>
               </Step>
