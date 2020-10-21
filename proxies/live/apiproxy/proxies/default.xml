@@ -319,7 +319,7 @@
                 </Step>
                 <Step>
                   <Name>AssignMessage.RefreshTokenExpiryOverride</Name>
-                  <Condition>(request.formparam._refresh_token_expiry_ms != null) and (request.formparam._refresh_token_expiry_ms LesserThan private.apigee.refresh_token_expiry_ms)</Condition>
+                  <Condition>request.formparam._refresh_token_expiry_ms &lt; private.apigee.refresh_token_expiry_ms</Condition>
                 </Step>
                 <Step>
                   <Name>AssignMessage.DummySecretKey</Name>
@@ -352,7 +352,7 @@
               </Step>
               <Step>
                 <Name>AssignMessage.RefreshTokenExpiryOverride</Name>
-                <Condition>(request.formparam._refresh_token_expiry_ms != null) and (request.formparam._refresh_token_expiry_ms LesserThan private.apigee.refresh_token_expiry_ms)</Condition>
+                <Condition>request.formparam._refresh_token_expiry_ms &lt; private.apigee.refresh_token_expiry_ms</Condition>
               </Step>
               <Step>
                 <Name>AssignMessage.RefreshTokensValidityOverride</Name>
