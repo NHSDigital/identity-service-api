@@ -1,0 +1,12 @@
+<AssignMessage name="AssignMessage.SetTokenPropertyDefaults">
+  <!-- 10 minutes: -->
+  <AssignVariable>
+    <Name>private.apigee.access_token_expiry_ms</Name>
+    <Value>600000</Value>
+  </AssignVariable>
+  <!-- 10 hours: -->
+  <AssignVariable>
+    <Name>private.apigee.refresh_token_expiry_ms</Name>
+    <Value>36000000</Value>
+  </AssignVariable>
+</AssignMessage>
