@@ -4,7 +4,7 @@
     <Payload contentType="application/json">
       {
         "error": "invalid_request",
-        "error_message": "Refresh Token expired",
+        "error_description": "Refresh Token expired",
         "message_id": "{messageid}"
       }
     </Payload>
