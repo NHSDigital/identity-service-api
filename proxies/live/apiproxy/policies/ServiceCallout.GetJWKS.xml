@@ -9,6 +9,6 @@
     <SSLInfo>
       <Enabled>true</Enabled>
     </SSLInfo>
-    <Path>{apigee.jwks_path}</Path>
+    <Path>{private.apigee.jwks_path}</Path>
 </HTTPTargetConnection>
 </ServiceCallout>
