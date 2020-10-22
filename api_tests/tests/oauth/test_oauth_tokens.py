@@ -133,7 +133,7 @@ class TestOauthTokenSuite:
             expected_status_code=401,
             expected_response={
                 "error": "invalid_request",
-                "error_description": "Refresh Token expired"
+                "error_description": "refresh token expired"
             },
             headers={
                 'NHSD-Session-URID': '',
