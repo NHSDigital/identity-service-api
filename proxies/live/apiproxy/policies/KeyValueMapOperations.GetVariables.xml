@@ -25,19 +25,19 @@
       <Parameter>redirect_uri</Parameter>
     </Key>
   </Get>
-  <Get assignTo="private.apigee.access_token_expiry_ms" index="1">
+  <Get assignTo="apigee.access_token_expiry_ms" index="1">
     <Key>
       <Parameter>access_token_expiry_ms</Parameter>
     </Key>
   </Get>
   <!-- Lifetime of an individual refresh token in ms -->
-  <Get assignTo="private.apigee.refresh_token_expiry_ms" index="1">
+  <Get assignTo="apigee.refresh_token_expiry_ms" index="1">
     <Key>
       <Parameter>refresh_token_expiry_ms</Parameter>
     </Key>
   </Get>
   <!-- Time beyond which a given access token can no longer be refreshed, in ms -->
-  <Get assignTo="private.apigee.refresh_tokens_validity_ms" index="1">
+  <Get assignTo="apigee.refresh_tokens_validity_ms" index="1">
     <Key>
       <Parameter>refresh_tokens_validity_ms</Parameter>
     </Key>
