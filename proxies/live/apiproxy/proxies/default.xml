@@ -319,11 +319,11 @@
                 </Step>
                 <Step>
                   <Name>JavaScript.CalculateRefreshTokenOverride.xml</Name>
-                  <Condition>(request.formparam._refresh_token_expiry_ms != null)</Condition>
+                  <Condition>request.formparam._refresh_token_expiry_ms != null</Condition>
                 </Step>
                 <Step>
                   <Name>AssignMessage.RefreshTokenExpiryOverride</Name>
-                  <Condition>(apigee.can_override_refresh_token != null) and (apigee.can_override_refresh_token)</Condition>
+                  <Condition>(apigee.can_override_refresh_token != null) and (apigee.can_override_refresh_token = true)</Condition>
                 </Step>
                 <Step>
                   <Name>AssignMessage.DummySecretKey</Name>
@@ -332,7 +332,7 @@
                   <Name>GenerateJWT.SimulatedAuth</Name>
                 </Step>
                 <Step>
-                    <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>
+                  <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>
                 </Step>
             </Request>
             <Response>
@@ -356,11 +356,11 @@
               </Step>
               <Step>
                 <Name>JavaScript.CalculateRefreshTokenOverride.xml</Name>
-                <Condition>(request.formparam._refresh_token_expiry_ms != null)</Condition>
+                <Condition>request.formparam._refresh_token_expiry_ms != null</Condition>
               </Step>
               <Step>
                 <Name>AssignMessage.RefreshTokenExpiryOverride</Name>
-                <Condition>(apigee.can_override_refresh_token != null) and (apigee.can_override_refresh_token)</Condition>
+                <Condition>(apigee.can_override_refresh_token != null) and (apigee.can_override_refresh_token = true)</Condition>
               </Step>
               <Step>
                 <Name>AssignMessage.RefreshTokensValidityOverride</Name>
