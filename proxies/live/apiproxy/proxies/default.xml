@@ -318,8 +318,12 @@
                   <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
                 </Step>
                 <Step>
+                  <Name>JavaScript.CalculateRefreshTokenOverride.xml</Name>
+                  <Condition>(request.formparam._refresh_token_expiry_ms != null)</Condition>
+                </Step>
+                <Step>
                   <Name>AssignMessage.RefreshTokenExpiryOverride</Name>
-                  <Condition>(request.formparam._refresh_token_expiry_ms != null) and (apigee.refresh_token_expiry_ms &gt;request.formparam._refresh_token_expiry_ms)</Condition>
+                  <Condition>(apigee.can_override_refresh_token != null) and (apigee.can_override_refresh_token)</Condition>
                 </Step>
                 <Step>
                   <Name>AssignMessage.DummySecretKey</Name>
@@ -351,8 +355,12 @@
                 <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
               </Step>
               <Step>
+                <Name>JavaScript.CalculateRefreshTokenOverride.xml</Name>
+                <Condition>(request.formparam._refresh_token_expiry_ms != null)</Condition>
+              </Step>
+              <Step>
                 <Name>AssignMessage.RefreshTokenExpiryOverride</Name>
-                <Condition>(request.formparam._refresh_token_expiry_ms != null) and (apigee.refresh_token_expiry_ms &gt;request.formparam._refresh_token_expiry_ms)</Condition>
+                <Condition>(apigee.can_override_refresh_token != null) and (apigee.can_override_refresh_token)</Condition>
               </Step>
               <Step>
                 <Name>AssignMessage.RefreshTokensValidityOverride</Name>
