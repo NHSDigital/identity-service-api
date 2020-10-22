@@ -1,0 +1,14 @@
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.ExpiredRefreshToken">
+  <Set>
+    <StatusCode>401</StatusCode>
+    <Payload contentType="application/json">
+      {
+        "error": "invalid_request",
+        "error_message": "Refresh Token expired",
+        "message_id": "{messageid}"
+      }
+    </Payload>
+  </Set>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <AssignTo createNew="false" transport="http" type="response"/>
+</AssignMessage>

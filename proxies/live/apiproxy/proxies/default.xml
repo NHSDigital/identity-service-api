@@ -53,6 +53,12 @@
           <Name>AssignMessage.NoMatchingPublicKey</Name>
         </Step>
       </FaultRule>
+      <FaultRule name="refresh_token_expired">
+        <Condition>oauthV2.OAuthV2.GenerateRefreshToken.failed</Condition>
+        <Step>
+          <Name>AssignMessage.ExpiredRefreshToken</Name>
+        </Step>
+    </FaultRule>
     </FaultRules>
     <DefaultFaultRule>
       <Step>
