@@ -157,6 +157,7 @@
             <Name>JavaScript.CalculateNowPlusSixMins</Name>
           </Step>
           <Step>
+            <!-- Think this is currently broken -->
             <Name>RaiseFault.ExpClaimTooLong</Name>
             <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp GreaterThan now_plus_six_mins)</Condition>
           </Step>
