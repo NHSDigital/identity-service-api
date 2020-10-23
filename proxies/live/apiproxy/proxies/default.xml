@@ -154,9 +154,9 @@
             <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Equals "")</Condition>
           </Step>
           <Step>
-            <!-- We advise to limit expiry time to now + 5 minutes. Allowing an extra minute to mitigate edge cases: -->
+            <!-- We advise to limit expiry time to now + 5 minutes. Allowing an extra 10 seconds to mitigate edge cases: -->
             <Name>RaiseFault.ExpClaimTooLong</Name>
-            <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.seconds_remaining GreaterThan 360)</Condition>
+            <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.seconds_remaining GreaterThan 310)</Condition>
           </Step>
           <Step>
             <Name>LookupCache.JTIClaim</Name>
