@@ -1,0 +1,16 @@
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.MissingOrInvalidClientAssertionType">
+  <FaultResponse>
+    <Set>
+      <Payload contentType="application/json">
+            {
+              "error": "invalid_request",
+              "error_description": "client_assertion_type form param is required. (Supported value for Client Credentials Grant is 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer')",
+              "message_id": "{messageid}"
+            }
+</Payload>
+      <StatusCode>400</StatusCode>
+      <ReasonPhrase>Bad Request</ReasonPhrase>
+    </Set>
+  </FaultResponse>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</RaiseFault>

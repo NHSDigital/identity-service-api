@@ -1,7 +1,7 @@
 <AssignMessage name="AssignMessage.RefreshTokenExpiryOverride">
   <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
   <AssignVariable>
-    <Name>private.apigee.refresh_token_expiry_ms</Name>
+    <Name>apigee.refresh_token_expiry_ms</Name>
     <Ref>request.formparam._refresh_token_expiry_ms</Ref>
   </AssignVariable>
 </AssignMessage>
