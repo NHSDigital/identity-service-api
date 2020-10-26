@@ -42,3 +42,4 @@ extends:
       NUM_RANDOM_LONG_INTS_FOR_STATE: 4
     secret_ids:
       - ptl/temp/apm-1509
+      - ptl/temp/apm-1509-one-line
