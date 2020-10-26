@@ -40,3 +40,5 @@ extends:
       VARIABLES_KVM: identity-service-variables
       ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
       NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+    secret_ids:
+      - ptl/temp/apm-1509
