@@ -10,7 +10,7 @@ class TestOauthTokenSuite:
     @pytest.mark.apm_801
     @pytest.mark.happy_path
     @pytest.mark.usefixtures('get_token')
-    def test_request_with_token(self):
+    def test_access_token(self):
         assert self.oauth.check_endpoint(
             verb='GET',
             endpoint='api',
@@ -75,7 +75,7 @@ class TestOauthTokenSuite:
         },
     ])
     @pytest.mark.skip(reason="Not implemented")
-    def test_invalid_token(self, headers: dict):
+    def test_invalid_access_token(self, headers: dict):
         assert self.oauth.check_endpoint(
             verb='POST',
             endpoint='api',
@@ -87,7 +87,7 @@ class TestOauthTokenSuite:
     @pytest.mark.apm_801
     @pytest.mark.errors
     @pytest.mark.usefixtures('get_token')
-    def test_token_does_expire(self):
+    def test_access_token_does_expire(self):
         # Get token with a timeout set to 5 second &
         # wait until token has expired
         assert self.oauth.check_endpoint(
