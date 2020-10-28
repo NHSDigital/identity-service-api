@@ -35,5 +35,5 @@ extends:
         condition: always()
         displayName: 'Publish apigee lint results'
         inputs:
-          testResultsFiles: '"${{ variables.service_name }}"/apigeeLint.json'
+          testResultsFiles: '${{ variables.service_name }}/apigeeLint.json'
           failTaskOnFailedTests: true
