@@ -17,7 +17,7 @@ lint:
 	find -name '*.sh' | grep -v node_modules | xargs shellcheck
 
 apigeelint:
-	apigeelint -s proxies/live/apiproxy/ -f junit.js -w ./
+	npm run apigeelint
 
 clean:
 	rm -rf build
