@@ -12,6 +12,7 @@
   "license": "MIT",
   "homepage": "https://github.com/NHSDigital/template-api",
   "dependencies": {
+    "apigeelint": "^2.0.0",
     "speccy": "^0.11.0"
   },
   "devDependencies": {

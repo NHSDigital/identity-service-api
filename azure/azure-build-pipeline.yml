@@ -27,3 +27,12 @@ extends:
   parameters:
     service_name: ${{ variables.service_name }}
     short_service_name: ${{ variables.short_service_name }}
+    test_steps:
+      - bash: make apigeelint
+        displayName: Lint apigee proxy bundle
+        workingDirectory: "$(Pipeline.Workspace)"
+      - task: PublishTestResults@2
+        displayName: 'Publish integration test results'
+        inputs:
+          testResultsFiles: '$(Pipeline.Workspace)/apigeeLint.json'
+          failTaskOnFailedTests: true

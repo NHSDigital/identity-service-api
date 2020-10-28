@@ -16,6 +16,9 @@ lint:
 	poetry run flake8 **/*.py
 	find -name '*.sh' | grep -v node_modules | xargs shellcheck
 
+apigeelint:
+	apigeelint -s proxies/live/apiproxy/ -f junit.js -w ./
+
 clean:
 	rm -rf build
 	rm -rf dist
