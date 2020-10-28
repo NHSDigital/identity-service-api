@@ -30,9 +30,9 @@ extends:
     test_steps:
       - bash: make apigeelint
         displayName: Lint apigee proxy bundle
-        workingDirectory: "${{ parameters.service_name }}"
+        workingDirectory: "${{ variables.service_name }}"
       - task: PublishTestResults@2
         displayName: 'Publish integration test results'
         inputs:
-          testResultsFiles: '"${{ parameters.service_name }}"/apigeeLint.json'
+          testResultsFiles: '"${{ variables.service_name }}"/apigeeLint.json'
           failTaskOnFailedTests: true
