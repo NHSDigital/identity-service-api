@@ -32,7 +32,8 @@ extends:
         displayName: Lint apigee proxy bundle
         workingDirectory: "${{ variables.service_name }}"
       - task: PublishTestResults@2
-        displayName: 'Publish integration test results'
+        condition: always()
+        displayName: 'Publish apigee lint results'
         inputs:
           testResultsFiles: '"${{ variables.service_name }}"/apigeeLint.json'
           failTaskOnFailedTests: true
