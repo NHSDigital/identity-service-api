@@ -3,7 +3,7 @@ import json
 from urllib import parse
 import re
 from api_tests.config_files import config
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlencode
 
 
 class GenericRequest:
@@ -24,10 +24,13 @@ class GenericRequest:
                 raise Exception("Endpoint not found")
 
         # Verify http verb is valid
-        if verb.lower() not in ['post', 'get', 'put']:
+        if verb.lower() not in ['post', 'get', 'put', 'patch']:
             raise Exception(f"Verb: {verb} is invalid")
 
-        func = ((self.get, self.put)[verb.lower() == 'put'], self.post)[verb.lower() == 'post']
+        func = (((self.get,  # else
+                  self.patch)[verb.lower() == 'patch'],
+                 self.put)[verb.lower() == 'put'],
+                self.post)[verb.lower() == 'post']
 
         # Get response
         return func(url, **kwargs)
@@ -80,6 +83,13 @@ class GenericRequest:
         except requests.ConnectionError:
             raise Exception(f"the url: {url} does not exist or is invalid")
 
+    def patch(self, url: str, **kwargs) -> 'response type':
+        """Sends a patch request and returns the response"""
+        try:
+            return self.session.patch(url, **kwargs)
+        except requests.ConnectionError:
+            raise Exception(f"the url: {url} does not exist or is invalid")
+
     def get_redirects(self, response: 'response type') -> dict:
         """Returns a list of response objects holding the history of request (url)"""
         self._validate_response(response)
@@ -104,9 +114,8 @@ class GenericRequest:
             assert sorted(actual_keys) == sorted(expected_keys), \
                 "Expected: {sorted(expected_keys)} but got: {sorted(actual_keys)}"
 
-        assert response.status_code == expected_status_code, f"Status code is incorrect, " \
-                                                             f"expected {expected_status_code} " \
-                                                             f"but got {response.status_code}"
+        assert response.status_code == expected_status_code, f"UNEXPECTED RESPONSE {response.status_code}: " \
+                                                             f"{response.text}"
         return True
 
     def check_status_code(self, response: 'response type', expected_status_code: int) -> bool:
@@ -151,9 +160,8 @@ class GenericRequest:
                         expected_response: dict or str) -> bool:
         """Check a given response has returned the expected key value pairs"""
 
-        assert self.check_status_code(response, expected_status_code), f"Status code is incorrect, " \
-                                                                       f"expected {expected_status_code} " \
-                                                                       f"but got {response.status_code}"
+        assert self.check_status_code(response, expected_status_code), \
+            f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"
 
         try:
             data = json.loads(response.text)
@@ -164,7 +172,7 @@ class GenericRequest:
                  ) for k, v in data.items()
             )
             actual_response.pop('message_id', None)
-            assert actual_response == expected_response, "Actual response is different from the expected response"
+            assert actual_response == expected_response, f"Expected: {expected_response} but got: {actual_response}"
         except json.JSONDecodeError:
             # Might be HTML
             # We need to get rid of the dynamic state here so we can compare the text to the stored value
@@ -180,6 +188,10 @@ class GenericRequest:
         self._validate_response(response)
         headers = [header.lower() for header in response.headers.keys()]
         return header_key.lower() in headers
+
+    @staticmethod
+    def get_headers(response: 'response type') -> dict:
+        return {k: v for k, v in response.headers.items()}
 
     @staticmethod
     def get_params_from_url(url: str) -> dict:
@@ -224,3 +236,10 @@ class GenericRequest:
             else:
                 url += f'&{param}'
         return url
+
+    @staticmethod
+    def convert_dict_into_params(obj: dict) -> str:
+        """Takes a dictionary and converts it into url parameters
+        e.g. the input: {'a':'A', 'b':'B'} will create the output: 'a=A&b=B'"""
+        if obj:
+            return urlencode(obj)

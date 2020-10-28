@@ -1,5 +1,9 @@
 from .environments import ENV
+from pathlib import Path
+from os import getcwd
 
+# api_test directory
+HOME = Path(getcwd()).parent.parent
 
 # Api details
 APIGEE_CLIENT_ID = ENV['oauth']['apigee_client_id']
@@ -27,6 +31,9 @@ AUTHENTICATE_URL = ENV['oauth']['authenticate_url']
 
 # Test API
 API_URL = ENV['hello_world']['api_url']
+
+JWT_PRIVATE_KEY = "jwtRS512.key"
+JWT_APP_KEY = "CBsAY4Ga4NAONRc9mHBYUH9tJCA2I7R9"
 
 # Endpoints
 ENDPOINTS = {

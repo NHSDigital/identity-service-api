@@ -12,6 +12,16 @@ def _get_parametrized_values(request):
 
 
 @pytest.fixture()
+def get_token_using_jwt(request):
+    """Get a token using a signed JWT and assign it to the test instance"""
+    oauth_endpoints = CheckOauth()
+    jwt = oauth_endpoints.create_jwt(kid="test-rs512", secret_key="jwtRS512.key")
+    response = oauth_endpoints.get_jwt_token_response(jwt)
+    setattr(request.cls, 'jwt_signed_token', response['access_token'])
+    setattr(request.cls, 'jwt_response', response)
+
+
+@pytest.fixture()
 def get_token(request):
     """Get the token and assign it to the test instance"""
     oauth_endpoints = CheckOauth()
