@@ -37,7 +37,7 @@ class CheckOauth(GenericRequest):
     @staticmethod
     def create_jwt(kid: str, secret_key: str, algorithm: str = "RS512", claims: dict = None) -> bytes:
         from datetime import datetime
-        with open(f"{config.HOME}/keys/{secret_key}", "r") as priv:
+        with open(f"{config.PRIVATE_KEY_DIR}/{secret_key}", "r") as priv:
             private_key = priv.read()
 
         if not claims:

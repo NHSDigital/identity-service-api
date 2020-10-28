@@ -2,8 +2,6 @@ from .environments import ENV
 from pathlib import Path
 from os import getcwd
 
-# api_test directory
-HOME = Path(getcwd()).parent.parent
 
 # Api details
 APIGEE_CLIENT_ID = ENV['oauth']['apigee_client_id']
@@ -33,6 +31,7 @@ AUTHENTICATE_URL = ENV['oauth']['authenticate_url']
 HELLO_WORLD_API_URL = ENV['hello_world']['api_url']
 
 # JWT config
+PRIVATE_KEY_DIR = ENV['jwt']['key_directory']  # private key directory
 JWT_PRIVATE_KEY = ENV['jwt']['private_key']
 JWT_APP_KEY = ENV['jwt']['app_key']
 JWT_APP_KEY_WITH_INVALID_JWKS_URL = "kstRcl8syAA0CRqFeRBaMG0GiXgLBR2i"

@@ -47,5 +47,6 @@ ENV = {
     "jwt": {
         'app_key': get_env('JWT_APP_KEY'),
         'private_key': get_env('JWT_PRIVATE_KEY', "jwtRS512.key"),
+        'key_directory': get_env('PRIVATE_KEY_DIRECTORY')
     },
 }
