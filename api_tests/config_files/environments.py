@@ -38,7 +38,7 @@ ENV = {
         'api_authentication': get_env('APIGEE_API_AUTHENTICATION'),
     },
     'hello_world': {
-        'api_url': get_env('API_URL'),
+        'api_url': get_env('HELLO_WORLD_API_URL'),
     },
     'pds': {
         'base_url': get_env('PDS_BASE_URL'),

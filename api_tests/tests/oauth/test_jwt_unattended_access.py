@@ -14,7 +14,7 @@ class TestJwtUnattendedAccessSuite:
     def test_request_with_jwt_access_token(self):
         assert self.oauth.check_endpoint(
             verb='GET',
-            endpoint='api',
+            endpoint='hello_world',
             expected_status_code=200,
             expected_response={"message": "hello user!"},
             headers={
@@ -271,7 +271,7 @@ class TestJwtUnattendedAccessSuite:
         # Check refresh token still works after access token has expired
         assert self.oauth.check_endpoint(
             verb='GET',
-            endpoint='api',
+            endpoint='hello_world',
             expected_status_code=401,
             expected_response={
                 'fault': {
@@ -432,3 +432,13 @@ class TestJwtUnattendedAccessSuite:
         assert self.oauth.check_jwt_token_response(
             jwt=self.oauth.modified_jwt(jwt_component_name),
             expected_response=expected_response)
+
+    def test_invalid_jwks_resource_url(self):
+        config.JWT_APP_KEY = config.JWT_APP_KEY_WITH_INVALID_JWKS_URL
+        assert self.oauth.check_jwt_token_response(
+            jwt=self.oauth.create_jwt(kid='test-rs512', secret_key='jwtRS512.key'),
+            expected_response={'error': 'unknown_error',
+                               'error_description': 'An unknown error occurred processing this request. '
+                                                    'Contact us for assistance diagnosing this issue: '
+                                                    'https://digital.nhs.uk/developer/help-and-support '
+                                                    'quoting Message ID'})
