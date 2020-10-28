@@ -43,5 +43,9 @@ ENV = {
     'pds': {
         'base_url': get_env('PDS_BASE_URL'),
         'proxy_name': get_env('PDS_PROXY'),
-    }
+    },
+    "jwt": {
+        'app_key': get_env('JWT_APP_KEY'),
+        'private_key': get_env('JWT_PRIVATE_KEY', "jwtRS512.key"),
+    },
 }

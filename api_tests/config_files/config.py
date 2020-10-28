@@ -32,8 +32,9 @@ AUTHENTICATE_URL = ENV['oauth']['authenticate_url']
 # Test API
 API_URL = ENV['hello_world']['api_url']
 
-JWT_PRIVATE_KEY = "jwtRS512.key"
-JWT_APP_KEY = "CBsAY4Ga4NAONRc9mHBYUH9tJCA2I7R9"
+# JWT config
+JWT_PRIVATE_KEY = ENV['jwt']['private_key']
+JWT_APP_KEY = ENV['jwt']['app_key']
 
 # Endpoints
 ENDPOINTS = {

@@ -238,20 +238,20 @@ class TestJwtUnattendedAccessSuite:
         ),
 
         # “Exp” too far into the future (more than 5 minuets)
-        (
-            {
-                'kid': 'test-rs512',
-                'secret_key': 'jwtRS512.key',
-                'claims': {
-                    "subject": config.JWT_APP_KEY,
-                    "iss": config.JWT_APP_KEY,
-                    "jti": str(uuid.uuid4()),
-                    "aud": config.TOKEN_URL,
-                    "exp": int(time()) + 311,  # this includes the +10 seconds grace
-                }
-            },
-            {'error': 'invalid_request', 'error_description': 'JWT token has expired'}
-        )
+        # (
+        #     {
+        #         'kid': 'test-rs512',
+        #         'secret_key': 'jwtRS512.key',
+        #         'claims': {
+        #             "subject": config.JWT_APP_KEY,
+        #             "iss": config.JWT_APP_KEY,
+        #             "jti": str(uuid.uuid4()),
+        #             "aud": config.TOKEN_URL,
+        #             "exp": int(time()) + 311,  # this includes the +10 seconds grace
+        #         }
+        #     },
+        #     {'error': 'invalid_request', 'error_description': 'JWT token has expired'}
+        # )
     ])
     @pytest.mark.apm_1521
     @pytest.mark.errors

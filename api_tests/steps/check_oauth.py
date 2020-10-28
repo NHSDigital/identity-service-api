@@ -48,10 +48,6 @@ class CheckOauth(GenericRequest):
                 "aud": config.TOKEN_URL,
                 "exp": int(time()) + 5,
             }
-        # x = time()
-        # y = datetime.fromtimestamp(x)
-        #
-        # z = datetime.fromtimestamp(int(claims['exp']))
 
         additional_headers = ({}, {"kid": kid})[kid is not None]
         return jwt.encode(claims, private_key, algorithm=algorithm, headers=additional_headers)
