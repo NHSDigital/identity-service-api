@@ -5,7 +5,7 @@
     <Payload contentType="application/json">
       {
         "error": "invalid_request",
-        "error_message": "No matching public key",
+        "error_message": "Invalid 'kid' header in JWT - no matching public key",
         "message_id": "{messageid}"
       }
 </Payload>
