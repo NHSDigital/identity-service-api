@@ -409,6 +409,15 @@
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "refresh_token")</Condition>
         </Flow>
+        <Flow name="Flow.MissingGrantType">
+            <Description>Flow to check grant_type is present</Description>
+            <Response>
+                <Step>
+                    <Name>RaiseFault.MissingGrantType</Name>
+                </Step>
+            </Response>
+            <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type Is null)</Condition>
+        </Flow>
         <Flow name="Flow.GetCallback">
             <Description>Flow to catch the Code response</Description>
             <Request>
