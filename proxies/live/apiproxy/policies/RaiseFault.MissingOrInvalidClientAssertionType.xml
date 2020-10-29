@@ -4,7 +4,7 @@
       <Payload contentType="application/json">
             {
               "error": "invalid_request",
-              "error_description": "client_assertion_type form param is required. (Supported value for Client Credentials Grant is 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer')",
+              "error_description": "Missing or invalid client_assertion_type - must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
               "message_id": "{messageid}"
             }
 </Payload>
