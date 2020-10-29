@@ -1,0 +1,14 @@
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.PublicKeyMisconfigured">
+    <DisplayName>Public Key Misconfigured</DisplayName>
+    <Set>
+        <Payload contentType="application/json">
+          {
+            "error": "public_key error",
+            "error_description": "Misconfigured public key - contact us",
+            "message_id": "{messageid}"
+          }
+        </Payload>
+    </Set>
+    <AssignTo createNew="false" transport="https" type="request"/>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</AssignMessage>
