@@ -4,7 +4,7 @@
       <Payload contentType="application/json">
         {
           "error": "invalid_request",
-          "error_description": "exp claim missing",
+          "error_description": "Missing exp claim in JWT",
           "message_id": "{messageid}"
         }
 </Payload>
