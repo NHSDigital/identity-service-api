@@ -4,7 +4,7 @@
       <Payload contentType="application/json">
         {
           "error": "invalid_request",
-          "error_description": "iss/sub claims missing or invalid (should be same)",
+          "error_description": "Missing or non-matching iss/sub claims in JWT",
           "message_id": "{messageid}"
         }
 </Payload>
