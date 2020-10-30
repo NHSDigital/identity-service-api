@@ -4,7 +4,7 @@
       <Payload contentType="application/json">
         {
           "error": "invalid_request",
-          "error_description": "invalid_request, Invalid 'typ' header in JWT - must be 'JWT'",
+          "error_description": "Invalid 'typ' header in JWT - must be 'JWT'",
           "message_id": "{messageid}"
         }
 </Payload>
