@@ -29,6 +29,12 @@
           <Name>AssignMessage.FailedToDecodeJWTError</Name>
         </Step>
       </FaultRule>
+      <FaultRule name="jtw_missing_alg">
+        <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToDecode") And (error.message Equals "Invalid JWS header: Missing JSON object member with key \"alg\"")</Condition>
+        <Step>
+          <Name>AssignMessage.MissingAlgHeader</Name>
+        </Step>
+      </FaultRule>
       <FaultRule name="missing_client_assertion">
         <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToResolveVariable")</Condition>
         <Step>
