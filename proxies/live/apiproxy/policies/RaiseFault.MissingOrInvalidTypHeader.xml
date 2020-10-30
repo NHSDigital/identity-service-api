@@ -1,0 +1,16 @@
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.MissingOrInvalidTypHeader">
+  <FaultResponse>
+    <Set>
+      <Payload contentType="application/json">
+        {
+          "error": "invalid_request",
+          "error_description": "invalid_request, Invalid 'typ' header in JWT - must be 'JWT'",
+          "message_id": "{messageid}"
+        }
+</Payload>
+      <StatusCode>400</StatusCode>
+      <ReasonPhrase>Bad Request</ReasonPhrase>
+    </Set>
+  </FaultResponse>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</RaiseFault>

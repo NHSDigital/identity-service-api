@@ -148,6 +148,10 @@
             <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Is null) Or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Equals "")</Condition>
           </Step>
           <Step>
+            <Name>RaiseFault.MissingOrInvalidTypHeader</Name>
+            <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.typ Is null) Or (Not(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.typ EqualsCaseInsensitive "jwt"))</Condition>
+          </Step>
+          <Step>
             <Name>RaiseFault.MissingOrInvalidIssClaim</Name>
             <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss Equals "") or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss NotEquals jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.sub)</Condition>
           </Step>
