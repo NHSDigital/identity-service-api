@@ -38,10 +38,15 @@ ENV = {
         'api_authentication': get_env('APIGEE_API_AUTHENTICATION'),
     },
     'hello_world': {
-        'api_url': get_env('API_URL'),
+        'api_url': get_env('HELLO_WORLD_API_URL'),
     },
     'pds': {
         'base_url': get_env('PDS_BASE_URL'),
         'proxy_name': get_env('PDS_PROXY'),
-    }
+    },
+    "jwt": {
+        'app_key': get_env('JWT_APP_KEY'),
+        'private_key': get_env('JWT_PRIVATE_KEY', "jwtRS512.key"),
+        'key_directory': get_env('PRIVATE_KEY_DIRECTORY')
+    },
 }

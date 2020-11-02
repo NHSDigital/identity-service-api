@@ -19,7 +19,7 @@ steps:
       export CLIENT_SECRET="$(CLIENT_SECRET)"
       export REDIRECT_URI="https://nhsd-apim-testing-internal-dev.herokuapp.com/callback"
       export AUTHENTICATE_URL="https://nhsd-apim-testing-$(APIGEE_ENVIRONMENT).herokuapp.com/"
-      export API_URL="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk/hello-world/hello/user"
+      export HELLO_WORLD_API_URL="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk/hello-world/hello/user"
       export APIGEE_CLIENT_ID="969567331415.apps.national"
       export APIGEE_API_AUTHENTICATION="$(secret.AccessToken)"
       export APIGEE_API_URL="https://api.enterprise.apigee.com/v1/organizations/nhsd-nonprod"
@@ -31,6 +31,7 @@ steps:
       export VALID_ASID_CLIENT_SECRET="$(INTERNAL_TESTING_WITH_VALID_ASID_SECRET)"
       export MISSING_ASID_CLIENT_ID="$(INTERNAL_TESTING_WITHOUT_ASID_KEY)"
       export MISSING_ASID_CLIENT_SECRET="$(INTERNAL_TESTING_WITHOUT_ASID_SECRET)"
+      export JWT_APP_KEY="$(JWT_APP_KEY)"
 
       pytest -v --junitxml=test-report.xml
     workingDirectory: $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests

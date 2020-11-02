@@ -1,4 +1,6 @@
 from .environments import ENV
+from pathlib import Path
+from os import getcwd
 
 
 # Api details
@@ -25,15 +27,21 @@ REDIRECT_URI = ENV['oauth']['redirect_uri']
 # Authentication provider (Simulated OAuth)
 AUTHENTICATE_URL = ENV['oauth']['authenticate_url']
 
-# Test API
-API_URL = ENV['hello_world']['api_url']
+# Test API (Hwllo World)
+HELLO_WORLD_API_URL = ENV['hello_world']['api_url']
+
+# JWT config
+PRIVATE_KEY_DIR = ENV['jwt']['key_directory']  # private key directory
+JWT_PRIVATE_KEY = ENV['jwt']['private_key']
+JWT_APP_KEY = ENV['jwt']['app_key']
+JWT_APP_KEY_WITH_INVALID_JWKS_URL = "kstRcl8syAA0CRqFeRBaMG0GiXgLBR2i"
 
 # Endpoints
 ENDPOINTS = {
     'authorize': AUTHORIZE_URL,
     'token': TOKEN_URL,
     'authenticate': AUTHENTICATE_URL,
-    'api': API_URL,
+    'hello_world': HELLO_WORLD_API_URL,
     'pds': PDS_API,
 }
 

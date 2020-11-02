@@ -1,6 +1,9 @@
 from api_tests.scripts.generic_request import GenericRequest
 from api_tests.config_files import config
 from api_tests.scripts.authenticator import Authenticator
+import jwt  # pyjwt
+import uuid
+from time import time
 
 
 class CheckOauth(GenericRequest):
@@ -30,3 +33,60 @@ class CheckOauth(GenericRequest):
 
         response = self.post(self.endpoints['token'], data=data)
         return self.get_all_values_from_json_response(response)
+
+    @staticmethod
+    def create_jwt(kid: str, secret_key: str, algorithm: str = "RS512", claims: dict = None) -> bytes:
+        from datetime import datetime
+        with open(f"{config.PRIVATE_KEY_DIR}/{secret_key}", "r") as priv:
+            private_key = priv.read()
+
+        if not claims:
+            claims = {
+                "subject": config.JWT_APP_KEY,
+                "iss": config.JWT_APP_KEY,
+                "jti": str(uuid.uuid4()),
+                "aud": config.TOKEN_URL,
+                "exp": int(time()) + 5,
+            }
+
+        additional_headers = ({}, {"kid": kid})[kid is not None]
+        return jwt.encode(claims, private_key, algorithm=algorithm, headers=additional_headers)
+
+    def get_jwt_token_response(self, jwt: bytes, form_data: dict = None) -> dict:
+        if not form_data:
+            form_data = {
+                "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                "client_assertion": jwt,
+                "grant_type": "client_credentials",
+            }
+        else:
+            if 'client_assertion' not in form_data.keys():
+                form_data['client_assertion'] = jwt
+            elif form_data['client_assertion'] is None:
+                del form_data['client_assertion']
+        response = self.post(config.TOKEN_URL, data=form_data)
+        return self.get_all_values_from_json_response(response)
+
+    def modified_jwt(self, jwt_component_name: str) -> bytes:
+        if jwt_component_name not in ['header', 'data', 'signature']:
+            raise ValueError("jwt_component_name is not Valid, must be either header, data or signature")
+
+        _jwt = self.create_jwt(kid='test-rs512', secret_key='jwtRS512.key')
+        jwt_components = _jwt.decode("utf-8").split('.')
+
+        index = 0
+
+        if jwt_component_name == 'data':
+            index = 1
+        elif jwt_component_name == 'signature':
+            index = 2
+
+        jwt_components[index] = jwt_components[index] + 'invalid'
+        _jwt = '.'.join(jwt_components).encode('utf-8')
+        return _jwt
+
+    def check_jwt_token_response(self, jwt: bytes, expected_response: dict, form_data: dict = None):
+        response = self.get_jwt_token_response(jwt, form_data)
+        _ = response.pop('message_id', None)
+        assert response == expected_response, f"UNEXPECTED RESPONSE {response}"
+        return True
