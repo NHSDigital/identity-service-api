@@ -40,7 +40,7 @@ class TestJwtUnattendedAccessSuite:
                 'kid': 'test-rs512',
                 'secret_key': 'jwtRS512.key',
                 'claims': {
-                    "subject": 'INVALID',
+                    "sub": 'INVALID',
                     "iss": 'INVALID',
                     "jti": str(uuid.uuid4()),
                     "aud": config.TOKEN_URL,
@@ -50,13 +50,13 @@ class TestJwtUnattendedAccessSuite:
             {'error': 'invalid_request', 'error_message': 'invalid sub/iss claims'}
         ),
 
-        # Invalid “subject” in jwt claims and different from “iss”
+        # Invalid “sub” in jwt claims and different from “iss”
         (
             {
                 'kid': 'test-rs512',
                 'secret_key': 'jwtRS512.key',
                 'claims': {
-                    "subject": 'INVALID',
+                    "sub": 'INVALID',
                     "iss": config.JWT_APP_KEY,
                     "jti": str(uuid.uuid4()),
                     "aud": config.TOKEN_URL,
@@ -66,13 +66,13 @@ class TestJwtUnattendedAccessSuite:
             {'error': 'invalid_request', 'error_description': 'iss/sub claims missing or invalid (should be same)'}
         ),
 
-        #  Invalid “iss” in jwt claims and different from “subject"
+        #  Invalid “iss” in jwt claims and different from “sub"
         (
             {
                 'kid': 'test-rs512',
                 'secret_key': 'jwtRS512.key',
                 'claims': {
-                    "subject": config.JWT_APP_KEY,
+                    "sub": config.JWT_APP_KEY,
                     "iss": 'INVALID',
                     "jti": str(uuid.uuid4()),
                     "aud": config.TOKEN_URL,
@@ -82,7 +82,7 @@ class TestJwtUnattendedAccessSuite:
             {'error': 'invalid_request', 'error_description': 'iss/sub claims missing or invalid (should be same)'}
         ),
 
-        # Missing “subject” in jwt claims
+        # Missing “sub” in jwt claims
         (
             {
                 'kid': 'test-rs512',
@@ -103,7 +103,7 @@ class TestJwtUnattendedAccessSuite:
                 'kid': 'test-rs512',
                 'secret_key': 'jwtRS512.key',
                 'claims': {
-                    "subject": config.JWT_APP_KEY,
+                    "sub": config.JWT_APP_KEY,
                     "jti": str(uuid.uuid4()),
                     "aud": config.TOKEN_URL,
                     "exp": int(time()) + 10,
@@ -118,7 +118,7 @@ class TestJwtUnattendedAccessSuite:
                 'kid': 'test-rs512',
                 'secret_key': 'jwtRS512.key',
                 'claims': {
-                    "subject": config.JWT_APP_KEY,
+                    "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
                     "jti": 1234567890,
                     "aud": config.TOKEN_URL,
@@ -134,7 +134,7 @@ class TestJwtUnattendedAccessSuite:
                 'kid': 'test-rs512',
                 'secret_key': 'jwtRS512.key',
                 'claims': {
-                    "subject": config.JWT_APP_KEY,
+                    "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
                     "aud": config.TOKEN_URL,
                     "exp": int(time()) + 10,
@@ -149,7 +149,7 @@ class TestJwtUnattendedAccessSuite:
                 'kid': 'test-rs512',
                 'secret_key': 'jwtRS512.key',
                 'claims': {
-                    "subject": config.JWT_APP_KEY,
+                    "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
                     "jti": '6cd46139-af51-4f78-b850-74fcdf70c75b',
                     "aud": config.TOKEN_URL,
@@ -165,7 +165,7 @@ class TestJwtUnattendedAccessSuite:
                 'kid': 'test-rs512',
                 'secret_key': 'jwtRS512.key',
                 'claims': {
-                    "subject": config.JWT_APP_KEY,
+                    "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
                     "jti": str(uuid.uuid4()),
                     "aud": config.TOKEN_URL + 'INVALID',
@@ -181,7 +181,7 @@ class TestJwtUnattendedAccessSuite:
                 'kid': 'test-rs512',
                 'secret_key': 'jwtRS512.key',
                 'claims': {
-                    "subject": config.JWT_APP_KEY,
+                    "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
                     "jti": str(uuid.uuid4()),
                     "exp": int(time()) + 10,
@@ -196,7 +196,7 @@ class TestJwtUnattendedAccessSuite:
                 'kid': 'test-rs512',
                 'secret_key': 'jwtRS512.key',
                 'claims': {
-                    "subject": config.JWT_APP_KEY,
+                    "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
                     "jti": str(uuid.uuid4()),
                     "aud": config.TOKEN_URL,
@@ -212,7 +212,7 @@ class TestJwtUnattendedAccessSuite:
                 'kid': 'test-rs512',
                 'secret_key': 'jwtRS512.key',
                 'claims': {
-                    "subject": config.JWT_APP_KEY,
+                    "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
                     "jti": str(uuid.uuid4()),
                     "aud": config.TOKEN_URL,
@@ -227,7 +227,7 @@ class TestJwtUnattendedAccessSuite:
                 'kid': 'test-rs512',
                 'secret_key': 'jwtRS512.key',
                 'claims': {
-                    "subject": config.JWT_APP_KEY,
+                    "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
                     "jti": str(uuid.uuid4()),
                     "aud": config.TOKEN_URL,
@@ -238,20 +238,20 @@ class TestJwtUnattendedAccessSuite:
         ),
 
         # “Exp” too far into the future (more than 5 minuets)
-        # (
-        #     {
-        #         'kid': 'test-rs512',
-        #         'secret_key': 'jwtRS512.key',
-        #         'claims': {
-        #             "subject": config.JWT_APP_KEY,
-        #             "iss": config.JWT_APP_KEY,
-        #             "jti": str(uuid.uuid4()),
-        #             "aud": config.TOKEN_URL,
-        #             "exp": int(time()) + 311,  # this includes the +10 seconds grace
-        #         }
-        #     },
-        #     {'error': 'invalid_request', 'error_description': 'JWT token has expired'}
-        # )
+        (
+            {
+                'kid': 'test-rs512',
+                'secret_key': 'jwtRS512.key',
+                'claims': {
+                    "sub": config.JWT_APP_KEY,
+                    "iss": config.JWT_APP_KEY,
+                    "jti": str(uuid.uuid4()),
+                    "aud": config.TOKEN_URL,
+                    "exp": int(time()) + 500,  # this includes the +10 seconds grace
+                }
+            },
+            {'error': 'invalid_request', 'error_description': 'JWT token has expired'}
+        )
     ])
     @pytest.mark.apm_1521
     @pytest.mark.errors

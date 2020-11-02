@@ -42,7 +42,7 @@ class CheckOauth(GenericRequest):
 
         if not claims:
             claims = {
-                "subject": config.JWT_APP_KEY,
+                "sub": config.JWT_APP_KEY,
                 "iss": config.JWT_APP_KEY,
                 "jti": str(uuid.uuid4()),
                 "aud": config.TOKEN_URL,
