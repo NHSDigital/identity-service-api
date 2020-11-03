@@ -3,7 +3,7 @@
   <Scope>Application</Scope>
   <CacheKey>
     <Prefix>jti</Prefix>
-    <KeyFragment ref="jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.subject" /> <!-- Client ID -->
+    <KeyFragment ref="jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.sub" /> <!-- Client ID -->
     <KeyFragment ref="jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti" />
   </CacheKey>
   <ExpirySettings>
