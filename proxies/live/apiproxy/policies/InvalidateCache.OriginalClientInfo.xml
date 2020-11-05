@@ -3,7 +3,7 @@
         <KeyFragment ref="request.queryparam.state"/>
         <KeyFragment>original_client</KeyFragment>
     </CacheKey>
-    <CacheResource>client_state</CacheResource>
+    <CacheResource>client-state</CacheResource>
     <Scope>Exclusive</Scope>
     <CacheContext>
         <APIProxyName>application_that_added_the_entry</APIProxyName>
