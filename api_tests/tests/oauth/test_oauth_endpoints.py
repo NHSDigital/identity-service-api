@@ -19,7 +19,7 @@ class TestOauthEndpointSuite:
     def switch_to_application():
         config.CLIENT_ID = ENV['oauth']['client_id']
         config.CLIENT_SECRET = ENV['oauth']['client_secret']
-        config.REDIRECT_URI = "https://example.com/callback"
+        config.REDIRECT_URI = ENV['oauth']['redirect_uri']
 
     @pytest.mark.apm_801
     @pytest.mark.happy_path
