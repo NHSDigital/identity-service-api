@@ -1,0 +1,14 @@
+<InvalidateCache async="false" continueOnError="false" enabled="true" name="InvalidateCache.OriginalClientInfo">
+    <CacheKey>
+        <KeyFragment ref="request.queryparam.state"/>
+        <KeyFragment>original_client</KeyFragment>
+    </CacheKey>
+    <CacheResource>client_state</CacheResource>
+    <Scope>Exclusive</Scope>
+    <CacheContext>
+        <APIProxyName>application_that_added_the_entry</APIProxyName>
+        <ProxyName>proxy_for_which_data_was_cached</ProxyName>
+        <TargetName>endpoint_for_which_data_was_cached</TargetName>
+    </CacheContext>
+    <PurgeChildEntries>true</PurgeChildEntries>
+</InvalidateCache>
