@@ -116,7 +116,8 @@ class GenericRequest:
         return response.status_code == expected_status_code
 
     def check_endpoint(self, verb: str, endpoint: str, expected_status_code: int,
-                       expected_response: dict or str or list, **kwargs) -> bool:
+                       expected_response: dict or str or list, return_response: bool = False,
+                       **kwargs) -> bool or object:
         """Check a given request is returning the expected values. NOTE the expected response can be either a dict,
         a string or a list this is because we can expect either json, html or a list of keys from a json response
         respectively."""
@@ -125,12 +126,14 @@ class GenericRequest:
         if type(expected_response) is list:
             assert self.verify_response_keys(response, expected_status_code, expected_keys=expected_response), \
                 f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"
-            return True
+            return True if not return_response else response
 
         # Check response
-        assert self.verify_response(response, expected_status_code, expected_response=expected_response), \
+        redirected = kwargs['allow_redirects'] if 'allow_redirects' in kwargs else True
+        assert self.verify_response(response, expected_status_code, expected_response=expected_response,
+                                    redirected=redirected), \
             f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"
-        return True
+        return True if not return_response else response
 
     def check_response_history(self, verb: str, endpoint: str,
                                expected_redirects: dict, **kwargs) -> bool:
@@ -148,12 +151,16 @@ class GenericRequest:
         return True
 
     def verify_response(self, response: 'response type', expected_status_code: int,
-                        expected_response: dict or str) -> bool:
+                        expected_response: dict or str, redirected: bool) -> bool:
         """Check a given response has returned the expected key value pairs"""
 
         assert self.check_status_code(response, expected_status_code), f"Status code is incorrect, " \
                                                                        f"expected {expected_status_code} " \
                                                                        f"but got {response.status_code}"
+
+        if not redirected:
+            assert expected_response == response.text, "Actual response is different from the expected response"
+            return True
 
         try:
             data = json.loads(response.text)
