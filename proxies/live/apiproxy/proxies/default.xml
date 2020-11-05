@@ -190,6 +190,12 @@
             <!-- Needed because OAuthV2 'GenerateAccessToken' has to have the Client ID and Client Secret in a specific place -->
             <Name>AssignMessage.SetClientCredentials</Name>
           </Step>
+          <!-- Next step allows optional REDUCTION of access_token_expiry KVM values
+               using _access_token_expiry_ms form param -->
+          <Step>
+            <Name>AssignMessage.AccessTokenExpiryOverride</Name>
+            <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan private.apigee.access_token_expiry_ms)</Condition>
+          </Step>
           <Step>
             <Name>OAuthV2.ClientCredentialsGenerateAccessToken</Name>
           </Step>
