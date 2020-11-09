@@ -38,6 +38,7 @@ ENDPOINTS = {
     'token': TOKEN_URL,
     'authenticate': AUTHENTICATE_URL,
     'callback': CALLBACK_URL,
+    'sim_auth': SIM_AUTH_URL,
     'api': API_URL,
     'pds': PDS_API,
 }

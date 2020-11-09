@@ -64,25 +64,24 @@ class TestOauthEndpointSuite:
         )
 
     @pytest.mark.apm_1542
-    @pytest.mark.skip("Skipping as tests not finished")
     @pytest.mark.happy_path
     @pytest.mark.authorize_endpoint
-    @pytest.mark.token_endpoint
     def test_cache_scoping(self):
         """
         Test identity cache scoping:
             * Given i am authorizing
             * And sending two requests to the authorize endpoint
             * When using the same client_id
-            * When requesting an access token with the other state value
+            * When requesting an auth code with the other state value
             * Then it should return 200
         """
+
+        # Initialise authorize request number one
         response = self.oauth.check_and_return_endpoint(
             verb='GET',
             endpoint='authorize',
             expected_status_code=302,
             expected_response="",
-            return_response=True,
             params={
                 'client_id': config.CLIENT_ID,
                 'redirect_uri': config.REDIRECT_URI,
@@ -91,14 +90,14 @@ class TestOauthEndpointSuite:
             },
             allow_redirects=False
         )
-        state1 = self.oauth.get_param_from_url(url=response.headers["Location"], param="state")
+        request_1_state = self.oauth.get_param_from_url(url=response.headers["Location"], param="state")
 
+        # Initialise authorize request number two
         response = self.oauth.check_and_return_endpoint(
             verb='GET',
             endpoint='authorize',
             expected_status_code=302,
             expected_response="",
-            return_response=True,
             params={
                 'client_id': config.CLIENT_ID,
                 'redirect_uri': config.REDIRECT_URI,
@@ -107,37 +106,52 @@ class TestOauthEndpointSuite:
             },
             allow_redirects=False
         )
-        state2 = self.oauth.get_param_from_url(url=response.headers["Location"], param="state")
-        assert state1 != state2
+        request_2_state = self.oauth.get_param_from_url(url=response.headers["Location"], param="state")
 
-        assert self.oauth.check_endpoint(
+        # Verify state values are different
+        assert request_1_state != request_2_state
+
+        # Use state from request 2 as first request
+        response = self.oauth.check_and_return_endpoint(
             verb='POST',
-            endpoint='token',
-            expected_status_code=200,
-            expected_response=[
-                'access_token',
-                'expires_in',
-                'refresh_count',
-                'refresh_token',
-                'refresh_token_expires_in',
-                'token_type'
-            ],
-            data={
+            endpoint='sim_auth',
+            expected_status_code=302,
+            expected_response="",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data={"state": request_2_state},
+            params={
                 'client_id': config.CLIENT_ID,
-                'client_secret': config.CLIENT_SECRET,
                 'redirect_uri': config.REDIRECT_URI,
-                'grant_type': 'authorization_code',
-                'code': self.oauth.get_authenticated(),
-                'state': state1
+                'scope': 'openid',
+                'response_type': 'code',
+                'state': request_2_state
             },
+            allow_redirects=False
         )
+        auth_code = self.oauth.get_param_from_url(url=response.headers["Location"], param="code")
+        client_id = self.oauth.get_param_from_url(url=response.headers["Location"], param="client_id")
+
+        # Make callback request from request 2 state
+        response = self.oauth.check_and_return_endpoint(
+            verb='GET',
+            endpoint='callback',
+            expected_status_code=302,
+            expected_response="",
+            params={
+                'code': auth_code,
+                'client_id': client_id,
+                'state': request_2_state
+            },
+            allow_redirects=False
+        )
+        # Verify auth code is returned
+        assert self.oauth.get_param_from_url(url=response.headers["Location"], param="code")
 
     @pytest.mark.apm_1542
-    @pytest.mark.skip("Skipping as tests not finished")
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
     @pytest.mark.token_endpoint
-    def test_cache_scoping_error_conditions(self):
+    def test_cache_scoping_error_condition(self):
         """
         Test identity cache scoping:
             * Given i am authorizing
@@ -146,12 +160,13 @@ class TestOauthEndpointSuite:
             * When requesting an access token with the other state value
             * Then it should return 401
         """
+
+        # Initialise authorize request number one
         response = self.oauth.check_and_return_endpoint(
             verb='GET',
             endpoint='authorize',
             expected_status_code=302,
             expected_response="",
-            return_response=True,
             params={
                 'client_id': config.CLIENT_ID,
                 'redirect_uri': config.REDIRECT_URI,
@@ -160,50 +175,64 @@ class TestOauthEndpointSuite:
             },
             allow_redirects=False
         )
-        state1 = self.oauth.get_param_from_url(url=response.headers["Location"], param="state")
-        print(f"Client_id: {config.CLIENT_ID}, state: {state1}")
+        request_1_state = self.oauth.get_param_from_url(url=response.headers["Location"], param="state")
 
+        # Initialise authorize request number two as different application
         self.switch_to_valid_asid_application()
         response = self.oauth.check_and_return_endpoint(
             verb='GET',
             endpoint='authorize',
             expected_status_code=302,
             expected_response="",
-            return_response=True,
             params={
                 'client_id': config.CLIENT_ID,
                 'redirect_uri': config.REDIRECT_URI,
-                'response_type': 'code'
+                'response_type': 'code',
+                'state': '1234567890'
             },
             allow_redirects=False
         )
-        state2 = self.oauth.get_param_from_url(url=response.headers["Location"], param="state")
-        print(f"Client_id: {config.CLIENT_ID}, state: {state2}")
+        request_2_state = self.oauth.get_param_from_url(url=response.headers["Location"], param="state")
 
-        assert state1 != state2
+        # Verify state values are different
+        assert request_1_state != request_2_state
 
+        # Use state from request 2 as first request application
         self.switch_to_application()
-        assert self.oauth.check_endpoint(
+        response = self.oauth.check_and_return_endpoint(
             verb='POST',
-            endpoint='token',
-            expected_status_code=200,
-            expected_response=[
-                'access_token',
-                'expires_in',
-                'refresh_count',
-                'refresh_token',
-                'refresh_token_expires_in',
-                'token_type'
-            ],
-            data={
+            endpoint='sim_auth',
+            expected_status_code=302,
+            expected_response="",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data={"state": request_2_state},
+            params={
                 'client_id': config.CLIENT_ID,
-                'client_secret': config.CLIENT_SECRET,
                 'redirect_uri': config.REDIRECT_URI,
-                'grant_type': 'authorization_code',
-                'code': self.oauth.get_authenticated(),
-                'state': state2
+                'scope': 'openid',
+                'response_type': 'code',
+                'state': request_2_state
             },
+            allow_redirects=False
         )
+        auth_code = self.oauth.get_param_from_url(url=response.headers["Location"], param="code")
+        client_id = self.oauth.get_param_from_url(url=response.headers["Location"], param="client_id")
+
+        # Make callback request from request 2 state
+        response = self.oauth.check_and_return_endpoint(
+            verb='GET',
+            endpoint='callback',
+            expected_status_code=302,
+            expected_response="",
+            params={
+                'code': auth_code,
+                'client_id': client_id,
+                'state': request_2_state
+            },
+            allow_redirects=False
+        )
+        # Verify auth code is returned
+        assert self.oauth.get_param_from_url(url=response.headers["Location"], param="code")
 
     @pytest.mark.apm_801
     @pytest.mark.apm_990
