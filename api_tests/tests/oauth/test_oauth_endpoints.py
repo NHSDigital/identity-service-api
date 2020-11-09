@@ -3,6 +3,7 @@ from api_tests.scripts.response_bank import BANK
 from api_tests.config_files.environments import ENV
 import pytest
 import random
+import uuid
 
 
 @pytest.mark.usefixtures("setup")
@@ -77,6 +78,7 @@ class TestOauthEndpointSuite:
         """
 
         # Initialise authorize request number one
+        request_1_state1 = str(uuid.uuid4())
         response = self.oauth.check_and_return_endpoint(
             verb='GET',
             endpoint='authorize',
@@ -86,13 +88,14 @@ class TestOauthEndpointSuite:
                 'client_id': config.CLIENT_ID,
                 'redirect_uri': config.REDIRECT_URI,
                 'response_type': 'code',
-                'state': '1234567890'
+                'state': request_1_state1
             },
             allow_redirects=False
         )
-        request_1_state = self.oauth.get_param_from_url(url=response.headers["Location"], param="state")
+        response_1_state2 = self.oauth.get_param_from_url(url=response.headers["Location"], param="state")
 
         # Initialise authorize request number two
+        request_2_state1 = str(uuid.uuid4())
         response = self.oauth.check_and_return_endpoint(
             verb='GET',
             endpoint='authorize',
@@ -102,14 +105,16 @@ class TestOauthEndpointSuite:
                 'client_id': config.CLIENT_ID,
                 'redirect_uri': config.REDIRECT_URI,
                 'response_type': 'code',
-                'state': '1234567890'
+                'state': request_2_state1
             },
             allow_redirects=False
         )
-        request_2_state = self.oauth.get_param_from_url(url=response.headers["Location"], param="state")
+        response_2_state2 = self.oauth.get_param_from_url(url=response.headers["Location"], param="state")
 
-        # Verify state values are different
-        assert request_1_state != request_2_state
+        # Verify set states for state1 values are different
+        assert request_1_state1 != request_2_state1
+        # Verify returned state values are different
+        assert response_1_state2 != response_2_state2
 
         # Use state from request 2 as first request
         response = self.oauth.check_and_return_endpoint(
@@ -118,18 +123,17 @@ class TestOauthEndpointSuite:
             expected_status_code=302,
             expected_response="",
             headers={"Content-Type": "application/x-www-form-urlencoded"},
-            data={"state": request_2_state},
+            data={"state": response_2_state2},
             params={
                 'client_id': config.CLIENT_ID,
                 'redirect_uri': config.REDIRECT_URI,
                 'scope': 'openid',
                 'response_type': 'code',
-                'state': request_2_state
+                'state': response_2_state2
             },
             allow_redirects=False
         )
         auth_code = self.oauth.get_param_from_url(url=response.headers["Location"], param="code")
-        client_id = self.oauth.get_param_from_url(url=response.headers["Location"], param="client_id")
 
         # Make callback request from request 2 state
         response = self.oauth.check_and_return_endpoint(
@@ -139,13 +143,15 @@ class TestOauthEndpointSuite:
             expected_response="",
             params={
                 'code': auth_code,
-                'client_id': client_id,
-                'state': request_2_state
+                'client_id': config.CLIENT_ID,
+                'state': response_2_state2
             },
             allow_redirects=False
         )
-        # Verify auth code is returned
-        assert self.oauth.get_param_from_url(url=response.headers["Location"], param="code")
+        # Verify auth code is returned and state1 is returned
+        response_params = self.oauth.get_params_from_url(response.headers["Location"])
+        assert response_params["code"]
+        assert response_params["state"] == request_2_state1
 
     @pytest.mark.apm_1542
     @pytest.mark.errors
@@ -216,23 +222,20 @@ class TestOauthEndpointSuite:
             allow_redirects=False
         )
         auth_code = self.oauth.get_param_from_url(url=response.headers["Location"], param="code")
-        client_id = self.oauth.get_param_from_url(url=response.headers["Location"], param="client_id")
 
         # Make callback request from request 2 state
-        response = self.oauth.check_and_return_endpoint(
+        self.oauth.check_endpoint(
             verb='GET',
             endpoint='callback',
-            expected_status_code=302,
+            expected_status_code=401,
             expected_response="",
             params={
                 'code': auth_code,
-                'client_id': client_id,
+                'client_id': config.CLIENT_ID,
                 'state': request_2_state
             },
             allow_redirects=False
         )
-        # Verify auth code is returned
-        assert self.oauth.get_param_from_url(url=response.headers["Location"], param="code")
 
     @pytest.mark.apm_801
     @pytest.mark.apm_990
