@@ -415,3 +415,21 @@ class TestOauthEndpointSuite:
     @pytest.mark.skip(reason="Not implemented")
     def test_token_endpoint_with_invalid_authorization_code(self, request_data: dict):
         assert self.oauth.check_endpoint('POST', 'token', **request_data)
+
+    @pytest.mark.apm_1064
+    @pytest.mark.errors
+    @pytest.mark.callback_endpoint
+    @pytest.mark.parametrize('request_data', [
+        # condition 1: invalid client id
+        {
+            'expected_status_code': 401,
+            'expected_response': "",
+            'params': {
+                'code': "some-code",
+                'client_id': 'invalid-client-id',
+                'state': random.getrandbits(32)
+            },
+        },
+    ])
+    def test_callback_error_conditions(self, request_data: dict):
+        assert self.oauth.check_endpoint('GET', 'callback', **request_data)
