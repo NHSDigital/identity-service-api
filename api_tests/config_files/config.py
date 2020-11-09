@@ -6,6 +6,7 @@ APIGEE_CLIENT_ID = ENV['oauth']['apigee_client_id']
 BASE_URL = ENV['oauth']['base_url']
 AUTHORIZE_URL = f"{BASE_URL}/authorize"
 TOKEN_URL = f"{BASE_URL}/token"
+CALLBACK_URL = f"{BASE_URL}/callback"
 
 # Apigee API details
 APIGEE_API_URL = ENV['apigee']['base_url']
@@ -39,6 +40,7 @@ ENDPOINTS = {
     'authorize': AUTHORIZE_URL,
     'token': TOKEN_URL,
     'authenticate': AUTHENTICATE_URL,
+    'callback': CALLBACK_URL,
     'hello_world': HELLO_WORLD_API_URL,
     'pds': PDS_API,
 }
