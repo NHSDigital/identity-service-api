@@ -2,7 +2,7 @@ from api_tests.scripts.generic_request import GenericRequest
 from api_tests.config_files import config
 from api_tests.scripts.authenticator import Authenticator
 import jwt  # pyjwt
-import uuid
+from uuid import uuid4
 from time import time
 
 
@@ -43,7 +43,7 @@ class CheckOauth(GenericRequest):
             claims = {
                 "sub": config.JWT_APP_KEY,
                 "iss": config.JWT_APP_KEY,
-                "jti": str(uuid.uuid4()),
+                "jti": str(uuid4()),
                 "aud": config.TOKEN_URL,
                 "exp": int(time()) + 5,
             }

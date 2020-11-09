@@ -4,6 +4,7 @@ from urllib import parse
 import re
 from api_tests.config_files import config
 from urllib.parse import urlparse, urlencode
+from typing import Optional
 
 
 class GenericRequest:
@@ -191,7 +192,7 @@ class GenericRequest:
 
     @staticmethod
     def get_headers(response: requests.Response) -> dict:
-        return {k: v for k, v in response.headers.items()}
+        return dict(response.headers.items())
 
     @staticmethod
     def get_params_from_url(url: str) -> dict:
@@ -238,7 +239,7 @@ class GenericRequest:
         return url
 
     @staticmethod
-    def convert_dict_into_params(obj: dict) -> str:
+    def convert_dict_into_params(obj: dict) -> Optional[str]:
         """Takes a dictionary and converts it into url parameters
         e.g. the input: {'a':'A', 'b':'B'} will create the output: 'a=A&b=B'"""
         if obj:

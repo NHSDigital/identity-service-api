@@ -1,7 +1,7 @@
 from api_tests.scripts.generic_request import GenericRequest
 from api_tests.config_files import config
 import json
-import uuid
+from uuid import uuid4
 from requests import Response
 
 
@@ -12,7 +12,7 @@ class PdsRecord:
             self.response = response
         else:
             self.status_code = response.status_code
-            self.headers = {k: v for k, v in response.headers.items()}
+            self.headers = dict(response.headers.items())
             self.redirects = self._get_redirects(response)
             self.url = response.url
 
@@ -23,7 +23,7 @@ class PdsRecord:
 
         # if the response is a list of entries i.e. a response from a search
         if 'entry' in self.response:
-            self.records = [PdsRecord(entry) for entry in self.response['entry']]
+            self.records = [PdsRecord(entry) for entry in self.response.get('entry')]
 
         # if response is an error
         elif "issue" in self.response:
@@ -113,7 +113,7 @@ class PdsRequest(GenericRequest):
             self._headers = {
                 'Authorization': f'Bearer {token}',
                 'NHSD-Session-URID': 'ROLD-ID',
-                'X-Request-ID': str(uuid.uuid4()),
+                'X-Request-ID': str(uuid4()),
             }
 
         url = (f'{self.base_url}/Patient/{self.patient_id}',

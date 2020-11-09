@@ -63,8 +63,10 @@ class CheckPds(GenericRequest):
                                                                    f"{patient.record.response}"
         return True
 
-    def gender(self, token: str, patient_id: str):
+    @staticmethod
+    def update_patient_gender(token: str, patient_id: str):
         patient = PdsRequest(token, patient_id=patient_id, proxy="personal-demographics-pr-408")
         gender = ('male', 'female')[patient.record.gender == 'male']
         patient.patch_record(op='replace', path="/gender", value=gender)
+        assert patient.patched_record.gender == gender, "Failed to update Patient gender"
         return True

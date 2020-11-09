@@ -21,7 +21,8 @@ class TestAppRestrictedAccessSuite:
     """ A test suite to confirm the ASID for a PDS request is behaving as expected """
 
     @pytest.mark.errors
-    def test_patch_using_restricted_app(self, switch_to_application_restricted_app, get_long_token):
+    def test_patch_using_restricted_app(self, switch_to_application_restricted_app,
+                                        get_token_with_extra_long_expiry_time):
         assert self.pds.check_patch_error_response(
             token=self.token,
             patient_id='5900023656',
@@ -36,14 +37,9 @@ class TestAppRestrictedAccessSuite:
             }
         )
 
-    def test_gurdeep(self, switch_to_user_restricted_app, get_long_token):
-        assert self.pds.gender(
-            token=self.token,
-            patient_id='5900023656'
-        )
-
     @pytest.mark.happy_path
-    def test_retrieve_request_using_restricted_app(self, switch_to_application_restricted_app, get_long_token):
+    def test_retrieve_request_using_restricted_app(self, switch_to_application_restricted_app,
+                                                   get_token_with_extra_long_expiry_time):
         assert self.pds.check_retrieve_response_code(
             token=self.token,
             patient_id='5900023656',
@@ -51,7 +47,8 @@ class TestAppRestrictedAccessSuite:
         )
 
     @pytest.mark.happy_path
-    def test_search_using_restricted_app(self, switch_to_application_restricted_app, get_long_token):
+    def test_search_using_restricted_app(self, switch_to_application_restricted_app,
+                                         get_token_with_extra_long_expiry_time):
         assert self.pds.check_search_response(
             token=self.token,
             search_params={'family': 'Parisian', 'gender': 'female', 'birthdate': '2003-10-23'},
@@ -59,16 +56,14 @@ class TestAppRestrictedAccessSuite:
         )
 
     @pytest.mark.errors
-    def test_user_restricted_patch(self, switch_to_user_restricted_app, get_long_token):
-        assert self.pds.check_patch_response_code(
+    def test_user_restricted_patch(self, switch_to_user_restricted_app, get_token_with_extra_long_expiry_time):
+        assert self.pds.update_patient_gender(
             token=self.token,
-            patient_id='5900023656',
-            op='replace', path="/gender", value='female',
-            expected_status_code=202
+            patient_id='5900023656'
         )
 
     @pytest.mark.happy_path
-    def test_user_restricted_retrieve(self, switch_to_user_restricted_app, get_long_token):
+    def test_user_restricted_retrieve(self, switch_to_user_restricted_app, get_token_with_extra_long_expiry_time):
         assert self.pds.check_retrieve_response_code(
             token=self.token,
             patient_id='5900023656',
@@ -76,7 +71,7 @@ class TestAppRestrictedAccessSuite:
         )
 
     @pytest.mark.happy_path
-    def test_user_restricted_search(self, switch_to_user_restricted_app, get_long_token):
+    def test_user_restricted_search(self, switch_to_user_restricted_app, get_token_with_extra_long_expiry_time):
         assert self.pds.check_search_response(
             token=self.token,
             search_params={'family': 'Parisian', 'gender': 'female', 'birthdate': '2003-10-23'},

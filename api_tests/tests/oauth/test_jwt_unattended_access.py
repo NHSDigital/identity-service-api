@@ -1,6 +1,6 @@
 from api_tests.config_files import config
 import pytest
-import uuid
+from uuid import uuid4
 from time import time, sleep
 
 
@@ -46,7 +46,7 @@ class TestJwtUnattendedAccessSuite:
                 'claims': {
                     "sub": 'INVALID',
                     "iss": 'INVALID',
-                    "jti": str(uuid.uuid4()),
+                    "jti": str(uuid4()),
                     "aud": config.TOKEN_URL,
                     "exp": int(time()) + 10,
                 }
@@ -63,7 +63,7 @@ class TestJwtUnattendedAccessSuite:
                 'claims': {
                     "sub": 'INVALID',
                     "iss": config.JWT_APP_KEY,
-                    "jti": str(uuid.uuid4()),
+                    "jti": str(uuid4()),
                     "aud": config.TOKEN_URL,
                     "exp": int(time()) + 10,
                 }
@@ -80,7 +80,7 @@ class TestJwtUnattendedAccessSuite:
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": 'INVALID',
-                    "jti": str(uuid.uuid4()),
+                    "jti": str(uuid4()),
                     "aud": config.TOKEN_URL,
                     "exp": int(time()) + 10,
                 }
@@ -96,7 +96,7 @@ class TestJwtUnattendedAccessSuite:
                 'secret_key': 'jwtRS512.key',
                 'claims': {
                     "iss": config.JWT_APP_KEY,
-                    "jti": str(uuid.uuid4()),
+                    "jti": str(uuid4()),
                     "aud": config.TOKEN_URL,
                     "exp": int(time()) + 10,
                 }
@@ -112,7 +112,7 @@ class TestJwtUnattendedAccessSuite:
                 'secret_key': 'jwtRS512.key',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
-                    "jti": str(uuid.uuid4()),
+                    "jti": str(uuid4()),
                     "aud": config.TOKEN_URL,
                     "exp": int(time()) + 10,
                 }
@@ -179,7 +179,7 @@ class TestJwtUnattendedAccessSuite:
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
-                    "jti": str(uuid.uuid4()),
+                    "jti": str(uuid4()),
                     "aud": config.TOKEN_URL + 'INVALID',
                     "exp": int(time()) + 10,
                 }
@@ -196,7 +196,7 @@ class TestJwtUnattendedAccessSuite:
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
-                    "jti": str(uuid.uuid4()),
+                    "jti": str(uuid4()),
                     "exp": int(time()) + 10,
                 }
             },
@@ -212,7 +212,7 @@ class TestJwtUnattendedAccessSuite:
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
-                    "jti": str(uuid.uuid4()),
+                    "jti": str(uuid4()),
                     "aud": config.TOKEN_URL,
                     "exp": 'INVALID',
                 }
@@ -229,7 +229,7 @@ class TestJwtUnattendedAccessSuite:
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
-                    "jti": str(uuid.uuid4()),
+                    "jti": str(uuid4()),
                     "aud": config.TOKEN_URL,
                 }
             },
@@ -245,7 +245,7 @@ class TestJwtUnattendedAccessSuite:
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
-                    "jti": str(uuid.uuid4()),
+                    "jti": str(uuid4()),
                     "aud": config.TOKEN_URL,
                     "exp": int(time()) - 10,
                 }
@@ -262,7 +262,7 @@ class TestJwtUnattendedAccessSuite:
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
-                    "jti": str(uuid.uuid4()),
+                    "jti": str(uuid4()),
                     "aud": config.TOKEN_URL,
                     "exp": int(time()) + 315,  # this includes the +10 seconds grace
                 }

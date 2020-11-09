@@ -40,8 +40,8 @@ def get_refresh_token(request, get_token):
 
 
 @pytest.fixture()
-def get_long_token(request):
-    """Get the token and assign it to the test instance"""
+def get_token_with_extra_long_expiry_time(request):
+    """Useful for debugging and for tests that take longer and are require to reuse the token"""
     oauth_endpoints = CheckOauth()
     token = oauth_endpoints.get_token_response(timeout=500000)  # 5 minuets
     setattr(request.cls, 'token', token['access_token'])
