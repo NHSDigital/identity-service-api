@@ -35,7 +35,8 @@ class CheckOauth(GenericRequest):
         return self.get_all_values_from_json_response(response)
 
     @staticmethod
-    def create_jwt(kid: str, algorithm: str = "RS512", claims: dict = None, private_key=config.JWT_PRIVATE_KEY) -> bytes:
+    def create_jwt(kid: str, algorithm: str = "RS512", claims: dict = None,
+                   private_key=config.JWT_PRIVATE_KEY) -> bytes:
         if not claims:
             claims = {
                 "sub": config.JWT_APP_KEY,

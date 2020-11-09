@@ -170,7 +170,7 @@ class PdsRequest(GenericRequest):
 
         return payload, headers
 
-    def _poll_patch_request(self, location: str) -> 'PdsRecord Object':
+    def _poll_patch_request(self, location: str) -> PdsRecord:
         # Polling for fresh data
         response = self.get(f"{self.base_url}{location}",
                             headers=self._headers)

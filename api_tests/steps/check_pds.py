@@ -13,7 +13,8 @@ class CheckPds(GenericRequest):
         """Send a Get request to retrieve a patient from PDS"""
         return self.get(f'{config.PDS_API}/{patient_id}', **kwargs)
 
-    def check_asid_parameter(self, expected_status_code: int, expected_asid: list, patient_id: str, proxy: str, **kwargs) -> bool:
+    def check_asid_parameter(self, expected_status_code: int, expected_asid: list, patient_id: str, proxy: str,
+                             **kwargs) -> bool:
         """Check the ASID param is behaving as expected"""
         # Start debug session
         debug_session = ApigeeDebugApi(proxy=proxy)
@@ -59,7 +60,8 @@ class CheckPds(GenericRequest):
         # y = PdsRequest(patient_id, "5900018512", proxy="personal-demographics-pr-408") # sensitive
         # {'family':'Middleton', 'gender':'female', 'birthdate': '2000-01-01', 'given': 'Cynthia'}
         patient = PdsRequest(token, patient_id=patient_id, proxy="personal-demographics-pr-408")
-        assert patient.record.status_code == expected_status_code, f"UNEXPECTED RESPONSE {patient.record.status_code}: " \
+        assert patient.record.status_code == expected_status_code, f"UNEXPECTED RESPONSE " \
+                                                                   f"{patient.record.status_code}: " \
                                                                    f"{patient.record.response}"
         return True
 
