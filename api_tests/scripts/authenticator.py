@@ -1,13 +1,13 @@
+import uuid
+import requests
 from api_tests.config_files import config
 
 
 class Authenticator:
     def __init__(self, session):
         self.session = session
-        self.state = self._get_state()
 
-    def _get_state(self) -> str:
-        request_state = "1234567890"
+    def _get_state(self, request_state: str = str(uuid.uuid4())) -> str:
         params = {
             "client_id": config.CLIENT_ID,
             "redirect_uri": config.REDIRECT_URI,
@@ -25,19 +25,20 @@ class Authenticator:
             assert state != request_state
             return state
 
-    def authenticate(self) -> 'response type':
+    def authenticate(self) -> requests.Response:
+        request_state = self._get_state()
         params = {
             "response_type": "code",
             "client_id": config.CLIENT_ID,
             "redirect_uri": config.REDIRECT_URI,
             "scope": "openid",
-            "state": self.state
+            "state": request_state
         }
         headers = {
             "Content-Type": "application/x-www-form-urlencoded"
         }
         payload = {
-            "state": self.state
+            "state": request_state
         }
         with self.session.post(
             url=config.SIM_AUTH_URL,
@@ -52,7 +53,7 @@ class Authenticator:
             response.headers['Location'] = redirect_uri.replace("oauth2", config.IDENTITY_PROXY)
             return response
 
-    def get_code_from_provider(self, sign_in_response: 'response type') -> str:
+    def get_code_from_provider(self, sign_in_response: requests.Response) -> str:
         """Retrieve the code value from an authentication response"""
 
         callback_url = sign_in_response.headers.get('Location')

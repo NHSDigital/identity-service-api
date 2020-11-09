@@ -133,7 +133,7 @@ class GenericRequest:
         self._verify_status_code(expected_status_code)
         return response.status_code == expected_status_code
 
-    def check_endpoint(
+    def check_and_return_endpoint(
         self,
         verb: str,
         endpoint: str,
@@ -147,13 +147,47 @@ class GenericRequest:
         response = self.get_response(verb, endpoint, **kwargs)
 
         if type(expected_response) is list:
-            assert self.verify_response_keys(response, expected_status_code, expected_keys=expected_response), f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"  # type: ignore
+            assert self.verify_response_keys(response, expected_status_code, expected_keys=expected_response),\
+                f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"  # type: ignore
             return response
 
         # Check response
         redirected = kwargs["allow_redirects"] if "allow_redirects" in kwargs else True
-        assert self.verify_response(response, expected_status_code, expected_response=expected_response, redirected=redirected), f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"  # type: ignore
+        assert self.verify_response(
+            response, expected_status_code,
+            expected_response=expected_response,
+            redirected=redirected
+        ),\
+            f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"  # type: ignore
         return response
+
+    def check_endpoint(
+        self,
+        verb: str,
+        endpoint: str,
+        expected_status_code: int,
+        expected_response: Union[dict, str, list],
+        **kwargs,
+    ) -> bool:
+        """Check a given request is returning the expected values. NOTE the expected response can be either a dict,
+        a string or a list this is because we can expect either json, html or a list of keys from a json response
+        respectively."""
+        response = self.get_response(verb, endpoint, **kwargs)
+
+        if type(expected_response) is list:
+            assert self.verify_response_keys(response, expected_status_code, expected_keys=expected_response), \
+                f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"  # type: ignore
+            return True
+        # Check response
+        redirected = kwargs["allow_redirects"] if "allow_redirects" in kwargs else True
+        assert self.verify_response(
+            response,
+            expected_status_code,
+            expected_response=expected_response,
+            redirected=redirected
+        ), \
+            f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"  # type: ignore
+        return True
 
     def check_response_history(
         self, verb: str, endpoint: str, expected_redirects: dict, **kwargs
