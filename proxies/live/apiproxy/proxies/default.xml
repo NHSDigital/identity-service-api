@@ -417,10 +417,6 @@
             <Description>Flow to catch the Code response</Description>
             <Request>
                 <Step>
-                  <Name>RaiseFault.Unauthorized</Name>
-                  <Condition>request.queryparam.client_id NotEquals private.apigee.client_id</Condition>
-                </Step>
-                <Step>
                   <Name>LookupCache.OriginalClientInfo</Name>
                 </Step>
                 <Step>
@@ -428,6 +424,10 @@
                 </Step>
                 <Step>
                   <Name>VerifyAPIKey.FromJSON</Name>
+                </Step>
+                <Step>
+                  <Name>RaiseFault.Unauthorized</Name>
+                  <Condition>client_id NotEquals original_client_id</Condition>
                 </Step>
                 <Step>
                   <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJSON</Name>
