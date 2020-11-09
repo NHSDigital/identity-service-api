@@ -36,13 +36,12 @@ class CheckOauth(GenericRequest):
 
     @staticmethod
     def create_jwt(kid: str, secret_key: str, algorithm: str = "RS512", claims: dict = None) -> bytes:
-        from datetime import datetime
         with open(f"{config.PRIVATE_KEY_DIR}/{secret_key}", "r") as priv:
             private_key = priv.read()
 
         if not claims:
             claims = {
-                "subject": config.JWT_APP_KEY,
+                "sub": config.JWT_APP_KEY,
                 "iss": config.JWT_APP_KEY,
                 "jti": str(uuid.uuid4()),
                 "aud": config.TOKEN_URL,
@@ -52,7 +51,7 @@ class CheckOauth(GenericRequest):
         additional_headers = ({}, {"kid": kid})[kid is not None]
         return jwt.encode(claims, private_key, algorithm=algorithm, headers=additional_headers)
 
-    def get_jwt_token_response(self, jwt: bytes, form_data: dict = None) -> dict:
+    def get_jwt_token_response(self, jwt: bytes, form_data: dict = None) -> tuple:
         if not form_data:
             form_data = {
                 "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
@@ -65,7 +64,7 @@ class CheckOauth(GenericRequest):
             elif form_data['client_assertion'] is None:
                 del form_data['client_assertion']
         response = self.post(config.TOKEN_URL, data=form_data)
-        return self.get_all_values_from_json_response(response)
+        return self.get_all_values_from_json_response(response), response.status_code
 
     def modified_jwt(self, jwt_component_name: str) -> bytes:
         if jwt_component_name not in ['header', 'data', 'signature']:
@@ -85,8 +84,10 @@ class CheckOauth(GenericRequest):
         _jwt = '.'.join(jwt_components).encode('utf-8')
         return _jwt
 
-    def check_jwt_token_response(self, jwt: bytes, expected_response: dict, form_data: dict = None):
-        response = self.get_jwt_token_response(jwt, form_data)
+    def check_jwt_token_response(self, jwt: bytes, expected_response: dict, expected_status_code: int,
+                                 form_data: dict = None):
+        response, status_code = self.get_jwt_token_response(jwt, form_data)
         _ = response.pop('message_id', None)
-        assert response == expected_response, f"UNEXPECTED RESPONSE {response}"
+        assert response == expected_response, f"UNEXPECTED RESPONSE: {response}"
+        assert status_code == expected_status_code, f"UNEXPECTED STATUS CODE {status_code}"
         return True

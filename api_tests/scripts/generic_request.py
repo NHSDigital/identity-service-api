@@ -24,7 +24,7 @@ class GenericRequest:
                 raise Exception("Endpoint not found")
 
         # Verify http verb is valid
-        if verb.lower() not in ['post', 'get', 'put', 'patch']:
+        if verb.lower() not in {'post', 'get', 'put', 'patch'}:
             raise Exception(f"Verb: {verb} is invalid")
 
         func = (((self.get,  # else
