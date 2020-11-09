@@ -13,7 +13,7 @@ class GenericRequest:
         self.session = requests.Session()
         self.endpoints = config.ENDPOINTS
 
-    def get_response(self, verb: str, endpoint: str, **kwargs) -> 'response type':
+    def get_response(self, verb: str, endpoint: str, **kwargs) -> requests.Response:
         """Verify the arguments and then send a request and return the response"""
         try:
             url = self.endpoints[endpoint]
@@ -24,7 +24,7 @@ class GenericRequest:
                 raise Exception("Endpoint not found")
 
         # Verify http verb is valid
-        if verb.lower() not in ['post', 'get', 'put', 'patch']:
+        if verb.lower() not in {'post', 'get', 'put', 'patch'}:
             raise Exception(f"Verb: {verb} is invalid")
 
         func = (((self.get,  # else
@@ -45,7 +45,7 @@ class GenericRequest:
             return False
 
     @staticmethod
-    def _validate_response(response: 'response type') -> None:
+    def _validate_response(response: requests.Response) -> None:
         """Verifies the response provided is of a valid response type"""
         if not type(response) == requests.models.Response:
             raise TypeError("Expected response type object for response argument")
@@ -62,35 +62,35 @@ class GenericRequest:
             if len(str(status_code)) != 3:
                 raise TypeError('Status code must be a 3 digit number')
 
-    def get(self, url: str, **kwargs) -> 'response type':
+    def get(self, url: str, **kwargs) -> requests.Response:
         """Sends a get request and returns the response"""
         try:
             return self.session.get(url, **kwargs)
         except requests.ConnectionError:
             raise Exception(f"the url: {url} does not exist or is invalid")
 
-    def post(self, url: str, **kwargs) -> 'response type':
+    def post(self, url: str, **kwargs) -> requests.Response:
         """Sends a post request and returns the response"""
         try:
             return self.session.post(url, **kwargs)
         except requests.ConnectionError:
             raise Exception(f"the url: {url} does not exist or is invalid")
 
-    def put(self, url: str, **kwargs) -> 'response type':
+    def put(self, url: str, **kwargs) -> requests.Response:
         """Sends a put request and returns the response"""
         try:
             return self.session.put(url, **kwargs)
         except requests.ConnectionError:
             raise Exception(f"the url: {url} does not exist or is invalid")
 
-    def patch(self, url: str, **kwargs) -> 'response type':
+    def patch(self, url: str, **kwargs) -> requests.Response:
         """Sends a patch request and returns the response"""
         try:
             return self.session.patch(url, **kwargs)
         except requests.ConnectionError:
             raise Exception(f"the url: {url} does not exist or is invalid")
 
-    def get_redirects(self, response: 'response type') -> dict:
+    def get_redirects(self, response: requests.Response) -> dict:
         """Returns a list of response objects holding the history of request (url)"""
         self._validate_response(response)
 
@@ -100,7 +100,7 @@ class GenericRequest:
                 redirects[i] = {'status_code': resp.status_code, 'url': resp.url, 'headers': resp.headers}
         return redirects
 
-    def verify_response_keys(self, response: 'response type', expected_status_code: int, expected_keys: list) -> bool:
+    def verify_response_keys(self, response: requests.Response, expected_status_code: int, expected_keys: list) -> bool:
         """Check a given response is returning the correct keys.
         In case the content is dynamic we can only check the keys and not the values"""
         self._validate_response(response)
@@ -118,7 +118,7 @@ class GenericRequest:
                                                              f"{response.text}"
         return True
 
-    def check_status_code(self, response: 'response type', expected_status_code: int) -> bool:
+    def check_status_code(self, response: requests.Response, expected_status_code: int) -> bool:
         """Compare the actual and expected status code for a given response"""
         self._validate_response(response)
         self._verify_status_code(expected_status_code)
@@ -156,7 +156,7 @@ class GenericRequest:
             assert location == expected['headers']['Location'], "Location header not as expected"
         return True
 
-    def verify_response(self, response: 'response type', expected_status_code: int,
+    def verify_response(self, response: requests.Response, expected_status_code: int,
                         expected_response: dict or str) -> bool:
         """Check a given response has returned the expected key value pairs"""
 
@@ -183,14 +183,14 @@ class GenericRequest:
 
         return True
 
-    def has_header(self, response: 'response type', header_key: str) -> bool:
+    def has_header(self, response: requests.Response, header_key: str) -> bool:
         """Confirm if a header exists in the provided response"""
         self._validate_response(response)
         headers = [header.lower() for header in response.headers.keys()]
         return header_key.lower() in headers
 
     @staticmethod
-    def get_headers(response: 'response type') -> dict:
+    def get_headers(response: requests.Response) -> dict:
         return {k: v for k, v in response.headers.items()}
 
     @staticmethod
@@ -203,12 +203,12 @@ class GenericRequest:
         params = self.get_params_from_url(url)
         return params[param]
 
-    def get_all_values_from_json_response(self, response: 'response type') -> dict:
+    def get_all_values_from_json_response(self, response: requests.Response) -> dict:
         """Convert json response string into a python dictionary"""
         self._validate_response(response)
         return json.loads(response.text)
 
-    def get_value_from_json_response(self, response: 'response type', key: str) -> str:
+    def get_value_from_json_response(self, response: requests.Response, key: str) -> str:
         """Returns the content of the response, in unicode"""
         data = self.get_all_values_from_json_response(response)
         try:

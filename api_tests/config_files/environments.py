@@ -2,12 +2,15 @@ import os
 
 
 # Configure Test Environment
-def get_env(variable_name: str, default: str = "") -> str:
+def get_env(variable_name: str, default: str = None) -> str:
     """Returns a environment variable"""
     try:
-        return os.environ[variable_name]
+        var = os.environ[variable_name]
+        if not var:
+            raise RuntimeError(f"Variable is null, Check {variable_name}.")
+        return var
     except KeyError:
-        return default
+        raise RuntimeError(f"Variable is not set, Check {variable_name}.")
 
 
 ENV = {

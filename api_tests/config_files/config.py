@@ -1,6 +1,4 @@
 from .environments import ENV
-from pathlib import Path
-from os import getcwd
 
 
 # Api details

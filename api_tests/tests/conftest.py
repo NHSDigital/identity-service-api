@@ -11,12 +11,12 @@ def _get_parametrized_values(request):
             return mark.args[1]
 
 
-@pytest.fixture()
+@ pytest.fixture()
 def get_token_using_jwt(request):
     """Get a token using a signed JWT and assign it to the test instance"""
     oauth_endpoints = CheckOauth()
     jwt = oauth_endpoints.create_jwt(kid="test-rs512", secret_key="jwtRS512.key")
-    response = oauth_endpoints.get_jwt_token_response(jwt)
+    response, _ = oauth_endpoints.get_jwt_token_response(jwt)
     setattr(request.cls, 'jwt_response', response)
     setattr(request.cls, 'jwt_signed_token', response['access_token'])
 
@@ -37,6 +37,16 @@ def get_refresh_token(request, get_token):
     # Requesting a refresh token will expire the previous access token
     refresh_token = get_token.get_token_response(grant_type='refresh_token', refresh_token=request.cls.refresh)
     setattr(request.cls, 'refresh_token', refresh_token['refresh_token'])
+
+
+@pytest.fixture()
+def get_long_token(request):
+    """Get the token and assign it to the test instance"""
+    oauth_endpoints = CheckOauth()
+    token = oauth_endpoints.get_token_response(timeout=500000)  # 5 minuets
+    setattr(request.cls, 'token', token['access_token'])
+    setattr(request.cls, 'refresh', token['refresh_token'])  # This is required if you want to request a refresh token
+    return oauth_endpoints
 
 
 @pytest.fixture(scope='function')
