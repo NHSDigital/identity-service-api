@@ -13,6 +13,21 @@ def get_env(variable_name: str, default: str = None) -> str:
         raise RuntimeError(f"Variable is not set, Check {variable_name}.")
 
 
+def get_env_file(variable_name: str) -> str:
+    """Returns a environment variable as path"""
+    try:
+        path = os.path.abspath(os.environ[variable_name])
+        if not path:
+            raise RuntimeError(f"Variable is null, Check {variable_name}.")
+        with open(path, "r") as f:
+            contents = f.read()
+        if not contents:
+            raise RuntimeError(f"Contents of file empty. Check {variable_name}.")
+        return contents
+    except KeyError:
+        raise RuntimeError(f"Variable is not set, Check {variable_name}.")
+
+
 ENV = {
     'oauth': {
         'apigee_client_id': get_env('APIGEE_CLIENT_ID'),
@@ -49,7 +64,7 @@ ENV = {
     },
     "jwt": {
         'app_key': get_env('JWT_APP_KEY', get_env('CLIENT_ID')),
-        'private_key': get_env('JWT_PRIVATE_KEY', "jwtRS512.key"),
-        'key_directory': get_env('PRIVATE_KEY_DIRECTORY')
+        'private_key_location': get_env('PRIVATE_KEY_DIR'),
+        'private_key': get_env_file('PRIVATE_KEY_DIR'),
     },
 }

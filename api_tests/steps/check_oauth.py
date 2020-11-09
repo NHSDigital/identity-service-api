@@ -35,10 +35,7 @@ class CheckOauth(GenericRequest):
         return self.get_all_values_from_json_response(response)
 
     @staticmethod
-    def create_jwt(kid: str, secret_key: str, algorithm: str = "RS512", claims: dict = None) -> bytes:
-        with open(f"{config.PRIVATE_KEY_DIR}/{secret_key}", "r") as priv:
-            private_key = priv.read()
-
+    def create_jwt(kid: str, algorithm: str = "RS512", claims: dict = None, private_key=config.JWT_PRIVATE_KEY) -> bytes:
         if not claims:
             claims = {
                 "sub": config.JWT_APP_KEY,
@@ -70,7 +67,7 @@ class CheckOauth(GenericRequest):
         if jwt_component_name not in ['header', 'data', 'signature']:
             raise ValueError("jwt_component_name is not Valid, must be either header, data or signature")
 
-        _jwt = self.create_jwt(kid='test-rs512', secret_key='jwtRS512.key')
+        _jwt = self.create_jwt(kid='test-1')
         jwt_components = _jwt.decode("utf-8").split('.')
 
         index = 0

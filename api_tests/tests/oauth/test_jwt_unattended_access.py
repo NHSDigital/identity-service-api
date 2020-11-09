@@ -27,8 +27,7 @@ class TestJwtUnattendedAccessSuite:
         # Incorrect JWT algorithm using “HS256” instead of “RS512”
         (
             {
-                'kid': 'test-rs512',
-                'secret_key': 'jwtRS512.key',
+                'kid': 'test-1',
                 'algorithm': 'HS256',
             },
             {
@@ -41,8 +40,7 @@ class TestJwtUnattendedAccessSuite:
         # Invalid “sub” & “iss” in jwt claims
         (
             {
-                'kid': 'test-rs512',
-                'secret_key': 'jwtRS512.key',
+                'kid': 'test-1',
                 'claims': {
                     "sub": 'INVALID',
                     "iss": 'INVALID',
@@ -58,8 +56,7 @@ class TestJwtUnattendedAccessSuite:
         # Invalid “sub” in jwt claims and different from “iss”
         (
             {
-                'kid': 'test-rs512',
-                'secret_key': 'jwtRS512.key',
+                'kid': 'test-1',
                 'claims': {
                     "sub": 'INVALID',
                     "iss": config.JWT_APP_KEY,
@@ -75,8 +72,7 @@ class TestJwtUnattendedAccessSuite:
         #  Invalid “iss” in jwt claims and different from “sub"
         (
             {
-                'kid': 'test-rs512',
-                'secret_key': 'jwtRS512.key',
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": 'INVALID',
@@ -92,8 +88,7 @@ class TestJwtUnattendedAccessSuite:
         # Missing “sub” in jwt claims
         (
             {
-                'kid': 'test-rs512',
-                'secret_key': 'jwtRS512.key',
+                'kid': 'test-1',
                 'claims': {
                     "iss": config.JWT_APP_KEY,
                     "jti": str(uuid4()),
@@ -108,8 +103,7 @@ class TestJwtUnattendedAccessSuite:
         # Missing “iss” in jwt claims
         (
             {
-                'kid': 'test-rs512',
-                'secret_key': 'jwtRS512.key',
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "jti": str(uuid4()),
@@ -124,8 +118,7 @@ class TestJwtUnattendedAccessSuite:
         # Invalid “jti” in jwt claims e.g using an INT type instead of a STRING
         (
             {
-                'kid': 'test-rs512',
-                'secret_key': 'jwtRS512.key',
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
@@ -141,8 +134,7 @@ class TestJwtUnattendedAccessSuite:
         #  Missing “jti” in jwt claims
         (
             {
-                'kid': 'test-rs512',
-                'secret_key': 'jwtRS512.key',
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
@@ -157,8 +149,7 @@ class TestJwtUnattendedAccessSuite:
         # Reusing the same “jti”
         (
             {
-                'kid': 'test-rs512',
-                'secret_key': 'jwtRS512.key',
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
@@ -174,8 +165,7 @@ class TestJwtUnattendedAccessSuite:
         # Invalid “aud” in jwt claims
         (
             {
-                'kid': 'test-rs512',
-                'secret_key': 'jwtRS512.key',
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
@@ -191,8 +181,7 @@ class TestJwtUnattendedAccessSuite:
         # Missing “aud” in jwt claims
         (
             {
-                'kid': 'test-rs512',
-                'secret_key': 'jwtRS512.key',
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
@@ -207,8 +196,7 @@ class TestJwtUnattendedAccessSuite:
         # Invalid “exp” in jwt claims e.g. using a STRING type
         (
             {
-                'kid': 'test-rs512',
-                'secret_key': 'jwtRS512.key',
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
@@ -224,8 +212,7 @@ class TestJwtUnattendedAccessSuite:
         # Missing “exp” in jwt claims
         (
             {
-                'kid': 'test-rs512',
-                'secret_key': 'jwtRS512.key',
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
@@ -240,8 +227,7 @@ class TestJwtUnattendedAccessSuite:
         # “Exp” in the past
         (
             {
-                'kid': 'test-rs512',
-                'secret_key': 'jwtRS512.key',
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
@@ -257,8 +243,7 @@ class TestJwtUnattendedAccessSuite:
         # “Exp” too far into the future (more than 5 minuets)
         (
             {
-                'kid': 'test-rs512',
-                'secret_key': 'jwtRS512.key',
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
@@ -382,7 +367,7 @@ class TestJwtUnattendedAccessSuite:
     ])
     def test_invalid_form_data(self, form_data, expected_response):
         assert self.oauth.check_jwt_token_response(
-            jwt=self.oauth.create_jwt(kid='test-rs512', secret_key='jwtRS512.key'),
+            jwt=self.oauth.create_jwt(kid='test-rs512'),
             form_data=form_data,
             expected_response=expected_response,
             expected_status_code=400
@@ -395,7 +380,6 @@ class TestJwtUnattendedAccessSuite:
         (
             {
                 'kid': 'INVALID',
-                'secret_key': 'jwtRS512.key'
             },
             {'error': 'invalid_request', 'error_description': "Invalid 'kid' header in JWT - no matching public key"},
             401
@@ -405,24 +389,24 @@ class TestJwtUnattendedAccessSuite:
         (
             {
                 'kid': None,
-                'secret_key': 'jwtRS512.key',
+
             },
             {'error': 'invalid_request', 'error_description': "Missing 'kid' header in JWT"},
             400
         ),
 
         # Public key mismatch
-        (
-            {
-                'kid': 'test-rs512',
-                'secret_key': 'invalidRS512.key',
-            },
-            {'error': 'unknown_error',
-             'error_description': 'An unknown error occurred processing this request. '
-                                  'Contact us for assistance diagnosing this issue: '
-                                  'https://digital.nhs.uk/developer/help-and-support quoting Message ID'},
-            401
-        ),
+        # (
+        #     {
+        #         'kid': 'test-1',
+        #         'private_key': config.INVALID_JWT_PRIVATE_KEY
+        #     },
+        #     {'error': 'unknown_error',
+        #      'error_description': 'An unknown error occurred processing this request. '
+        #                           'Contact us for assistance diagnosing this issue: '
+        #                           'https://digital.nhs.uk/developer/help-and-support quoting Message ID'},
+        #     401
+        # ),
     ])
     def test_invalid_jwt(self, jwt_details, expected_response, expected_status_code):
         assert self.oauth.check_jwt_token_response(
@@ -456,7 +440,7 @@ class TestJwtUnattendedAccessSuite:
     def test_invalid_jwks_resource_url(self):
         config.JWT_APP_KEY = config.JWT_APP_KEY_WITH_INVALID_JWKS_URL
         assert self.oauth.check_jwt_token_response(
-            jwt=self.oauth.create_jwt(kid='test-rs512', secret_key='jwtRS512.key'),
+            jwt=self.oauth.create_jwt(kid='test-1'),
             expected_response={
                 'error': 'unknown_error',
                 'error_description': 'An unknown error occurred processing this request. '
