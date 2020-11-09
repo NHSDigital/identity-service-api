@@ -141,24 +141,9 @@ class GenericRequest:
         expected_response: Union[dict, str, list],
         **kwargs,
     ) -> requests.Response:
-        """Check a given request is returning the expected values. NOTE the expected response can be either a dict,
-        a string or a list this is because we can expect either json, html or a list of keys from a json response
-        respectively."""
+        """Check a given request is returning the expected values. Return the response outcome"""
         response = self.get_response(verb, endpoint, **kwargs)
-
-        if type(expected_response) is list:
-            assert self.verify_response_keys(response, expected_status_code, expected_keys=expected_response),\
-                f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"  # type: ignore
-            return response
-
-        # Check response
-        redirected = kwargs["allow_redirects"] if "allow_redirects" in kwargs else True
-        assert self.verify_response(
-            response, expected_status_code,
-            expected_response=expected_response,
-            redirected=redirected
-        ),\
-            f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"  # type: ignore
+        assert self._verify_response(response, expected_status_code, expected_response, **kwargs)
         return response
 
     def check_endpoint(
@@ -169,18 +154,27 @@ class GenericRequest:
         expected_response: Union[dict, str, list],
         **kwargs,
     ) -> bool:
-        """Check a given request is returning the expected values. NOTE the expected response can be either a dict,
-        a string or a list this is because we can expect either json, html or a list of keys from a json response
-        respectively."""
+        """Check a given request is returning the expected values. Return the verification outcome"""
         response = self.get_response(verb, endpoint, **kwargs)
+        return self._verify_response(response, expected_status_code, expected_response, **kwargs)
 
+    def _verify_response(
+        self,
+        response,
+        expected_status_code,
+        expected_response,
+        **kwargs
+    ) -> bool:
+        """Check a given request is returning the expected values. NOTE the expected response can be either a dict,
+        a string or a list this is because we can expect either json, html, str or a list of keys from a json response
+        respectively."""
         if type(expected_response) is list:
             assert self.verify_response_keys(response, expected_status_code, expected_keys=expected_response), \
                 f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"  # type: ignore
             return True
         # Check response
         redirected = kwargs["allow_redirects"] if "allow_redirects" in kwargs else True
-        assert self.verify_response(
+        assert self._verify_response_content(
             response,
             expected_status_code,
             expected_response=expected_response,
@@ -213,7 +207,7 @@ class GenericRequest:
             ), "Location header not as expected"
         return True
 
-    def verify_response(
+    def _verify_response_content(
         self,
         response: requests.Response,
         expected_status_code: int,

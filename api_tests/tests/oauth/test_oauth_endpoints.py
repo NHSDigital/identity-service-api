@@ -64,7 +64,7 @@ class TestOauthEndpointSuite:
         )
 
     @pytest.mark.apm_1542
-    @pytest.mark.skip("Skipping to merge")
+    @pytest.mark.skip("Skipping as tests not finished")
     @pytest.mark.happy_path
     @pytest.mark.authorize_endpoint
     @pytest.mark.token_endpoint
@@ -77,7 +77,7 @@ class TestOauthEndpointSuite:
             * When requesting an access token with the other state value
             * Then it should return 200
         """
-        response = self.oauth.check_endpoint(
+        response = self.oauth.check_and_return_endpoint(
             verb='GET',
             endpoint='authorize',
             expected_status_code=302,
@@ -93,7 +93,7 @@ class TestOauthEndpointSuite:
         )
         state1 = self.oauth.get_param_from_url(url=response.headers["Location"], param="state")
 
-        response = self.oauth.check_endpoint(
+        response = self.oauth.check_and_return_endpoint(
             verb='GET',
             endpoint='authorize',
             expected_status_code=302,
@@ -133,7 +133,7 @@ class TestOauthEndpointSuite:
         )
 
     @pytest.mark.apm_1542
-    @pytest.mark.skip("Skipping to merge")
+    @pytest.mark.skip("Skipping as tests not finished")
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
     @pytest.mark.token_endpoint
@@ -146,7 +146,7 @@ class TestOauthEndpointSuite:
             * When requesting an access token with the other state value
             * Then it should return 401
         """
-        response = self.oauth.check_endpoint(
+        response = self.oauth.check_and_return_endpoint(
             verb='GET',
             endpoint='authorize',
             expected_status_code=302,
@@ -164,7 +164,7 @@ class TestOauthEndpointSuite:
         print(f"Client_id: {config.CLIENT_ID}, state: {state1}")
 
         self.switch_to_valid_asid_application()
-        response = self.oauth.check_endpoint(
+        response = self.oauth.check_and_return_endpoint(
             verb='GET',
             endpoint='authorize',
             expected_status_code=302,
