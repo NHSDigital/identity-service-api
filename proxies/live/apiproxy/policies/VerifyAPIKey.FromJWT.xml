@@ -1,0 +1,5 @@
+<VerifyAPIKey async="false" continueOnError="false" enabled="true" name="VerifyAPIKey.FromJWT">
+  <!-- https://tools.ietf.org/html/rfc7523#section-3:
+  "For client authentication, the sub MUST be the "client_id" of the OAuth client." -->
+  <APIKey ref="jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.sub" />
+</VerifyAPIKey>

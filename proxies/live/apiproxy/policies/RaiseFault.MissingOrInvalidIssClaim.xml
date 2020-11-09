@@ -1,13 +1,13 @@
-<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.TokenRefreshTimelimitExceeded">
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.MissingOrInvalidIssClaim">
   <FaultResponse>
     <Set>
       <Payload contentType="application/json">
         {
-          "error" : "refresh_time_limit_exceeded",
-          "error_description" :"Cannot refresh token {apigee.refresh_tokens_validity_ms}ms after generation",
+          "error": "invalid_request",
+          "error_description": "iss/sub claims missing or invalid (should be same)",
           "message_id": "{messageid}"
         }
-      </Payload>
+</Payload>
       <StatusCode>400</StatusCode>
       <ReasonPhrase>Bad Request</ReasonPhrase>
     </Set>
