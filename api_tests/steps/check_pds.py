@@ -2,13 +2,14 @@ from api_tests.scripts.generic_request import GenericRequest
 from api_tests.config_files import config
 from api_tests.scripts.apigee_api import ApigeeDebugApi
 from api_tests.scripts.pds_request import PdsRequest
+from requests import Response
 
 
 class CheckPds(GenericRequest):
     def __init__(self):
         super(CheckPds, self).__init__()
 
-    def get_patient_response(self, patient_id: str, **kwargs) -> 'response type':
+    def get_patient_response(self, patient_id: str, **kwargs) -> Response:
         """Send a Get request to retrieve a patient from PDS"""
         return self.get(f'{config.PDS_API}/{patient_id}', **kwargs)
 

@@ -1,4 +1,5 @@
 from api_tests.config_files import config
+from requests import Response
 
 
 class Authenticator:
@@ -39,7 +40,7 @@ class Authenticator:
             'payload': {'state': state}
         }
 
-    def authenticate(self) -> 'response type':
+    def authenticate(self) -> Response:
         """Send authentication request"""
         sign_in_response = self.session.post(
             self.data['url'],
@@ -54,7 +55,7 @@ class Authenticator:
                                                     f"with error {sign_in_response.status_code}"
         return sign_in_response
 
-    def get_code_from_provider(self, sign_in_response: 'response type') -> str:
+    def get_code_from_provider(self, sign_in_response: Response) -> str:
         """Retrieve the code value from an authentication response"""
         # Extract url from location header and make the call back request
         callback_url = sign_in_response.headers.get('Location')

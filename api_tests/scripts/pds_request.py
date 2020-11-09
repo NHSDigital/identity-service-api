@@ -2,11 +2,12 @@ from api_tests.scripts.generic_request import GenericRequest
 from api_tests.config_files import config
 import json
 import uuid
+from requests import Response
 
 
 class PdsRecord:
     """This class turns a PDS response into a object."""
-    def __init__(self, response: 'response type'):
+    def __init__(self, response: Response):
         if type(response) is dict:
             self.response = response
         else:
@@ -48,7 +49,7 @@ class PdsRecord:
                 setattr(self, k, v)
 
     @staticmethod
-    def _get_redirects(response: 'response type') -> dict:
+    def _get_redirects(response: Response) -> dict:
         redirects = {}
         if response.history:
             for i, resp in enumerate(response.history):
@@ -56,7 +57,7 @@ class PdsRecord:
         return redirects
 
     @staticmethod
-    def _parse_error(response: 'response type') -> dict:
+    def _parse_error(response: Response) -> dict:
         return {response['resourceType']: response['issue'][0]}
 
     def _get_error_resource_type(self) -> dict:
