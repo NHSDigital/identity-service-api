@@ -427,13 +427,13 @@
                   <Name>ExtractVariables.ReadCacheJson</Name>
                 </Step>
                 <Step>
-                  <Name>InvalidateCache.OriginalClientInfo</Name>
-                </Step>
-                <Step>
                   <Name>VerifyAPIKey.FromJSON</Name>
                 </Step>
                 <Step>
                   <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJSON</Name>
+                </Step>
+                <Step>
+                  <Name>InvalidateCache.OriginalClientInfo</Name>
                 </Step>
                 <Step>
                   <Name>SpikeArrest</Name>
