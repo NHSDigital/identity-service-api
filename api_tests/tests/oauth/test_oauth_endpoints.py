@@ -76,6 +76,7 @@ class TestOauthEndpointSuite:
             * Then it should return xxx
         """
 
+        # Make authorize request to retrieve state2
         response = self.oauth.check_and_return_endpoint(
             verb='GET',
             endpoint='authorize',
@@ -90,24 +91,22 @@ class TestOauthEndpointSuite:
             allow_redirects=False
         )
         state2 = self.oauth.get_param_from_url(url=response.headers["Location"], param="state")
+
+        # Make simulated auth request to authenticate
         response = self.oauth.check_and_return_endpoint(
             verb='POST',
             endpoint='sim_auth',
             expected_status_code=302,
             expected_response="",
             params={
-            "response_type": "code",
-            "client_id": config.CLIENT_ID,
-            "redirect_uri": config.REDIRECT_URI,
-            "scope": "openid",
-            "state": state2
-            },
-            headers={
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            data={
+                "response_type": "code",
+                "client_id": config.CLIENT_ID,
+                "redirect_uri": config.REDIRECT_URI,
+                "scope": "openid",
                 "state": state2
             },
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data={"state": state2},
             allow_redirects=False
         )
         # Make initial callback request
@@ -124,10 +123,28 @@ class TestOauthEndpointSuite:
             },
             allow_redirects=False
         )
-        print(response.headers)
+        # Verify auth code and state are returned
+        response_params = self.oauth.get_params_from_url(response.headers["Location"])
+        assert response_params["code"]
+        assert response_params["state"]
 
-
-    
+        # Make second callback request with same state value
+        response = self.oauth.check_and_return_endpoint(
+            verb='GET',
+            endpoint='callback',
+            expected_status_code=302,
+            expected_response="",
+            params={
+                'code': auth_code,
+                'client_id': 'some-client-id',
+                'state': state2
+            },
+            allow_redirects=False
+        )
+        # Verify auth code and state are returned
+        response_params = self.oauth.get_params_from_url(response.headers["Location"])
+        assert response_params["code"]
+        assert response_params["state"]
 
     @pytest.mark.apm_801
     @pytest.mark.apm_990
