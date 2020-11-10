@@ -135,7 +135,7 @@ class TestOauthEndpointSuite:
             expected_status_code=400,
             expected_response={
                 'error': 'invalid_request',
-                'error_description': 'Invalid state parameter.'
+                'error_description': 'invalid state parameter.'
             },
             params={
                 'code': auth_code,
