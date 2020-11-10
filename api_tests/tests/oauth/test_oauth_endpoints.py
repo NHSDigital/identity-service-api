@@ -132,7 +132,7 @@ class TestOauthEndpointSuite:
         response = self.oauth.check_and_return_endpoint(
             verb='GET',
             endpoint='callback',
-            expected_status_code=302,
+            expected_status_code=500,
             expected_response="",
             params={
                 'code': auth_code,
