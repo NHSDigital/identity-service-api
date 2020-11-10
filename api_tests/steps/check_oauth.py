@@ -14,10 +14,10 @@ class CheckOauth(GenericRequest):
         """Get the code parameter value required to post to the oauth /token endpoint"""
         authenticator = Authenticator(self)
         response = authenticator.authenticate()
-        code = authenticator.get_code_from_provider(response)
-        return code
+        return authenticator.get_code_from_provider(response)
 
     def get_token_response(self, timeout: int = 5000, grant_type: str = 'authorization_code', refresh_token: str = ""):
+        """Send a request for an access or refresh token"""
         data = {
             'client_id': config.CLIENT_ID,
             'client_secret': config.CLIENT_SECRET,
@@ -37,7 +37,9 @@ class CheckOauth(GenericRequest):
     @staticmethod
     def create_jwt(kid: str, algorithm: str = "RS512", claims: dict = None,
                    private_key=config.JWT_PRIVATE_KEY) -> bytes:
+        """Create a Json Web Token"""
         if not claims:
+            # Get default claims
             claims = {
                 "sub": config.JWT_APP_KEY,
                 "iss": config.JWT_APP_KEY,
@@ -47,9 +49,12 @@ class CheckOauth(GenericRequest):
             }
 
         additional_headers = ({}, {"kid": kid})[kid is not None]
-        return jwt.encode(claims, private_key, algorithm=algorithm, headers=additional_headers)
+        if algorithm is not None:
+            return jwt.encode(claims, private_key, algorithm=algorithm, headers=additional_headers)
+        return jwt.encode(claims, private_key, headers=additional_headers)
 
     def get_jwt_token_response(self, jwt: bytes, form_data: dict = None) -> tuple:
+        """Send a request for an access token using a JWT for authentication"""
         if not form_data:
             form_data = {
                 "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
@@ -65,6 +70,7 @@ class CheckOauth(GenericRequest):
         return self.get_all_values_from_json_response(response), response.status_code
 
     def modified_jwt(self, jwt_component_name: str) -> bytes:
+        """A test method to modify a given JWTs' header, data or signature."""
         if jwt_component_name not in ['header', 'data', 'signature']:
             raise ValueError("jwt_component_name is not Valid, must be either header, data or signature")
 
@@ -84,6 +90,7 @@ class CheckOauth(GenericRequest):
 
     def check_jwt_token_response(self, jwt: bytes, expected_response: dict, expected_status_code: int,
                                  form_data: dict = None):
+        """Make a token request using a JWT and confirm the response"""
         response, status_code = self.get_jwt_token_response(jwt, form_data)
         _ = response.pop('message_id', None)
         assert response == expected_response, f"UNEXPECTED RESPONSE: {response}"

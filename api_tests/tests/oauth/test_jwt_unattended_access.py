@@ -37,6 +37,19 @@ class TestJwtUnattendedAccessSuite:
             400
         ),
 
+        # Missing JWT algorithm
+        (
+            {
+                'kid': 'test-1',
+                'algorithm': None,
+            },
+            {
+                'error': 'invalid_request',
+                'error_description': "Missing 'alg' header in JWT"
+            },
+            400
+        ),
+
         # Invalid “sub” & “iss” in jwt claims
         (
             {
@@ -367,7 +380,7 @@ class TestJwtUnattendedAccessSuite:
     ])
     def test_invalid_form_data(self, form_data, expected_response):
         assert self.oauth.check_jwt_token_response(
-            jwt=self.oauth.create_jwt(kid='test-rs512'),
+            jwt=self.oauth.create_jwt(kid='test-1'),
             form_data=form_data,
             expected_response=expected_response,
             expected_status_code=400

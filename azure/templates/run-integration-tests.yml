@@ -31,8 +31,8 @@ steps:
       export VALID_ASID_CLIENT_SECRET="$(INTERNAL_TESTING_WITH_VALID_ASID_SECRET)"
       export MISSING_ASID_CLIENT_ID="$(INTERNAL_TESTING_WITHOUT_ASID_KEY)"
       export MISSING_ASID_CLIENT_SECRET="$(INTERNAL_TESTING_WITHOUT_ASID_SECRET)"
-      export JWT_APP_KEY="$(JWT_TESTING_API_KEY)"
       export PRIVATE_KEY_DIR="$(Pipeline.Workspace)/secrets/$(JWT_TESTING_PRIVATE_KEY)"
+      export JWT_APP_KEY="$(JWT_TESTING_API_KEY)"
 
       pytest -v --junitxml=test-report.xml
     workingDirectory: $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests
