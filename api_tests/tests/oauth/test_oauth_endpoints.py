@@ -129,22 +129,21 @@ class TestOauthEndpointSuite:
         assert response_params["state"]
 
         # Make second callback request with same state value
-        response = self.oauth.check_and_return_endpoint(
+        assert self.oauth.check_endpoint(
             verb='GET',
             endpoint='callback',
-            expected_status_code=500,
-            expected_response="",
+            expected_status_code=400,
+            expected_response={
+                'error': 'invalid_request',
+                'error_description': 'Invalid state parameter.'
+            },
             params={
                 'code': auth_code,
                 'client_id': 'some-client-id',
                 'state': state2
-            },
-            allow_redirects=False
+            }
         )
-        # Verify auth code and state are returned
-        response_params = self.oauth.get_params_from_url(response.headers["Location"])
-        assert response_params["code"]
-        assert response_params["state"]
+        
 
     @pytest.mark.apm_801
     @pytest.mark.apm_990

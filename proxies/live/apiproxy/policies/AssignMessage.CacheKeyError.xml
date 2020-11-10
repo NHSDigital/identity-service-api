@@ -1,0 +1,14 @@
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.CacheKeyError">
+  <Set>
+    <StatusCode>400</StatusCode>
+    <Payload contentType="application/json">
+        {
+          "error": "invalid_request",
+          "error_description": "Invalid state parameter.",
+          "message_id": "{messageid}"
+        }
+</Payload>
+  </Set>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <AssignTo createNew="false" transport="http" type="response" />
+</AssignMessage>

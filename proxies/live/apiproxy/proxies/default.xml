@@ -58,7 +58,13 @@
         <Step>
           <Name>AssignMessage.ExpiredRefreshToken</Name>
         </Step>
-    </FaultRule>
+      </FaultRule>
+      <FaultRule name="state_does_not_exist_in_cache">
+        <Condition>extractvariables.ExtractVariables.ReadCacheJson.failed</Condition>
+        <Step>
+          <Name>AssignMessage.CacheKeyError</Name>
+        </Step>
+      </FaultRule>
     </FaultRules>
     <DefaultFaultRule>
       <Step>
