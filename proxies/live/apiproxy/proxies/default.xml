@@ -432,9 +432,6 @@
                 <Step>
                   <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJSON</Name>
                 </Step>
-                <!-- <Step>
-                  <Name>InvalidateCache.OriginalClientInfo</Name>
-                </Step> -->
                 <Step>
                   <Name>SpikeArrest</Name>
                 </Step>
@@ -449,6 +446,9 @@
               <!-- Re-create the redirect so scope query param isn't included -->
               <Step>
                 <Name>AssignMessage.AuthCodeRedirect</Name>
+              </Step>
+              <Step>
+                <Name>InvalidateCache.OriginalClientInfo</Name>
               </Step>
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/callback") and (request.verb = "GET")</Condition>
