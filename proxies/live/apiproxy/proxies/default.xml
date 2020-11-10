@@ -432,9 +432,9 @@
                 <Step>
                   <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJSON</Name>
                 </Step>
-                <Step>
+                <!-- <Step>
                   <Name>InvalidateCache.OriginalClientInfo</Name>
-                </Step>
+                </Step> -->
                 <Step>
                   <Name>SpikeArrest</Name>
                 </Step>
