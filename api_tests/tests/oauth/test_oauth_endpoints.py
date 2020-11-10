@@ -1,5 +1,6 @@
 from api_tests.config_files import config
 from api_tests.scripts.response_bank import BANK
+from api_tests.config_files.environments import ENV
 import pytest
 import random
 
@@ -7,6 +8,18 @@ import random
 @pytest.mark.usefixtures("setup")
 class TestOauthEndpointSuite:
     """ A test suit to verify all the happy path oauth endpoints """
+
+    @staticmethod
+    def switch_to_valid_asid_application():
+        config.CLIENT_ID = ENV['oauth']['valid_asic_client_id']
+        config.CLIENT_SECRET = ENV['oauth']['valid_asid_client_secret']
+        config.REDIRECT_URI = "https://example.com/callback"
+
+    @staticmethod
+    def switch_to_application():
+        config.CLIENT_ID = ENV['oauth']['client_id']
+        config.CLIENT_SECRET = ENV['oauth']['client_secret']
+        config.REDIRECT_URI = ENV['oauth']['redirect_uri']
 
     @pytest.mark.apm_801
     @pytest.mark.happy_path
@@ -47,6 +60,148 @@ class TestOauthEndpointSuite:
                 'redirect_uri': config.REDIRECT_URI,
                 'grant_type': 'authorization_code',
                 'code': self.oauth.get_authenticated()
+            },
+        )
+
+    @pytest.mark.apm_1542
+    @pytest.mark.skip("Skipping as tests not finished")
+    @pytest.mark.happy_path
+    @pytest.mark.authorize_endpoint
+    @pytest.mark.token_endpoint
+    def test_cache_scoping(self):
+        """
+        Test identity cache scoping:
+            * Given i am authorizing
+            * And sending two requests to the authorize endpoint
+            * When using the same client_id
+            * When requesting an access token with the other state value
+            * Then it should return 200
+        """
+        response = self.oauth.check_and_return_endpoint(
+            verb='GET',
+            endpoint='authorize',
+            expected_status_code=302,
+            expected_response="",
+            return_response=True,
+            params={
+                'client_id': config.CLIENT_ID,
+                'redirect_uri': config.REDIRECT_URI,
+                'response_type': 'code',
+                'state': '1234567890'
+            },
+            allow_redirects=False
+        )
+        state1 = self.oauth.get_param_from_url(url=response.headers["Location"], param="state")
+
+        response = self.oauth.check_and_return_endpoint(
+            verb='GET',
+            endpoint='authorize',
+            expected_status_code=302,
+            expected_response="",
+            return_response=True,
+            params={
+                'client_id': config.CLIENT_ID,
+                'redirect_uri': config.REDIRECT_URI,
+                'response_type': 'code',
+                'state': '1234567890'
+            },
+            allow_redirects=False
+        )
+        state2 = self.oauth.get_param_from_url(url=response.headers["Location"], param="state")
+        assert state1 != state2
+
+        assert self.oauth.check_endpoint(
+            verb='POST',
+            endpoint='token',
+            expected_status_code=200,
+            expected_response=[
+                'access_token',
+                'expires_in',
+                'refresh_count',
+                'refresh_token',
+                'refresh_token_expires_in',
+                'token_type'
+            ],
+            data={
+                'client_id': config.CLIENT_ID,
+                'client_secret': config.CLIENT_SECRET,
+                'redirect_uri': config.REDIRECT_URI,
+                'grant_type': 'authorization_code',
+                'code': self.oauth.get_authenticated(),
+                'state': state1
+            },
+        )
+
+    @pytest.mark.apm_1542
+    @pytest.mark.skip("Skipping as tests not finished")
+    @pytest.mark.errors
+    @pytest.mark.authorize_endpoint
+    @pytest.mark.token_endpoint
+    def test_cache_scoping_error_conditions(self):
+        """
+        Test identity cache scoping:
+            * Given i am authorizing
+            * And sending two requests to the authorize endpoint
+            * When using different client_ids
+            * When requesting an access token with the other state value
+            * Then it should return 401
+        """
+        response = self.oauth.check_and_return_endpoint(
+            verb='GET',
+            endpoint='authorize',
+            expected_status_code=302,
+            expected_response="",
+            return_response=True,
+            params={
+                'client_id': config.CLIENT_ID,
+                'redirect_uri': config.REDIRECT_URI,
+                'response_type': 'code',
+                'state': '1234567890'
+            },
+            allow_redirects=False
+        )
+        state1 = self.oauth.get_param_from_url(url=response.headers["Location"], param="state")
+        print(f"Client_id: {config.CLIENT_ID}, state: {state1}")
+
+        self.switch_to_valid_asid_application()
+        response = self.oauth.check_and_return_endpoint(
+            verb='GET',
+            endpoint='authorize',
+            expected_status_code=302,
+            expected_response="",
+            return_response=True,
+            params={
+                'client_id': config.CLIENT_ID,
+                'redirect_uri': config.REDIRECT_URI,
+                'response_type': 'code'
+            },
+            allow_redirects=False
+        )
+        state2 = self.oauth.get_param_from_url(url=response.headers["Location"], param="state")
+        print(f"Client_id: {config.CLIENT_ID}, state: {state2}")
+
+        assert state1 != state2
+
+        self.switch_to_application()
+        assert self.oauth.check_endpoint(
+            verb='POST',
+            endpoint='token',
+            expected_status_code=200,
+            expected_response=[
+                'access_token',
+                'expires_in',
+                'refresh_count',
+                'refresh_token',
+                'refresh_token_expires_in',
+                'token_type'
+            ],
+            data={
+                'client_id': config.CLIENT_ID,
+                'client_secret': config.CLIENT_SECRET,
+                'redirect_uri': config.REDIRECT_URI,
+                'grant_type': 'authorization_code',
+                'code': self.oauth.get_authenticated(),
+                'state': state2
             },
         )
 
