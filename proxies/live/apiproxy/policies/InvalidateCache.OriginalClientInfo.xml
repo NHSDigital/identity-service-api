@@ -5,5 +5,5 @@
     </CacheKey>
     <CacheResource>client-state</CacheResource>
     <Scope>Exclusive</Scope>
-    <PurgeChildEntries>true</PurgeChildEntries>
+    <!-- <PurgeChildEntries>true</PurgeChildEntries> -->
 </InvalidateCache>
