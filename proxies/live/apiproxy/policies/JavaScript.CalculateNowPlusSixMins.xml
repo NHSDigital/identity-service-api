@@ -1,3 +1,0 @@
-<Javascript async="false" continueOnError="false" enabled="true" timeLimit="200" name="JavaScript.CalculateNowPlusSixMins">
-  <ResourceURL>jsc://calculate-now-plus-six-mins.js</ResourceURL>
-</Javascript>

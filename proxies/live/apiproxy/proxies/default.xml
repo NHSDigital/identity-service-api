@@ -154,11 +154,9 @@
             <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Equals "")</Condition>
           </Step>
           <Step>
-            <Name>JavaScript.CalculateNowPlusSixMins</Name>
-          </Step>
-          <Step>
+            <!-- We advise to limit expiry time to now + 5 minutes. Allowing an extra 10 seconds to mitigate edge cases: -->
             <Name>RaiseFault.ExpClaimTooLong</Name>
-            <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp GreaterThan now_plus_six_mins)</Condition>
+            <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.seconds_remaining GreaterThan 310)</Condition>
           </Step>
           <Step>
             <Name>LookupCache.JTIClaim</Name>
@@ -189,6 +187,12 @@
           <Step>
             <!-- Needed because OAuthV2 'GenerateAccessToken' has to have the Client ID and Client Secret in a specific place -->
             <Name>AssignMessage.SetClientCredentials</Name>
+          </Step>
+          <!-- Next step allows optional REDUCTION of access_token_expiry KVM values
+               using _access_token_expiry_ms form param -->
+          <Step>
+            <Name>AssignMessage.AccessTokenExpiryOverride</Name>
+            <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan private.apigee.access_token_expiry_ms)</Condition>
           </Step>
           <Step>
             <Name>OAuthV2.ClientCredentialsGenerateAccessToken</Name>
@@ -412,6 +416,10 @@
         <Flow name="Flow.GetCallback">
             <Description>Flow to catch the Code response</Description>
             <Request>
+                <Step>
+                  <Name>RaiseFault.Unauthorized</Name>
+                  <Condition>request.queryparam.client_id NotEquals private.apigee.client_id</Condition>
+                </Step>
                 <Step>
                   <Name>LookupCache.OriginalClientInfo</Name>
                 </Step>
