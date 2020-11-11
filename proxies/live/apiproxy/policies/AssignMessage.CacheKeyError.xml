@@ -7,7 +7,7 @@
           "error_description": "Invalid state parameter.",
           "message_id": "{messageid}"
         }
-</Payload>
+    </Payload>
   </Set>
   <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
   <AssignTo createNew="false" transport="http" type="response" />
