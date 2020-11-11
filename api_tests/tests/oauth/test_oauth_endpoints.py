@@ -109,6 +109,7 @@ class TestOauthEndpointSuite:
             data={"state": state2},
             allow_redirects=False
         )
+
         # Make initial callback request
         auth_code = self.oauth.get_param_from_url(url=response.headers["Location"], param="code")
         response = self.oauth.check_and_return_endpoint(
@@ -123,6 +124,7 @@ class TestOauthEndpointSuite:
             },
             allow_redirects=False
         )
+        
         # Verify auth code and state are returned
         response_params = self.oauth.get_params_from_url(response.headers["Location"])
         assert response_params["code"]
