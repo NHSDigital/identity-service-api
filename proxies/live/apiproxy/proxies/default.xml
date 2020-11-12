@@ -521,22 +521,22 @@
             </Response>
             <Condition>request.verb == "OPTIONS" AND request.header.origin != null AND request.header.Access-Control-Request-Method != null</Condition>
         </Flow>
-      <Flow name="Flow.PostTokenInvalidGrantType">
-        <Request>
-          <Step>
-            <Name>RaiseFault.UnsupportedGrantType</Name>
-          </Step>
-        </Request>
-        <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type IsNot null)</Condition>
-      </Flow>
-      <Flow name="Flow.PostTokenEmptyFormParams">
-        <Request>
-          <Step>
-            <Name>RaiseFault.EmptyFormParams</Name>
-          </Step>
-        </Request>
-        <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparams.count != 0)</Condition>
-      </Flow>
+        <Flow name="Flow.PostTokenInvalidGrantType">
+          <Request>
+            <Step>
+              <Name>RaiseFault.UnsupportedGrantType</Name>
+            </Step>
+          </Request>
+          <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type IsNot null)</Condition>
+        </Flow>
+        <Flow name="Flow.PostTokenEmptyFormParams">
+          <Request>
+            <Step>
+              <Name>RaiseFault.EmptyFormParams</Name>
+            </Step>
+          </Request>
+          <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparams.count Equals 0)</Condition>
+        </Flow>
         <Flow name="Flow.CatchAll">
             <Description/>
             <Request>
