@@ -529,6 +529,14 @@
         </Request>
         <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type IsNot null)</Condition>
       </Flow>
+      <Flow name="Flow.PostTokenEmptyFormParams">
+        <Request>
+          <Step>
+            <Name>RaiseFault.EmptyFormParams</Name>
+          </Step>
+        </Request>
+        <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparams.count != 0)</Condition>
+      </Flow>
         <Flow name="Flow.CatchAll">
             <Description/>
             <Request>
