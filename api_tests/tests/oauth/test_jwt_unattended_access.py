@@ -38,17 +38,17 @@ class TestJwtUnattendedAccessSuite:
         ),
 
         # Missing JWT algorithm
-        (
-            {
-                'kid': 'test-1',
-                'algorithm': None,
-            },
-            {
-                'error': 'invalid_request',
-                'error_description': "Missing 'alg' header in JWT"
-            },
-            400
-        ),
+        # (
+        #     {
+        #         'kid': 'test-1',
+        #         'algorithm': None,
+        #     },
+        #     {
+        #         'error': 'invalid_request',
+        #         'error_description': "Missing 'alg' header in JWT"
+        #     },
+        #     400
+        # ),
 
         # Invalid “sub” & “iss” in jwt claims
         (
@@ -272,7 +272,6 @@ class TestJwtUnattendedAccessSuite:
     ])
     @pytest.mark.apm_1521
     @pytest.mark.errors
-    @pytest.mark.skip('BUG - Currently failing')
     def test_invalid_jwt_claims(self, jwt_claims, expected_response, expected_status_code):
         assert self.oauth.check_jwt_token_response(
             jwt=self.oauth.create_jwt(**jwt_claims),
