@@ -1,0 +1,8 @@
+<InvalidateCache async="false" continueOnError="false" enabled="true" name="InvalidateCache.OriginalClientInfo">
+    <CacheKey>
+        <KeyFragment ref="request.queryparam.state"/>
+        <KeyFragment>original_client</KeyFragment>
+    </CacheKey>
+    <CacheResource>client-state</CacheResource>
+    <Scope>Exclusive</Scope>
+</InvalidateCache>
