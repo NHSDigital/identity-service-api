@@ -35,8 +35,8 @@ class CheckOauth(GenericRequest):
         return self.get_all_values_from_json_response(response)
 
     @staticmethod
-    def create_jwt(kid: str, algorithm: str = "RS512", claims: dict = None,
-                   private_key=config.JWT_PRIVATE_KEY) -> bytes:
+    def create_jwt(kid: str, signing_key=config.JWT_PRIVATE_KEY, algorithm: str = "RS512",
+                   claims: dict = None) -> bytes:
         """Create a Json Web Token"""
         if not claims:
             # Get default claims
@@ -50,8 +50,8 @@ class CheckOauth(GenericRequest):
 
         additional_headers = ({}, {"kid": kid})[kid is not None]
         if algorithm is not None:
-            return jwt.encode(claims, private_key, algorithm=algorithm, headers=additional_headers)
-        return jwt.encode(claims, private_key, headers=additional_headers)
+            return jwt.encode(claims, signing_key, algorithm=algorithm, headers=additional_headers)
+        return jwt.encode(claims, signing_key, headers=additional_headers)
 
     def get_jwt_token_response(self, jwt: bytes, form_data: dict = None) -> tuple:
         """Send a request for an access token using a JWT for authentication"""

@@ -412,7 +412,7 @@ class TestJwtUnattendedAccessSuite:
         # (
         #     {
         #         'kid': 'test-1',
-        #         'private_key': config.INVALID_JWT_PRIVATE_KEY
+        #         'signing_key': "INVALID"
         #     },
         #     {'error': 'unknown_error',
         #      'error_description': 'An unknown error occurred processing this request. '

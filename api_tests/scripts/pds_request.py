@@ -1,8 +1,9 @@
 from api_tests.scripts.generic_request import GenericRequest
 from api_tests.config_files import config
-import json
+from json import loads, JSONDecodeError
 from uuid import uuid4
 from requests import Response
+from typing import Union
 
 
 class PdsRecord:
@@ -17,9 +18,9 @@ class PdsRecord:
             self.url = response.url
 
             try:
-                self.response = json.loads(response.text)
-            except json.JSONDecodeError:
-                self.response = response.text
+                self.response = loads(response.text)
+            except JSONDecodeError:
+                raise Exception(f'UNEXPECTED RESPONSE {response.text}:')
 
         # if the response is a list of entries i.e. a response from a search
         if 'entry' in self.response:
@@ -35,7 +36,7 @@ class PdsRecord:
 
     @property
     def is_sensitive(self):
-        """"""
+        """Stored boolean to identify if patient record is considered sensitive"""
         security = getattr(self, 'security', None)
         if security:
             return (False, True)[security[0]['code'].lower() == 'r' and security[0]['display'].lower() == 'restricted']
@@ -57,7 +58,7 @@ class PdsRecord:
         return redirects
 
     @staticmethod
-    def _parse_error(response: Response) -> dict:
+    def _parse_error(response: dict) -> dict:
         return {response['resourceType']: response['issue'][0]}
 
     def _get_error_resource_type(self) -> dict:
@@ -70,11 +71,6 @@ class PdsRecord:
             return False
         return True
 
-    def has_property(self, property_name: str) -> bool:
-        """Check if the record has a given property e.g. gender"""
-        record = self.response.get(property_name, None)
-        return record is not None
-
     def get_extension_by_url(self, url_contains: str) -> dict:
         """This will return the first match it find."""
         for extension in getattr(self, "extension", {}):
@@ -84,7 +80,8 @@ class PdsRecord:
                 if url_contains.lower() in ext.get('url', '').lower():
                     return ext
 
-    def get_error_details(self):
+    def get_consolidated_error(self):
+        """Returns a simplified and cleaner version of the error response"""
         details = self.error[self._get_error_resource_type()]['details']['coding'][0]
         details['diagnostics'] = self.error[self._get_error_resource_type()]['diagnostics']
         details['error_resource_type'] = self._get_error_resource_type()
@@ -94,7 +91,7 @@ class PdsRecord:
 
 class PdsRequest(GenericRequest):
     """Send a request to PDS."""
-    def __init__(self, token: str, patient_id: str or int = None, search_params: dict = None, headers: dict = None,
+    def __init__(self, token: str, patient_id: Union[int, str] = None, search_params: dict = None, headers: dict = None,
                  proxy=config.PDS_PROXY):
         super(PdsRequest, self).__init__()
 
@@ -123,7 +120,8 @@ class PdsRequest(GenericRequest):
         self.patched_record = None
 
     @staticmethod
-    def _is_patient_valid(patient_id: str or int) -> None:
+    def _is_patient_valid(patient_id: Union[int, str]) -> None:
+        """Verify if the patient_id provided is characteristically valid"""
         if patient_id != 'None':
             if not patient_id.isdigit():
                 raise Exception("Patient id can only contain numbers")
@@ -133,7 +131,7 @@ class PdsRequest(GenericRequest):
     @staticmethod
     def _is_operation_valid(operation: str) -> None:
         """Confirm operation is valid"""
-        if operation.lower() not in ['add', 'remove', 'replace', 'test']:
+        if operation.lower() not in {'add', 'remove', 'replace', 'test'}:
             raise Exception("Operation {operation} is invalid")
 
     def _get_record(self, url: str, **kwargs) -> PdsRecord:
@@ -141,7 +139,7 @@ class PdsRequest(GenericRequest):
         response = self.get(url, **kwargs)
         return PdsRecord(response)
 
-    def _build_patch_request(self, op: str, path: str, value: str or dict or int) -> tuple:
+    def _build_patch_request(self, op: str, path: str, value: Union[int, str, dict]) -> tuple:
         """
         This private method builds the headers and the request body for a patch request to PDS.
         """
@@ -177,21 +175,24 @@ class PdsRequest(GenericRequest):
         updated_record = PdsRecord(response)
 
         if self.patched_record is not None:
-            # Not your first patch? Then it will assign the previous patch to self.record to preserve the last 2 records
+            # Not your first patch?
+            # Then it will assign the previous patch to self.record to preserve the last 2 records
             self.record = self.patched_record
         self.patched_record = updated_record
         return updated_record
 
-    def patch_record(self, op: str, path: str, value: str or dict or int) -> int:
+    def patch_record(self, op: str, path: str, value: Union[int, str, dict]) -> None:
+        """Send a PATCH request to update the patient"""
         payload, headers = self._build_patch_request(op, path, value)
 
         # Make patch request
         patch_response = self.patch(f"{self.base_url}/Patient/{self.patient_id}", headers=headers, json=payload)
 
-        if patch_response.status_code == 403:
+        if patch_response.status_code in {401, 403, 405}:
+            # Access related error response
             self.patched_record = PdsRecord(patch_response)
-            return patch_response.status_code
-        if patch_response.status_code != 202:
+            return
+        elif patch_response.status_code != 202:
             raise Exception(f"UNEXPECTED RESPONSE {patch_response.status_code}: {patch_response.text}")
 
         try:
@@ -200,4 +201,3 @@ class PdsRequest(GenericRequest):
             raise Exception("Patch failed")
 
         self._poll_patch_request(location)
-        return patch_response.status_code

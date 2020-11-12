@@ -2,7 +2,7 @@ import os
 
 
 # Configure Test Environment
-def get_env(variable_name: str, default: str = None) -> str:
+def get_env(variable_name: str) -> str:
     """Returns a environment variable"""
     try:
         var = os.environ[variable_name]
@@ -32,6 +32,7 @@ ENV = {
     'oauth': {
         'apigee_client_id': get_env('APIGEE_CLIENT_ID'),
 
+        'identity_proxy': get_env('IDENTITY_PROXY'),
         'base_url': get_env('BASE_URL'),
         'client_id': get_env('CLIENT_ID'),
         'client_secret': get_env('CLIENT_SECRET'),
@@ -63,7 +64,7 @@ ENV = {
         'proxy_name': get_env('PDS_PROXY'),
     },
     "jwt": {
-        'app_key': get_env('JWT_APP_KEY', get_env('CLIENT_ID')),
+        'app_key': get_env('JWT_APP_KEY'),
         'private_key_location': get_env('PRIVATE_KEY_DIR'),
         'private_key': get_env_file('PRIVATE_KEY_DIR'),
     },

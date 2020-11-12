@@ -1,15 +1,17 @@
 import requests
-import json
+from json import loads, JSONDecodeError
 from urllib import parse
-import re
+from re import sub
 from api_tests.config_files import config
 from urllib.parse import urlparse, urlencode
 from typing import Optional
+from typing import Union
 
 
 class GenericRequest:
-    """ This is a base class for OAuth requests used for holding
-    reusable components & functions that can be shared between test cases"""
+    """This is a base class to facilitate testing an API.
+    It contains reusable components & functions that can be shared between different APIs"""
+
     def __init__(self):
         self.session = requests.Session()
         self.endpoints = config.ENDPOINTS
@@ -52,16 +54,16 @@ class GenericRequest:
             raise TypeError("Expected response type object for response argument")
 
     @staticmethod
-    def _verify_status_code(status_code: int or str) -> None:
+    def _verify_status_code(status_code: Union[int, str]) -> None:
         """Verifies the status code provided is a valid status code"""
         if not type(status_code) == int:
             try:
                 int(status_code)
             except ValueError:
-                raise TypeError('Status code must only consist of numbers')
+                raise TypeError("Status code must only consist of numbers")
         else:
             if len(str(status_code)) != 3:
-                raise TypeError('Status code must be a 3 digit number')
+                raise TypeError("Status code must be a 3 digit number")
 
     def get(self, url: str, **kwargs) -> requests.Response:
         """Sends a get request and returns the response"""
@@ -98,7 +100,11 @@ class GenericRequest:
         redirects = {}
         if response.history:
             for i, resp in enumerate(response.history):
-                redirects[i] = {'status_code': resp.status_code, 'url': resp.url, 'headers': resp.headers}
+                redirects[i] = {
+                    "status_code": resp.status_code,
+                    "url": resp.url,
+                    "headers": resp.headers,
+                }
         return redirects
 
     def verify_response_keys(self, response: requests.Response, expected_status_code: int, expected_keys: list) -> bool:
@@ -106,14 +112,14 @@ class GenericRequest:
         In case the content is dynamic we can only check the keys and not the values"""
         self._validate_response(response)
 
-        data = json.loads(response.text)
+        data = loads(response.text)
 
-        if 'error' in data:
+        if "error" in data:
             assert data == expected_keys
         else:
             actual_keys = list(data.keys())
             assert sorted(actual_keys) == sorted(expected_keys), \
-                "Expected: {sorted(expected_keys)} but got: {sorted(actual_keys)}"
+                f"Expected: {sorted(expected_keys)} but got: {sorted(actual_keys)}"
 
         assert response.status_code == expected_status_code, f"UNEXPECTED RESPONSE {response.status_code}: " \
                                                              f"{response.text}"
@@ -125,62 +131,116 @@ class GenericRequest:
         self._verify_status_code(expected_status_code)
         return response.status_code == expected_status_code
 
-    def check_endpoint(self, verb: str, endpoint: str, expected_status_code: int,
-                       expected_response: dict or str or list, **kwargs) -> bool:
-        """Check a given request is returning the expected values. NOTE the expected response can be either a dict,
-        a string or a list this is because we can expect either json, html or a list of keys from a json response
-        respectively."""
+    def check_and_return_endpoint(
+        self,
+        verb: str,
+        endpoint: str,
+        expected_status_code: int,
+        expected_response: Union[dict, str, list],
+        **kwargs,
+    ) -> requests.Response:
+        """Check a given request is returning the expected values. Return the response outcome"""
         response = self.get_response(verb, endpoint, **kwargs)
+        assert self._verify_response(response, expected_status_code, expected_response, **kwargs)
+        return response
 
+    def check_endpoint(
+        self,
+        verb: str,
+        endpoint: str,
+        expected_status_code: int,
+        expected_response: Union[dict, str, list],
+        **kwargs,
+    ) -> bool:
+        """Check a given request is returning the expected values. Return the verification outcome"""
+        response = self.get_response(verb, endpoint, **kwargs)
+        return self._verify_response(response, expected_status_code, expected_response, **kwargs)
+
+    def _verify_response(
+        self,
+        response,
+        expected_status_code,
+        expected_response,
+        **kwargs
+    ) -> bool:
+        """Check a given request is returning the expected values. NOTE the expected response can be either a dict,
+        a string or a list this is because we can expect either json, html, str or a list of keys from a json response
+        respectively."""
         if type(expected_response) is list:
             assert self.verify_response_keys(response, expected_status_code, expected_keys=expected_response), \
-                f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"
+                f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"  # type: ignore
             return True
 
         # Check response
-        assert self.verify_response(response, expected_status_code, expected_response=expected_response), \
-            f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"
+        redirected = kwargs["allow_redirects"] if "allow_redirects" in kwargs else True
+        assert self._verify_response_content(
+            response,
+            expected_status_code,
+            expected_response=expected_response,
+            redirected=redirected
+        ), \
+            f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"  # type: ignore
         return True
 
-    def check_response_history(self, verb: str, endpoint: str,
-                               expected_redirects: dict, **kwargs) -> bool:
+    def check_response_history(self, verb: str, endpoint: str, expected_redirects: dict, **kwargs) -> bool:
         """Check the response redirects for a given request is returning the expected values"""
         response = self.get_response(verb, endpoint, **kwargs)
         actual_redirects = self.get_redirects(response)
 
-        for actual, expected in zip(actual_redirects.values(), expected_redirects.values()):
-            url = self.remove_param_from_url(actual['url'], 'state')
-            location = self.remove_param_from_url(actual['headers']['Location'], 'state')
+        for actual, expected in zip(
+            actual_redirects.values(), expected_redirects.values()
+        ):
+            url = self.remove_param_from_url(actual["url"], "state")
+            location = self.remove_param_from_url(
+                actual["headers"]["Location"], "state"
+            )
 
-            assert actual['status_code'] == expected['status_code'], f"Redirect failed with {expected['status_code']}"
-            assert url == expected['url'], "Redirect url not as expected"
-            assert location == expected['headers']['Location'], "Location header not as expected"
+            assert (
+                actual["status_code"] == expected["status_code"]
+            ), f"Redirect failed with {expected['status_code']}"
+            assert url == expected["url"], "Redirect url not as expected"
+            assert (
+                location == expected["headers"]["Location"]
+            ), "Location header not as expected"
         return True
 
-    def verify_response(self, response: requests.Response, expected_status_code: int,
-                        expected_response: dict or str) -> bool:
+    def _verify_response_content(
+        self,
+        response: requests.Response,
+        expected_status_code: int,
+        expected_response: Union[dict, str],
+        redirected: bool,
+    ) -> bool:
         """Check a given response has returned the expected key value pairs"""
 
         assert self.check_status_code(response, expected_status_code), \
-            f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"
+            f'UNEXPECTED RESPONSE {response.status_code}: {response.text}'
+
+        if not redirected:
+            assert (
+                expected_response == response.text
+            ), f'UNEXPECTED RESPONSE {response.status_code}: {response.text}'
+            return True
 
         try:
-            data = json.loads(response.text)
+            data = loads(response.text)
             # Strip out white spaces
             actual_response = dict(
-                (k.strip().lower() if isinstance(k, str) else k,
-                 v.strip().lower() if isinstance(v, str) else v
-                 ) for k, v in data.items()
+                (
+                    k.strip().lower() if isinstance(k, str) else k,
+                    v.strip().lower() if isinstance(v, str) else v,
+                )
+                for k, v in data.items()
             )
             actual_response.pop('message_id', None)
             assert actual_response == expected_response, f"Expected: {expected_response} but got: {actual_response}"
-        except json.JSONDecodeError:
+        except JSONDecodeError:
             # Might be HTML
             # We need to get rid of the dynamic state here so we can compare the text to the stored value
-            actual_response = re.sub('<input name="state" type="hidden" value="[a-zA-Z0-9_-]{36}">', '', response.text)
+            actual_response = sub('<input name="state" type="hidden" value="[a-zA-Z0-9_-]{36}">', "", response.text)
 
-            assert actual_response.replace('\n', '').replace(' ', '').strip() == expected_response.replace('\n', '')\
-                .replace(' ', '').strip(), "Actual response is different from the expected response"
+            assert actual_response.replace("\n", "").replace(" ", "").strip() == expected_response.replace(
+                "\n", "").replace(" ", "").strip(), f"UNEXPECTED RESPONSE: {actual_response}"
 
         return True
 
@@ -207,7 +267,7 @@ class GenericRequest:
     def get_all_values_from_json_response(self, response: requests.Response) -> dict:
         """Convert json response string into a python dictionary"""
         self._validate_response(response)
-        return json.loads(response.text)
+        return loads(response.text)
 
     def get_value_from_json_response(self, response: requests.Response, key: str) -> str:
         """Returns the content of the response, in unicode"""
@@ -220,22 +280,22 @@ class GenericRequest:
     @staticmethod
     def remove_param_from_url(url: str, param_to_remove: str) -> str:
         """This method will remove a given param from a url
-        and reconstruct the url before returning it to the user """
-        url, query = url.split('?')
-        params = query.split('&')
+        and reconstruct the url before returning it to the user"""
+        url, query = url.split("?")
+        params = query.split("&")
 
         for i, param in enumerate(params):
             if param.startswith(param_to_remove):
                 continue
             if i == 0:
-                url += f'?{param}'
-            elif param.startswith('goto'):
-                key, val = param.split('=')
+                url += f"?{param}"
+            elif param.startswith("goto"):
+                key, val = param.split("=")
                 # Assuming state is the last param in the goto value url
                 # which seems to be the case in all the testing done so far.
                 url += f'&{key}={val[:val.index("%26state")]}'
             else:
-                url += f'&{param}'
+                url += f"&{param}"
         return url
 
     @staticmethod
