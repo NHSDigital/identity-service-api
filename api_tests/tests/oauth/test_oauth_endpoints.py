@@ -325,29 +325,47 @@ class TestOauthEndpointSuite:
     @pytest.mark.errors
     @pytest.mark.token_endpoint
     @pytest.mark.parametrize('request_data', [
-        # condition 1: invalid grant type
+        # condition 1: no params provided
+        {
+            'expected_status_code': 400,
+            'expected_response': {
+                "error": "invalid_request",
+                "error_description": "the request is missing a required parameter: 'grant_type'"
+            },
+            "params": {}
+        },
+
+        # condition 2: invalid grant type
         {
             'expected_status_code': 400,
             'expected_response': {
                 "error": "invalid_request",
                 "error_description": "unsupported grant_type: 'invalid'"
             },
-            'params': {
+            "headers": {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            "params": {},
+            'data': {
                 'client_id': config.CLIENT_ID,
                 'client_secret': config.CLIENT_SECRET,
                 'redirect_uri': config.REDIRECT_URI,
-                'grant_type': 'invalid',
+                'grant_type': 'invalid'
             },
         },
 
-        # condition 2: missing grant_type
+        # condition 3: missing grant_type
         {
             'expected_status_code': 400,
             'expected_response': {
                 'error': 'invalid_request',
-                'error_description': "The request is missing a required parameter: 'grant_type'"
+                'error_description': "the request is missing a required parameter: 'grant_type'"
             },
-            'params': {
+            "headers": {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            "params": {},
+            'data': {
                 'client_id': config.CLIENT_ID,
                 'client_secret': config.CLIENT_SECRET,
                 'redirect_uri': config.REDIRECT_URI,
