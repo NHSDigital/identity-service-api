@@ -321,6 +321,44 @@ class TestOauthEndpointSuite:
         request_data['params']['code'] = self.oauth.get_authenticated()
         assert self.oauth.check_endpoint('POST', 'token', **request_data)
 
+    @pytest.mark.apm_1618
+    @pytest.mark.errors
+    @pytest.mark.token_endpoint
+    @pytest.mark.parametrize('request_data', [
+        # condition 1: invalid grant type
+        {
+            'expected_status_code': 400,
+            'expected_response': {
+                "error": "invalid_request",
+                "error_description": "unsupported grant_type 'invalid'"
+            },
+            'params': {
+                'client_id': config.CLIENT_ID,
+                'client_secret': config.CLIENT_SECRET,
+                'redirect_uri': config.REDIRECT_URI,
+                'grant_type': 'invalid',
+            },
+        },
+
+        # condition 2: missing grant_type
+        {
+            'expected_status_code': 400,
+            'expected_response': {
+                'error': 'invalid_request',
+                'error_description': "The request is missing a required parameter: 'grant_type'"
+            },
+            'params': {
+                'client_id': config.CLIENT_ID,
+                'client_secret': config.CLIENT_SECRET,
+                'redirect_uri': config.REDIRECT_URI,
+            },
+        }
+    ])
+    # Temporary enable error scenarios that have been implemented
+    def test_token_error_conditions_implemented(self, request_data: dict):
+        request_data['params']['code'] = self.oauth.get_authenticated()
+        assert self.oauth.check_endpoint('POST', 'token', **request_data)
+
     @pytest.mark.errors
     @pytest.mark.parametrize('request_data', [
         # condition 1: invalid code
