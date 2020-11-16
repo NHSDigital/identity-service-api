@@ -64,6 +64,18 @@ class TestOauthEndpointSuite:
             },
         )
 
+    @pytest.mark.apm_1618
+    @pytest.mark.errors
+    @pytest.mark.token_endpoint
+    def test_token_endpoint_http_allowed_methods(self):
+        response = self.oauth.check_and_return_endpoint(
+            verb='GET',
+            endpoint='token',
+            expected_status_code=405,
+            expected_response=""
+        )
+        assert response.headers["Allow"] == "POST"
+
     @pytest.mark.apm_993
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
