@@ -529,6 +529,14 @@
           </Request>
           <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type IsNot null)</Condition>
         </Flow>
+        <Flow name="Flow.PostTokenMissingGrantType">
+          <Request>
+            <Step>
+              <Name>RaiseFault.MissingGrantType</Name>
+            </Step>
+          </Request>
+          <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Is null)</Condition>
+        </Flow>
         <Flow name="Flow.PostTokenEmptyFormParams">
           <Request>
             <Step>
