@@ -537,6 +537,14 @@
           </Request>
           <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Is null)</Condition>
         </Flow>
+        <Flow name="Flow.PostTokenUnsupportedHTTPMethod">
+          <Request>
+            <Step>
+              <Name>RaiseFault.UnsupportedHTTPMethod</Name>
+            </Step>
+          </Request>
+          <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb NotEquals "POST")</Condition>
+        </Flow>
         <Flow name="Flow.CatchAll">
             <Description/>
             <Request>

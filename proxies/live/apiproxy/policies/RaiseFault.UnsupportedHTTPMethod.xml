@@ -1,0 +1,12 @@
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.UnsupportedHTTPMethod">
+    <FaultResponse>
+      <Set>
+        <Headers>      
+            <Header name="Allow">POST</Header>     
+        </Headers> 
+        <StatusCode>405</StatusCode>
+        <ReasonPhrase>Method Not Allowed</ReasonPhrase>
+      </Set>
+    </FaultResponse>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</RaiseFault>
