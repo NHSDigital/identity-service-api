@@ -535,7 +535,7 @@
               <Name>RaiseFault.EmptyFormParams</Name>
             </Step>
           </Request>
-          <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparams.count Equals null)</Condition>
+          <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparams.count = 0)</Condition>
         </Flow>
         <Flow name="Flow.CatchAll">
             <Description/>
