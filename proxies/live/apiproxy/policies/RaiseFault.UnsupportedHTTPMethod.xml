@@ -1,13 +1,7 @@
 <RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.UnsupportedHTTPMethod">
     <FaultResponse>
       <Set>
-        <Payload contentType="application/json">
-            {
-              "error" : "invalid_request",
-              "error_description" :"Method Not Allowed",
-              "message_id": "{messageid}"
-            }
-        </Payload>
+        <Payload contentType="text/plain"/>
         <Headers>      
             <Header name="Allow">POST</Header>     
         </Headers> 
