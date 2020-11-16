@@ -4,7 +4,7 @@
         <Payload contentType="application/json">
           {
             "error": "invalid_request",
-            "error_description": "Missing parameter: 'grant_type'",
+            "error_description": "The request is missing a required parameter: 'grant_type'",
             "message_id": "{messageid}"
           }
         </Payload>
