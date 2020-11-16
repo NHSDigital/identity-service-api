@@ -64,6 +64,18 @@ class TestOauthEndpointSuite:
             },
         )
 
+    @pytest.mark.apm_1618
+    @pytest.mark.errors
+    @pytest.mark.token_endpoint
+    def test_token_endpoint_http_allowed_methods(self):
+        response = self.oauth.check_and_return_endpoint(
+            verb='GET',
+            endpoint='token',
+            expected_status_code=405,
+            expected_response=""
+        )
+        assert response.headers["Allow"] == "POST"
+
     @pytest.mark.apm_993
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
@@ -220,7 +232,7 @@ class TestOauthEndpointSuite:
             'expected_status_code': 400,
             'expected_response': {
                 'error': 'invalid_request',
-                'error_description': 'The request is missing a required parameter : grant_type'
+                'error_description': 'The request is missing a required parameter: grant_type'
             },
             'params': {
                 'client_id': config.CLIENT_ID,
@@ -318,6 +330,62 @@ class TestOauthEndpointSuite:
     ])
     @pytest.mark.skip(reason="Not implemented")
     def test_token_error_conditions(self, request_data: dict):
+        request_data['params']['code'] = self.oauth.get_authenticated()
+        assert self.oauth.check_endpoint('POST', 'token', **request_data)
+
+    @pytest.mark.apm_1618
+    @pytest.mark.errors
+    @pytest.mark.token_endpoint
+    @pytest.mark.parametrize('request_data', [
+        # condition 1: no params provided
+        {
+            'expected_status_code': 400,
+            'expected_response': {
+                "error": "invalid_request",
+                "error_description": "the request is missing a required parameter: 'grant_type'"
+            },
+            "params": {}
+        },
+
+        # condition 2: invalid grant type
+        {
+            'expected_status_code': 400,
+            'expected_response': {
+                "error": "invalid_request",
+                "error_description": "unsupported grant_type: 'invalid'"
+            },
+            "headers": {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            "params": {},
+            'data': {
+                'client_id': config.CLIENT_ID,
+                'client_secret': config.CLIENT_SECRET,
+                'redirect_uri': config.REDIRECT_URI,
+                'grant_type': 'invalid'
+            },
+        },
+
+        # condition 3: missing grant_type
+        {
+            'expected_status_code': 400,
+            'expected_response': {
+                'error': 'invalid_request',
+                'error_description': "the request is missing a required parameter: 'grant_type'"
+            },
+            "headers": {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            "params": {},
+            'data': {
+                'client_id': config.CLIENT_ID,
+                'client_secret': config.CLIENT_SECRET,
+                'redirect_uri': config.REDIRECT_URI,
+            },
+        }
+    ])
+    # Temporary enable error scenarios that have been implemented
+    def test_token_error_conditions_implemented(self, request_data: dict):
         request_data['params']['code'] = self.oauth.get_authenticated()
         assert self.oauth.check_endpoint('POST', 'token', **request_data)
 
