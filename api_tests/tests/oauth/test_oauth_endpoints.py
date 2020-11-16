@@ -330,7 +330,7 @@ class TestOauthEndpointSuite:
             'expected_status_code': 400,
             'expected_response': {
                 "error": "invalid_request",
-                "error_description": "unsupported grant_type 'invalid'"
+                "error_description": "unsupported grant_type: 'invalid'"
             },
             'params': {
                 'client_id': config.CLIENT_ID,
