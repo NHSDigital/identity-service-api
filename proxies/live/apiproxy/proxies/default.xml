@@ -58,7 +58,13 @@
         <Step>
           <Name>AssignMessage.ExpiredRefreshToken</Name>
         </Step>
-    </FaultRule>
+      </FaultRule>
+      <FaultRule name="state_does_not_exist_in_cache">
+        <Condition>extractvariables.ExtractVariables.ReadCacheJson.failed</Condition>
+        <Step>
+          <Name>AssignMessage.CacheKeyError</Name>
+        </Step>
+      </FaultRule>
     </FaultRules>
     <DefaultFaultRule>
       <Step>
@@ -417,10 +423,17 @@
             <Description>Flow to catch the Code response</Description>
             <Request>
                 <Step>
+                  <Name>RaiseFault.Unauthorized</Name>
+                  <Condition>request.queryparam.client_id NotEquals private.apigee.client_id</Condition>
+                </Step>
+                <Step>
                   <Name>LookupCache.OriginalClientInfo</Name>
                 </Step>
                 <Step>
                   <Name>ExtractVariables.ReadCacheJson</Name>
+                </Step>
+                <Step>
+                  <Name>InvalidateCache.OriginalClientInfo</Name>
                 </Step>
                 <Step>
                   <Name>VerifyAPIKey.FromJSON</Name>
@@ -508,14 +521,30 @@
             </Response>
             <Condition>request.verb == "OPTIONS" AND request.header.origin != null AND request.header.Access-Control-Request-Method != null</Condition>
         </Flow>
-      <Flow name="Flow.PostTokenInvalidGrantType">
-        <Request>
-          <Step>
-            <Name>RaiseFault.UnsupportedGrantType</Name>
-          </Step>
-        </Request>
-        <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type IsNot null)</Condition>
-      </Flow>
+        <Flow name="Flow.PostTokenInvalidGrantType">
+          <Request>
+            <Step>
+              <Name>RaiseFault.UnsupportedGrantType</Name>
+            </Step>
+          </Request>
+          <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type IsNot null)</Condition>
+        </Flow>
+        <Flow name="Flow.PostTokenMissingGrantType">
+          <Request>
+            <Step>
+              <Name>RaiseFault.MissingGrantType</Name>
+            </Step>
+          </Request>
+          <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Is null)</Condition>
+        </Flow>
+        <Flow name="Flow.PostTokenUnsupportedHTTPMethod">
+          <Request>
+            <Step>
+              <Name>RaiseFault.UnsupportedHTTPMethod</Name>
+            </Step>
+          </Request>
+          <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb NotEquals "POST")</Condition>
+        </Flow>
         <Flow name="Flow.CatchAll">
             <Description/>
             <Request>
