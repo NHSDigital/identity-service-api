@@ -9,6 +9,6 @@
           }
         </Payload>
     </Set>
-    <AssignTo createNew="false" transport="https" type="request"/>
+    <AssignTo createNew="false" transport="https" type="response"/>
     <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
 </AssignMessage>

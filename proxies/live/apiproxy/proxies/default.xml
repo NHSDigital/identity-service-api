@@ -65,7 +65,7 @@
           <Name>AssignMessage.ExpiredRefreshToken</Name>
         </Step>
       </FaultRule>
-      <FaultRule>
+      <FaultRule name="public_key_misconfigured">
         <Condition>(servicecallout.ServiceCallout.ClientCredentialsGrantGetJWKS.failed Equals true)</Condition>
         <Step>
           <Name>AssignMessage.PublicKeyMisconfigured</Name>
