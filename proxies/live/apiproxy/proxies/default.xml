@@ -71,6 +71,12 @@
           <Name>AssignMessage.PublicKeyMisconfigured</Name>
         </Step>
       </FaultRule>
+      <FaultRule name="state_does_not_exist_in_cache">
+        <Condition>extractvariables.ExtractVariables.ReadCacheJson.failed</Condition>
+        <Step>
+          <Name>AssignMessage.CacheKeyError</Name>
+        </Step>
+      </FaultRule>
     </FaultRules>
     <DefaultFaultRule>
       <Step>
@@ -170,11 +176,9 @@
             <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Equals "")</Condition>
           </Step>
           <Step>
-            <Name>JavaScript.CalculateNowPlusSixMins</Name>
-          </Step>
-          <Step>
+            <!-- We advise to limit expiry time to now + 5 minutes. Allowing an extra 10 seconds to mitigate edge cases: -->
             <Name>RaiseFault.ExpClaimTooLong</Name>
-            <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp GreaterThan now_plus_six_mins)</Condition>
+            <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.seconds_remaining GreaterThan 310)</Condition>
           </Step>
           <Step>
             <Name>LookupCache.JTIClaim</Name>
@@ -205,6 +209,12 @@
           <Step>
             <!-- Needed because OAuthV2 'GenerateAccessToken' has to have the Client ID and Client Secret in a specific place -->
             <Name>AssignMessage.SetClientCredentials</Name>
+          </Step>
+          <!-- Next step allows optional REDUCTION of access_token_expiry KVM values
+               using _access_token_expiry_ms form param -->
+          <Step>
+            <Name>AssignMessage.AccessTokenExpiryOverride</Name>
+            <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
           </Step>
           <Step>
             <Name>OAuthV2.ClientCredentialsGenerateAccessToken</Name>
@@ -438,10 +448,17 @@
             <Description>Flow to catch the Code response</Description>
             <Request>
                 <Step>
+                  <Name>RaiseFault.Unauthorized</Name>
+                  <Condition>request.queryparam.client_id NotEquals private.apigee.client_id</Condition>
+                </Step>
+                <Step>
                   <Name>LookupCache.OriginalClientInfo</Name>
                 </Step>
                 <Step>
                   <Name>ExtractVariables.ReadCacheJson</Name>
+                </Step>
+                <Step>
+                  <Name>InvalidateCache.OriginalClientInfo</Name>
                 </Step>
                 <Step>
                   <Name>VerifyAPIKey.FromJSON</Name>
@@ -529,14 +546,30 @@
             </Response>
             <Condition>request.verb == "OPTIONS" AND request.header.origin != null AND request.header.Access-Control-Request-Method != null</Condition>
         </Flow>
-      <Flow name="Flow.PostTokenInvalidGrantType">
-        <Request>
-          <Step>
-            <Name>RaiseFault.UnsupportedGrantType</Name>
-          </Step>
-        </Request>
-        <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type IsNot null)</Condition>
-      </Flow>
+        <Flow name="Flow.PostTokenInvalidGrantType">
+          <Request>
+            <Step>
+              <Name>RaiseFault.UnsupportedGrantType</Name>
+            </Step>
+          </Request>
+          <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type IsNot null)</Condition>
+        </Flow>
+        <Flow name="Flow.PostTokenMissingGrantType">
+          <Request>
+            <Step>
+              <Name>RaiseFault.MissingGrantType</Name>
+            </Step>
+          </Request>
+          <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Is null)</Condition>
+        </Flow>
+        <Flow name="Flow.PostTokenUnsupportedHTTPMethod">
+          <Request>
+            <Step>
+              <Name>RaiseFault.UnsupportedHTTPMethod</Name>
+            </Step>
+          </Request>
+          <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb NotEquals "POST")</Condition>
+        </Flow>
         <Flow name="Flow.CatchAll">
             <Description/>
             <Request>
