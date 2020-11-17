@@ -1,0 +1,45 @@
+parameters:
+  - name: service_name
+    type: string
+
+steps:
+  - bash: |
+      pip install virtualenv
+      virtualenv test_env
+      source ./test_env/bin/activate
+      pip install -r requirements.txt
+    workingDirectory: $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests
+    displayName: Setup integration tests
+
+  - bash: |
+      source ./test_env/bin/activate
+
+      export BASE_URL="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk"
+      export IDENTITY_PROXY="$(SERVICE_BASE_PATH)"
+      export CLIENT_ID="$(CLIENT_ID)"
+      export CLIENT_SECRET="$(CLIENT_SECRET)"
+      export REDIRECT_URI="https://nhsd-apim-testing-$(APIGEE_ENVIRONMENT).herokuapp.com/callback"
+      export AUTHENTICATE_URL="https://nhsd-apim-testing-$(APIGEE_ENVIRONMENT).herokuapp.com/"
+      export API_URL="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk/hello-world/hello/user"
+      export APIGEE_CLIENT_ID="969567331415.apps.national"
+      export APIGEE_API_AUTHENTICATION="$(secret.AccessToken)"
+      export APIGEE_API_URL="https://api.enterprise.apigee.com/v1/organizations/nhsd-nonprod"
+      export PDS_BASE_URL="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk"
+      export PDS_PROXY="personal-demographics-pr-387"
+      export INVALID_ASID_CLIENT_ID="$(INTERNAL_TESTING_WITH_ASID_KEY)"
+      export INVALID_ASID_CLIENT_SECRET="$(INTERNAL_TESTING_WITH_ASID_SECRET)"
+      export VALID_ASID_CLIENT_ID="$(INTERNAL_TESTING_WITH_VALID_ASID_KEY)"
+      export VALID_ASID_CLIENT_SECRET="$(INTERNAL_TESTING_WITH_VALID_ASID_SECRET)"
+      export MISSING_ASID_CLIENT_ID="$(INTERNAL_TESTING_WITHOUT_ASID_KEY)"
+      export MISSING_ASID_CLIENT_SECRET="$(INTERNAL_TESTING_WITHOUT_ASID_SECRET)"
+
+      pytest -v --junitxml=test-report.xml
+    workingDirectory: $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests
+    displayName: Run integration tests
+
+  - task: PublishTestResults@2
+    displayName: 'Publish integration test results'
+    condition: always()
+    inputs:
+      testResultsFiles: '$(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests/test-report.xml'
+      failTaskOnFailedTests: true

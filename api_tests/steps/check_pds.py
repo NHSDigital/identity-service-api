@@ -11,10 +11,10 @@ class CheckPds(GenericRequest):
         """Send a Get request to retrieve a patient from PDS"""
         return self.get(f'{config.PDS_API}/{patient_id}', **kwargs)
 
-    def check_asid_parameter(self, expected_status_code: int, expected_asid: list, patient_id: str, **kwargs) -> bool:
+    def check_asid_parameter(self, expected_status_code: int, expected_asid: list, patient_id: str, proxy: str, **kwargs) -> bool:
         """Check the ASID param is behaving as expected"""
         # Start debug session
-        debug_session = ApigeeDebugApi(proxy="personal-demographics-internal-dev-apm-1275-asid-per-application")
+        debug_session = ApigeeDebugApi(proxy=proxy)
 
         # Send a request
         response = self.get_patient_response(patient_id, **kwargs)
@@ -26,4 +26,6 @@ class CheckPds(GenericRequest):
         assert actual_asid == expected_asid, f"Expected ASID: {expected_asid} but got: {actual_asid}"
 
         # Confirm response is correct
-        return self.check_status_code(response, expected_status_code)
+        assert self.check_status_code(response, expected_status_code), \
+            f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"
+        return True

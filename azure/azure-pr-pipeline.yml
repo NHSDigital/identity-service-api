@@ -38,3 +38,20 @@ extends:
       IDENTITY_TARGET_SERVER: identity-server
       VARIABLES_KVM: identity-service-variables
       ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+      NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+    config_ids:
+      - /ptl/azure-devops/env-internal-dev/test-app/internal-testing-internal-dev/CLIENT_ID
+      - /ptl/azure-devops/env-internal-dev/test-app/internal-testing-internal-dev/CLIENT_SECRET
+      - /ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITH_VALID_ASID_SECRET
+      - /ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITH_VALID_ASID_KEY
+    secret_ids:
+      - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITHOUT_ASID_KEY
+      - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITHOUT_ASID_SECRET
+      - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITH_ASID_KEY
+      - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITH_ASID_SECRET
+    apigee_deployments:
+      - environment: internal-dev
+        post_deploy:
+          - template: ./templates/run-integration-tests.yml
+            parameters:
+              service_name: ${{ variables.service_name }}

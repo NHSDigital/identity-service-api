@@ -1,0 +1,4 @@
+<DecodeJWT async="false" continueOnError="false" enabled="true" name="DecodeJWT.FromClientAssertionFormParam">
+  <DisplayName>Decode JWT</DisplayName>
+  <Source>request.formparam.client_assertion</Source>
+</DecodeJWT>

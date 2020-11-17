@@ -74,7 +74,7 @@ BANK = {
                        '&response_type=code',
                 'headers': {
                     'Location': f'{config.BASE_URL}/simulated_auth?response_type=code&client_id=some-client-id'
-                                f'&redirect_uri={config.BASE_URL}/callback&scope=openid'
+                                f'&redirect_uri={config.BASE_URL}/callback&scope=openid&prompt=login'
                 }
                 },
             1: {
@@ -88,7 +88,7 @@ BANK = {
                                         '%2Foauth2%2Frealms%2Froot%2Frealms%2Foidc%2Fauthorize%3Fresponse_type'
                                         '%3Dcode%26client_id%3D969567331415.apps.national%26'
                                         'redirect_uri%3Dhttps%253A%252F%252Finternal-dev.api.service.nhs.uk'
-                                        '%252Foauth2%252Fcallback%26scope%3Dopenid',
+                                        '%252Foauth2%252Fcallback%26scope%3Dopenid%26prompt%3Dlogin',
                            }
             },
             2: {
@@ -103,7 +103,7 @@ BANK = {
                                 'openam%2Foauth2%2Frealms%2Froot%2Frealms%2Foidc%2Fauthorize%3Fresponse_type%3Dcode'
                                 '%26client_id%3D969567331415.apps.national%26'
                                 'redirect_uri%3Dhttps%253A%252F%252Finternal-dev.api.service.nhs.uk'
-                                '%252Foauth2%252Fcallback%26scope%3Dopenid',
+                                '%252Foauth2%252Fcallback%26scope%3Dopenid%26prompt%3Dlogin',
                 }
             }
         }

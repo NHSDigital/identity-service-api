@@ -1,5 +1,5 @@
 from api_tests.scripts.generic_request import GenericRequest
-from api_tests.config_files.config import APIGEE_API_URL, APIGEE_AUTHENTICATION, APIGEE_ENVIRONMENT
+from api_tests.config_files.config import APIGEE_API_URL, APIGEE_AUTHENTICATION, APIGEE_ENVIRONMENT, IS_REMOTE
 import json
 import uuid
 
@@ -9,7 +9,11 @@ class ApigeeDebugApi(GenericRequest):
         super(ApigeeDebugApi, self).__init__()
         self.session_name = self._generate_uuid()
         self.proxy = proxy
-        self.headers = {'Authorization': 'Basic ' + APIGEE_AUTHENTICATION}
+
+        # Temporary fix until we create a way to get apigee tokens
+        # https://docs.apigee.com/api-platform/system-administration/using-gettoken
+        scheme = ('Basic', 'Bearer')[IS_REMOTE]
+        self.headers = {'Authorization': f'{scheme} {APIGEE_AUTHENTICATION}'}
 
         self.revision = self._get_latest_revision()
         self.create_debug_session()
@@ -67,7 +71,7 @@ class ApigeeDebugApi(GenericRequest):
                 elif item.get('ActionResult', '') == 'VariableAccess':
                     variable_accesses.append(item)
 
-        for result in request_messages:
+        for result in request_messages:  # One being sent as the header
             for item in result['headers']:
                 if item['name'] == 'NHSD-ASID':
                     asid.append(item['value'])
@@ -75,7 +79,7 @@ class ApigeeDebugApi(GenericRequest):
             if len(asid) > 0:
                 break
 
-        for result in variable_accesses:
+        for result in variable_accesses:  # Configured by the application
             for item in result['accessList']:
                 if item.get('Get', {}).get('name', '') == 'app.asid':
                     asid.append(item.get('Get', {}).get('value', None))

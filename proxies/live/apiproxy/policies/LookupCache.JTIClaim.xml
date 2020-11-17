@@ -1,0 +1,9 @@
+<LookupCache async="false" continueOnError="false" enabled="true" name="LookupCache.JTIClaim">
+  <AssignTo>JTICachedValue</AssignTo>
+  <Scope>Application</Scope>
+  <CacheKey>
+    <Prefix>jti</Prefix>
+    <KeyFragment ref="jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.sub" /> <!-- Client ID -->
+    <KeyFragment ref="jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti" />
+  </CacheKey>
+</LookupCache>
