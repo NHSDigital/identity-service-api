@@ -29,6 +29,12 @@
           <Name>AssignMessage.FailedToDecodeJWTError</Name>
         </Step>
       </FaultRule>
+      <FaultRule name="jtw_missing_alg">
+        <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToDecode") And (jwt.DecodeJWT.FromClientAssertionFormParam.error Matches "Invalid JWS header: Missing JSON object member with key *alg*")</Condition>
+        <Step>
+          <Name>AssignMessage.MissingAlgHeader</Name>
+        </Step>
+      </FaultRule>
       <FaultRule name="missing_client_assertion">
         <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToResolveVariable")</Condition>
         <Step>
@@ -57,6 +63,12 @@
         <Condition>oauthV2.OAuthV2.GenerateRefreshToken.failed</Condition>
         <Step>
           <Name>AssignMessage.ExpiredRefreshToken</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="public_key_misconfigured">
+        <Condition>(servicecallout.ServiceCallout.ClientCredentialsGrantGetJWKS.failed Equals true)</Condition>
+        <Step>
+          <Name>AssignMessage.PublicKeyMisconfigured</Name>
         </Step>
       </FaultRule>
       <FaultRule name="state_does_not_exist_in_cache">
@@ -146,6 +158,10 @@
           <Step>
             <Name>RaiseFault.MissingKidHeader</Name>
             <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Is null) Or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Equals "")</Condition>
+          </Step>
+          <Step>
+            <Name>RaiseFault.MissingOrInvalidTypHeader</Name>
+            <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.typ Is null) Or (Not(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.typ EqualsCaseInsensitive "jwt"))</Condition>
           </Step>
           <Step>
             <Name>RaiseFault.MissingOrInvalidIssClaim</Name>
@@ -418,6 +434,15 @@
                 </Step>
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "refresh_token")</Condition>
+        </Flow>
+        <Flow name="Flow.MissingGrantType">
+            <Description>Flow to check grant_type is present</Description>
+            <Response>
+                <Step>
+                    <Name>RaiseFault.MissingGrantType</Name>
+                </Step>
+            </Response>
+            <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type Is null)</Condition>
         </Flow>
         <Flow name="Flow.GetCallback">
             <Description>Flow to catch the Code response</Description>
