@@ -204,7 +204,7 @@ class TestOauthEndpointSuite:
                 "expected_status_code": 401,
                 "expected_response": {
                     "error": "invalid_request",
-                    "error_description": "client_id is not subscribed to this environments",
+                    "error_description": "API Key supplied does not have access to this resource. Please check the API Key you are using belongs to an app which has sufficient access to access this resource.",
                 },
                 "params": {
                     "client_id": config.VALID_UNSUBSCRIBED_CLIENT_ID,
@@ -222,7 +222,7 @@ class TestOauthEndpointSuite:
         assert response.status_code == request_data["expected_status_code"]
 
         response_data = response.json()
-        assert response_data["error"] == request_data["expected_response"]["error_description"]
+        assert response_data["error"] == request_data["expected_response"]["error"]
         assert response_data["error_description"] == request_data["expected_response"]["error_description"]
 
     @pytest.mark.apm_801
