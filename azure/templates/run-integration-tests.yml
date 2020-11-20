@@ -32,6 +32,9 @@ steps:
       export VALID_ASID_CLIENT_SECRET="$(INTERNAL_TESTING_WITH_VALID_ASID_SECRET)"
       export MISSING_ASID_CLIENT_ID="$(INTERNAL_TESTING_WITHOUT_ASID_KEY)"
       export MISSING_ASID_CLIENT_SECRET="$(INTERNAL_TESTING_WITHOUT_ASID_SECRET)"
+      export VALID_UNSUBSCRIBED_CLIENT_ID="$(VALID_UNSUBSCRIBED_CLIENT_ID)"
+      export VALID_UNSUBSCRIBED_CLIENT_SECRET="$(VALID_UNSUBSCRIBED_CLIENT_SECRET)"
+      export VALID_UNSUBSCRIBED_REDIRECT_URI="https://nhsd-apim-testing-$(APIGEE_ENVIRONMENT).herokuapp.com/callback"
 
       pytest -v --junitxml=test-report.xml
     workingDirectory: $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests
