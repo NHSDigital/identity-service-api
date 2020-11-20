@@ -4,7 +4,7 @@
       <Payload contentType="application/json">
         {
           "error": "invalid_request",
-          "error_message": "Failed to decode JWT",
+          "error_description": "Failed to decode JWT",
           "message_id": "{messageid}"
         }
 </Payload>
