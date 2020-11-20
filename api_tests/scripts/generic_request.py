@@ -225,7 +225,7 @@ class GenericRequest:
         if not redirected:
             assert (
                 expected_response == response.text
-            ), "Actual response is different from the expected response"
+            ), f"Actual response is different from the expected response:\n\nActual:\n{response.text}\n\nExpected:\n{expected_response}"
             return True
 
         try:
@@ -241,7 +241,7 @@ class GenericRequest:
             actual_response.pop("message_id", None)
             assert (
                 actual_response == expected_response
-            ), "Actual response is different from the expected response"
+            ), f"Actual response is different from the expected response:\n\nActual:\n{response.text}\n\nExpected:\n{expected_response}"
         except json.JSONDecodeError:
             # Might be HTML
             # We need to get rid of the dynamic state here so we can compare the text to the stored value

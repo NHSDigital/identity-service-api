@@ -194,8 +194,38 @@ class TestOauthEndpointSuite:
     def test_authorization_error_conditions(self, request_data: dict):
         assert self.oauth.check_endpoint("GET", "authorize", **request_data)
 
-    @pytest.mark.apm_801
     @pytest.mark.apm_1631
+    @pytest.mark.errors
+    @pytest.mark.token_endpoint
+    @pytest.mark.parametrize(
+        "request_data",
+        [
+            {
+                "expected_status_code": 401,
+                "expected_response": {
+                    "error": "invalid_request",
+                    "error_description": "client_id is not subscribed to this environments",
+                },
+                "params": {
+                    "client_id": config.VALID_UNSUBSCRIBED_CLIENT_ID,
+                    "client_secret": config.VALID_UNSUBSCRIBED_CLIENT_SECRET,
+                    "redirect_uri": config.VALID_UNSUBSCRIBED_REDIRECT_URI,
+                    "grant_type": "authorization_code",
+                },
+            },
+        ],
+    )
+    def test_token_unsubscribed_error_conditions(self, request_data: dict):
+        request_data["params"]["code"] = self.oauth.get_authenticated()
+        response = self.oauth.get_custom_token_response(request_data["params"])
+
+        assert response.status_code == request_data["expected_status_code"]
+
+        response_data = response.json()
+        assert response_data["error"] == request_data["expected_response"]["error_description"]
+        assert response_data["error_description"] == request_data["expected_response"]["error_description"]
+
+    @pytest.mark.apm_801
     @pytest.mark.errors
     @pytest.mark.token_endpoint
     @pytest.mark.parametrize(
@@ -306,20 +336,6 @@ class TestOauthEndpointSuite:
                 "params": {
                     "client_id": config.CLIENT_ID,
                     "redirect_uri": config.REDIRECT_URI,
-                    "grant_type": "authorization_code",
-                },
-            },
-            # condition 9: valid but unsubscribed client id
-            {
-                "expected_status_code": 401,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "client_id is not subscribed to this environments",
-                },
-                "params": {
-                    "client_id": config.VALID_UNSUBSCRIBED_CLIENT_ID,
-                    "client_secret": config.VALID_UNSUBSCRIBED_CLIENT_SECRET,
-                    "redirect_uri": config.VALID_UNSUBSCRIBED_REDIRECT_URI,
                     "grant_type": "authorization_code",
                 },
             },
