@@ -122,6 +122,21 @@ class TestOauthTokenSuite:
             }
         )
 
+
+    @pytest.mark.apm_1618
+    @pytest.mark.errors
+    def test_access_token_with_params(self):
+        assert self.oauth.check_endpoint(
+            verb='POST',
+            endpoint='token',
+            expected_status_code=400,
+            expected_response={
+                "error": "invalid_request",
+                "error_description": "the request is missing a required parameter: 'grant_type'"
+            },
+            params={"put_some_query_params_here": "test"}
+        )
+
     @pytest.mark.apm_1010
     @pytest.mark.errors
     @pytest.mark.usefixtures('get_refresh_token')
