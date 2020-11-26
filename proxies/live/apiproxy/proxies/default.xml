@@ -10,6 +10,12 @@
         </Step>
         <Condition>(fault.name Equals "RaiseFault")</Condition>
       </FaultRule>
+      <FaultRule name="not_subscribed">
+        <Condition>(fault.name Equals "InvalidApiKeyForGivenResource")</Condition>
+        <Step>
+          <Name>AssignMessage.InvalidApiKeyForGivenResource</Name>
+        </Step>
+      </FaultRule>
       <FaultRule name="jwt_algorithm">
         <Condition>(JWT.failed Equals true) And (fault.name Equals "AlgorithmMismatch")</Condition>
         <Step>

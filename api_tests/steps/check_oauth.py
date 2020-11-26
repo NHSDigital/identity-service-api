@@ -14,6 +14,16 @@ class CheckOauth(GenericRequest):
         code = authenticator.get_code_from_provider(response)
         return code
 
+    def get_custom_token_response(self, request_data: dict, timeout: int = 5000):
+        data = request_data
+        if data.get('refresh_token'):
+            data['_refresh_token_expiry_ms'] = timeout
+        else:
+            data['code'] = self.get_authenticated()
+            data['_access_token_expiry_ms'] = timeout
+
+        return self.post(self.endpoints['token'], data=data)
+
     def get_token_response(self, timeout: int = 5000, grant_type: str = 'authorization_code', refresh_token: str = ""):
         data = {
             'client_id': config.CLIENT_ID,
