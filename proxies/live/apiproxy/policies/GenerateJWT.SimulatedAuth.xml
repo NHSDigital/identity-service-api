@@ -9,7 +9,7 @@
     <Value ref="private.dummy_secret_key"/>
   </SecretKey>
   <AdditionalClaims>
-    <Claim name='acr'><!--TODO add a realistic value here--></Claim>
-    <Claim name='amr'><!--TODO add a realistic value here--></Claim>
+    <Claim name='acr'>AAL3_ANY</Claim>
+    <Claim name='amr' type='array'>N3_SMARTCARD</Claim>
   </AdditionalClaims>
 </GenerateJWT>

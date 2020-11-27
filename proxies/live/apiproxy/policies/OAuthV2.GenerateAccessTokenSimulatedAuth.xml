@@ -13,8 +13,8 @@
     <Attribute name="id_token" ref="jwt.GenerateJWT.SimulatedAuth.generated_jwt" display="true"/>
     <Attribute name="id_token-subject" display="true">910000000001</Attribute>
     <Attribute name="id_token-issuer" ref="virtualhost.name" display="true"/>
-    <Attribute name="id_token-acr" display="true"><!--TODO - add realistic value here--></Attribute>
-    <Attribute name="id_token-amr" display="true"><!--TODO - add realistic value here--></Attribute>
+    <Attribute name="id_token-acr" ref="jwt.GenerateJWT.SimulatedAuth.generated_jwt.claims.acr" display="true"/>
+    <Attribute name="id_token-amr" ref="jwt.GenerateJWT.SimulatedAuth.generated_jwt.claims.amr" display="true"/>
     <Attribute name="_first_issued" ref="system.timestamp" display="false"/>
   </Attributes>
 </OAuthV2>
