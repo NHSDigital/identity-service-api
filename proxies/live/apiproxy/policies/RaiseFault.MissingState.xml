@@ -2,10 +2,17 @@
     <FaultResponse>
         <Set>
             <StatusCode>302</StatusCode>
-            <Payload contentType="text/plain"/>
             <Headers>
-              <Header name="Location">{private.apigee.authorize_endpoint}?error=invalid_request&amp;error_description=state is missing</Header>
+              <Header name="Location">{private.apigee.authorize_endpoint}</Header>
             </Headers>
+            <Payload contentType="application/x-www-form-urlencoded">
+                {
+                    "redirect_uri": "{request.queryparam.redirect_uri}",
+                    "error" : "invalid_request",
+                    "error_description" :"state is missing",
+                    "message_id": "{messageid}"
+                }
+            </Payload>
           </Set>
     </FaultResponse>
     <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
