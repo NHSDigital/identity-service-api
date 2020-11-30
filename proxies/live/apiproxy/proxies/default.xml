@@ -110,8 +110,13 @@
                     <Name>RaiseFault.MissingClientId</Name>
                     <Condition>request.queryparam.client_id = null</Condition>
                 </Step>
+                <!-- Verify the client has sent a valid Client ID -->
                 <Step>
                     <Name>VerifyAPIKey.ClientId</Name>
+                </Step>
+                <Step>
+                  <Name>RaiseFault.InvalidClientId</Name>
+                  <Condition>oauthV2.VerifyAPIKey.ClientId.failed</Condition>
                 </Step>
                 <Step>
                     <Name>RaiseFault.CheckRedirectUri</Name>

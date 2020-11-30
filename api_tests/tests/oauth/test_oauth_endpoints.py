@@ -152,6 +152,7 @@ class TestOauthEndpointSuite:
 
     @pytest.mark.apm_801
     @pytest.mark.apm_990
+    @pytest.mark.apm_1475
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
     @pytest.mark.parametrize(
@@ -173,7 +174,32 @@ class TestOauthEndpointSuite:
             },
             # condition 2: missing redirect uri
             # condition 3: invalid client id
+            {
+                "expected_status_code": 401,
+                "expected_response": {
+                    "error": "invalid_request",
+                    "error_description": "client_id is invalid",
+                },
+                "params": {
+                    "client_id": "invalid",
+                    "redirect_uri": f"{config.REDIRECT_URI}/invalid",  # invalid redirect uri
+                    "response_type": "code",
+                    "state": random.getrandbits(32),
+                },
+            },
             # condition 4: missing client id
+            {
+                "expected_status_code": 401,
+                "expected_response": {
+                    "error": "invalid_request",
+                    "error_description": "client_id is missing",
+                },
+                "params": {
+                    "redirect_uri": config.REDIRECT_URI,
+                    "response_type": "code",
+                    "state": random.getrandbits(32),
+                },
+            },
             # condition 5: invalid response type
             {
                 "expected_status_code": 400,
