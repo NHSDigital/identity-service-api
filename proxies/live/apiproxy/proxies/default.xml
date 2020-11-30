@@ -17,9 +17,15 @@
         </Step>
       </FaultRule>
       <FaultRule name="verify_api_key">
-        <Condition>(oauthV2.VerifyAPIKey.ClientId.failed Equals true)</Condition>
+        <Condition>(fault.name Equals "InvalidApiKey")</Condition>
         <Step>
           <Name>AssignMessage.InvalidApiKey</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="missing_api_key">
+        <Condition>(fault.name Equals "FailedToResolveAPIKey")</Condition>
+        <Step>
+          <Name>AssignMessage.MissingApiKey</Name>
         </Step>
       </FaultRule>
       <FaultRule name="jwt_algorithm">
