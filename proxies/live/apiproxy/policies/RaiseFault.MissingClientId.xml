@@ -1,0 +1,16 @@
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.MissingClientId">
+    <FaultResponse>
+      <Set>
+        <Payload contentType="application/json">
+          {
+            "error": "invalid_request",
+            "error_description": "client_id is missing",
+            "message_id": "{messageid}"
+          }
+        </Payload>
+        <StatusCode>401</StatusCode>
+        <ReasonPhrase>Unauthorized</ReasonPhrase>
+      </Set>
+    </FaultResponse>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  </RaiseFault>
