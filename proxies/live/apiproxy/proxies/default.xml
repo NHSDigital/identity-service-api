@@ -16,6 +16,7 @@
           <Name>AssignMessage.InvalidApiKeyForGivenResource</Name>
         </Step>
       </FaultRule>
+      <!-- TODO; check other run time errors from VerifyApiKey -->
       <FaultRule name="verify_api_key">
         <Condition>(fault.name Equals "InvalidApiKey")</Condition>
         <Step>
@@ -121,8 +122,13 @@
                 <Step>
                     <Name>VerifyAPIKey.ClientId</Name>
                 </Step>
+                <!-- Verify the client has senta valid redirect uri -->
                 <Step>
-                    <Name>RaiseFault.CheckRedirectUri</Name>
+                  <Name>RaiseFault.MissingRedirectUri</Name>
+                  <Condition>request.queryparam.redirect_uri = null</Condition>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.VerifyRedirectUri</Name>
                     <Condition>request.queryparam.redirect_uri != verifyapikey.VerifyAPIKey.ClientId.redirection_uris</Condition>
                 </Step>
                 <Step>
