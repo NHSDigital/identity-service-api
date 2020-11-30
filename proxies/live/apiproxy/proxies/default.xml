@@ -16,6 +16,12 @@
           <Name>AssignMessage.InvalidApiKeyForGivenResource</Name>
         </Step>
       </FaultRule>
+      <FaultRule name="verify_api_key">
+        <Condition>(oauthV2.VerifyAPIKey.ClientId.failed Equals true)</Condition>
+        <Step>
+          <Name>AssignMessage.InvalidApiKey</Name>
+        </Step>
+      </FaultRule>
       <FaultRule name="jwt_algorithm">
         <Condition>(JWT.failed Equals true) And (fault.name Equals "AlgorithmMismatch")</Condition>
         <Step>
@@ -113,10 +119,6 @@
                 <!-- Verify the client has sent a valid Client ID -->
                 <Step>
                     <Name>VerifyAPIKey.ClientId</Name>
-                </Step>
-                <Step>
-                  <Name>RaiseFault.InvalidClientId</Name>
-                  <Condition>oauthV2.VerifyAPIKey.ClientId.fault.cause Equals "Invalid ApiKey"</Condition>
                 </Step>
                 <Step>
                     <Name>RaiseFault.CheckRedirectUri</Name>
