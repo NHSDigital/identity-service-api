@@ -117,11 +117,6 @@
         <Flow name="Flow.GetAuthorization">
             <Description>OAuth Authorization Endpoint</Description>
             <Request>
-                <!-- Verify the client has sent the Client ID in form params -->
-                <Step>
-                    <Name>RaiseFault.MissingClientId</Name>
-                    <Condition>request.queryparam.client_id = null</Condition>
-                </Step>
                 <!-- Verify the client has sent a valid Client ID -->
                 <Step>
                     <Name>VerifyAPIKey.ClientId</Name>
