@@ -116,7 +116,7 @@
                 </Step>
                 <Step>
                   <Name>RaiseFault.InvalidClientId</Name>
-                  <Condition>oauthV2.VerifyAPIKey.ClientId.failed</Condition>
+                  <Condition>oauthV2.VerifyAPIKey.ClientId.fault.cause Equals "Invalid ApiKey"</Condition>
                 </Step>
                 <Step>
                     <Name>RaiseFault.CheckRedirectUri</Name>
