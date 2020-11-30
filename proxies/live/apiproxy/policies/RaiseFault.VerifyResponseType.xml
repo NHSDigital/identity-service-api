@@ -1,0 +1,12 @@
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.VerifyResponseType">
+  <FaultResponse>
+      <Set>
+          <StatusCode>302</StatusCode>
+          <Payload contentType="text/plain"/>
+          <Headers>
+            <Header name="Location">{private.apigee.authorize_endpoint}?error=unsupported_response_type&amp;error_description=response_type is invalid&amp;state={request.queryparam.state}</Header>
+          </Headers>
+        </Set>
+  </FaultResponse>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</RaiseFault>
