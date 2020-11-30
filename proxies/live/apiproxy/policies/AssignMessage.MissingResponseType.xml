@@ -1,0 +1,11 @@
+<AssignMessage name="AssignMessage.VerifyResponseType">
+  <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
+  <AssignVariable>
+    <Name>apigee.error.error_code</Name>
+    <Value>invalid_request</Value>
+  </AssignVariable>
+  <AssignVariable>
+    <Name>apigee.error.description</Name>
+    <Value>response_type is missing</Value>
+  </AssignVariable>
+</AssignMessage> 

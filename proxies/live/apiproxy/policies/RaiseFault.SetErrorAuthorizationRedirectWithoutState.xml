@@ -1,0 +1,12 @@
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.MissingRedirectUriWithoutState">
+    <FaultResponse>
+        <Set>
+            <StatusCode>302</StatusCode>
+            <Payload contentType="text/plain"/>
+            <Headers>
+              <Header name="Location">{private.apigee.authorize_endpoint}?error={apigee.error.error_code}&amp;error_description={apigee.error.description}</Header>
+            </Headers>
+          </Set>
+    </FaultResponse>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</RaiseFault>

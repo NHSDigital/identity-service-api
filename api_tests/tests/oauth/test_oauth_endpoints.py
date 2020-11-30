@@ -173,6 +173,18 @@ class TestOauthEndpointSuite:
                 },
             },
             # condition 2: missing redirect uri
+            {
+                "expected_status_code": 400,
+                "expected_response": {
+                    "error": "invalid_request",
+                    "error_description": f"redirect_uri is missing",
+                },
+                "params": {  # not providing redirect uri
+                    "client_id": config.CLIENT_ID,
+                    "response_type": "code",
+                    "state": random.getrandbits(32),
+                },
+            },
             # condition 3: invalid client id
             {
                 "expected_status_code": 401,
@@ -181,8 +193,8 @@ class TestOauthEndpointSuite:
                     "error_description": "client_id is invalid",
                 },
                 "params": {
-                    "client_id": "invalid",
-                    "redirect_uri": f"{config.REDIRECT_URI}/invalid",  # invalid redirect uri
+                    "client_id": "invalid",  # invalid client id
+                    "redirect_uri": f"{config.REDIRECT_URI}/invalid",
                     "response_type": "code",
                     "state": random.getrandbits(32),
                 },
@@ -194,7 +206,7 @@ class TestOauthEndpointSuite:
                     "error": "invalid_request",
                     "error_description": "client_id is missing",
                 },
-                "params": {
+                "params": {  # not providing client_id
                     "redirect_uri": config.REDIRECT_URI,
                     "response_type": "code",
                     "state": random.getrandbits(32),

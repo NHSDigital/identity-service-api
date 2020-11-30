@@ -115,6 +115,11 @@
       <Response/>
     </PostFlow>
     <Flows>
+        <!-- APM-1475 Errors caught:
+          * Missing client_id
+          * Invalid client_id
+          * Missing redirect_uri
+        -->
         <Flow name="Flow.GetAuthorization">
             <Description>OAuth Authorization Endpoint</Description>
             <Request>
@@ -122,7 +127,7 @@
                 <Step>
                     <Name>VerifyAPIKey.ClientId</Name>
                 </Step>
-                <!-- Verify the client has senta valid redirect uri -->
+                <!-- Verify the client has sent a valid redirect uri -->
                 <Step>
                   <Name>RaiseFault.MissingRedirectUri</Name>
                   <Condition>request.queryparam.redirect_uri = null</Condition>
@@ -131,10 +136,25 @@
                     <Name>RaiseFault.VerifyRedirectUri</Name>
                     <Condition>request.queryparam.redirect_uri != verifyapikey.VerifyAPIKey.ClientId.redirection_uris</Condition>
                 </Step>
+                <!-- Verify the client has sent a valid response type -->
                 <Step>
-                    <Name>RaiseFault.CheckResponseType</Name>
+                    <Name>AssignMessage.MissingResponseType</Name>
+                    <Condition>request.queryparam.response_type = null</Condition>
+                </Step>
+                <Step>
+                    <Name>AssignMessage.VerifyResponseType</Name>
                     <Condition>request.queryparam.response_type != "code"</Condition>
                 </Step>
+                <!-- Redirect to redirect_uri if error variable has been assigned -->
+                <Step>
+                    <Name>RaiseFault.SetErrorAuthorizationRedirect</Name>
+                    <Condition>apigee.error.error_code != null</Condition>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.SetErrorAuthorizationRedirectWithoutState</Name>
+                    <Condition>(apigee.error.error_code != null) and (request.queryparam.state = null)</Condition>
+                </Step>
+                <!-- Complete the rest of authorization flow-->
                 <Step>
                     <Name>AssignMessage.GenerateState</Name>
                 </Step>
