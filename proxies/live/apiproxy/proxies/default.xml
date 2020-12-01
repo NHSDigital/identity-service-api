@@ -31,7 +31,7 @@
       <FaultRule name="invalid_client_app_not_approved">
         <Condition>(fault.name Equals "invalid_client-app_not_approved")</Condition>
         <Step>
-          <Name>AssignMessage.DeveloperStatusNotActive</Name>
+          <Name>AssignMessage.InvalidClientAppNotApproved</Name>
         </Step>
       </FaultRule>
       <!-- TODO; check other run time errors from VerifyApiKey -->
