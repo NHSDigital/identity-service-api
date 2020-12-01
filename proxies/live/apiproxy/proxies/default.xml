@@ -34,7 +34,6 @@
           <Name>AssignMessage.InvalidClientAppNotApproved</Name>
         </Step>
       </FaultRule>
-      <!-- TODO; check other run time errors from VerifyApiKey -->
       <FaultRule name="verify_api_key">
         <Condition>(fault.name Equals "InvalidApiKey")</Condition>
         <Step>
@@ -137,6 +136,10 @@
           * Missing client_id
           * Invalid client_id
           * Missing redirect_uri
+          Implemented but TODO: need to add test app + test to test these in pipeline
+            * CompanyStatusNotActive
+            * DeveloperStatusNotActive
+            * invalid_client-app_not_approved
         -->
         <Flow name="Flow.GetAuthorization">
             <Description>OAuth Authorization Endpoint</Description>

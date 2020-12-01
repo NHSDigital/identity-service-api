@@ -3,7 +3,7 @@
         <Set>
             <StatusCode>302</StatusCode>
             <Headers>
-                <Header name="Location">{private.apigee.authorize_endpoint}?redirect_uri={private.apigee.redirect_uri}?error=invalid_request&amp;error_description=state%20is%20missing</Header>
+                <Header name="Location">{request.queryparam.redirect_uri}?error=invalid_request&amp;error_description=state%20is%20missing</Header>
             </Headers>
             <Payload contentType="application/x-www-form-urlencoded"/>
           </Set>
