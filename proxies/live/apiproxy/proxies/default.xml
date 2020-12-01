@@ -16,6 +16,24 @@
           <Name>AssignMessage.InvalidApiKeyForGivenResource</Name>
         </Step>
       </FaultRule>
+      <FaultRule name="company_status_not_active">
+        <Condition>(fault.name Equals "CompanyStatusNotActive")</Condition>
+        <Step>
+          <Name>AssignMessage.CompanyStatusNotActive</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="developer_status_not_active">
+        <Condition>(fault.name Equals "DeveloperStatusNotActive")</Condition>
+        <Step>
+          <Name>AssignMessage.DeveloperStatusNotActive</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="invalid_client_app_not_approved">
+        <Condition>(fault.name Equals "invalid_client-app_not_approved")</Condition>
+        <Step>
+          <Name>AssignMessage.DeveloperStatusNotActive</Name>
+        </Step>
+      </FaultRule>
       <!-- TODO; check other run time errors from VerifyApiKey -->
       <FaultRule name="verify_api_key">
         <Condition>(fault.name Equals "InvalidApiKey")</Condition>

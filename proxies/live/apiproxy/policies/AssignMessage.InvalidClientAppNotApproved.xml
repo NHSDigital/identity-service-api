@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.InvalidClientAppNotApproved">
+    <DisplayName>Invalid Client App Not Approved</DisplayName>
+    <Set>
+        <Payload contentType="application/json">
+          {
+            "error": "access_denied",
+            "error_description": "The developer app associated with the API key is not approved or revoked",
+            "message_id": "{messageid}"
+          }
+        </Payload>
+    </Set>
+    <AssignTo createNew="false" transport="https" type="request"/>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</AssignMessage>

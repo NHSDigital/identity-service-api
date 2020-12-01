@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.CompanyStatusNotActive">
+    <DisplayName>Company Status Not Active</DisplayName>
+    <Set>
+        <Payload contentType="application/json">
+          {
+            "error": "access_denied",
+            "error_description": "The company associated with the developer app that has the API key you are using has an inactive status",
+            "message_id": "{messageid}"
+          }
+        </Payload>
+    </Set>
+    <AssignTo createNew="false" transport="https" type="request"/>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</AssignMessage>
