@@ -4,21 +4,24 @@ import os
 # Configure Test Environment
 def get_env(variable_name: str, default: str = "") -> str:
     """Returns a environment variable"""
-    try:
-        return os.environ[variable_name]
-    except KeyError:
-        return default
+    return os.environ[variable_name]
 
 
 ENV = {
     'oauth': {
         'apigee_client_id': get_env('APIGEE_CLIENT_ID'),
 
+        'identity_proxy': get_env('IDENTITY_PROXY'),
         'base_url': get_env('BASE_URL'),
         'client_id': get_env('CLIENT_ID'),
         'client_secret': get_env('CLIENT_SECRET'),
         'redirect_uri': get_env('REDIRECT_URI'),
         'authenticate_url': get_env('AUTHENTICATE_URL'),
+
+        # Valid but unsubscribed app details
+        'valid_unsubscribed_client_id': get_env('VALID_UNSUBSCRIBED_CLIENT_ID'),
+        'valid_unsubscribed_client_secret': get_env('VALID_UNSUBSCRIBED_CLIENT_SECRET'),
+        'valid_unsubscribed_redirect_uri': get_env('VALID_UNSUBSCRIBED_REDIRECT_URI'),
 
         # Invalid ASID Application details
         'invalid_asic_client_id': get_env('INVALID_ASID_CLIENT_ID'),

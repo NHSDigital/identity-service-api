@@ -2,9 +2,9 @@
   <Operation>GenerateAccessToken</Operation>
   <RedirectUri>request.formparam.redirect_uri</RedirectUri>
   <!-- 10 minutes: -->
-  <ExpiresIn ref="private.apigee.access_token_expiry_ms">600000</ExpiresIn>
+  <ExpiresIn ref="apigee.access_token_expiry_ms">600000</ExpiresIn>
   <!-- 10 hours: -->
-  <RefreshTokenExpiresIn ref="private.apigee.refresh_token_expiry_ms">36000000</RefreshTokenExpiresIn>
+  <RefreshTokenExpiresIn ref="apigee.refresh_token_expiry_ms">36000000</RefreshTokenExpiresIn>
   <SupportedGrantTypes>
       <GrantType>authorization_code</GrantType>
   </SupportedGrantTypes>

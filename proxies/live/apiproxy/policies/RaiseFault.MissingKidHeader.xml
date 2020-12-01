@@ -4,7 +4,7 @@
       <Payload contentType="application/json">
         {
           "error": "invalid_request",
-          "error_description": "JWT header value 'kid' is missing",
+          "error_description": "Missing 'kid' header in JWT",
           "message_id": "{messageid}"
         }
 </Payload>
