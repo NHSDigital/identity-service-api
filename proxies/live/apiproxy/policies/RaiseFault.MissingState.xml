@@ -3,10 +3,9 @@
         <Set>
             <StatusCode>302</StatusCode>
             <Headers>
-                <Header name="Content-Type">application/x-www-form-urlencoded</Header>
-                <Header name="Location">{private.apigee.authorize_endpoint}?redirect_uri={private.apigee.redirect_uri}?error=invalid_request&amp;error_description=state+is+missing</Header>
+                <Header name="Location">{private.apigee.authorize_endpoint}?redirect_uri={private.apigee.redirect_uri}?error=invalid_request&amp;error_description=state%20is%20missing</Header>
             </Headers>
-            <Payload contentType="text/plain"/>
+            <Payload contentType="application/x-www-form-urlencoded"/>
           </Set>
     </FaultResponse>
     <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
