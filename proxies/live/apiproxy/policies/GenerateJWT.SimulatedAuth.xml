@@ -10,6 +10,6 @@
   </SecretKey>
   <AdditionalClaims>
     <Claim name='acr'>AAL3_ANY</Claim>
-    <Claim name='amr' type='array'>N3_SMARTCARD</Claim>
+    <Claim name='amr' array='true'>N3_SMARTCARD</Claim>
   </AdditionalClaims>
 </GenerateJWT>
