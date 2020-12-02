@@ -3,7 +3,7 @@
         <Set>
             <StatusCode>302</StatusCode>
             <Headers>
-                <Header name="Location">{request.queryparam.redirect_uri}?error=invalid_request&amp;error_description=state+is+missing</Header>
+                <Header name="Location">{request.queryparam.redirect_uri}?error=invalid_request&amp;error_description=state is missing</Header>
             </Headers>
             <Payload contentType="application/x-www-form-urlencoded"/>
         </Set>
