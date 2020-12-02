@@ -52,6 +52,13 @@ class GenericRequest:
             raise TypeError("Expected response type object for response argument")
 
     @staticmethod
+    def check_params(params, expected_params):
+        for key, value in expected_params.items():
+            if not params[key] or params[key] != value:
+                return False
+        return True
+
+    @staticmethod
     def _verify_status_code(status_code: Union[int, str]) -> None:
         """Verifies the status code provided is a valid status code"""
         if not type(status_code) == int:
@@ -145,6 +152,21 @@ class GenericRequest:
         response = self.get_response(verb, endpoint, **kwargs)
         assert self._verify_response(response, expected_status_code, expected_response, **kwargs)
         return response
+
+    def check_redirect(self,
+                       response: requests.Response,
+                       expected_params: dict,
+                       client_redirect: str = None,
+                       state: str = None):
+        redirected_url = response.headers["Location"]
+        params = self.get_params_from_url(redirected_url)
+        if state:
+            expected_params["state"] = str(state)
+        assert self.check_params(params, expected_params), (
+            f"Expected: {expected_params}, but got: {params}"
+        )
+        if client_redirect:
+            assert redirected_url.startswith(client_redirect)
 
     def check_endpoint(
         self,

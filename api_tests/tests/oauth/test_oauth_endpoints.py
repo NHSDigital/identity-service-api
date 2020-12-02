@@ -35,6 +35,7 @@ class TestOauthEndpointSuite:
                 "client_id": config.CLIENT_ID,
                 "redirect_uri": config.REDIRECT_URI,
                 "response_type": "code",
+                "state": random.getrandbits(32)
             },
         )
 
@@ -212,12 +213,52 @@ class TestOauthEndpointSuite:
                     "state": random.getrandbits(32),
                 },
             },
+        ],
+    )
+    def test_authorization_error_conditions(self, request_data: dict):
+        assert self.oauth.check_endpoint("GET", "authorize", **request_data)
+
+    @pytest.mark.apm_1475
+    @pytest.mark.errors
+    @pytest.mark.authorize_endpoint
+    @pytest.mark.parametrize(
+        "request_data",
+        [
+            # condition 1: missing state
+            {
+                "expected_status_code": 302,
+                "expected_response": "",
+                "expected_params": {
+                    "error": "invalid_request",
+                    "error_description": "state is missing",
+                },
+                "params": {
+                    "client_id": config.CLIENT_ID,
+                    "redirect_uri": config.REDIRECT_URI,
+                    "response_type": "code",
+                },
+            },
+            # condition 2: missing response type
+            {
+                "expected_status_code": 302,
+                "expected_response": "",
+                "expected_params": {
+                    "error": "invalid_request",
+                    "error_description": "response_type is missing",
+                },
+                "params": {
+                    "client_id": config.CLIENT_ID,
+                    "redirect_uri": config.REDIRECT_URI,
+                    "state": random.getrandbits(32),
+                },
+            },
             # condition 5: invalid response type
             {
-                "expected_status_code": 400,
-                "expected_response": {
+                "expected_status_code": 302,
+                "expected_response": "",
+                "expected_params": {
                     "error": "unsupported_response_type",
-                    "error_description": "invalid response type: invalid",
+                    "error_description": "response_type is invalid",
                 },
                 "params": {
                     "client_id": config.CLIENT_ID,
@@ -226,11 +267,23 @@ class TestOauthEndpointSuite:
                     "state": random.getrandbits(32),
                 },
             },
-            # condition 6: missing response type
         ],
     )
-    def test_authorization_error_conditions(self, request_data: dict):
-        assert self.oauth.check_endpoint("GET", "authorize", **request_data)
+    def test_authorization_error_redirects(self, request_data: dict):
+        response = self.oauth.check_and_return_endpoint(
+            verb="GET",
+            endpoint="authorize",
+            expected_status_code=request_data["expected_status_code"],
+            expected_response=request_data["expected_response"],
+            params=request_data["params"],
+            allow_redirects=False
+        )
+        self.oauth.check_redirect(
+            response=response,
+            expected_params=request_data["expected_params"],
+            client_redirect=config.REDIRECT_URI,
+            state=request_data["params"].get("state")
+        )
 
     @pytest.mark.apm_1631
     @pytest.mark.errors
