@@ -309,11 +309,11 @@
                 <!-- Verify the client has sent a valid redirect uri -->
                 <Step>
                   <Name>RaiseFault.MissingRedirectUri</Name>
-                  <Condition>request.queryparam.redirect_uri = null</Condition>
+                  <Condition>request.formparam.redirect_uri = null</Condition>
                 </Step>
                 <Step>
                   <Name>RaiseFault.VerifyRedirectUri</Name>
-                  <Condition>request.queryparam.redirect_uri != verifyapikey.VerifyAPIKey.ClientId.redirection_uris</Condition>
+                  <Condition>request.formparam.redirect_uri != verifyapikey.VerifyAPIKey.ClientId.redirection_uris</Condition>
                 </Step>
                 <Step>
                     <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
@@ -414,11 +414,11 @@
                 <!-- Verify the client has sent a valid redirect uri -->
                 <Step>
                   <Name>RaiseFault.MissingRedirectUri</Name>
-                  <Condition>request.queryparam.redirect_uri = null</Condition>
+                  <Condition>request.formparam.redirect_uri = null</Condition>
                 </Step>
                 <Step>
                   <Name>RaiseFault.VerifyRedirectUri</Name>
-                  <Condition>request.queryparam.redirect_uri != verifyapikey.VerifyAPIKey.ClientId.redirection_uris</Condition>
+                  <Condition>request.formparam.redirect_uri != verifyapikey.VerifyAPIKey.ClientId.redirection_uris</Condition>
                 </Step>
                 <!-- Next two steps (trivially) check that the supplied authorization code is valid -->
                 <Step>

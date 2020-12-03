@@ -348,127 +348,6 @@ class TestOauthEndpointSuite:
         assert response_data["error"] == request_data["expected_response"]["error"]
         assert response_data["error_description"] == request_data["expected_response"]["error_description"]
 
-    @pytest.mark.apm_801
-    @pytest.mark.errors
-    @pytest.mark.token_endpoint
-    @pytest.mark.parametrize(
-        "request_data",
-        [
-            # condition 1: invalid grant type
-            {
-                "expected_status_code": 400,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "invalid grant_type",
-                },
-                "params": {
-                    "client_id": config.CLIENT_ID,
-                    "client_secret": config.CLIENT_SECRET,
-                    "redirect_uri": config.REDIRECT_URI,
-                    "grant_type": "invalid",
-                },
-            },
-            # condition 2: missing grant_type
-            {
-                "expected_status_code": 400,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "The request is missing a required parameter: grant_type",
-                },
-                "params": {
-                    "client_id": config.CLIENT_ID,
-                    "client_secret": config.CLIENT_SECRET,
-                    "redirect_uri": config.REDIRECT_URI,
-                },
-            },
-            # condition 3: invalid client id
-            {
-                "expected_status_code": 400,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "invalid client_id",
-                },
-                "params": {
-                    "client_id": "THISisANinvalidCLIENTid12345678",
-                    "client_secret": config.CLIENT_SECRET,
-                    "redirect_uri": config.REDIRECT_URI,
-                    "grant_type": "authorization_code",
-                },
-            },
-            # condition 4: missing client_id
-            {
-                "expected_status_code": 400,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "The request is missing a required parameter : client_id",
-                },
-                "params": {
-                    "client_secret": config.CLIENT_SECRET,
-                    "redirect_uri": config.REDIRECT_URI,
-                    "grant_type": "authorization_code",
-                },
-            },
-            # condition 5: invalid redirect uri
-            {
-                "expected_status_code": 400,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "invalid redirect_uri",
-                },
-                "params": {
-                    "client_id": config.CLIENT_ID,
-                    "client_secret": config.CLIENT_SECRET,
-                    "redirect_uri": f"{config.REDIRECT_URI}/invalid",
-                    "grant_type": "authorization_code",
-                },
-            },
-            # condition 6: missing redirect_uri
-            {
-                "expected_status_code": 400,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "The request is missing a required parameter : redirect_uri",
-                },
-                "params": {
-                    "client_id": config.CLIENT_ID,
-                    "client_secret": config.CLIENT_SECRET,
-                    "grant_type": "authorization_code",
-                },
-            },
-            # condition 7: invalid client secret
-            {
-                "expected_status_code": 400,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "invalid secret_id",
-                },
-                "params": {
-                    "client_id": config.CLIENT_ID,
-                    "client_secret": "ThisSecretIsInvalid",
-                    "redirect_uri": config.REDIRECT_URI,
-                    "grant_type": "authorization_code",
-                },
-            },
-            # condition 8: missing client secret
-            {
-                "expected_status_code": 400,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "The request is missing a required parameter : secret_id",
-                },
-                "params": {
-                    "client_id": config.CLIENT_ID,
-                    "redirect_uri": config.REDIRECT_URI,
-                    "grant_type": "authorization_code",
-                },
-            },
-        ],
-    )
-    @pytest.mark.skip(reason="Not implemented")
-    def test_token_error_conditions(self, request_data: dict):
-        request_data["params"]["code"] = self.oauth.get_authenticated()
-        assert self.oauth.check_endpoint("POST", "token", **request_data)
-
     @pytest.mark.apm_1618
     @pytest.mark.errors
     @pytest.mark.token_endpoint
@@ -594,8 +473,7 @@ class TestOauthEndpointSuite:
             # },
         ],
     )
-    # Temporary enable error scenarios that have been implemented
-    def test_token_error_conditions_implemented(self, request_data: dict):
+    def test_token_error_conditions(self, request_data: dict):
         request_data["params"]["code"] = self.oauth.get_authenticated()
         assert self.oauth.check_endpoint("POST", "token", **request_data)
 
