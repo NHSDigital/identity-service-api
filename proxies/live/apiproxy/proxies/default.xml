@@ -315,6 +315,7 @@
                   <Name>RaiseFault.VerifyRedirectUriFormParam</Name>
                   <Condition>request.formparam.redirect_uri != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.redirection_uris</Condition>
                 </Step>
+                <!-- Verify the client has sent a valid authorization code -->
                 <Step>
                     <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
                 </Step>

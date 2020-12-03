@@ -367,8 +367,8 @@ class TestOauthEndpointSuite:
             {
                 "expected_status_code": 400,
                 "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "grant_type: 'invalid' is invalid or unsupported",
+                    "error": "unsupported_grant_type",
+                    "error_description": "grant_type: 'invalid' is unsupported",
                 },
                 "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                 "params": {},

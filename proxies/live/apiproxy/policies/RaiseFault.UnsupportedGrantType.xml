@@ -3,8 +3,8 @@
     <Set>
       <Payload contentType="application/json">
         {
-          "error" : "invalid_request",
-          "error_description" :"grant_type: '{request.formparam.grant_type}' is invalid or unsupported",
+          "error" : "unsupported_grant_type",
+          "error_description" :"grant_type: '{request.formparam.grant_type}' is unsupported",
           "message_id": "{messageid}"
         }
       </Payload>
