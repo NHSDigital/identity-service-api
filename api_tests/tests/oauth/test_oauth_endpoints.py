@@ -476,43 +476,105 @@ class TestOauthEndpointSuite:
         "request_data",
         [
             # condition 1: no params provided
+            # {
+            #     "expected_status_code": 400,
+            #     "expected_response": {
+            #         "error": "invalid_request",
+            #         "error_description": "the request is missing a required parameter: 'grant_type'",
+            #     },
+            #     "params": {},
+            # },
+            # # condition 2: invalid grant type
+            # {
+            #     "expected_status_code": 400,
+            #     "expected_response": {
+            #         "error": "invalid_request",
+            #         "error_description": "unsupported grant_type: 'invalid'",
+            #     },
+            #     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+            #     "params": {},
+            #     "data": {
+            #         "client_id": config.CLIENT_ID,
+            #         "client_secret": config.CLIENT_SECRET,
+            #         "redirect_uri": config.REDIRECT_URI,
+            #         "grant_type": "invalid",
+            #     },
+            # },
+            # # condition 3: missing grant_type
+            # {
+            #     "expected_status_code": 400,
+            #     "expected_response": {
+            #         "error": "invalid_request",
+            #         "error_description": "the request is missing a required parameter: 'grant_type'",
+            #     },
+            #     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+            #     "params": {},
+            #     "data": {
+            #         "client_id": config.CLIENT_ID,
+            #         "client_secret": config.CLIENT_SECRET,
+            #         "redirect_uri": config.REDIRECT_URI,
+            #     },
+            # },
+            # # condition 4: missing client_id
+            # {
+            #     "expected_status_code": 401,
+            #     "expected_response": {
+            #         "error": "invalid_request",
+            #         "error_description": "client_id is missing",
+            #     },
+            #     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+            #     "params": {},
+            #     "data": {
+            #         "client_secret": config.CLIENT_SECRET,
+            #         "redirect_uri": config.REDIRECT_URI,
+            #         "grant_type": "authorization_code",
+            #     },
+            # },
+            # # condition 5: invalid client_id
+            # {
+            #     "expected_status_code": 401,
+            #     "expected_response": {
+            #         "error": "invalid_request",
+            #         "error_description": "client_id is invalid",
+            #     },
+            #     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+            #     "params": {},
+            #     "data": {
+            #         "client_id": "THISisANinvalidCLIENTid12345678",
+            #         "client_secret": config.CLIENT_SECRET,
+            #         "redirect_uri": config.REDIRECT_URI,
+            #         "grant_type": "authorization_code",
+            #     },
+            # },
+            # condition 7: invalid client secret
             {
-                "expected_status_code": 400,
+                "expected_status_code": 401,
                 "expected_response": {
                     "error": "invalid_request",
-                    "error_description": "the request is missing a required parameter: 'grant_type'",
-                },
-                "params": {},
-            },
-            # condition 2: invalid grant type
-            {
-                "expected_status_code": 400,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "unsupported grant_type: 'invalid'",
+                    "error_description": "invalid secret_id",
                 },
                 "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                 "params": {},
                 "data": {
                     "client_id": config.CLIENT_ID,
-                    "client_secret": config.CLIENT_SECRET,
+                    "client_secret": "ThisSecretIsInvalid",
                     "redirect_uri": config.REDIRECT_URI,
-                    "grant_type": "invalid",
+                    "grant_type": "authorization_code",
                 },
             },
-            # condition 3: missing grant_type
+            # condition 8: missing client secret
             {
                 "expected_status_code": 400,
                 "expected_response": {
                     "error": "invalid_request",
-                    "error_description": "the request is missing a required parameter: 'grant_type'",
+                    "error_description": "The request is missing a required parameter : secret_id",
                 },
                 "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                 "params": {},
                 "data": {
                     "client_id": config.CLIENT_ID,
-                    "client_secret": config.CLIENT_SECRET,
                     "redirect_uri": config.REDIRECT_URI,
+                    "grant_type": "authorization_code",
                 },
             },
         ],

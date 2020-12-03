@@ -132,14 +132,10 @@
       <Response/>
     </PostFlow>
     <Flows>
-        <!-- APM-1475 Errors caught:
-          * Missing client_id
-          * Invalid client_id
-          * Missing redirect_uri
-          Implemented but TODO: need to add test app + test to test these in pipeline
-            * CompanyStatusNotActive
-            * DeveloperStatusNotActive
-            * invalid_client-app_not_approved
+        <!-- 
+          TODO: 
+            * check which HTTP Methods allowed for /authorize 
+            * add test for inactive developer
         -->
         <Flow name="Flow.GetAuthorization">
             <Description>OAuth Authorization Endpoint</Description>
@@ -297,7 +293,11 @@
                   <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
                 </Step>
                 <Step>
-                  <Name>RaiseFault.Unauthorized</Name>
+                  <Name>RaiseFault.MissingClientSecret</Name>
+                  <Condition>request.formparam.client_secret = null</Condition>
+                </Step>
+                <Step>
+                  <Name>RaiseFault.InvalidClientSecret</Name>
                   <Condition>request.formparam.client_secret != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.client_secret</Condition>
                 </Step>
                 <Step>
@@ -389,7 +389,11 @@
                   <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
                 </Step>
                 <Step>
-                  <Name>RaiseFault.Unauthorized</Name>
+                  <Name>RaiseFault.MissingClientSecret</Name>
+                  <Condition>request.formparam.client_secret = null</Condition>
+                </Step>
+                <Step>
+                  <Name>RaiseFault.InvalidClientSecret</Name>
                   <Condition>request.formparam.client_secret != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.client_secret</Condition>
                 </Step>
                 <!-- Next two steps (trivially) check that the supplied authorization code is valid -->
