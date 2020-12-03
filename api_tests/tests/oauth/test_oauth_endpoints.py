@@ -480,7 +480,7 @@ class TestOauthEndpointSuite:
                 "expected_status_code": 400,
                 "expected_response": {
                     "error": "invalid_request",
-                    "error_description": "the request is missing a required parameter: 'grant_type'",
+                    "error_description": "grant_type is missing",
                 },
                 "params": {},
             },

@@ -4,7 +4,7 @@
       <Payload contentType="application/json">
         {
           "error" : "invalid_request",
-          "error_description" :"grant_type: {request.queryparam.grant_type} is invalid or unsupported",
+          "error_description" :"grant_type: '{request.formparam.grant_type}' is invalid or unsupported",
           "message_id": "{messageid}"
         }
       </Payload>

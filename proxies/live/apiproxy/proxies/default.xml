@@ -35,9 +35,15 @@
         </Step>
       </FaultRule>
       <FaultRule name="verify_api_key">
-        <Condition>(fault.name Equals "InvalidApiKey")</Condition>
+        <Condition>(fault.name Equals "InvalidApiKey") and !(proxy.pathsuffix MatchesPath "/token")</Condition>
         <Step>
           <Name>AssignMessage.InvalidApiKey</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="verify_api_key_and_secret">
+        <Condition>(fault.name Equals "InvalidApiKey") and (proxy.pathsuffix MatchesPath "/token")</Condition>
+        <Step>
+          <Name>AssignMessage.InvalidApiKeyOrSecret</Name>
         </Step>
       </FaultRule>
       <FaultRule name="missing_api_key">
@@ -634,7 +640,7 @@
               <Name>RaiseFault.UnsupportedHTTPMethod</Name>
             </Step>
           </Request>
-          <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb NotEquals "POST")</Condition>
+          <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb NotEquals "POST")</Condition>
         </Flow>
         <Flow name="Flow.CatchAll">
             <Description/>
