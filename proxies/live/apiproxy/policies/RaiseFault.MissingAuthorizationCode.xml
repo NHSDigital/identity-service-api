@@ -8,8 +8,8 @@
             "message_id": "{messageid}"
           }
         </Payload>
-        <StatusCode>401</StatusCode>
-        <ReasonPhrase>Unauthorized</ReasonPhrase>
+        <StatusCode>400</StatusCode>
+        <ReasonPhrase>Bad Request</ReasonPhrase>
       </Set>
     </FaultResponse>
     <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
