@@ -1,4 +1,4 @@
-<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.VerifyRedirectUriQueryParam">
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.VerifyRedirectUriFormParam">
   <FaultResponse>
     <Set>
       <Payload contentType="application/json">
