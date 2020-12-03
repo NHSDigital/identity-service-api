@@ -23,6 +23,11 @@ ENV = {
         'valid_unsubscribed_client_secret': get_env('VALID_UNSUBSCRIBED_CLIENT_SECRET'),
         'valid_unsubscribed_redirect_uri': get_env('VALID_UNSUBSCRIBED_REDIRECT_URI'),
 
+        # Valid but unapproved app details
+        'valid_unapproved_client_id': get_env('VALID_UNAPPROVED_CLIENT_ID'),
+        'valid_unapproved_client_secret': get_env('VALID_UNAPPROVED_CLIENT_SECRET'),
+        'valid_unapproved_redirect_uri': get_env('VALID_UNAPPROVED_REDIRECT_URI'),
+
         # Invalid ASID Application details
         'invalid_asic_client_id': get_env('INVALID_ASID_CLIENT_ID'),
         'invalid_asid_client_secret': get_env('INVALID_ASID_CLIENT_SECRET'),

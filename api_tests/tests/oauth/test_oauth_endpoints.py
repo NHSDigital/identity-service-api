@@ -213,6 +213,36 @@ class TestOauthEndpointSuite:
                     "state": random.getrandbits(32),
                 },
             },
+            # condition 5: app not subscribed
+            {
+                "expected_status_code": 401,
+                "expected_response": {
+                    "error": "access_denied",
+                    "error_description": "api key supplied does not have access to this resource."
+                                         " please check the api key you are using belongs to an app"
+                                         " which has sufficient access to access this resource.",
+                },
+                "params": {
+                    "client_id": config.VALID_UNSUBSCRIBED_CLIENT_ID,
+                    "redirect_uri": config.VALID_UNSUBSCRIBED_REDIRECT_URI,
+                    "response_type": "code",
+                    "state": random.getrandbits(32),
+                },
+            },
+            # condition 6: app revoked
+            {
+                "expected_status_code": 401,
+                "expected_response": {
+                    "error": "access_denied",
+                    "error_description": "the developer app associated with the api key is not approved or revoked",
+                },
+                "params": {
+                    "client_id": config.VALID_UNAPPROVED_CLIENT_ID,
+                    "redirect_uri": config.VALID_UNAPPROVED_CLIENT_REDIRECT_URI,
+                    "response_type": "code",
+                    "state": random.getrandbits(32),
+                },
+            },
         ],
     )
     def test_authorization_error_conditions(self, request_data: dict):
@@ -295,7 +325,9 @@ class TestOauthEndpointSuite:
                 "expected_status_code": 401,
                 "expected_response": {
                     "error": "access_denied",
-                    "error_description": "API Key supplied does not have access to this resource. Please check the API Key you are using belongs to an app which has sufficient access to access this resource.",
+                    "error_description": "API Key supplied does not have access to this resource."
+                                         " Please check the API Key you are using belongs to an app"
+                                         " which has sufficient access to access this resource.",
                 },
                 "params": {
                     "client_id": config.VALID_UNSUBSCRIBED_CLIENT_ID,
