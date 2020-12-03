@@ -535,7 +535,7 @@ class TestOauthEndpointSuite:
                 "expected_status_code": 401,
                 "expected_response": {
                     "error": "invalid_request",
-                    "error_description": "client_id is invalid",
+                    "error_description": "client_id or client_secret is invalid",
                 },
                 "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                 "params": {},
@@ -551,7 +551,7 @@ class TestOauthEndpointSuite:
                 "expected_status_code": 401,
                 "expected_response": {
                     "error": "invalid_request",
-                    "error_description": "client_secret is invalid",
+                    "error_description": "client_id or client_secret is invalid",
                 },
                 "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                 "params": {},
@@ -577,6 +577,21 @@ class TestOauthEndpointSuite:
                     "grant_type": "authorization_code",
                 },
             },
+            # # condition 9: redirect_uri is missing
+            # {
+            #     "expected_status_code": 400,
+            #     "expected_response": {
+            #         "error": "invalid_request",
+            #         "error_description": "redirect_uri is missing",
+            #     },
+            #     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+            #     "params": {},
+            #     "data": {
+            #         "client_id": config.CLIENT_ID,
+            #         "client_secret": config.CLIENT_SECRET,
+            #         "grant_type": "authorization_code",
+            #     },
+            # },
         ],
     )
     # Temporary enable error scenarios that have been implemented
