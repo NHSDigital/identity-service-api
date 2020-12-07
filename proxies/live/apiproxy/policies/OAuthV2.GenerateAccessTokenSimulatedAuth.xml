@@ -5,6 +5,7 @@
   <ExpiresIn ref="apigee.access_token_expiry_ms">600000</ExpiresIn>
   <!-- 10 hours: -->
   <RefreshTokenExpiresIn ref="apigee.refresh_token_expiry_ms">36000000</RefreshTokenExpiresIn>
+  <Code>request.queryparam.code</Code>
   <SupportedGrantTypes>
       <GrantType>authorization_code</GrantType>
   </SupportedGrantTypes>

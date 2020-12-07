@@ -434,10 +434,10 @@
                 <Step>
                   <Name>LookupCache.SimulatedAuthCode</Name>
                 </Step>
-                <Step>
+                <!-- <Step>
                   <Name>RaiseFault.InvalidAuthorizationCode</Name>
                   <Condition>(authorization_code Is null)</Condition>
-                </Step>
+                </Step> -->
                 <!-- Next 3 verify that the request is within the set rate limits -->
                 <Step>
                   <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
