@@ -430,14 +430,9 @@
                   <Name>RaiseFault.MissingAuthorizationCode</Name>
                   <Condition>request.formparam.code = null</Condition>
                 </Step>
-                <!-- Next two steps (trivially) check that the supplied authorization code is valid -->
                 <Step>
                   <Name>LookupCache.SimulatedAuthCode</Name>
                 </Step>
-                <!-- <Step>
-                  <Name>RaiseFault.InvalidAuthorizationCode</Name>
-                  <Condition>(authorization_code Is null)</Condition>
-                </Step> -->
                 <!-- Next 3 verify that the request is within the set rate limits -->
                 <Step>
                   <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
@@ -471,6 +466,10 @@
                 </Step>
                 <Step>
                   <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>
+                </Step>
+                <Step>
+                  <Name>RaiseFault.InvalidAuthorizationCode</Name>
+                  <Condition>oauthV2.OAuthV2.GenerateAccessTokenSimulatedAuth.fault.cause = "Invalid Authorization Code"</Condition>
                 </Step>
             </Request>
             <Response>
