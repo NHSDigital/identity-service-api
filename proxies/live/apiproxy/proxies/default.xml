@@ -425,7 +425,7 @@
                   <Name>RaiseFault.VerifyRedirectUriFormParam</Name>
                   <Condition>request.formparam.redirect_uri != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.redirection_uris</Condition>
                 </Step>
-                <!-- Verify the client has sent a valid authorization code -->
+                <!-- Verify the client has sent a authorization code -->
                 <Step>
                   <Name>RaiseFault.MissingAuthorizationCode</Name>
                   <Condition>request.formparam.code = null</Condition>

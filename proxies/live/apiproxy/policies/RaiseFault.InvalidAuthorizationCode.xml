@@ -3,7 +3,7 @@
       <Set>
         <Payload contentType="application/json">
           {
-            "error" : "invalid_request",
+            "error" : "invalid_grant",
             "error_description" :"code is invalid",
             "message_id": "{messageid}"
           }
