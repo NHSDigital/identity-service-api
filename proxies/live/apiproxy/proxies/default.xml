@@ -41,7 +41,7 @@
         </Step>
       </FaultRule>
       <FaultRule name="invalid_auth_code">
-        <Condition>(fault.cause Equals "Invalid Authorization Code")</Condition>
+        <Condition>(oauthV2.OAuthV2.GenerateAccessTokenSimulatedAuth.fault.cause Equals "Invalid Authorization Code")</Condition>
         <Step>
           <Name>AssignMessage.InvalidAuthorizationCode</Name>
         </Step>
