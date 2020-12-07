@@ -4,7 +4,7 @@
         <Payload contentType="application/json">
           {
             "error" : "invalid_request",
-            "error_description" :"code is missing",
+            "error_description" :"authorization_code is missing",
             "message_id": "{messageid}"
           }
         </Payload>

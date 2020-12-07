@@ -492,7 +492,7 @@ class TestOauthEndpointSuite:
                 "expected_status_code": 400,
                 "expected_response": {
                     "error": "invalid_request",
-                    "error_description": "code is missing",
+                    "error_description": "authorization_code is missing",
                 },
                 "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                 "params": {},
@@ -508,7 +508,7 @@ class TestOauthEndpointSuite:
                 "expected_status_code": 400,
                 "expected_response": {
                     "error": "invalid_grant",
-                    "error_description": "code is invalid",
+                    "error_description": "authorization_code is invalid",
                 },
                 "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                 "params": {},
