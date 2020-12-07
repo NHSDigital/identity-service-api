@@ -4,7 +4,7 @@
       <Payload contentType="application/json">
         {
           "error" : "invalid_request",
-          "error_description" :"Invalid redirection uri '{request.queryparam.redirect_uri}'",
+          "error_description" :"redirect_uri is invalid",
           "message_id": "{messageid}"
         }
       </Payload>

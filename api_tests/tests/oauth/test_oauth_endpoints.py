@@ -164,7 +164,7 @@ class TestOauthEndpointSuite:
                 "expected_status_code": 400,
                 "expected_response": {
                     "error": "invalid_request",
-                    "error_description": f"invalid redirection uri '{config.REDIRECT_URI}/invalid'",
+                    "error_description": f"redirect_uri is invalid",
                 },
                 "params": {
                     "client_id": config.CLIENT_ID,
@@ -476,7 +476,7 @@ class TestOauthEndpointSuite:
             #     "expected_status_code": 400,
             #     "expected_response": {
             #         "error": "invalid_request",
-            #         "error_description": "invalid redirection uri 'invalid'",
+            #         "error_description": "redirect_uri is invalid",
             #     },
             #     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
             #     "params": {},
