@@ -43,7 +43,7 @@
       <FaultRule name="invalid_auth_code">
         <Condition>(fault.cause Equals "Invalid Authorization Code")</Condition>
         <Step>
-          <Name>RaiseFault.InvalidAuthorizationCode</Name>
+          <Name>AssignMessage.InvalidAuthorizationCode</Name>
         </Step>
       </FaultRule>
       <FaultRule name="verify_api_key_and_secret">
