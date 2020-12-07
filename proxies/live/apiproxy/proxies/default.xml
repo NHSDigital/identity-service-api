@@ -40,7 +40,7 @@
           <Name>AssignMessage.InvalidApiKey</Name>
         </Step>
       </FaultRule>
-      <FaultRule>
+      <FaultRule name="invalid_auth_code">
         <Condition>(fault.cause Equals "Invalid Authorization Code")</Condition>
         <Step>
           <Name>RaiseFault.InvalidAuthorizationCode</Name>
