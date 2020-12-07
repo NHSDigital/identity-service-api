@@ -394,7 +394,7 @@
             </Response>
             <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "authorization_code")</Condition>
       </Flow>
-          <Flow name="Flow.PostTokenAuthorizationCodeSimulatedAuth">
+      <Flow name="Flow.PostTokenAuthorizationCodeSimulatedAuth">
         <Description>OAuth Token Endpoint - Authorization Code Flow - SIMULATED AUTH</Description>
             <Request>
                 <!-- In the documentation we specify that the Client ID and Client Secret must be sent as form params
@@ -435,7 +435,7 @@
                   <Name>LookupCache.SimulatedAuthCode</Name>
                 </Step>
                 <Step>
-                  <Name>RaiseFault.Unauthorized</Name>
+                  <Name>RaiseFault.InvalidAuthorizationCode</Name>
                   <Condition>(authorization_code Is null)</Condition>
                 </Step>
                 <!-- Next 3 verify that the request is within the set rate limits -->

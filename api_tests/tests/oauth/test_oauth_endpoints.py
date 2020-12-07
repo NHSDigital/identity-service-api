@@ -503,49 +503,26 @@ class TestOauthEndpointSuite:
                     "grant_type": "authorization_code",
                 },
             },
+            # condition 11: authorization code is invalid
+            {
+                "expected_status_code": 400,
+                "expected_response": {
+                    "error": "invalid_grant",
+                    "error_description": "code is invalid",
+                },
+                "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+                "params": {},
+                "data": {
+                    "client_id": config.CLIENT_ID,
+                    "client_secret": config.CLIENT_SECRET,
+                    "redirect_uri": config.REDIRECT_URI,
+                    "grant_type": "authorization_code",
+                    "code": "invalid",
+                },
+            },
         ],
     )
     def test_token_error_conditions(self, request_data: dict):
-        request_data["params"]["code"] = self.oauth.get_authenticated()
-        assert self.oauth.check_endpoint("POST", "token", **request_data)
-
-    @pytest.mark.errors
-    @pytest.mark.parametrize(
-        "request_data",
-        [
-            # condition 1: invalid code
-            {
-                "expected_status_code": 400,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "invalid code",
-                },
-                "params": {
-                    "client_id": config.CLIENT_ID,
-                    "client_secret": config.CLIENT_SECRET,
-                    "redirect_uri": config.REDIRECT_URI,
-                    "grant_type": "authorization_code",
-                    "code": "ThisIsAnInvalidCode",
-                },
-            },
-            # condition 2: missing code
-            {
-                "expected_status_code": 400,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "The request is missing a required parameter : code",
-                },
-                "params": {
-                    "client_id": config.CLIENT_ID,
-                    "client_secret": config.CLIENT_SECRET,
-                    "redirect_uri": config.REDIRECT_URI,
-                    "grant_type": "authorization_code",
-                },
-            },
-        ],
-    )
-    @pytest.mark.skip(reason="Not implemented")
-    def test_token_endpoint_with_invalid_authorization_code(self, request_data: dict):
         assert self.oauth.check_endpoint("POST", "token", **request_data)
 
     @pytest.mark.apm_1064
