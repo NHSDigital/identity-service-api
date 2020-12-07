@@ -5,7 +5,7 @@
       <Payload contentType="application/json">
         {
           "error" : "invalid_grant",
-          "error_description" :"code is invalid",
+          "error_description" :"authorization_code is invalid",
           "message_id": "{messageid}"
         }
       </Payload>

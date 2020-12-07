@@ -1,4 +1,4 @@
-<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.UnsupportedHTTPMethod">
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.UnsupportedTokenHTTPMethod">
     <FaultResponse>
       <Set>
         <Payload contentType="text/plain"/>

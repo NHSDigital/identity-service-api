@@ -660,10 +660,18 @@
           </Request>
           <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Is null)</Condition>
         </Flow>
+        <Flow name="Flow.GetAuthorizeUnsupportedHTTPMethod">
+          <Request>
+            <Step>
+              <Name>RaiseFault.UnsupportedAuthorizeHTTPMethod</Name>
+            </Step>
+          </Request>
+          <Condition>(proxy.pathsuffix MatchesPath "/authorize") and (request.verb NotEquals "GET")</Condition>
+        </Flow>
         <Flow name="Flow.PostTokenUnsupportedHTTPMethod">
           <Request>
             <Step>
-              <Name>RaiseFault.UnsupportedHTTPMethod</Name>
+              <Name>RaiseFault.UnsupportedTokenHTTPMethod</Name>
             </Step>
           </Request>
           <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb NotEquals "POST")</Condition>
