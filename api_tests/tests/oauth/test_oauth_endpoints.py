@@ -73,6 +73,15 @@ class TestOauthEndpointSuite:
         )
         assert response.headers["Allow"] == "POST"
 
+    @pytest.mark.apm_1475
+    @pytest.mark.errors
+    @pytest.mark.authorize_endpoint
+    def test_authorize_endpoint_http_allowed_methods(self):
+        response = self.oauth.check_and_return_endpoint(
+            verb="POST", endpoint="authorize", expected_status_code=405, expected_response=""
+        )
+        assert response.headers["Allow"] == "GET"
+
     @pytest.mark.apm_993
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
