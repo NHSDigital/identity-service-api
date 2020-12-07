@@ -40,6 +40,12 @@
           <Name>AssignMessage.InvalidApiKey</Name>
         </Step>
       </FaultRule>
+      <FaultRule>
+        <Condition>(fault.cause Equals "Invalid Authorization Code")</Condition>
+        <Step>
+          <Name>RaiseFault.InvalidAuthorizationCode</Name>
+        </Step>
+      </FaultRule>
       <FaultRule name="verify_api_key_and_secret">
         <Condition>(fault.name Equals "InvalidApiKey") and (proxy.pathsuffix MatchesPath "/token")</Condition>
         <Step>
@@ -466,10 +472,6 @@
                 </Step>
                 <Step>
                   <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>
-                </Step>
-                <Step>
-                  <Name>RaiseFault.InvalidAuthorizationCode</Name>
-                  <Condition>oauthV2.OAuthV2.GenerateAccessTokenSimulatedAuth.fault.cause = "Invalid Authorization Code"</Condition>
                 </Step>
             </Request>
             <Response>
