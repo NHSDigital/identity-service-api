@@ -114,9 +114,15 @@
         </Step>
       </FaultRule>
       <FaultRule name="refresh_token_expired">
-        <Condition>oauthV2.OAuthV2.GenerateRefreshToken.failed</Condition>
+        <Condition>oauthV2.OAuthV2.GenerateRefreshToken.fault.cause Equals "Refresh Token expired"</Condition>
         <Step>
           <Name>AssignMessage.ExpiredRefreshToken</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="invalid_refresh_token">
+        <Condition>oauthV2.OAuthV2.GenerateRefreshToken.fault.cause Equals "Invalid Refresh Token"</Condition>
+        <Step>
+            <Name>AssignMessage.InvalidRefreshToken</Name>
         </Step>
       </FaultRule>
       <FaultRule name="public_key_misconfigured">
@@ -493,15 +499,32 @@
           <Flow name="Flow.PostRefreshToken">
             <Description>OAuth Refresh Token Endpoint</Description>
             <Request>
+              <!-- Verify the Client Application using both client_id and client_secret form params -->
+              <Step>
+                <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
+              </Step>
+              <Step>
+                <Name>RaiseFault.MissingClientSecret</Name>
+                <Condition>request.formparam.client_secret = null</Condition>
+              </Step>
+              <Step>
+                <Name>RaiseFault.InvalidClientSecret</Name>
+                <Condition>request.formparam.client_secret != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.client_secret</Condition>
+              </Step>
+              <!-- Verify the refresh token is present in the request -->
+              <Step>
+                <Name>RaiseFault.MissingRefreshToken</Name>
+                <Condition>request.formparam.refresh_token = null</Condition>
+              </Step>
               <!-- Next 3 steps allow optional REDUCTION of access_token_expiry, refresh_token_expiry, and refresh_token_validity KVM values
               using _access_token_expiry_ms/_refresh_token_expiry_ms/_refresh_tokens_validity_ms (respectively) form params -->
               <Step>
-                <Name>AssignMessage.AccessTokenExpiryOverride</Name>
-                <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
-              </Step>
-              <Step>
                 <Name>RaiseFault.AccessTokenExpiryOverrideExceedMax</Name>
                 <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms GreaterThan apigee.access_token_expiry_ms)</Condition>
+              </Step>
+              <Step>
+                <Name>AssignMessage.AccessTokenExpiryOverride</Name>
+                <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
               </Step>
               <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
               <Step>
@@ -516,18 +539,7 @@
                 <Name>AssignMessage.RefreshTokensValidityOverride</Name>
                 <Condition>(request.formparam._refresh_tokens_validity_ms != null) and (request.formparam._refresh_tokens_validity_ms LesserThan apigee.refresh_tokens_validity_ms)</Condition>
               </Step>
-              <!-- Verify the Client Application using both client_id and client_secret form params -->
-              <Step>
-                <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
-              </Step>
-              <Step>
-                <Name>RaiseFault.MissingClientSecret</Name>
-                <Condition>request.formparam.client_secret = null</Condition>
-              </Step>
-              <Step>
-                <Name>RaiseFault.InvalidClientSecret</Name>
-                <Condition>request.formparam.client_secret != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.client_secret</Condition>
-              </Step>
+              <!-- Next 3 verify that the request is within the set rate limits -->
               <Step>
                 <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
               </Step>
@@ -550,7 +562,7 @@
             </Request>
             <Response>
                 <Step>
-                    <Name>AssignMessage.GenerateRefreshTokenResponse</Name>
+                  <Name>AssignMessage.GenerateRefreshTokenResponse</Name>
                 </Step>
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "refresh_token")</Condition>

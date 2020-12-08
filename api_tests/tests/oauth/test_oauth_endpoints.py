@@ -555,6 +555,10 @@ class TestOauthEndpointSuite:
     def test_callback_error_conditions(self, request_data: dict):
         assert self.oauth.check_endpoint("GET", "callback", **request_data)
 
+    @pytest.mark.usefixtures('get_refresh_token')
+    def get_refresh_token(self):
+        return self.refresh_token
+
     @pytest.mark.apm_1475
     @pytest.mark.errors
     @pytest.mark.token_endpoint
@@ -612,24 +616,49 @@ class TestOauthEndpointSuite:
             #         'grant_type': 'refresh_token',
             #     },
             # },
-            # condition 5: exceed
+            # # condition 5: missing refresh_token
+            # {
+            #     "expected_status_code": 401,
+            #     "expected_response": {
+            #         "error": "invalid_request",
+            #         "error_description": "refresh_token is missing",
+            #     },
+            #     "data": {
+            #         "client_id": config.CLIENT_ID,
+            #         'client_secret': config.CLIENT_SECRET,
+            #         'grant_type': 'refresh_token',
+            #     },
+            # },
+            # condition 6: invalid refresh_token
             {
                 "expected_status_code": 401,
                 "expected_response": {
                     "error": "invalid_request",
-                    "error_description": "client_id or client_secret is invalid",
+                    "error_description": "refresh_token is invalid",
                 },
                 "data": {
                     "client_id": config.CLIENT_ID,
                     'client_secret': config.CLIENT_SECRET,
                     'grant_type': 'refresh_token',
-                    '_access_token_expiry_ms': -1
+                    'refresh_token': 'invalid'
+                },
+            },
+            # condition 7: access token exceeds expiry time
+            {
+                "expected_status_code": 400,
+                "expected_response": {
+                    "error": "invalid_request",
+                    "error_description": "_access_token_expiry_ms exceeds max expiry time",
+                },
+                "data": {
+                    "client_id": config.CLIENT_ID,
+                    'client_secret': config.CLIENT_SECRET,
+                    'grant_type': 'refresh_token',
+                    '_access_token_expiry_ms': 600001  # Max is 600000
                 },
             },
         ],
     )
     def test_refresh_token_error_conditions(self, request_data: dict):
-        if "refresh_token" not in request_data["data"]:
-            request_data["data"]["refresh_token"] = self.refresh_token
         assert self.oauth.check_endpoint("POST", "token", **request_data)
 

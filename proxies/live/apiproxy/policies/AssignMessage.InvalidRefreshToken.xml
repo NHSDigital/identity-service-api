@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.InvalidRefreshToken">
+    <DisplayName>Invalid Refresh Token</DisplayName>
+    <Set>
+        <Payload contentType="application/json">
+          {
+            "error": "invalid_grant",
+            "error_description": "refresh_token is invalid",
+            "message_id": "{messageid}"
+          }
+        </Payload>
+    </Set>
+    <AssignTo createNew="false" transport="https" type="request"/>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</AssignMessage>
