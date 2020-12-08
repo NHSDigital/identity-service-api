@@ -1,4 +1,4 @@
-<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.RefreshTokenValidityOverrideExceeded">
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.RefreshTokensValidityOverrideExceeded">
     <FaultResponse>
       <Set>
         <Payload contentType="application/json">

@@ -3,7 +3,7 @@
     <Set>
       <Payload contentType="application/json">
         {
-          "error" : "refresh_time_limit_exceeded",
+          "error" : "invalid_grant",
           "error_description" :"Cannot refresh token {apigee.refresh_tokens_validity_ms}ms after generation",
           "message_id": "{messageid}"
         }
