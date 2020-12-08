@@ -618,7 +618,7 @@ class TestOauthEndpointSuite:
             },
             # condition 5: missing refresh_token
             {
-                "expected_status_code": 401,
+                "expected_status_code": 400,
                 "expected_response": {
                     "error": "invalid_request",
                     "error_description": "refresh_token is missing",
