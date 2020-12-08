@@ -539,13 +539,18 @@
                 <Name>AssignMessage.RefreshTokenExpiryOverride</Name>
                 <Condition>(apigee.can_override_refresh_token != null) and (apigee.can_override_refresh_token = true)</Condition>
               </Step>
+              <!-- Using JavaScript to evaluate the requested validity override time, due to apigee conditional failing to evaluate properly -->
+              <Step>
+                <Name>JavaScript.CalculateRefreshTokenValidityOverride</Name>
+                <Condition>request.formparam._refresh_tokens_validity_ms != null</Condition>
+              </Step>
               <Step>
                 <Name>RaiseFault.RefreshTokensValidityOverrideExceeded</Name>
-                <Condition>(request.formparam._refresh_tokens_validity_ms != null) and (request.formparam._refresh_tokens_validity_ms GreaterThan apigee.refresh_tokens_validity_ms)</Condition>
+                <Condition>(apigee.can_override_refresh_token_validity != null) and (apigee.can_override_refresh_token_validity = false)</Condition>
               </Step>
               <Step>
                 <Name>AssignMessage.RefreshTokensValidityOverride</Name>
-                <Condition>(request.formparam._refresh_tokens_validity_ms != null) and (request.formparam._refresh_tokens_validity_ms LesserThan apigee.refresh_tokens_validity_ms)</Condition>
+                <Condition>(apigee.can_override_refresh_token_validity != null) and (apigee.can_override_refresh_token_validity = true)</Condition>
               </Step>
               <!-- Next 3 verify that the request is within the set rate limits -->
               <Step>

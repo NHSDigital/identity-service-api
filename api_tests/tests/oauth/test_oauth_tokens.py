@@ -159,3 +159,49 @@ class TestOauthTokenSuite:
                 'grant_type': 'refresh_token',
                 'refresh_token': self.refresh_token
             })
+
+    # @pytest.mark.apm_1010
+    # @pytest.mark.errors
+    # @pytest.mark.usefixtures('get_refresh_token')
+    # def test_refresh_token_validity_expires(self):
+    #     # Get refresh token with a timeout set to 5 second &
+    #     # wait until token has expired
+    #     response = self.oauth.check_and_return_endpoint(
+    #         verb='POST',
+    #         endpoint='token',
+    #         expected_status_code=400,
+    #         expected_response={
+    #             "error": "invalid_grant",
+    #             "error_description": "refresh_token expired"
+    #         },
+    #         data={
+    #             'client_id': config.CLIENT_ID,
+    #             'client_secret': config.CLIENT_SECRET,
+    #             'grant_type': 'refresh_token',
+    #             'refresh_token': self.refresh_token,
+    #             '_refresh_tokens_validity_ms': 3600001
+    #         })
+    #
+    #     sleep(5)
+    #
+    #     assert self.oauth.check_endpoint(
+    #         verb='POST',
+    #         endpoint='token',
+    #         expected_status_code=200,
+    #         expected_response=[
+    #             'access_token',
+    #             'expires_in',
+    #             'refresh_count',
+    #             'refresh_token',
+    #             'refresh_token_expires_in',
+    #             'token_type'
+    #         ],
+    #         headers={
+    #             'NHSD-Session-URID': '',
+    #         },
+    #         data={
+    #             'client_id': config.CLIENT_ID,
+    #             'client_secret': config.CLIENT_SECRET,
+    #             'grant_type': 'refresh_token',
+    #             'refresh_token': response.data,
+    #         })

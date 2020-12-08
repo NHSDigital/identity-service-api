@@ -555,14 +555,9 @@ class TestOauthEndpointSuite:
     def test_callback_error_conditions(self, request_data: dict):
         assert self.oauth.check_endpoint("GET", "callback", **request_data)
 
-    @pytest.mark.usefixtures('get_refresh_token')
-    def get_refresh_token(self):
-        return self.refresh_token
-
     @pytest.mark.apm_1475
     @pytest.mark.errors
     @pytest.mark.token_endpoint
-    @pytest.mark.usefixtures('get_refresh_token')
     @pytest.mark.parametrize(
         "request_data",
         [
@@ -656,6 +651,21 @@ class TestOauthEndpointSuite:
                     'grant_type': 'refresh_token',
                     'refresh_token': "",
                     '_access_token_expiry_ms': 600001  # Max is 600000
+                },
+            },
+            # condition 8: refresh token exceeds expiry time
+            {
+                "expected_status_code": 400,
+                "expected_response": {
+                    "error": "invalid_request",
+                    "error_description": "_refresh_token_expiry_ms exceeds max expiry time",
+                },
+                "data": {
+                    "client_id": config.CLIENT_ID,
+                    'client_secret': config.CLIENT_SECRET,
+                    'grant_type': 'refresh_token',
+                    'refresh_token': "",
+                    '_refresh_token_expiry_ms': 3600001  # Max is 3600000
                 },
             },
         ],
