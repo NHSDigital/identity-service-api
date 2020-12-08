@@ -1,4 +1,4 @@
-<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.AccessTokenExpiryOverrideExceedMax">
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.AccessTokenExpiryOverrideExceeded">
     <FaultResponse>
       <Set>
         <Payload contentType="application/json">

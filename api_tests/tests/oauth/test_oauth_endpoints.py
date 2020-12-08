@@ -633,7 +633,7 @@ class TestOauthEndpointSuite:
             {
                 "expected_status_code": 401,
                 "expected_response": {
-                    "error": "invalid_request",
+                    "error": "invalid_grant",
                     "error_description": "refresh_token is invalid",
                 },
                 "data": {

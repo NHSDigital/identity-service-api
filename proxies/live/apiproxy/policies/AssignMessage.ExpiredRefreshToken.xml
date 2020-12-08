@@ -3,7 +3,7 @@
     <StatusCode>401</StatusCode>
     <Payload contentType="application/json">
       {
-        "error": "invalid_request",
+        "error": "invalid_grant",
         "error_description": "refresh_token expired",
         "message_id": "{messageid}"
       }
