@@ -512,8 +512,17 @@
                 <Name>AssignMessage.RefreshTokensValidityOverride</Name>
                 <Condition>(request.formparam._refresh_tokens_validity_ms != null) and (request.formparam._refresh_tokens_validity_ms LesserThan apigee.refresh_tokens_validity_ms)</Condition>
               </Step>
+              <!-- Verify the Client Application using both client_id and client_secret form params -->
               <Step>
                 <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
+              </Step>
+              <Step>
+                <Name>RaiseFault.MissingClientSecret</Name>
+                <Condition>request.formparam.client_secret = null</Condition>
+              </Step>
+              <Step>
+                <Name>RaiseFault.InvalidClientSecret</Name>
+                <Condition>request.formparam.client_secret != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.client_secret</Condition>
               </Step>
               <Step>
                 <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>

@@ -554,3 +554,42 @@ class TestOauthEndpointSuite:
     )
     def test_callback_error_conditions(self, request_data: dict):
         assert self.oauth.check_endpoint("GET", "callback", **request_data)
+
+    @pytest.mark.apm_1475
+    @pytest.mark.errors
+    @pytest.mark.token_endpoint
+    @pytest.mark.usefixtures('get_refresh_token')
+    @pytest.mark.parametrize(
+        "request_data",
+        [
+            # condition 1: missing client id
+            {
+                "expected_status_code": 401,
+                "expected_response": {
+                    "error": "invalid_request",
+                    "error_description": "client_id is missing",
+                },
+                "data": {
+                    'client_secret': config.CLIENT_SECRET,
+                    'grant_type': 'refresh_token',
+                },
+            },
+            # condition 2: invalid client_id
+            {
+                "expected_status_code": 401,
+                "expected_response": {
+                    "error": "invalid_request",
+                    "error_description": "client_id or client_secret is invalid",
+                },
+                "data": {
+                    "client_id": "invalid-client-id",
+                    'client_secret': config.CLIENT_SECRET,
+                    'grant_type': 'refresh_token',
+                },
+            },
+        ],
+    )
+    def test_refresh_token_error_conditions(self, request_data: dict):
+        request_data["data"]["refresh_token"] = self.refresh_token
+        assert self.oauth.check_endpoint("POST", "token", **request_data)
+
