@@ -562,19 +562,57 @@ class TestOauthEndpointSuite:
     @pytest.mark.parametrize(
         "request_data",
         [
-            # condition 1: missing client id
-            {
-                "expected_status_code": 401,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "client_id is missing",
-                },
-                "data": {
-                    'client_secret': config.CLIENT_SECRET,
-                    'grant_type': 'refresh_token',
-                },
-            },
-            # condition 2: invalid client_id
+            # # condition 1: missing client id
+            # {
+            #     "expected_status_code": 401,
+            #     "expected_response": {
+            #         "error": "invalid_request",
+            #         "error_description": "client_id is missing",
+            #     },
+            #     "data": {
+            #         'client_secret': config.CLIENT_SECRET,
+            #         'grant_type': 'refresh_token',
+            #     },
+            # },
+            # # condition 2: invalid client_id
+            # {
+            #     "expected_status_code": 401,
+            #     "expected_response": {
+            #         "error": "invalid_request",
+            #         "error_description": "client_id or client_secret is invalid",
+            #     },
+            #     "data": {
+            #         "client_id": "invalid-client-id",
+            #         'client_secret': config.CLIENT_SECRET,
+            #         'grant_type': 'refresh_token',
+            #     },
+            # },
+            # # condition 2: missing client_secret
+            # {
+            #     "expected_status_code": 401,
+            #     "expected_response": {
+            #         "error": "invalid_request",
+            #         "error_description": "client_secret is missing",
+            #     },
+            #     "data": {
+            #         "client_id": config.CLIENT_ID,
+            #         'grant_type': 'refresh_token',
+            #     },
+            # },
+            # # condition 4: invalid client_secret
+            # {
+            #     "expected_status_code": 401,
+            #     "expected_response": {
+            #         "error": "invalid_request",
+            #         "error_description": "client_id or client_secret is invalid",
+            #     },
+            #     "data": {
+            #         "client_id": config.CLIENT_ID,
+            #         'client_secret': 'invalid',
+            #         'grant_type': 'refresh_token',
+            #     },
+            # },
+            # condition 5: exceed
             {
                 "expected_status_code": 401,
                 "expected_response": {
@@ -582,14 +620,16 @@ class TestOauthEndpointSuite:
                     "error_description": "client_id or client_secret is invalid",
                 },
                 "data": {
-                    "client_id": "invalid-client-id",
+                    "client_id": config.CLIENT_ID,
                     'client_secret': config.CLIENT_SECRET,
                     'grant_type': 'refresh_token',
+                    '_access_token_expiry_ms': -1
                 },
             },
         ],
     )
     def test_refresh_token_error_conditions(self, request_data: dict):
-        request_data["data"]["refresh_token"] = self.refresh_token
+        if "refresh_token" not in request_data["data"]:
+            request_data["data"]["refresh_token"] = self.refresh_token
         assert self.oauth.check_endpoint("POST", "token", **request_data)
 

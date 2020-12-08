@@ -499,6 +499,10 @@
                 <Name>AssignMessage.AccessTokenExpiryOverride</Name>
                 <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
               </Step>
+              <Step>
+                <Name>RaiseFault.AccessTokenExpiryOverrideExceedMax</Name>
+                <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms GreaterThan apigee.access_token_expiry_ms)</Condition>
+              </Step>
               <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
               <Step>
                 <Name>JavaScript.CalculateRefreshTokenOverride</Name>
