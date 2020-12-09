@@ -638,36 +638,6 @@ class TestOauthEndpointSuite:
                     'refresh_token': 'invalid'
                 },
             },
-            # condition 7: access token exceeds expiry time
-            {
-                "expected_status_code": 400,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "_access_token_expiry_ms exceeds max expiry time",
-                },
-                "data": {
-                    "client_id": config.CLIENT_ID,
-                    'client_secret': config.CLIENT_SECRET,
-                    'grant_type': 'refresh_token',
-                    'refresh_token': "",
-                    '_access_token_expiry_ms': 600001  # Max is 600000
-                },
-            },
-            # condition 8: refresh token exceeds expiry time
-            {
-                "expected_status_code": 400,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "_refresh_token_expiry_ms exceeds max expiry time",
-                },
-                "data": {
-                    "client_id": config.CLIENT_ID,
-                    'client_secret': config.CLIENT_SECRET,
-                    'grant_type': 'refresh_token',
-                    'refresh_token': "",
-                    '_refresh_token_expiry_ms': 3600001  # Max is 3600000
-                },
-            },
         ],
     )
     def test_refresh_token_error_conditions(self, request_data: dict):
