@@ -10,6 +10,16 @@
   </SupportedGrantTypes>
   <GenerateResponse enabled="false"/>
   <Attributes>
+    <!-- TODO - update the simulated userinfo response when we know what a real one looks like -->
+    <Attribute name="userinfo" display="true">
+      {
+        "sub": "910000000001",
+        "name": "Jane Doe",
+        "given_name": "Jane",
+        "family_name": "Doe",
+        "email": "janedoe@example.com",
+      }
+    </Attribute>
     <Attribute name="id_token" ref="jwt.GenerateJWT.SimulatedAuth.generated_jwt" display="true"/>
     <Attribute name="id_token-subject" ref="jwt.DecodeJWT.FromGeneratedIdTokenSimulatedAuth.claim.subject" display="true"/>
     <Attribute name="id_token-issuer" ref="jwt.DecodeJWT.FromGeneratedIdTokenSimulatedAuth.claim.issuer" display="true"/>
