@@ -38,9 +38,6 @@ class TestOauthTokenSuite:
                 'refresh_token_expires_in',
                 'token_type'
             ],
-            headers={
-                'NHSD-Session-URID': '',
-            },
             data={
                 'client_id': config.CLIENT_ID,
                 'client_secret': config.CLIENT_SECRET,
@@ -162,14 +159,14 @@ class TestOauthTokenSuite:
     @pytest.mark.apm_1010
     @pytest.mark.errors
     @pytest.mark.usefixtures('get_refresh_token')
-    def test_refresh_token_validity_expires(self):
+    def test_refresh_tokens_validity_expires(self):
         # Get refresh token with a timeout set to 3 second &
         # wait until tokens validity has expired
         sleep(4)
         assert self.oauth.check_endpoint(
             verb='POST',
             endpoint='token',
-            expected_status_code=400,
+            expected_status_code=401,
             expected_response={
                 "error": "invalid_grant",
                 "error_description": "cannot refresh token 3000ms after generation"
