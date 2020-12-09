@@ -122,7 +122,6 @@ class TestOauthTokenSuite:
             }
         )
 
-
     @pytest.mark.apm_1618
     @pytest.mark.errors
     def test_access_token_with_params(self):
@@ -164,20 +163,21 @@ class TestOauthTokenSuite:
     @pytest.mark.errors
     @pytest.mark.usefixtures('get_refresh_token')
     def test_refresh_token_validity_expires(self):
-        # Get refresh token with a timeout set to 5 second &
-        # wait until token has expired
+        # Get refresh token with a timeout set to 3 second &
+        # wait until tokens validity has expired
+        sleep(4)
         assert self.oauth.check_endpoint(
             verb='POST',
             endpoint='token',
             expected_status_code=400,
             expected_response={
                 "error": "invalid_grant",
-                "error_description": "Cannot refresh token {apigee.refresh_tokens_validity_ms}ms after generation"
+                "error_description": "cannot refresh token 3000ms after generation"
             },
             data={
                 'client_id': config.CLIENT_ID,
                 'client_secret': config.CLIENT_SECRET,
                 'grant_type': 'refresh_token',
                 'refresh_token': self.refresh_token,
-                '_refresh_tokens_validity_ms': 5000
+                '_refresh_tokens_validity_ms': 3000
             })
