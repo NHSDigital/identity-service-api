@@ -10,7 +10,7 @@ class TestOauthTokenSuite:
     @pytest.mark.apm_801
     @pytest.mark.happy_path
     @pytest.mark.usefixtures('get_token')
-    def test_request_with_token(self):
+    def test_access_token(self):
         assert self.oauth.check_endpoint(
             verb='GET',
             endpoint='api',
@@ -75,7 +75,7 @@ class TestOauthTokenSuite:
         },
     ])
     @pytest.mark.skip(reason="Not implemented")
-    def test_invalid_token(self, headers: dict):
+    def test_invalid_access_token(self, headers: dict):
         assert self.oauth.check_endpoint(
             verb='POST',
             endpoint='api',
@@ -87,7 +87,7 @@ class TestOauthTokenSuite:
     @pytest.mark.apm_801
     @pytest.mark.errors
     @pytest.mark.usefixtures('get_token')
-    def test_token_does_expire(self):
+    def test_access_token_does_expire(self):
         # Get token with a timeout set to 5 second &
         # wait until token has expired
         assert self.oauth.check_endpoint(
@@ -122,10 +122,24 @@ class TestOauthTokenSuite:
             }
         )
 
+
+    @pytest.mark.apm_1618
+    @pytest.mark.errors
+    def test_access_token_with_params(self):
+        assert self.oauth.check_endpoint(
+            verb='POST',
+            endpoint='token',
+            expected_status_code=400,
+            expected_response={
+                "error": "invalid_request",
+                "error_description": "the request is missing a required parameter: 'grant_type'"
+            },
+            params={"put_some_query_params_here": "test"}
+        )
+
     @pytest.mark.apm_1010
     @pytest.mark.errors
     @pytest.mark.usefixtures('get_refresh_token')
-    @pytest.mark.skip(reason="There is a bug raised for this: APM-1335")
     def test_refresh_token_does_expire(self):
         sleep(5)
         assert self.oauth.check_endpoint(
@@ -134,7 +148,7 @@ class TestOauthTokenSuite:
             expected_status_code=401,
             expected_response={
                 "error": "invalid_request",
-                "error_description": "Refresh Token expired"
+                "error_description": "refresh token expired"
             },
             headers={
                 'NHSD-Session-URID': '',

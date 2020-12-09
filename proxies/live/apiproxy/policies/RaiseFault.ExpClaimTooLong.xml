@@ -4,7 +4,7 @@
       <Payload contentType="application/json">
         {
           "error": "invalid_request",
-          "error_description": "exp too far in future",
+          "error_description": "Invalid exp claim in JWT - more than 5 minutes in future",
           "message_id": "{messageid}"
         }
 </Payload>

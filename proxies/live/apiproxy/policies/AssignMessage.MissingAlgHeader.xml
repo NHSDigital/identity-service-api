@@ -1,11 +1,10 @@
-<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.FailedToDecodeJWTError">
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.MissingAlgHeader">
   <Set>
     <StatusCode>400</StatusCode>
-    <!-- TODO: Check error code to see if more suitable one is available -->
     <Payload contentType="application/json">
       {
         "error": "invalid_request",
-        "error_description": "Malformed JWT in client_assertion",
+        "error_description": "Missing 'alg' header in JWT",
         "message_id": "{messageid}"
       }
 </Payload>

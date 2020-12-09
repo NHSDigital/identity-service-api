@@ -2,9 +2,9 @@
     <Operation>GenerateAccessToken</Operation>
     <RedirectUri>request.formparam.redirect_uri</RedirectUri>
     <!-- 10 minutes: -->
-    <ExpiresIn ref="private.apigee.access_token_expiry_ms">600000</ExpiresIn>
+    <ExpiresIn ref="apigee.access_token_expiry_ms">600000</ExpiresIn>
     <!-- 10 hours: -->
-    <RefreshTokenExpiresIn ref="private.apigee.refresh_token_expiry_ms">36000000</RefreshTokenExpiresIn>
+    <RefreshTokenExpiresIn ref="apigee.refresh_token_expiry_ms">36000000</RefreshTokenExpiresIn>
     <SupportedGrantTypes>
         <GrantType>authorization_code</GrantType>
     </SupportedGrantTypes>
@@ -14,6 +14,8 @@
       <Attribute name="id_token" ref="externalIdToken" display="true"/>
       <Attribute name="id_token-subject" ref="jwt.VerifyJWT.FromExternalIdToken.claim.subject" display="true"/>
       <Attribute name="id_token-issuer" ref="jwt.VerifyJWT.FromExternalIdToken.claim.issuer" display="true"/>
+      <Attribute name="id_token-acr" ref="jwt.VerifyJWT.FromExternalIdToken.claim.acr" display="true"/>
+      <Attribute name="id_token-amr" ref="jwt.VerifyJWT.FromExternalIdToken.claim.amr" display="true"/>
       <Attribute name="_first_issued" ref="system.timestamp" display="false"/>
     </Attributes>
 </OAuthV2>

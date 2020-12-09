@@ -1,14 +1,13 @@
-<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.ExpiredJWTError">
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.CacheKeyError">
   <Set>
     <StatusCode>400</StatusCode>
-    <!-- TODO: Check error code to see if more suitable one is available -->
     <Payload contentType="application/json">
         {
           "error": "invalid_request",
-          "error_description": "Invalid exp claim in JWT - JWT has expired",
+          "error_description": "Invalid state parameter.",
           "message_id": "{messageid}"
         }
-</Payload>
+    </Payload>
   </Set>
   <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
   <AssignTo createNew="false" transport="http" type="response" />

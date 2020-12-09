@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.InvalidApiKeyForGivenResource">
+    <DisplayName>Invalid API Key For Given Resource</DisplayName>
+    <Set>
+        <Payload contentType="application/json">
+          {
+            "error": "invalid_request",
+            "error_description": "API Key supplied does not have access to this resource. Please check the API Key you are using belongs to an app which has sufficient access to access this resource.",
+            "message_id": "{messageid}"
+          }
+        </Payload>
+    </Set>
+    <AssignTo createNew="false" transport="https" type="request"/>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</AssignMessage>
