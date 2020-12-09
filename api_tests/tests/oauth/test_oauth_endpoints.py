@@ -422,7 +422,7 @@ class TestOauthEndpointSuite:
             {
                 "expected_status_code": 401,
                 "expected_response": {
-                    "error": "invalid_request",
+                    "error": "invalid_client",
                     "error_description": "client_id or client_secret is invalid",
                 },
                 "headers": {"Content-Type": "application/x-www-form-urlencoded"},
@@ -438,7 +438,7 @@ class TestOauthEndpointSuite:
             {
                 "expected_status_code": 401,
                 "expected_response": {
-                    "error": "invalid_request",
+                    "error": "invalid_client",
                     "error_description": "client_id or client_secret is invalid",
                 },
                 "headers": {"Content-Type": "application/x-www-form-urlencoded"},
@@ -577,7 +577,7 @@ class TestOauthEndpointSuite:
             {
                 "expected_status_code": 401,
                 "expected_response": {
-                    "error": "invalid_request",
+                    "error": "invalid_client",
                     "error_description": "client_id or client_secret is invalid",
                 },
                 "data": {
@@ -602,7 +602,7 @@ class TestOauthEndpointSuite:
             {
                 "expected_status_code": 401,
                 "expected_response": {
-                    "error": "invalid_request",
+                    "error": "invalid_client",
                     "error_description": "client_id or client_secret is invalid",
                 },
                 "data": {
