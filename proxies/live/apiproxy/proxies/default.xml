@@ -224,6 +224,9 @@
                 <Step>
                     <Name>ExtractVariables.AccessToken</Name>
                 </Step>
+                <Step>
+                  <Name>ServiceCallout.GetUserinfo</Name>
+                </Step>
                 <!-- Using pattern from https://community.apigee.com/questions/34110/how-can-i-store-the-results-of-the-servicecallout.html
                     Steps are:
                     1. LookupCache.JWKS: Attempt to get JWKS from cache, store in flow variable `jwks`
@@ -458,17 +461,17 @@
               <Name>OAuthV2.VerifyAccessToken</Name>
             </Step>
             <Step>
-              <Name>AssignMessage.SetAuthorizationHeader</Name>
-            </Step>
-            <Step>
               <Name>SpikeArrest</Name>
             </Step>
             <Step>
               <Name>Quota</Name>
             </Step>
+            <Step>
+              <Name>AssignMessage.GenerateUserinfoResponse</Name>
+            </Step>
           </Request>
           <Response/>
-          <Condition>(proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET" || request.verb = "POST" )</Condition>
+          <Condition>(proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
         </Flow>
         <!-- <Flow name="Flow.GetWellKnown">
             <Description/>
@@ -519,7 +522,7 @@
         <VirtualHost>secure</VirtualHost>
     </HTTPProxyConnection>
     <RouteRule name="identityRoute">
-        <Condition>(proxy.pathsuffix MatchesPath "/userinfo") or (proxy.pathsuffix MatchesPath "/.well-known/*")</Condition>
+        <Condition>proxy.pathsuffix MatchesPath "/.well-known/*"</Condition>
         <TargetEndpoint>identity-server</TargetEndpoint>
     </RouteRule>
     <RouteRule name="loopbackRoute"/>

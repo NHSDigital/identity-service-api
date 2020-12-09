@@ -1,0 +1,7 @@
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.GenerateTokenResponse">
+    <Set>
+      <Payload contentType="application/json">{OAuthV2.VerifyAccessToken.userinfo}</Payload>
+    </Set>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <AssignTo createNew="false" transport="http" type="request"/>
+</AssignMessage>

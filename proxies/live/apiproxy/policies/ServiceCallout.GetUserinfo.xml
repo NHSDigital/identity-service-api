@@ -1,0 +1,20 @@
+<ServiceCallout async="false" continueOnError="false" enabled="true" name="ServiceCallout.GetUserinfo">
+  <Request>
+    <Set>
+      <Headers>
+        <Header name="Authorization">Bearer {externalAccessToken}</Header>
+      </Headers>
+      <Verb>GET</Verb>
+    </Set>
+  </Request>
+  <Response>userinfoResponse</Response>
+  <HTTPTargetConnection>
+    <SSLInfo>
+      <Enabled>true</Enabled>
+    </SSLInfo>
+    <LoadBalancer>
+      <Server name="{{ IDENTITY_TARGET_SERVER }}" />
+    </LoadBalancer>
+    <Path>{private.apigee.userinfo_path}</Path>
+  </HTTPTargetConnection>
+</ServiceCallout>
