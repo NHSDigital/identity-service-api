@@ -8,4 +8,8 @@
     <Id>1234567</Id>
     <Value ref="private.dummy_secret_key"/>
   </SecretKey>
+  <AdditionalClaims>
+    <Claim name='acr'>AAL3_ANY</Claim>
+    <Claim name='amr' array='true'>N3_SMARTCARD</Claim>
+  </AdditionalClaims>
 </GenerateJWT>
