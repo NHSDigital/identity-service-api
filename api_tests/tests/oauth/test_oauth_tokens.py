@@ -166,18 +166,18 @@ class TestOauthTokenSuite:
     def test_refresh_token_validity_expires(self):
         # Get refresh token with a timeout set to 5 second &
         # wait until token has expired
-        response = self.oauth.check_and_return_endpoint(
+        assert self.oauth.check_endpoint(
             verb='POST',
             endpoint='token',
             expected_status_code=400,
             expected_response={
                 "error": "invalid_grant",
-                "error_description": "refresh_token expired"
+                "error_description": "Cannot refresh token {apigee.refresh_tokens_validity_ms}ms after generation"
             },
             data={
                 'client_id': config.CLIENT_ID,
                 'client_secret': config.CLIENT_SECRET,
                 'grant_type': 'refresh_token',
                 'refresh_token': self.refresh_token,
-                '_refresh_tokens_validity_ms': 400000000
+                '_refresh_tokens_validity_ms': 5000
             })
