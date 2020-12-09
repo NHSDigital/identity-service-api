@@ -156,11 +156,6 @@
       <Response/>
     </PostFlow>
     <Flows>
-        <!-- 
-          TODO: 
-            * check which HTTP Methods allowed for /authorize 
-            * add test for inactive developer
-        -->
         <Flow name="Flow.GetAuthorization">
             <Description>OAuth Authorization Endpoint</Description>
             <Request>
@@ -481,9 +476,6 @@
                 </Step>
                 <Step>
                   <Name>GenerateJWT.SimulatedAuth</Name>
-                </Step>
-                <Step>
-                  <Name>DecodeJWT.FromGeneratedIdTokenSimulatedAuth</Name>
                 </Step>
                 <Step>
                   <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>
