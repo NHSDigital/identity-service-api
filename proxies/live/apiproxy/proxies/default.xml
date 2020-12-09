@@ -382,6 +382,9 @@
                   <Name>DecodeJWT.FromGeneratedIdTokenSimulatedAuth</Name>
                 </Step>
                 <Step>
+                  <Name>AssignMessage.UserinfoResponseSimulatedAuth</Name>
+                </Step>
+                <Step>
                   <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>
                 </Step>
             </Request>
