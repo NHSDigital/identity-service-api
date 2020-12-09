@@ -169,7 +169,7 @@ class TestOauthTokenSuite:
             expected_status_code=401,
             expected_response={
                 "error": "invalid_grant",
-                "error_description": "cannot refresh token 3000ms after generation"
+                "error_description": "refresh tokens validity expired"
             },
             data={
                 'client_id': config.CLIENT_ID,
