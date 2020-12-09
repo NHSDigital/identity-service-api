@@ -1,4 +1,4 @@
-<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.GenerateTokenResponse">
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.GenerateUserinfoResponse">
     <Set>
       <Payload contentType="application/json">{OAuthV2.VerifyAccessToken.userinfo}</Payload>
     </Set>
