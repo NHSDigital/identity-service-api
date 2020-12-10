@@ -65,7 +65,7 @@ extends:
         service_base_path: ${{ variables.service_base_path }}-int
         jinja_templates:
           IDENTITY_TARGET_SERVER: identity-server-int
-          VARIABLES_KVM: identity-service-variables
+          VARIABLES_KVM: identity-service-internal-dev-int-variables
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
           NUM_RANDOM_LONG_INTS_FOR_STATE: 4
 
