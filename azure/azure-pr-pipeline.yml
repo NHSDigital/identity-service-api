@@ -57,3 +57,15 @@ extends:
           - template: ./templates/run-integration-tests.yml
             parameters:
               service_name: ${{ variables.service_name }}
+      - environment: internal-dev
+        service_name: ${{ variables.service_name }}-int
+        short_service_name: ${{ variables.short_service_name }}-int
+        product_display_name: ${{ variables.product_display_name }} (INT Testing)
+        stage_name: internal_dev_int
+        service_base_path: ${{ variables.service_base_path }}-int
+        jinja_templates:
+          IDENTITY_TARGET_SERVER: identity-server-int
+          VARIABLES_KVM: identity-service-variables
+          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+
