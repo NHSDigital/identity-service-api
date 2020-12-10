@@ -162,7 +162,6 @@ class TestOauthTokenSuite:
     def test_refresh_tokens_validity_expires(self):
         # Get refresh token with a timeout set to 3 second &
         # wait until tokens validity has expired
-        sleep(4)
         assert self.oauth.check_endpoint(
             verb='POST',
             endpoint='token',
@@ -176,7 +175,7 @@ class TestOauthTokenSuite:
                 'client_secret': config.CLIENT_SECRET,
                 'grant_type': 'refresh_token',
                 'refresh_token': self.refresh_token,
-                '_refresh_tokens_validity_ms': 3000
+                '_refresh_tokens_validity_ms': 0
             })
 
     @pytest.mark.apm_1475
