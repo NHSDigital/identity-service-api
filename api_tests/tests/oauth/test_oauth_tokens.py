@@ -144,7 +144,7 @@ class TestOauthTokenSuite:
             expected_status_code=401,
             expected_response={
                 "error": "invalid_grant",
-                "error_description": "refresh_token expired"
+                "error_description": "access token refresh period has expired"
             },
             headers={
                 'NHSD-Session-URID': '',
