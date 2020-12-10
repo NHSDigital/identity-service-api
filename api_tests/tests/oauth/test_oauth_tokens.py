@@ -169,7 +169,7 @@ class TestOauthTokenSuite:
             expected_status_code=401,
             expected_response={
                 "error": "invalid_grant",
-                "error_description": "refresh tokens validity expired"
+                "error_description": "access token refresh period has expired"
             },
             data={
                 'client_id': config.CLIENT_ID,
@@ -177,4 +177,63 @@ class TestOauthTokenSuite:
                 'grant_type': 'refresh_token',
                 'refresh_token': self.refresh_token,
                 '_refresh_tokens_validity_ms': 3000
+            })
+
+    @pytest.mark.apm_1475
+    @pytest.mark.errors
+    @pytest.mark.usefixtures('get_token')
+    def test_re_use_of_refresh_token(self):
+        response = self.oauth.check_and_return_endpoint(
+            verb="POST",
+            endpoint="token",
+            expected_status_code=200,
+            expected_response=[
+                "access_token",
+                "expires_in",
+                "refresh_count",
+                "refresh_token",
+                "refresh_token_expires_in",
+                "token_type",
+            ],
+            data={
+                "client_id": config.CLIENT_ID,
+                "client_secret": config.CLIENT_SECRET,
+                "redirect_uri": config.REDIRECT_URI,
+                "grant_type": "authorization_code",
+                "code": self.oauth.get_authenticated(),
+            },
+        )
+
+        assert self.oauth.check_endpoint(
+            verb='POST',
+            endpoint='token',
+            expected_status_code=200,
+            expected_response=[
+                'access_token',
+                'expires_in',
+                'refresh_count',
+                'refresh_token',
+                'refresh_token_expires_in',
+                'token_type'
+            ],
+            data={
+                'client_id': config.CLIENT_ID,
+                'client_secret': config.CLIENT_SECRET,
+                'grant_type': 'refresh_token',
+                'refresh_token': response.json()["refresh_token"],
+            })
+
+        assert self.oauth.check_endpoint(
+            verb='POST',
+            endpoint='token',
+            expected_status_code=401,
+            expected_response={
+                "error": "invalid_grant",
+                "error_description": "refresh_token is invalid"
+            },
+            data={
+                'client_id': config.CLIENT_ID,
+                'client_secret': config.CLIENT_SECRET,
+                'grant_type': 'refresh_token',
+                'refresh_token': response.json()["refresh_token"],
             })
