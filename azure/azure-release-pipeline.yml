@@ -40,6 +40,8 @@ extends:
     config_ids:
       - /ptl/azure-devops/env-internal-dev/test-app/internal-testing-internal-dev/CLIENT_ID
       - /ptl/azure-devops/env-internal-dev/test-app/internal-testing-internal-dev/CLIENT_SECRET
+      - /ptl/azure-devops/env-internal-dev/test-app/internal-testing-internal-dev/VALID_UNSUBSCRIBED_CLIENT_ID
+      - /ptl/azure-devops/env-internal-dev/test-app/internal-testing-internal-dev/VALID_UNSUBSCRIBED_CLIENT_SECRET
       - /ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITH_VALID_ASID_SECRET
       - /ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITH_VALID_ASID_KEY
     secret_ids:
