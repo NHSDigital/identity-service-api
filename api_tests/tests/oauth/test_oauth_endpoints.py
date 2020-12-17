@@ -30,7 +30,7 @@ class TestOauthEndpointSuite:
             verb="GET",
             endpoint="authorize",
             expected_status_code=302,
-            expected_response=BANK.get(self.name)["response"],
+            expected_response="",
             params={
                 "client_id": config.CLIENT_ID,
                 "redirect_uri": config.REDIRECT_URI,
