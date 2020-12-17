@@ -210,8 +210,14 @@
                 </Step>
             </Request>
             <Response>
+                <!-- Determine which auth redirect to return if int PR proxy-->
+                <Step>
+                  <Name>AssignMessage.SetAuthorizationPRRedirect</Name>
+                  <Conditonal>proxy.basepath StartsWith "/oauth2-int-pr"</Conditonal>
+                </Step>
                 <Step>
                   <Name>AssignMessage.SetAuthorizationRedirect</Name>
+                  <Conditonal>proxy.basepath StartsWith "/oauth2</Conditonal>
                 </Step>
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/authorize") and (request.verb = "GET")</Condition>

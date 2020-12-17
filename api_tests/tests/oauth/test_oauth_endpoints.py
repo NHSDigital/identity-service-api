@@ -29,7 +29,7 @@ class TestOauthEndpointSuite:
         self.oauth.check_endpoint(
             verb="GET",
             endpoint="authorize",
-            expected_status_code=200,
+            expected_status_code=302,
             expected_response=BANK.get(self.name)["response"],
             params={
                 "client_id": config.CLIENT_ID,
@@ -37,6 +37,7 @@ class TestOauthEndpointSuite:
                 "response_type": "code",
                 "state": random.getrandbits(32)
             },
+            allow_redirects=False
         )
 
     @pytest.mark.apm_801
@@ -550,6 +551,16 @@ class TestOauthEndpointSuite:
                     "state": random.getrandbits(32),
                 },
             },
+            # condition 2: invalid state
+            {
+                "expected_status_code": 401,
+                "expected_response": "",
+                "params": {
+                    "code": "some-code",
+                    "client_id": "invalid-client-id",
+                    "state": random.getrandbits(32),
+                },
+            }
         ],
     )
     def test_callback_error_conditions(self, request_data: dict):
