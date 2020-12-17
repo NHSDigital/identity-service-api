@@ -211,7 +211,7 @@
             </Request>
             <Response>
                 <Step>
-                    <Name>AssignMessage.SetAuthorizationRedirect</Name>
+                  <Name>AssignMessage.SetAuthorizationRedirect</Name>
                 </Step>
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/authorize") and (request.verb = "GET")</Condition>

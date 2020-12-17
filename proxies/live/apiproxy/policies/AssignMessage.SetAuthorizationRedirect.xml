@@ -2,7 +2,7 @@
   <Set>
     <StatusCode>302</StatusCode>
     <Headers>
-      <Header name="Location">{private.apigee.authorize_endpoint}?response_type={request.queryparam.response_type}&amp;client_id={private.apigee.client_id}&amp;redirect_uri={private.apigee.redirect_uri}&amp;scope=openid&amp;state={apigee.state}&amp;prompt=login</Header>
+      <Header name="Location">{private.apigee.authorize_endpoint}?response_type={request.queryparam.response_type}&amp;client_id={private.apigee.client_id}&amp;{private.apigee.redirect_uri}/{proxy.basepath}/callback&amp;scope=openid&amp;state={apigee.state}&amp;prompt=login</Header>
     </Headers>
   </Set>
   <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
