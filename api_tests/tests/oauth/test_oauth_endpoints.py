@@ -459,6 +459,5 @@ class TestOauthEndpointSuite:
     def test_callback_error_conditions(self, request_data: dict):
         assert self.oauth.check_endpoint("GET", "callback", **request_data)
 
-    @pytest.mark.skip('skip until feature has been merged into master')
     def test_ping(self):
         assert self.oauth.check_endpoint('GET', 'ping', 200, ["version", "revision", "releaseId", "commitId"])
