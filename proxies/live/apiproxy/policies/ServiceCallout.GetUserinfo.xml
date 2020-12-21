@@ -2,7 +2,7 @@
   <Request>
     <Set>
       <Headers>
-        <Header name="Authorization">Bearer {externalAccessToken}</Header>
+        <Header name="Authorization">Bearer {accesstoken.access_token}</Header>
       </Headers>
       <Verb>GET</Verb>
     </Set>

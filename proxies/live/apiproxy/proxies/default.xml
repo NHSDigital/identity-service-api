@@ -262,9 +262,6 @@
                 <Step>
                     <Name>ExtractVariables.AccessToken</Name>
                 </Step>
-                <Step>
-                  <Name>ServiceCallout.GetUserinfo</Name>
-                </Step>
                 <!-- Using pattern from https://community.apigee.com/questions/34110/how-can-i-store-the-results-of-the-servicecallout.html
                     Steps are:
                     1. LookupCache.JWKS: Attempt to get JWKS from cache, store in flow variable `jwks`
@@ -380,9 +377,6 @@
                 </Step>
                 <Step>
                   <Name>DecodeJWT.FromGeneratedIdTokenSimulatedAuth</Name>
-                </Step>
-                <Step>
-                  <Name>AssignMessage.UserinfoResponseSimulatedAuth</Name>
                 </Step>
                 <Step>
                   <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>
@@ -542,11 +536,36 @@
               <Name>Quota</Name>
             </Step>
             <Step>
+              <Name>ServiceCallout.GetUserinfo</Name>
+            </Step>
+            <Step>
               <Name>AssignMessage.GenerateUserinfoResponse</Name>
             </Step>
           </Request>
           <Response/>
-          <Condition>(proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
+          <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
+        </Flow>
+        <Flow name="Flow.GetUserInfoSimulatedAuth">
+          <Description/>
+          <Request>
+            <Step>
+              <Name>OAuthV2.VerifyAccessToken</Name>
+            </Step>
+            <Step>
+              <Name>SpikeArrest</Name>
+            </Step>
+            <Step>
+              <Name>Quota</Name>
+            </Step>
+            <Step>
+              <Name>AssignMessage.UserinfoResponseSimulatedAuth</Name>
+            </Step>
+            <Step>
+              <Name>AssignMessage.GenerateUserinfoResponse</Name>
+            </Step>
+          </Request>
+          <Response/>
+          <Condition>(identity_service.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
         </Flow>
         <!-- <Flow name="Flow.GetWellKnown">
             <Description/>

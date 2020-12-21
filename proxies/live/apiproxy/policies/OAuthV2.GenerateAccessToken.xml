@@ -10,7 +10,7 @@
     </SupportedGrantTypes>
     <GenerateResponse enabled="false"/>
     <Attributes>
-      <Attribute name="userinfo" ref="userinfoResponse" display="true"/>
+      <Attribute name="access_token" ref="externalAccessToken" display="true"/>
       <Attribute name="id_token" ref="externalIdToken" display="true"/>
       <Attribute name="id_token-subject" ref="jwt.VerifyJWT.FromExternalIdToken.claim.subject" display="true"/>
       <Attribute name="id_token-issuer" ref="jwt.VerifyJWT.FromExternalIdToken.claim.issuer" display="true"/>
