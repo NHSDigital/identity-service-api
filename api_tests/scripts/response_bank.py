@@ -108,4 +108,16 @@ BANK = {
             }
         }
     },
+    'test_userinfo': {
+        'response':
+            """
+               {
+                   "sub": "910000000001",
+                   "name": "Jane Doe",
+                   "given_name": "Jane",
+                   "family_name": "Doe",
+                   "email": "janedoe@example.com",
+               }
+            """
+    }
 }
