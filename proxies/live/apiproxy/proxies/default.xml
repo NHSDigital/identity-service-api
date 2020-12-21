@@ -102,6 +102,16 @@
       <Response/>
     </PostFlow>
     <Flows>
+        <Flow name="AddPayloadToPing">
+            <Description />
+            <Request />
+              <Response>
+                <Step>
+                  <Name>AssignMessage.AddPayloadToPing</Name>
+                </Step>
+              </Response>
+              <Condition>(proxy.pathsuffix MatchesPath "/_ping") and ((request.verb = "GET") or (request.verb = "HEAD"))</Condition>
+        </Flow>
         <Flow name="Flow.GetAuthorization">
             <Description>OAuth Authorization Endpoint</Description>
             <Request>
@@ -603,6 +613,9 @@
         <Properties/>
         <VirtualHost>secure</VirtualHost>
     </HTTPProxyConnection>
+    <RouteRule name="NoRoutePing">
+        <Condition>(proxy.pathsuffix MatchesPath "/_ping") and ((request.verb = "GET") or (request.verb = "HEAD"))</Condition>
+    </RouteRule>
     <RouteRule name="identityRoute">
         <Condition>(proxy.pathsuffix MatchesPath "/userinfo") or (proxy.pathsuffix MatchesPath "/.well-known/*")</Condition>
         <TargetEndpoint>identity-server</TargetEndpoint>
