@@ -1,0 +1,16 @@
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.GenerateUserinfoResponse">
+    <Set>
+      <!-- TODO - update the simulated userinfo response when we know what a real one looks like -->
+      <Payload contentType="application/json">
+        {
+          "sub": "910000000001",
+          "name": "Jane Doe",
+          "given_name": "Jane",
+          "family_name": "Doe",
+          "email": "janedoe@example.com",
+        }
+      </Payload>
+    </Set>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <AssignTo createNew="false" transport="http" type="request"/>
+</AssignMessage>

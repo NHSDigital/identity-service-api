@@ -546,10 +546,7 @@
               <Name>Quota</Name>
             </Step>
             <Step>
-              <Name>ServiceCallout.GetUserinfo</Name>
-            </Step>
-            <Step>
-              <Name>AssignMessage.GenerateUserinfoResponse</Name>
+              <Name>AssignMessage.SetAuthorizationHeader</Name>
             </Step>
           </Request>
           <Response/>
@@ -568,10 +565,7 @@
               <Name>Quota</Name>
             </Step>
             <Step>
-              <Name>AssignMessage.UserinfoResponseSimulatedAuth</Name>
-            </Step>
-            <Step>
-              <Name>AssignMessage.GenerateUserinfoResponse</Name>
+              <Name>AssignMessage.GenerateUserinfoResponseSimulatedAuth</Name>
             </Step>
           </Request>
           <Response/>
@@ -647,6 +641,10 @@
     <RouteRule name="identityRoute">
         <Condition>proxy.pathsuffix MatchesPath "/.well-known/*"</Condition>
         <TargetEndpoint>identity-server</TargetEndpoint>
+    </RouteRule>
+    <RouteRule name="userinfoRoute">
+      <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
+      <TargetEndpoint>identity-server-userinfo</TargetEndpoint>
     </RouteRule>
     <RouteRule name="loopbackRoute"/>
 </ProxyEndpoint>

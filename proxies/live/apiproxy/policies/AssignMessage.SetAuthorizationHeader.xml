@@ -1,0 +1,9 @@
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.SetCorsHeaders">
+  <Set>
+    <Headers>
+      <Header name="Access-Control-Allow-Origin">{accesstoken.access_token}</Header>
+    </Headers>
+  </Set>
+  <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
+  <AssignTo createNew="false" transport="http" type="response"/>
+</AssignMessage>
