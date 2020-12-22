@@ -1,4 +1,4 @@
-<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.SetCorsHeaders">
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.SetAuthorizationHeader">
   <Set>
     <Headers>
       <Header name="Access-Control-Allow-Origin">{accesstoken.access_token}</Header>
