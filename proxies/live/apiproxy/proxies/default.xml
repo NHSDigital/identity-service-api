@@ -571,12 +571,6 @@
           <Response/>
           <Condition>(identity_service.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
         </Flow>
-        <!-- <Flow name="Flow.GetWellKnown">
-            <Description/>
-            <Request/>
-            <Response/>
-            <Condition>(proxy.pathsuffix MatchesPath "/.well-known/*") and (request.verb = "GET")</Condition>
-        </Flow> -->
         <Flow name="Flow.OptionsCors">
             <Description/>
             <Request/>
@@ -637,10 +631,6 @@
     </HTTPProxyConnection>
     <RouteRule name="NoRoutePing">
         <Condition>(proxy.pathsuffix MatchesPath "/_ping") and ((request.verb = "GET") or (request.verb = "HEAD"))</Condition>
-    </RouteRule>
-    <RouteRule name="identityRoute">
-        <Condition>proxy.pathsuffix MatchesPath "/.well-known/*"</Condition>
-        <TargetEndpoint>identity-server</TargetEndpoint>
     </RouteRule>
     <RouteRule name="userinfoRoute">
       <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
