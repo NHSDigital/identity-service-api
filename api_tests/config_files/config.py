@@ -45,7 +45,8 @@ ENDPOINTS = {
     'callback': CALLBACK_URL,
     'api': API_URL,
     'pds': PDS_API,
-    'sim_auth': SIM_AUTH_URL
+    'sim_auth': SIM_AUTH_URL,
+    'ping': f'{BASE_URL}/{IDENTITY_PROXY}/_ping'
 }
 
 # Flag to indicate if tests are running locally or remotely i.e. in the pipeline
