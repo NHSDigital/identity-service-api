@@ -15,10 +15,13 @@ def _get_parametrized_values(request):
 def get_token_using_jwt(request):
     """Get a token using a signed JWT and assign it to the test instance"""
     oauth_endpoints = CheckOauth()
-    _jwt = oauth_endpoints.create_jwt(kid="test-1")
+    _jwt = oauth_endpoints.create_jwt(kid="test-rs512")
     response, _ = oauth_endpoints.get_jwt_token_response(_jwt)
-    setattr(request.cls, 'jwt_response', response)
-    setattr(request.cls, 'jwt_signed_token', response['access_token'])
+    try:
+        setattr(request.cls, 'jwt_response', response)
+        setattr(request.cls, 'jwt_signed_token', response['access_token'])
+    except KeyError:
+        raise Exception(f"UNEXPECTED RESPONSE {response.status_code}: {response.text}")
 
 
 @pytest.fixture()
