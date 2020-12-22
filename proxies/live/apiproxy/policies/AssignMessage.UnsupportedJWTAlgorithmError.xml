@@ -5,7 +5,7 @@
     <Payload contentType="application/json">
         {
           "error": "invalid_request",
-          "error_description": "Unsupported JWT Algorithm",
+          "error_description": "Invalid 'alg' header in JWT - unsupported JWT algorithm - must be 'RS512'",
           "message_id": "{messageid}"
         }
 </Payload>

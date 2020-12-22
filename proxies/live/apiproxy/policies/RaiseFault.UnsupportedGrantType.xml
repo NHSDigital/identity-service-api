@@ -4,10 +4,10 @@
       <Payload contentType="application/json">
         {
           "error" : "invalid_request",
-          "error_description" :"Unsupported grant_type '{request.formparam.grant_type}'",
+          "error_description" :"Unsupported grant_type: '{request.formparam.grant_type}'",
           "message_id": "{messageid}"
         }
-</Payload>
+      </Payload>
       <StatusCode>400</StatusCode>
       <ReasonPhrase>Bad Request</ReasonPhrase>
     </Set>

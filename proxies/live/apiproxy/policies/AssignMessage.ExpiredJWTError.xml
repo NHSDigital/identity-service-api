@@ -5,7 +5,7 @@
     <Payload contentType="application/json">
         {
           "error": "invalid_request",
-          "error_description": "JWT token has expired",
+          "error_description": "Invalid exp claim in JWT - JWT has expired",
           "message_id": "{messageid}"
         }
 </Payload>

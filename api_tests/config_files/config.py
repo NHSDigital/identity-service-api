@@ -26,6 +26,11 @@ CLIENT_ID = ENV['oauth']['client_id']
 CLIENT_SECRET = ENV['oauth']['client_secret']
 REDIRECT_URI = ENV['oauth']['redirect_uri']
 
+# Details of valid app that is not subscribed
+VALID_UNSUBSCRIBED_CLIENT_ID = ENV['oauth']['valid_unsubscribed_client_id']
+VALID_UNSUBSCRIBED_CLIENT_SECRET = ENV['oauth']['valid_unsubscribed_client_secret']
+VALID_UNSUBSCRIBED_REDIRECT_URI = ENV['oauth']['valid_unsubscribed_redirect_uri']
+
 # Authentication provider (Simulated OAuth)
 AUTHENTICATE_URL = ENV['oauth']['authenticate_url']
 
@@ -46,7 +51,8 @@ ENDPOINTS = {
     'callback': CALLBACK_URL,
     'hello_world': HELLO_WORLD_API_URL,
     'pds': PDS_API,
-    'sim_auth': SIM_AUTH_URL
+    'sim_auth': SIM_AUTH_URL,
+    'ping': f'{BASE_URL}/{IDENTITY_PROXY}/_ping'
 }
 
 # Flag to indicate if tests are running locally or remotely i.e. in the pipeline
