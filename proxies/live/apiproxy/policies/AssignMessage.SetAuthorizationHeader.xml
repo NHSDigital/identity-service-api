@@ -1,7 +1,7 @@
 <AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.SetAuthorizationHeader">
   <Set>
     <Headers>
-      <Header name="Access-Control-Allow-Origin">{accesstoken.access_token}</Header>
+      <Header name="Authorization">{accesstoken.external_access_token}</Header>
     </Headers>
   </Set>
   <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
