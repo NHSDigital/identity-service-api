@@ -247,7 +247,7 @@ class TestJwtUnattendedAccessSuite:
                     "iss": config.JWT_APP_KEY,
                     "jti": str(uuid4()),
                     "aud": config.TOKEN_URL,
-                    "exp": int(time()) + 315,  # this includes the +10 seconds grace
+                    "exp": int(time()) + 320,  # this includes the +10 seconds grace
                 }
             },
             {'error': 'invalid_request',
@@ -396,18 +396,6 @@ class TestJwtUnattendedAccessSuite:
             400
         ),
 
-        # Public key mismatch
-        # (
-        #     {
-        #         'kid': 'test-rs512',
-        #         'signing_key': "INVALID"
-        #     },
-        #     {'error': 'unknown_error',
-        #      'error_description': 'An unknown error occurred processing this request. '
-        #                           'Contact us for assistance diagnosing this issue: '
-        #                           'https://digital.nhs.uk/developer/help-and-support quoting Message ID'},
-        #     401
-        # ),
     ])
     def test_invalid_jwt(self, jwt_details, expected_response, expected_status_code):
         assert self.oauth.check_jwt_token_response(

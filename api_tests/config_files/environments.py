@@ -70,7 +70,6 @@ ENV = {
     },
     "jwt": {
         'app_key': get_env('JWT_APP_KEY'),
-        'private_key_location': get_env('PRIVATE_KEY_DIR'),
         'private_key': get_env_file('PRIVATE_KEY_DIR'),
     },
 }
