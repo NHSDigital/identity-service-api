@@ -461,3 +461,17 @@ class TestOauthEndpointSuite:
 
     def test_ping(self):
         assert self.oauth.check_endpoint('GET', 'ping', 200, ["version", "revision", "releaseId", "commitId"])
+
+    @pytest.mark.aea_756
+    @pytest.mark.happy_path
+    @pytest.mark.usefixtures('get_token')
+    def test_userinfo(self):
+        assert self.oauth.check_endpoint(
+            verb='GET',
+            endpoint='userinfo',
+            expected_status_code=200,
+            expected_response=BANK.get(self.name)["response"],
+            headers={
+                'Authorization': f'Bearer {self.token}'
+            }
+        )

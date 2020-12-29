@@ -545,16 +545,32 @@
             <Step>
               <Name>Quota</Name>
             </Step>
+            <Step>
+              <Name>AssignMessage.SetAuthorizationHeader</Name>
+            </Step>
           </Request>
           <Response/>
-          <Condition>(proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET" || request.verb = "POST" )</Condition>
+          <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
         </Flow>
-        <!-- <Flow name="Flow.GetWellKnown">
-            <Description/>
-            <Request/>
-            <Response/>
-            <Condition>(proxy.pathsuffix MatchesPath "/.well-known/*") and (request.verb = "GET")</Condition>
-        </Flow> -->
+        <Flow name="Flow.GetUserInfoSimulatedAuth">
+          <Description/>
+          <Request>
+            <Step>
+              <Name>OAuthV2.VerifyAccessToken</Name>
+            </Step>
+            <Step>
+              <Name>SpikeArrest</Name>
+            </Step>
+            <Step>
+              <Name>Quota</Name>
+            </Step>
+            <Step>
+              <Name>AssignMessage.GenerateUserinfoResponseSimulatedAuth</Name>
+            </Step>
+          </Request>
+          <Response/>
+          <Condition>(identity_service.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
+        </Flow>
         <Flow name="Flow.OptionsCors">
             <Description/>
             <Request/>
@@ -616,9 +632,9 @@
     <RouteRule name="NoRoutePing">
         <Condition>(proxy.pathsuffix MatchesPath "/_ping") and ((request.verb = "GET") or (request.verb = "HEAD"))</Condition>
     </RouteRule>
-    <RouteRule name="identityRoute">
-        <Condition>(proxy.pathsuffix MatchesPath "/userinfo") or (proxy.pathsuffix MatchesPath "/.well-known/*")</Condition>
-        <TargetEndpoint>identity-server</TargetEndpoint>
+    <RouteRule name="userinfoRoute">
+      <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
+      <TargetEndpoint>identity-server-userinfo</TargetEndpoint>
     </RouteRule>
     <RouteRule name="loopbackRoute"/>
 </ProxyEndpoint>
