@@ -132,7 +132,7 @@ BANK = {
                            "person_orgid": "555254239107",
                            "person_roleid": "555254240100",
                            "role_code": "S8000:G8000:R8001",
-                           "role_name": "\"Clinical\":\"Clinical Provision\":\"Nurse Access Role\""
+                           "role_name": "\\"Clinical\\":\\"Clinical Provision\\":\\"Nurse Access Role\\""
                        },
                        {
                            "activities": [
@@ -151,7 +151,7 @@ BANK = {
                            "person_orgid": "555254239107",
                            "person_roleid": "555254242102",
                            "role_code": "S8000:G8000:R8000",
-                           "role_name": "\"Clinical\":\"Clinical Provision\":\"Clinical Practitioner Access Role\""
+                           "role_name": "\\"Clinical\\":\\"Clinical Provision\\":\\"Clinical Practitioner Access Role\\""
                        },
                        {
                            "activities": [
@@ -170,7 +170,7 @@ BANK = {
                            "person_orgid": "555254239107",
                            "person_roleid": "555254241101",
                            "role_code": "S8000:G8000:R8003",
-                           "role_name": "\"Clinical\":\"Clinical Provision\":\"Health Professional Access Role\""
+                           "role_name": "\\"Clinical\\":\\"Clinical Provision\\":\\"Health Professional Access Role\\""
                        }
                    ],
                    "sub": "910000000001"
