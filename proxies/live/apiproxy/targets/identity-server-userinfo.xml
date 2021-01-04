@@ -1,4 +1,4 @@
-<TargetEndpoint name="identity-server">
+<TargetEndpoint name="identity-server-userinfo">
   <DefaultFaultRule>
     <Step>
       <Name>AssignMessage.CatchallErrorMessage</Name>
@@ -15,5 +15,6 @@
     <LoadBalancer>
       <Server name="{{ IDENTITY_TARGET_SERVER }}" />
     </LoadBalancer>
+    <Path>{private.apigee.userinfo_path}</Path>
   </HTTPTargetConnection>
 </TargetEndpoint>

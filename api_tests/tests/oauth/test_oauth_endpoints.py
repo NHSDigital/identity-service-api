@@ -173,7 +173,7 @@ class TestOauthEndpointSuite:
                 "expected_status_code": 400,
                 "expected_response": {
                     "error": "invalid_request",
-                    "error_description": f"redirect_uri is invalid",
+                    "error_description": "redirect_uri is invalid",
                 },
                 "params": {
                     "client_id": config.CLIENT_ID,
@@ -187,7 +187,7 @@ class TestOauthEndpointSuite:
                 "expected_status_code": 400,
                 "expected_response": {
                     "error": "invalid_request",
-                    "error_description": f"redirect_uri is missing",
+                    "error_description": "redirect_uri is missing",
                 },
                 "params": {  # not providing redirect uri
                     "client_id": config.CLIENT_ID,
@@ -642,3 +642,20 @@ class TestOauthEndpointSuite:
     )
     def test_refresh_token_error_conditions(self, request_data: dict):
         assert self.oauth.check_endpoint("POST", "token", **request_data)
+
+    def test_ping(self):
+        assert self.oauth.check_endpoint('GET', 'ping', 200, ["version", "revision", "releaseId", "commitId"])
+
+    @pytest.mark.aea_756
+    @pytest.mark.happy_path
+    @pytest.mark.usefixtures('get_token')
+    def test_userinfo(self):
+        assert self.oauth.check_endpoint(
+            verb='GET',
+            endpoint='userinfo',
+            expected_status_code=200,
+            expected_response=BANK.get(self.name)["response"],
+            headers={
+                'Authorization': f'Bearer {self.token}'
+            }
+        )

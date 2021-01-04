@@ -10,6 +10,7 @@ AUTHORIZE_URL = f"{BASE_URL}/{IDENTITY_PROXY}/authorize"
 TOKEN_URL = f"{BASE_URL}/{IDENTITY_PROXY}/token"
 SIM_AUTH_URL = f"{BASE_URL}/{IDENTITY_PROXY}/simulated_auth"
 CALLBACK_URL = f"{BASE_URL}/{IDENTITY_PROXY}/callback"
+USERINFO_URL = f"{BASE_URL}/{IDENTITY_PROXY}/userinfo"
 
 # Apigee API details
 APIGEE_API_URL = ENV['apigee']['base_url']
@@ -48,9 +49,11 @@ ENDPOINTS = {
     'token': TOKEN_URL,
     'authenticate': AUTHENTICATE_URL,
     'callback': CALLBACK_URL,
+    'userinfo': USERINFO_URL,
     'api': API_URL,
     'pds': PDS_API,
-    'sim_auth': SIM_AUTH_URL
+    'sim_auth': SIM_AUTH_URL,
+    'ping': f'{BASE_URL}/{IDENTITY_PROXY}/_ping'
 }
 
 # Flag to indicate if tests are running locally or remotely i.e. in the pipeline
