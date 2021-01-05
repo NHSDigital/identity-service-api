@@ -160,8 +160,7 @@ class TestOauthTokenSuite:
     @pytest.mark.errors
     @pytest.mark.usefixtures('get_refresh_token')
     def test_refresh_tokens_validity_expires(self):
-        # Get refresh token with a timeout set to 3 second &
-        # wait until tokens validity has expired
+        # Set refresh token validity to 0
         assert self.oauth.check_endpoint(
             verb='POST',
             endpoint='token',

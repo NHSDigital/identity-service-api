@@ -53,10 +53,7 @@ class GenericRequest:
 
     @staticmethod
     def check_params(params, expected_params):
-        for key, value in expected_params.items():
-            if not params[key] or params[key] != value:
-                return False
-        return True
+        return all(params.get(key) and params[key] == value for key, value in expected_params.items())
 
     @staticmethod
     def _verify_status_code(status_code: Union[int, str]) -> None:
