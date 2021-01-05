@@ -32,7 +32,7 @@ extends:
     service_base_path: ${{ variables.service_base_path }}
     product_display_name: ${{ variables.product_display_name }}
     product_description: ${{ variables.product_description }}
-    ping: false
+    enable_monitoring: true
     jinja_templates:
       IDENTITY_TARGET_SERVER: identity-server
       VARIABLES_KVM: identity-service-variables
