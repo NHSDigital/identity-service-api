@@ -32,6 +32,11 @@ VALID_UNSUBSCRIBED_CLIENT_ID = ENV['oauth']['valid_unsubscribed_client_id']
 VALID_UNSUBSCRIBED_CLIENT_SECRET = ENV['oauth']['valid_unsubscribed_client_secret']
 VALID_UNSUBSCRIBED_REDIRECT_URI = ENV['oauth']['valid_unsubscribed_redirect_uri']
 
+# Details of valid app that is not approved
+VALID_UNAPPROVED_CLIENT_ID = ENV['oauth']['valid_unapproved_client_id']
+VALID_UNAPPROVED_CLIENT_SECRET = ENV['oauth']['valid_unapproved_client_secret']
+VALID_UNAPPROVED_CLIENT_REDIRECT_URI = ENV['oauth']['valid_unapproved_redirect_uri']
+
 # Authentication provider (Simulated OAuth)
 AUTHENTICATE_URL = ENV['oauth']['authenticate_url']
 

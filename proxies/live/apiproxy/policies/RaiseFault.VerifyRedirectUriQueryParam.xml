@@ -1,10 +1,10 @@
-<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.CheckResponseType">
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.VerifyRedirectUriQueryParam">
   <FaultResponse>
     <Set>
       <Payload contentType="application/json">
         {
-          "error": "unsupported_response_type",
-          "error_description": "Invalid response type: {request.queryparam.response_type}",
+          "error" : "invalid_request",
+          "error_description" :"redirect_uri is invalid",
           "message_id": "{messageid}"
         }
       </Payload>

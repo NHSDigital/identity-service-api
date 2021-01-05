@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.MissingApiKey">
+    <DisplayName>Invalid API Key</DisplayName>
+    <Set>
+        <Payload contentType="application/json">
+          {
+            "error": "invalid_request",
+            "error_description": "client_id is missing",
+            "message_id": "{messageid}"
+          }
+        </Payload>
+    </Set>
+    <AssignTo createNew="false" transport="https" type="request"/>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</AssignMessage>

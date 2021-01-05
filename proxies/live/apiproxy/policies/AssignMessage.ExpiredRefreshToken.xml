@@ -3,8 +3,8 @@
     <StatusCode>401</StatusCode>
     <Payload contentType="application/json">
       {
-        "error": "invalid_request",
-        "error_description": "Refresh Token expired",
+        "error": "invalid_grant",
+        "error_description": "access token refresh period has expired",
         "message_id": "{messageid}"
       }
     </Payload>

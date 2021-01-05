@@ -1,0 +1,12 @@
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.VerifyResponseType">
+  <FaultResponse>
+      <Set>
+          <StatusCode>302</StatusCode>
+          <Payload contentType="application/x-www-form-urlencoded"/>
+          <Headers>
+            <Header name="Location">{request.queryparam.redirect_uri}?error=unsupported_response_type&amp;error_description=response_type is invalid&amp;state={request.queryparam.state}</Header>
+          </Headers>
+        </Set>
+  </FaultResponse>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</RaiseFault>
