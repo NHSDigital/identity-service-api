@@ -281,6 +281,12 @@
             <Condition>JTICachedValue = jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti</Condition>
           </Step>
           <Step>
+            <Name>SpikeArrest</Name>
+          </Step>
+          <Step>
+            <Name>Quota</Name>
+          </Step>
+          <Step>
             <Name>PopulateCache.JTIClaim</Name>
           </Step>
           <Step>
