@@ -36,7 +36,7 @@ extends:
     product_description: ${{ variables.product_description }}
     ping: false
     jinja_templates:
-      IDENTITY_TARGET_SERVER: am.nhsdev.ptl.nhsd-esa.net
+      IDENTITY_TARGET_SERVER: identity-server-DEV
       VARIABLES_KVM: identity-service-internal-dev-DEV-variables
       ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
       NUM_RANDOM_LONG_INTS_FOR_STATE: 4
