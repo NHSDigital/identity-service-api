@@ -8,6 +8,8 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = "^3.8"
 locust = "^1.1.1"
+pyjwt = "^2.0.0"
+cryptography = "^3.3.1"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.8.3"

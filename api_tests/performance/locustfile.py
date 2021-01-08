@@ -1,8 +1,11 @@
 import os
 import json
+import jwt  # pyjwt
+from uuid import uuid4
+from time import time
 import urllib.parse as urlparse
 from urllib.parse import parse_qs
-from locust import HttpUser, task, between
+from locust import HttpUser, task, between, tag
 
 
 class IdentityServiceUser(HttpUser):
@@ -14,6 +17,9 @@ class IdentityServiceUser(HttpUser):
         self.client_id = os.environ["CLIENT_ID"]
         self.client_secret = os.environ["CLIENT_SECRET"]
         self.callback_url = os.environ["CALLBACK_URL"]
+        self.jwt_app_key = os.environ["JWT_APP_KEY"]
+        self.kid = os.environ["JWT_KID"]
+        self.signing_key = os.environ["JWT_SIGNING_KEY"]
 
     def _identity_proxy_name(self):
         try:
@@ -23,7 +29,8 @@ class IdentityServiceUser(HttpUser):
             return "oauth2"
 
     @task
-    def authenticate(self):
+    @tag('user_restricted')
+    def user_restricated_auth(self):
         state = self._get_state()
         redirect_uri = self._get_redirect_callback(state)
         auth_code = self._get_auth_code(redirect_uri)
@@ -113,3 +120,33 @@ class IdentityServiceUser(HttpUser):
             "refresh_token": credentials["refresh_token"]
         }
         self.client.post(f"/{self.identity_proxy}/token", headers=headers, data=payload)
+
+    @task
+    @tag('app_restricted')
+    def app_restricted_auth(self):
+        jwt = self.create_jwt()
+
+        form_data = {
+            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            "client_assertion": jwt,
+            "grant_type": "client_credentials"
+        }
+
+        with self.client.post(f"/{self.identity_proxy}/token", data=form_data) as response:
+            print(response)
+
+    def create_jwt(self):
+        claims = {
+            "sub": self.jwt_app_key,
+            "iss": self.jwt_app_key,
+            "jti": str(uuid4()),
+            "aud": f"{self.base_url}/{self.identity_proxy}/token",
+            "exp": int(time()) + 5,
+        }
+
+        headers = {"kid": self.kid}
+
+        with open(self.signing_key, "r") as f:
+            private_key = f.read()
+
+        return jwt.encode(payload=claims, key=private_key, headers=headers, algorithm="RS512")
