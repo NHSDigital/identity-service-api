@@ -443,6 +443,10 @@
                 <Step>
                   <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
                 </Step>
+                <!-- Try retrieve scopes from API Product -->
+                <Step>
+                  <Name>AccessEntity.GetProductDetails</Name>
+                </Step>
                 <Step>
                   <Name>RaiseFault.MissingClientSecret</Name>
                   <Condition>request.formparam.client_secret = null</Condition>
