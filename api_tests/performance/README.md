@@ -26,6 +26,9 @@ Configure by setting environment variables:
 | `CLIENT_SECRET` | From App                                                     | `7voRLOLRNOPEIsUA`                 |
 | `LOCUST_HOST`   | Hostname and scheme of the deployed identity service         | `https://int.api.service.nhs.uk`   |
 | `NAMESPACE`     | OPTIONAL. For PR-Deployed (namespaced) proxies. Used to create the base path to the identity service, of the format `/oauth2-<NAMESPACE>` | `some-namespace`                   |
+| `JWT_APP_KEY`   | From App                                                     | `wV0D06YOqyyyy2b98AwxxxxG4cpI1111` |
+| `JWT_KID`       | Key Identifier given to the JWK                              | `test-1`                           |
+| `JWT_SIGNING_KEY` | File name that contains the private key required for signing the JWT | `jwtRS512.key` |
 
 :bulb: Use [direnv](https://direnv.net/) for convenience.
 
@@ -33,6 +36,11 @@ Configure by setting environment variables:
 
 1. `pyenv run locust -f  locustfile.py`
 2. Use WebUI at http://localhost:8089/
+
+## Run Specific Tests
+
+* Application Restricted tests: `pyenv run locust -f  locustfile.py --tags app_restricted`
+* User Restricted tests: `pyenv run locust -f  locustfile.py --tags user_restricted`
 
 :bulb: Use `--headless` switch to run from CLI
 

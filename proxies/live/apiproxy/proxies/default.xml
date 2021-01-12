@@ -287,6 +287,12 @@
             <Name>VerifyAPIKey.FromJWT</Name>
           </Step>
           <Step>
+            <Name>SpikeArrest</Name>
+          </Step>
+          <Step>
+            <Name>Quota</Name>
+          </Step>
+          <Step>
             <Name>Javascript.SetServiceCalloutUrl</Name>
           </Step>
           <Step>
