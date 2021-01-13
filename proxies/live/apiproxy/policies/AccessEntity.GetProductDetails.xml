@@ -3,5 +3,5 @@
     <DisplayName>GetProductDetails</DisplayName>
     <Properties/>
     <EntityIdentifier ref="request.formparam.client_id" type="consumerkey"/>
-    <EntityType value="apiproduct"/>
+    <EntityType value="app"/>
 </AccessEntity>
