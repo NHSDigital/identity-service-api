@@ -1,0 +1,16 @@
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.VerifyAccessLevel">
+    <FaultResponse>
+      <Set>
+        <Payload contentType="application/json">
+          {
+            "error" : "unauthorized_client",
+            "error_description" :"the authenticated client is not authorized to use this authorization grant type",
+            "message_id": "{messageid}"
+          }
+        </Payload>
+        <StatusCode>401</StatusCode>
+        <ReasonPhrase>Unauthorized</ReasonPhrase>
+      </Set>
+    </FaultResponse>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  </RaiseFault>

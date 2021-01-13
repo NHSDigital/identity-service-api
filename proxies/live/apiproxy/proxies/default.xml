@@ -443,10 +443,6 @@
                 <Step>
                   <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
                 </Step>
-                <!-- Try retrieve scopes from API Product -->
-                <!-- <Step>
-                  <Name>AccessEntity.GetProductDetails</Name>
-                </Step> -->
                 <Step>
                   <Name>RaiseFault.MissingClientSecret</Name>
                   <Condition>request.formparam.client_secret = null</Condition>
@@ -508,6 +504,15 @@
                 </Step>
                 <Step>
                   <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>
+                </Step>
+                <!-- 
+                  TODO: 
+                  * Add conditional to check USER_RESTRICTED scope is set
+                  * Add error response if not USER_RESTRICTED
+                -->
+                <Step>
+                  <Name>RaiseFault.VerifyAccessLevel</Name>
+                  <Condition>(oauthV2.OAuthV2.GenerateAccessTokenSimulatedAuth.scope JavaRegex "(.+\ personal-demographics-service:USER-RESTRICTED\ .+|^personal-demographics-service:USER-RESTRICTED\ .+|.+\ personal-demographics-service:USER-RESTRICTED$|^personal-demographics-service:USER-RESTRICTED$)")</Condition>
                 </Step>
             </Request>
             <Response>
