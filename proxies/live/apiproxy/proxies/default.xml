@@ -512,7 +512,7 @@
                 -->
                 <Step>
                   <Name>RaiseFault.VerifyAccessLevel</Name>
-                  <Condition>((oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuth.scope = "") Or !(oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuth.scope JavaRegex "(.+\ personal-demographics-service:USER-RESTRICTED\ .+|^personal-demographics-service:USER-RESTRICTED\ .+|.+\ personal-demographics-service:USER-RESTRICTED$|^personal-demographics-service:USER-RESTRICTED$)"))</Condition>
+                  <Condition>((oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuth.scope = null) Or !(oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuth.scope JavaRegex ".*:USER-RESTRICTED$"))</Condition>
                 </Step>
             </Request>
             <Response>
