@@ -17,7 +17,7 @@ resources:
     - repository: common
       type: github
       name: NHSDigital/api-management-utils
-      ref: refs/heads/APM-1733-fix-apidoc-deploy
+      ref: refs/heads/edge
       endpoint: NHSDigital
 
 variables:
