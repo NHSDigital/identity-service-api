@@ -319,11 +319,11 @@
             <Name>OAuthV2.ClientCredentialsGenerateAccessToken</Name>
           </Step>
           <Step>
-            <Name>AssignMessage.AccessTokenScope</Name>
+            <Name>Javascript.VerifyAppRestrictedScopes</Name>
           </Step>
           <Step>
             <Name>RaiseFault.VerifyAccessLevel</Name>
-            <Condition>(apigee.access_token_scope = null)</Condition>
+            <Condition>apigee.has_valid_scopes</Condition>
             <!-- <Condition>(oauthv2accesstoken.OAuthV2.ClientCredentialsGenerateAccessToken.scope = Null)</Condition> -->
           </Step>
         </Request>
