@@ -223,11 +223,11 @@
               <!-- Determine which auth redirect to return if int PR proxy-->
               <Step>
                 <Name>AssignMessage.SetAuthorizationPRRedirect</Name>
-                <Condition>proxy.basepath Matches "oauth2-pr-*"</Condition>
+                <Condition>proxy.basepath Matches "oauth2-int-pr-*"</Condition>
               </Step>
               <Step>
                 <Name>AssignMessage.SetAuthorizationRedirect</Name>
-                <Condition>(proxy.basepath Matches "oauth2-pr-*")</Condition>
+                <Condition>not(proxy.basepath Matches "oauth2-int-pr-*")</Condition>
               </Step>
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/authorize") and (request.verb = "GET")</Condition>
