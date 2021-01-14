@@ -319,7 +319,7 @@
             <Name>OAuthV2.ClientCredentialsGenerateAccessToken</Name>
           </Step>
           <Step>
-            <Name>Javascript.VerifyAppRestrictedScopes</Name>
+            <Name>JavaScript.VerifyAppRestrictedScopes</Name>
           </Step>
           <Step>
             <Name>RaiseFault.VerifyAccessLevel</Name>
