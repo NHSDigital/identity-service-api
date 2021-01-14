@@ -318,6 +318,10 @@
           <Step>
             <Name>OAuthV2.ClientCredentialsGenerateAccessToken</Name>
           </Step>
+          <Step>
+            <Name>RaiseFault.VerifyAccessLevel</Name>
+            <Condition>(oauthv2accesstoken.OAuthV2.ClientCredentialsGenerateAccessToken.scope != null)</Condition>
+          </Step>
         </Request>
         <Response>
           <Step>
