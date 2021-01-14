@@ -1,0 +1,7 @@
+<AssignMessage name="AssignMessage.AccessTokenScope">
+  <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
+  <AssignVariable>
+    <Name>apigee.access_token_scope</Name>
+    <Ref>oauthv2accesstoken.OAuthV2.ClientCredentialsGenerateAccessToken.scope</Ref>
+  </AssignVariable>
+</AssignMessage>
