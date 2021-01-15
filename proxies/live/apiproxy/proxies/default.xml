@@ -326,6 +326,15 @@
         </Response>
         <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Equals "client_credentials"))</Condition>
       </Flow>
+      <Flow name="Flow.PostTokenTokenExchange">
+        <Description>OAuth Token Endpoint - Token-Exchange</Description>
+        <Request>
+          
+        </Request>
+        <Response>
+        </Response>
+        <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Equals "urn:ietf:params:oauth:grant-type:token-exchange"))</Condition>
+      </Flow>
       <Flow name="Flow.PostTokenAuthorizationCode">
         <Description>OAuth Token Endpoint - Authorization Code Flow</Description>
             <Request>
