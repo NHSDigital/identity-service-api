@@ -323,7 +323,7 @@
           </Step>
           <Step>
             <Name>RaiseFault.VerifyAccessLevel</Name>
-            <Condition>apigee.has_valid_scopes</Condition>
+            <Condition>apigee.has_invalid_scopes</Condition>
             <!-- <Condition>(oauthv2accesstoken.OAuthV2.ClientCredentialsGenerateAccessToken.scope = Null)</Condition> -->
           </Step>
         </Request>
