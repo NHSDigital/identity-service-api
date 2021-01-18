@@ -16,12 +16,6 @@
   </Request>
   <Response>TokenResponse</Response>
   <HTTPTargetConnection>
-    <SSLInfo>
-      <Enabled>true</Enabled>
-    </SSLInfo>
-    <LoadBalancer>
-      <Server name="{{ IDENTITY_TARGET_SERVER }}" />
-    </LoadBalancer>
-    <Path>{private.apigee.access_token_path}</Path>
+    <URL>https://am.nhsdev.ptl.nhsd-esa.net:443{private.apigee.access_token_path}</URL>
   </HTTPTargetConnection>
 </ServiceCallout>
