@@ -316,14 +316,18 @@
             <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
           </Step>
           <Step>
-            <Name>OAuthV2.ClientCredentialsGenerateAccessToken</Name>
+            <Name>AssignMessage.ApplicationRestrictedScope</Name>
           </Step>
           <Step>
+            <Name>OAuthV2.ClientCredentialsGenerateAccessToken</Name>
+          </Step>
+
+          <!-- <Step>
             <Name>JavaScript.VerifyAppRestrictedScopes</Name>
           </Step>
           <Step>
             <Name>RaiseFault.VerifyAccessLevel</Name>
-            <Condition>apigee.has_invalid_scopes</Condition>
+            <Condition>apigee.has_invalid_scopes</Condition> -->
             <!-- <Condition>(oauthv2accesstoken.OAuthV2.ClientCredentialsGenerateAccessToken.scope = Null)</Condition> -->
           </Step>
         </Request>
