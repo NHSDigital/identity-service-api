@@ -3,11 +3,21 @@ from api_tests.scripts.response_bank import BANK
 from api_tests.config_files.environments import ENV
 import pytest
 import random
+from api_test_utils.apigee_api import ApigeeApiDeveloperApps
 
 
 @pytest.mark.usefixtures("setup")
 class TestOauthEndpointSuite:
     """ A test suit to verify all the happy path oauth endpoints """
+
+    @pytest.fixture()
+    async def test_application(self):
+        apigee_api = ApigeeApiDeveloperApps()
+        await apigee_api.create_new_app()
+
+        yield apigee_api
+
+        await apigee_api.destroy_app()
 
     @staticmethod
     def switch_to_valid_asid_application():
@@ -658,4 +668,34 @@ class TestOauthEndpointSuite:
             headers={
                 'Authorization': f'Bearer {self.token}'
             }
+        )
+
+    @pytest.mark.happy_path
+    @pytest.mark.errors
+    @pytest.mark.asyncio
+    async def test_user_restricted_scope_when_assigned_to_app_restricted(self, test_application):
+
+        credentials = await test_application.get_app_keys()
+        callback_url = await test_application.get_callback_url()
+
+        print(callback_url)
+
+        await test_application.add_api_product([
+            "personal-demographics-pr-527-application-restricted"
+        ])
+
+        assert self.oauth.check_endpoint(
+            verb="POST",
+            endpoint="token",
+            expected_status_code=401,
+            expected_response={
+
+            },
+            data={
+                "client_id": credentials["client_id"],
+                "client_secret": credentials["client_secret"],
+                "redirect_uri": callback_url,
+                "grant_type": "authorization_code",
+                "code": self.oauth.get_authenticated(),
+            },
         )
