@@ -1,6 +1,6 @@
 <AssignMessage name="AssignMessage.ApplicationRestrictedScope">
   <AssignVariable>
-    <Name>private.application_restricted_scope</Name>
-    <Value>test</Value>
+    <Name>apigee.application_restricted_scope</Name>
+    <Value>access_mode:APPLICATION-RESTRICTED</Value>
   </AssignVariable>
 </AssignMessage>
