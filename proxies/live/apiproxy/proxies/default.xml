@@ -204,6 +204,9 @@
                     <Name>Python.GenerateState</Name>
                 </Step>
                 <Step>
+                    <Name>AssignMessage.UserRestrictedScope</Name>
+                </Step>
+                <Step>
                     <Name>JavaScript.CreateCacheEntry</Name>
                 </Step>
                 <Step>
@@ -323,7 +326,7 @@
           </Step>
           <Step>
             <Name>RaiseFault.VerifyAccessLevel</Name>
-            <Condition>(oauthv2accesstoken.OAuthV2.ClientCredentialsGenerateAccessToken.scope == "")</Condition>
+            <Condition>(oauthv2accesstoken.OAuthV2.ClientCredentialsGenerateAccessToken.scope = "")</Condition>
           </Step>
         </Request>
         <Response>
@@ -508,9 +511,6 @@
                 </Step>
                 <Step>
                   <Name>DecodeJWT.FromGeneratedIdTokenSimulatedAuth</Name>
-                </Step>
-                <Step>
-                  <Name>AssignMessage.UserRestrictedScope</Name>
                 </Step>
                 <Step>
                   <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>
