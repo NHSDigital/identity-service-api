@@ -321,13 +321,9 @@
           <Step>
             <Name>OAuthV2.ClientCredentialsGenerateAccessToken</Name>
           </Step>
-          <!-- <Step>
-            <Name>JavaScript.VerifyAppRestrictedScopes</Name>
-          </Step> -->
           <Step>
             <Name>RaiseFault.VerifyAccessLevel</Name>
-            <!-- <Condition>apigee.has_invalid_scopes</Condition> --> -->
-            <Condition>(oauthv2accesstoken.OAuthV2.ClientCredentialsGenerateAccessToken.scope = Null)</Condition>
+            <Condition>(oauthv2accesstoken.OAuthV2.ClientCredentialsGenerateAccessToken.scope == "")</Condition>
           </Step>
         </Request>
         <Response>
@@ -514,16 +510,14 @@
                   <Name>DecodeJWT.FromGeneratedIdTokenSimulatedAuth</Name>
                 </Step>
                 <Step>
+                  <Name>AssignMessage.UserRestrictedScope</Name>
+                </Step>
+                <Step>
                   <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>
                 </Step>
-                <!-- 
-                  TODO: 
-                  * Add conditional to check USER_RESTRICTED scope is set
-                  * Add error response if not USER_RESTRICTED
-                -->
                 <Step>
                   <Name>RaiseFault.VerifyAccessLevel</Name>
-                  <Condition>((oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuth.scope = null) Or !(oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuth.scope JavaRegex ".*:USER-RESTRICTED$"))</Condition>
+                  <Condition>(oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuth.scope = "")</Condition>
                 </Step>
             </Request>
             <Response>
