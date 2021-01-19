@@ -1,3 +1,0 @@
-<Javascript async="false" continueOnError="false" enabled="true" timeLimit="200" name="JavaScript.VerifyAppRestrictedScopes">
-    <ResourceURL>jsc://verify-app-restricted-scopes.js</ResourceURL>
-</Javascript>
