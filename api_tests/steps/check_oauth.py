@@ -84,11 +84,12 @@ class CheckOauth(GenericRequest):
         if jwt_component_name not in ['header', 'data', 'signature']:
             raise ValueError("jwt_component_name is not Valid, must be either header, data or signature")
 
+        _jwt = self.create_jwt(kid='test-1')
+
         try:
-            _jwt = self.create_jwt(kid='test-1')
             jwt_components = _jwt.decode("utf-8").split('.')
         except AttributeError:
-            print(f'*****{_jwt}*****')
+            jwt_components = str(_jwt)[2:].split('.')
 
         index = 0
 
