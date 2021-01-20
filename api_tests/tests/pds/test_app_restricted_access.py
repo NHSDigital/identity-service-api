@@ -7,6 +7,7 @@ class TestAppRestrictedAccessSuite:
 
     @pytest.mark.errors
     @pytest.mark.usefixtures('get_token_using_jwt')
+    @pytest.mark.skip('Waiting for automated apps')
     def test_patch_using_restricted_app(self):
         assert self.pds.check_patch_error_response(
             token=self.jwt_signed_token,
@@ -24,6 +25,7 @@ class TestAppRestrictedAccessSuite:
 
     @pytest.mark.happy_path
     @pytest.mark.usefixtures('get_token_using_jwt')
+    @pytest.mark.skip('Waiting for automated apps')
     def test_retrieve_request_using_restricted_app(self):
         assert self.pds.check_retrieve_response_code(
             token=self.jwt_signed_token,
@@ -33,6 +35,7 @@ class TestAppRestrictedAccessSuite:
 
     @pytest.mark.happy_path
     @pytest.mark.usefixtures('get_token_using_jwt')
+    @pytest.mark.skip('Waiting for automated apps')
     def test_search_using_restricted_app(self):
         assert self.pds.check_search_response(
             token=self.jwt_signed_token,
