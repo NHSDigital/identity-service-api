@@ -54,4 +54,9 @@
         <Parameter>simulated_idp</Parameter>
     </Key>
   </Get>
+  <Get assignTo="private.apigee.userinfo_path" index="1">
+    <Key>
+      <Parameter>userinfo_path</Parameter>
+    </Key>
+  </Get>
 </KeyValueMapOperations>

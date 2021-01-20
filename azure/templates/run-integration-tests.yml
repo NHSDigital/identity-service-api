@@ -37,6 +37,9 @@ steps:
       export VALID_UNSUBSCRIBED_CLIENT_ID="$(VALID_UNSUBSCRIBED_CLIENT_ID)"
       export VALID_UNSUBSCRIBED_CLIENT_SECRET="$(VALID_UNSUBSCRIBED_CLIENT_SECRET)"
       export VALID_UNSUBSCRIBED_REDIRECT_URI="https://nhsd-apim-testing-$(APIGEE_ENVIRONMENT).herokuapp.com/callback"
+      export VALID_UNAPPROVED_CLIENT_ID="$(VALID_UNAPPROVED_CLIENT_ID)"
+      export VALID_UNAPPROVED_CLIENT_SECRET="$(VALID_UNAPPROVED_CLIENT_SECRET)"
+      export VALID_UNAPPROVED_REDIRECT_URI="https://nhsd-apim-testing-$(APIGEE_ENVIRONMENT).herokuapp.com/callback"
 
       pytest -v --junitxml=test-report.xml
     workingDirectory: $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests

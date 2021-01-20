@@ -5,11 +5,13 @@
     <ExpiresIn ref="apigee.access_token_expiry_ms">600000</ExpiresIn>
     <!-- 10 hours: -->
     <RefreshTokenExpiresIn ref="apigee.refresh_token_expiry_ms">36000000</RefreshTokenExpiresIn>
+    <Code>request.formparam.code</Code>
     <SupportedGrantTypes>
         <GrantType>authorization_code</GrantType>
     </SupportedGrantTypes>
     <GenerateResponse enabled="false"/>
     <Attributes>
+      <Attribute name="external_access_token" ref="externalAccessToken" display="true"/>
       <Attribute name="id_token" ref="externalIdToken" display="true"/>
       <Attribute name="id_token-subject" ref="jwt.VerifyJWT.FromExternalIdToken.claim.subject" display="true"/>
       <Attribute name="id_token-issuer" ref="jwt.VerifyJWT.FromExternalIdToken.claim.issuer" display="true"/>

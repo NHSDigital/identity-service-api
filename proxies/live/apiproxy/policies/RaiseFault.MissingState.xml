@@ -1,0 +1,12 @@
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.MissingState">
+    <FaultResponse>
+        <Set>
+            <StatusCode>302</StatusCode>
+            <Headers>
+                <Header name="Location">{request.queryparam.redirect_uri}?error=invalid_request&amp;error_description=state is missing</Header>
+            </Headers>
+            <Payload contentType="application/x-www-form-urlencoded"/>
+        </Set>
+    </FaultResponse>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</RaiseFault>

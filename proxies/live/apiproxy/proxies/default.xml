@@ -16,6 +16,54 @@
           <Name>AssignMessage.InvalidApiKeyForGivenResource</Name>
         </Step>
       </FaultRule>
+      <FaultRule name="company_status_not_active">
+        <Condition>(fault.name Equals "CompanyStatusNotActive")</Condition>
+        <Step>
+          <Name>AssignMessage.CompanyStatusNotActive</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="developer_status_not_active">
+        <Condition>(fault.name Equals "DeveloperStatusNotActive")</Condition>
+        <Step>
+          <Name>AssignMessage.DeveloperStatusNotActive</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="invalid_client_app_not_approved">
+        <Condition>(fault.name Equals "invalid_client-app_not_approved")</Condition>
+        <Step>
+          <Name>AssignMessage.InvalidClientAppNotApproved</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="verify_api_key">
+        <Condition>(fault.name Equals "InvalidApiKey") and !(proxy.pathsuffix MatchesPath "/token")</Condition>
+        <Step>
+          <Name>AssignMessage.InvalidApiKey</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="invalid_auth_code_sim">
+        <Condition>(oauthV2.OAuthV2.GenerateAccessTokenSimulatedAuth.fault.cause Equals "Invalid Authorization Code")</Condition>
+        <Step>
+            <Name>AssignMessage.InvalidAuthorizationCode</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="invalid_auth_code">
+          <Condition>(oauthV2.OAuthV2.GenerateAccessToken.fault.cause Equals "Invalid Authorization Code")</Condition>
+          <Step>
+              <Name>AssignMessage.InvalidAuthorizationCode</Name>
+          </Step>
+      </FaultRule>
+      <FaultRule name="verify_api_key_and_secret">
+        <Condition>(fault.name Equals "InvalidApiKey") and (proxy.pathsuffix MatchesPath "/token")</Condition>
+        <Step>
+          <Name>AssignMessage.InvalidApiKeyOrSecret</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="missing_api_key">
+        <Condition>(fault.name Equals "FailedToResolveAPIKey")</Condition>
+        <Step>
+          <Name>AssignMessage.MissingApiKey</Name>
+        </Step>
+      </FaultRule>
       <FaultRule name="jwt_algorithm">
         <Condition>(JWT.failed Equals true) And (fault.name Equals "AlgorithmMismatch")</Condition>
         <Step>
@@ -66,9 +114,15 @@
         </Step>
       </FaultRule>
       <FaultRule name="refresh_token_expired">
-        <Condition>oauthV2.OAuthV2.GenerateRefreshToken.failed</Condition>
+        <Condition>oauthV2.OAuthV2.GenerateRefreshToken.fault.cause Equals "Refresh Token expired"</Condition>
         <Step>
           <Name>AssignMessage.ExpiredRefreshToken</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="invalid_refresh_token">
+        <Condition>oauthV2.OAuthV2.GenerateRefreshToken.fault.cause Equals "Invalid Refresh Token"</Condition>
+        <Step>
+            <Name>AssignMessage.InvalidRefreshToken</Name>
         </Step>
       </FaultRule>
       <FaultRule name="public_key_misconfigured">
@@ -115,17 +169,34 @@
         <Flow name="Flow.GetAuthorization">
             <Description>OAuth Authorization Endpoint</Description>
             <Request>
+                <!-- Verify the client has sent a valid Client ID -->
                 <Step>
                     <Name>VerifyAPIKey.ClientId</Name>
                 </Step>
+                <!-- Verify the client has sent a valid redirect uri -->
                 <Step>
-                    <Name>RaiseFault.CheckRedirectUri</Name>
+                  <Name>RaiseFault.MissingRedirectUri</Name>
+                  <Condition>request.queryparam.redirect_uri = null</Condition>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.VerifyRedirectUriQueryParam</Name>
                     <Condition>request.queryparam.redirect_uri != verifyapikey.VerifyAPIKey.ClientId.redirection_uris</Condition>
                 </Step>
+                <!-- Verify the client has sent a state value-->
                 <Step>
-                    <Name>RaiseFault.CheckResponseType</Name>
+                  <Name>RaiseFault.MissingState</Name>
+                  <Condition>request.queryparam.state = null</Condition>
+                </Step>
+                <!-- Verify the client has sent a valid response type -->
+                <Step>
+                    <Name>RaiseFault.MissingResponseType</Name>
+                    <Condition>request.queryparam.response_type = null</Condition>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.VerifyResponseType</Name>
                     <Condition>request.queryparam.response_type != "code"</Condition>
                 </Step>
+                <!-- Complete the rest of authorization flow-->
                 <Step>
                     <Name>AssignMessage.GenerateState</Name>
                 </Step>
@@ -149,9 +220,15 @@
                 </Step>
             </Request>
             <Response>
-                <Step>
-                    <Name>AssignMessage.SetAuthorizationRedirect</Name>
-                </Step>
+              <!-- Determine which auth redirect to return if int PR proxy-->
+              <Step>
+                <Name>AssignMessage.SetAuthorizationPRRedirect</Name>
+                <Condition>proxy.basepath Matches "oauth2-int-pr-*"</Condition>
+              </Step>
+              <Step>
+                <Name>AssignMessage.SetAuthorizationRedirect</Name>
+                <Condition>not(proxy.basepath Matches "oauth2-int-pr-*")</Condition>
+              </Step>
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/authorize") and (request.verb = "GET")</Condition>
         </Flow>
@@ -210,6 +287,12 @@
             <Name>VerifyAPIKey.FromJWT</Name>
           </Step>
           <Step>
+            <Name>SpikeArrest</Name>
+          </Step>
+          <Step>
+            <Name>Quota</Name>
+          </Step>
+          <Step>
             <Name>Javascript.SetServiceCalloutUrl</Name>
           </Step>
           <Step>
@@ -251,8 +334,26 @@
                   <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
                 </Step>
                 <Step>
-                  <Name>RaiseFault.Unauthorized</Name>
+                  <Name>RaiseFault.MissingClientSecret</Name>
+                  <Condition>request.formparam.client_secret = null</Condition>
+                </Step>
+                <Step>
+                  <Name>RaiseFault.InvalidClientSecret</Name>
                   <Condition>request.formparam.client_secret != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.client_secret</Condition>
+                </Step>
+                <!-- Verify the client has sent a valid redirect uri -->
+                <Step>
+                  <Name>RaiseFault.MissingRedirectUri</Name>
+                  <Condition>request.formparam.redirect_uri = null</Condition>
+                </Step>
+                <Step>
+                  <Name>RaiseFault.VerifyRedirectUriFormParam</Name>
+                  <Condition>request.formparam.redirect_uri != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.redirection_uris</Condition>
+                </Step>
+                <!-- Verify the client has sent a valid authorization code -->
+                <Step>
+                  <Name>RaiseFault.MissingAuthorizationCode</Name>
+                  <Condition>request.formparam.code = null</Condition>
                 </Step>
                 <Step>
                     <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
@@ -328,7 +429,7 @@
             </Response>
             <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "authorization_code")</Condition>
       </Flow>
-          <Flow name="Flow.PostTokenAuthorizationCodeSimulatedAuth">
+      <Flow name="Flow.PostTokenAuthorizationCodeSimulatedAuth">
         <Description>OAuth Token Endpoint - Authorization Code Flow - SIMULATED AUTH</Description>
             <Request>
                 <!-- In the documentation we specify that the Client ID and Client Secret must be sent as form params
@@ -343,16 +444,29 @@
                   <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
                 </Step>
                 <Step>
-                  <Name>RaiseFault.Unauthorized</Name>
+                  <Name>RaiseFault.MissingClientSecret</Name>
+                  <Condition>request.formparam.client_secret = null</Condition>
+                </Step>
+                <Step>
+                  <Name>RaiseFault.InvalidClientSecret</Name>
                   <Condition>request.formparam.client_secret != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.client_secret</Condition>
                 </Step>
-                <!-- Next two steps (trivially) check that the supplied authorization code is valid -->
+                <!-- Verify the client has sent a valid redirect uri -->
                 <Step>
-                  <Name>LookupCache.SimulatedAuthCode</Name>
+                  <Name>RaiseFault.MissingRedirectUri</Name>
+                  <Condition>request.formparam.redirect_uri = null</Condition>
                 </Step>
                 <Step>
-                  <Name>RaiseFault.Unauthorized</Name>
-                  <Condition>(authorization_code Is null)</Condition>
+                  <Name>RaiseFault.VerifyRedirectUriFormParam</Name>
+                  <Condition>request.formparam.redirect_uri != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.redirection_uris</Condition>
+                </Step>
+                <!-- Verify the client has sent a authorization code -->
+                <Step>
+                  <Name>RaiseFault.MissingAuthorizationCode</Name>
+                  <Condition>request.formparam.code = null</Condition>
+                </Step>
+                <Step>
+                  <Name>LookupCache.SimulatedAuthCode</Name>
                 </Step>
                 <!-- Next 3 verify that the request is within the set rate limits -->
                 <Step>
@@ -405,7 +519,24 @@
           <Flow name="Flow.PostRefreshToken">
             <Description>OAuth Refresh Token Endpoint</Description>
             <Request>
-              <!-- Next 3 steps allow optional REDUCTION of access_token_expiry, refresh_token_expiry, and refresh_token_validity KVM values
+              <!-- Verify the Client Application using both client_id and client_secret form params -->
+              <Step>
+                <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
+              </Step>
+              <Step>
+                <Name>RaiseFault.MissingClientSecret</Name>
+                <Condition>request.formparam.client_secret = null</Condition>
+              </Step>
+              <Step>
+                <Name>RaiseFault.InvalidClientSecret</Name>
+                <Condition>request.formparam.client_secret != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.client_secret</Condition>
+              </Step>
+              <!-- Verify the refresh token is present in the request -->
+              <Step>
+                <Name>RaiseFault.MissingRefreshToken</Name>
+                <Condition>request.formparam.refresh_token = null</Condition>
+              </Step>
+              <!-- Next 5 steps allow optional REDUCTION of access_token_expiry, refresh_token_expiry, and refresh_token_validity KVM values
               using _access_token_expiry_ms/_refresh_token_expiry_ms/_refresh_tokens_validity_ms (respectively) form params -->
               <Step>
                 <Name>AssignMessage.AccessTokenExpiryOverride</Name>
@@ -420,13 +551,16 @@
                 <Name>AssignMessage.RefreshTokenExpiryOverride</Name>
                 <Condition>(apigee.can_override_refresh_token != null) and (apigee.can_override_refresh_token = true)</Condition>
               </Step>
+              <!-- Using JavaScript to evaluate the requested validity override time, due to apigee conditional failing to evaluate properly -->
+              <Step>
+                <Name>JavaScript.CalculateRefreshTokenValidityOverride</Name>
+                <Condition>request.formparam._refresh_tokens_validity_ms != null</Condition>
+              </Step>
               <Step>
                 <Name>AssignMessage.RefreshTokensValidityOverride</Name>
-                <Condition>(request.formparam._refresh_tokens_validity_ms != null) and (request.formparam._refresh_tokens_validity_ms LesserThan apigee.refresh_tokens_validity_ms)</Condition>
+                <Condition>(apigee.can_override_refresh_token_validity != null) and (apigee.can_override_refresh_token_validity = true)</Condition>
               </Step>
-              <Step>
-                <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
-              </Step>
+              <!-- Next 3 verify that the request is within the set rate limits -->
               <Step>
                 <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
               </Step>
@@ -449,19 +583,10 @@
             </Request>
             <Response>
                 <Step>
-                    <Name>AssignMessage.GenerateRefreshTokenResponse</Name>
+                  <Name>AssignMessage.GenerateRefreshTokenResponse</Name>
                 </Step>
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "refresh_token")</Condition>
-        </Flow>
-        <Flow name="Flow.MissingGrantType">
-            <Description>Flow to check grant_type is present</Description>
-            <Response>
-                <Step>
-                    <Name>RaiseFault.MissingGrantType</Name>
-                </Step>
-            </Response>
-            <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type Is null)</Condition>
         </Flow>
         <Flow name="Flow.GetCallback">
             <Description>Flow to catch the Code response</Description>
@@ -545,16 +670,32 @@
             <Step>
               <Name>Quota</Name>
             </Step>
+            <Step>
+              <Name>AssignMessage.SetAuthorizationHeader</Name>
+            </Step>
           </Request>
           <Response/>
-          <Condition>(proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET" || request.verb = "POST" )</Condition>
+          <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
         </Flow>
-        <!-- <Flow name="Flow.GetWellKnown">
-            <Description/>
-            <Request/>
-            <Response/>
-            <Condition>(proxy.pathsuffix MatchesPath "/.well-known/*") and (request.verb = "GET")</Condition>
-        </Flow> -->
+        <Flow name="Flow.GetUserInfoSimulatedAuth">
+          <Description/>
+          <Request>
+            <Step>
+              <Name>OAuthV2.VerifyAccessToken</Name>
+            </Step>
+            <Step>
+              <Name>SpikeArrest</Name>
+            </Step>
+            <Step>
+              <Name>Quota</Name>
+            </Step>
+            <Step>
+              <Name>AssignMessage.GenerateUserinfoResponseSimulatedAuth</Name>
+            </Step>
+          </Request>
+          <Response/>
+          <Condition>(identity_service.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
+        </Flow>
         <Flow name="Flow.OptionsCors">
             <Description/>
             <Request/>
@@ -581,13 +722,21 @@
           </Request>
           <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Is null)</Condition>
         </Flow>
+        <Flow name="Flow.GetAuthorizeUnsupportedHTTPMethod">
+          <Request>
+            <Step>
+              <Name>RaiseFault.UnsupportedAuthorizeHTTPMethod</Name>
+            </Step>
+          </Request>
+          <Condition>(proxy.pathsuffix MatchesPath "/authorize") and (request.verb NotEquals "GET")</Condition>
+        </Flow>
         <Flow name="Flow.PostTokenUnsupportedHTTPMethod">
           <Request>
             <Step>
-              <Name>RaiseFault.UnsupportedHTTPMethod</Name>
+              <Name>RaiseFault.UnsupportedTokenHTTPMethod</Name>
             </Step>
           </Request>
-          <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb NotEquals "POST")</Condition>
+          <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb NotEquals "POST")</Condition>
         </Flow>
         <Flow name="Flow.CatchAll">
             <Description/>
@@ -616,9 +765,9 @@
     <RouteRule name="NoRoutePing">
         <Condition>(proxy.pathsuffix MatchesPath "/_ping") and ((request.verb = "GET") or (request.verb = "HEAD"))</Condition>
     </RouteRule>
-    <RouteRule name="identityRoute">
-        <Condition>(proxy.pathsuffix MatchesPath "/userinfo") or (proxy.pathsuffix MatchesPath "/.well-known/*")</Condition>
-        <TargetEndpoint>identity-server</TargetEndpoint>
+    <RouteRule name="userinfoRoute">
+      <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
+      <TargetEndpoint>identity-server-userinfo</TargetEndpoint>
     </RouteRule>
     <RouteRule name="loopbackRoute"/>
 </ProxyEndpoint>

@@ -10,6 +10,7 @@ AUTHORIZE_URL = f"{BASE_URL}/{IDENTITY_PROXY}/authorize"
 TOKEN_URL = f"{BASE_URL}/{IDENTITY_PROXY}/token"
 SIM_AUTH_URL = f"{BASE_URL}/{IDENTITY_PROXY}/simulated_auth"
 CALLBACK_URL = f"{BASE_URL}/{IDENTITY_PROXY}/callback"
+USERINFO_URL = f"{BASE_URL}/{IDENTITY_PROXY}/userinfo"
 
 # Apigee API details
 APIGEE_API_URL = ENV['apigee']['base_url']
@@ -31,6 +32,11 @@ VALID_UNSUBSCRIBED_CLIENT_ID = ENV['oauth']['valid_unsubscribed_client_id']
 VALID_UNSUBSCRIBED_CLIENT_SECRET = ENV['oauth']['valid_unsubscribed_client_secret']
 VALID_UNSUBSCRIBED_REDIRECT_URI = ENV['oauth']['valid_unsubscribed_redirect_uri']
 
+# Details of valid app that is not approved
+VALID_UNAPPROVED_CLIENT_ID = ENV['oauth']['valid_unapproved_client_id']
+VALID_UNAPPROVED_CLIENT_SECRET = ENV['oauth']['valid_unapproved_client_secret']
+VALID_UNAPPROVED_CLIENT_REDIRECT_URI = ENV['oauth']['valid_unapproved_redirect_uri']
+
 # Authentication provider (Simulated OAuth)
 AUTHENTICATE_URL = ENV['oauth']['authenticate_url']
 
@@ -48,6 +54,7 @@ ENDPOINTS = {
     'token': TOKEN_URL,
     'authenticate': AUTHENTICATE_URL,
     'callback': CALLBACK_URL,
+    'userinfo': USERINFO_URL,
     'hello_world': HELLO_WORLD_API_URL,
     'pds': PDS_API,
     'sim_auth': SIM_AUTH_URL,

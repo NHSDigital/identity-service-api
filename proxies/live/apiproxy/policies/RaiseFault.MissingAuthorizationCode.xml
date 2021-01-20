@@ -1,10 +1,10 @@
-<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.MissingGrantType">
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.MissingAuthorizationCode">
     <FaultResponse>
       <Set>
         <Payload contentType="application/json">
           {
-            "error": "invalid_request",
-            "error_description": "grant_type is missing",
+            "error" : "invalid_request",
+            "error_description" :"authorization_code is missing",
             "message_id": "{messageid}"
           }
         </Payload>

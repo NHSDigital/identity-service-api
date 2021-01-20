@@ -1,0 +1,13 @@
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.UnsupportedTokenHTTPMethod">
+    <FaultResponse>
+      <Set>
+        <Payload contentType="text/plain"/>
+        <Headers>      
+            <Header name="Allow">POST</Header>     
+        </Headers> 
+        <StatusCode>405</StatusCode>
+        <ReasonPhrase>Method Not Allowed</ReasonPhrase>
+      </Set>
+    </FaultResponse>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</RaiseFault>

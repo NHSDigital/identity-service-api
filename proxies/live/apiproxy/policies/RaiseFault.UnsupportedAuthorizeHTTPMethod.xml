@@ -1,9 +1,9 @@
-<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.UnsupportedHTTPMethod">
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.UnsupportedAuthorizeHTTPMethod">
     <FaultResponse>
       <Set>
         <Payload contentType="text/plain"/>
         <Headers>      
-            <Header name="Allow">POST</Header>     
+            <Header name="Allow">GET</Header>     
         </Headers> 
         <StatusCode>405</StatusCode>
         <ReasonPhrase>Method Not Allowed</ReasonPhrase>
