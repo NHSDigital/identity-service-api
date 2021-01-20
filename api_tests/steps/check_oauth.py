@@ -7,9 +7,9 @@ class CheckOauth(GenericRequest):
     def __init__(self):
         super(CheckOauth, self).__init__()
 
-    def get_authenticated(self) -> str:
+    def get_authenticated(self, client_id: str = config.CLIENT_ID, client_secret: str = config.CLIENT_SECRET) -> str:
         """Get the code parameter value required to post to the oauth /token endpoint"""
-        authenticator = Authenticator(self)
+        authenticator = Authenticator(self, client_id, client_secret)
         response = authenticator.authenticate()
         code = authenticator.get_code_from_provider(response)
         return code

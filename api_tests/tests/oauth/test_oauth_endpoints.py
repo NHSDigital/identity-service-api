@@ -13,7 +13,9 @@ class TestOauthEndpointSuite:
     @pytest.fixture()
     async def test_application(self):
         apigee_api = ApigeeApiDeveloperApps()
-        await apigee_api.create_new_app()
+        await apigee_api.create_new_app(
+            callback_url=config.REDIRECT_URI
+        )
 
         yield apigee_api
 
@@ -678,24 +680,30 @@ class TestOauthEndpointSuite:
         credentials = await test_application.get_app_keys()
         callback_url = await test_application.get_callback_url()
 
-        print(callback_url)
-
-        await test_application.add_api_product([
-            "personal-demographics-pr-527-application-restricted"
-        ])
+        await test_application.add_api_product(
+            api_products=[
+                "personal-demographics-pr-527-application-restricted",
+                "identity-service-pr-123"
+            ],
+            client_id=credentials["client_id"]
+        )
 
         assert self.oauth.check_endpoint(
             verb="POST",
             endpoint="token",
             expected_status_code=401,
             expected_response={
-
+                "error": "unauthorized_client",
+                "error_description": "the authenticated client is not authorized to use this authorization grant type",
             },
             data={
                 "client_id": credentials["client_id"],
                 "client_secret": credentials["client_secret"],
                 "redirect_uri": callback_url,
                 "grant_type": "authorization_code",
-                "code": self.oauth.get_authenticated(),
+                "code": self.oauth.get_authenticated(
+                    client_id=credentials["client_id"],
+                    client_secret=credentials["client_secret"]
+                ),
             },
         )

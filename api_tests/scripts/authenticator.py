@@ -4,12 +4,14 @@ from api_tests.config_files import config
 
 
 class Authenticator:
-    def __init__(self, session):
+    def __init__(self, session, client_id: str, client_secret: str):
         self.session = session
+        self.client_id = client_id
+        self.client_secret = client_secret
 
     def _get_state(self, request_state: str = str(uuid.uuid4())) -> str:
         params = {
-            "client_id": config.CLIENT_ID,
+            "client_id": self.client_id,
             "redirect_uri": config.REDIRECT_URI,
             "response_type": "code",
             "state": request_state
@@ -29,8 +31,8 @@ class Authenticator:
         request_state = self._get_state()
         params = {
             "response_type": "code",
-            "client_id": config.CLIENT_ID,
-            "redirect_uri": config.REDIRECT_URI,
+            "client_id": self.client_id,
+            "redirect_uri": self.client_secret,
             "scope": "openid",
             "state": request_state
         }
