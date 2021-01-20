@@ -15,7 +15,7 @@ def _get_parametrized_values(request):
 def get_token_using_jwt(request):
     """Get a token using a signed JWT and assign it to the test instance"""
     oauth_endpoints = CheckOauth()
-    _jwt = oauth_endpoints.create_jwt(kid="test-rs512")
+    _jwt = oauth_endpoints.create_jwt(kid="test-1")
     response, _ = oauth_endpoints.get_jwt_token_response(_jwt)
     try:
         setattr(request.cls, 'jwt_response', response)

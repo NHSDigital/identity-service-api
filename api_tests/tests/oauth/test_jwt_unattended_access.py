@@ -12,7 +12,7 @@ class TestJwtUnattendedAccessSuite:
         # Incorrect JWT algorithm using “HS256” instead of “RS512”
         (
             {
-                'kid': 'test-rs512',
+                'kid': 'test-1',
                 'algorithm': 'HS256',
             },
             {
@@ -25,7 +25,7 @@ class TestJwtUnattendedAccessSuite:
         # Missing JWT algorithm
         # (
         #     {
-        #         'kid': 'test-rs512',
+        #         'kid': 'test-1',
         #         'algorithm': None,
         #     },
         #     {
@@ -38,7 +38,7 @@ class TestJwtUnattendedAccessSuite:
         # Invalid “sub” & “iss” in jwt claims
         (
             {
-                'kid': 'test-rs512',
+                'kid': 'test-1',
                 'claims': {
                     "sub": 'INVALID',
                     "iss": 'INVALID',
@@ -54,7 +54,7 @@ class TestJwtUnattendedAccessSuite:
         # Invalid “sub” in jwt claims and different from “iss”
         (
             {
-                'kid': 'test-rs512',
+                'kid': 'test-1',
                 'claims': {
                     "sub": 'INVALID',
                     "iss": config.JWT_APP_KEY,
@@ -70,7 +70,7 @@ class TestJwtUnattendedAccessSuite:
         #  Invalid “iss” in jwt claims and different from “sub"
         (
             {
-                'kid': 'test-rs512',
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": 'INVALID',
@@ -86,7 +86,7 @@ class TestJwtUnattendedAccessSuite:
         # Missing “sub” in jwt claims
         (
             {
-                'kid': 'test-rs512',
+                'kid': 'test-1',
                 'claims': {
                     "iss": config.JWT_APP_KEY,
                     "jti": str(uuid4()),
@@ -101,7 +101,7 @@ class TestJwtUnattendedAccessSuite:
         # Missing “iss” in jwt claims
         (
             {
-                'kid': 'test-rs512',
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "jti": str(uuid4()),
@@ -116,7 +116,7 @@ class TestJwtUnattendedAccessSuite:
         # Invalid “jti” in jwt claims e.g using an INT type instead of a STRING
         (
             {
-                'kid': 'test-rs512',
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
@@ -132,7 +132,7 @@ class TestJwtUnattendedAccessSuite:
         #  Missing “jti” in jwt claims
         (
             {
-                'kid': 'test-rs512',
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
@@ -147,7 +147,7 @@ class TestJwtUnattendedAccessSuite:
         # Reusing the same “jti”
         (
             {
-                'kid': 'test-rs512',
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
@@ -163,7 +163,7 @@ class TestJwtUnattendedAccessSuite:
         # Invalid “aud” in jwt claims
         (
             {
-                'kid': 'test-rs512',
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
@@ -179,7 +179,7 @@ class TestJwtUnattendedAccessSuite:
         # Missing “aud” in jwt claims
         (
             {
-                'kid': 'test-rs512',
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
@@ -194,7 +194,7 @@ class TestJwtUnattendedAccessSuite:
         # Invalid “exp” in jwt claims e.g. using a STRING type
         (
             {
-                'kid': 'test-rs512',
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
@@ -210,7 +210,7 @@ class TestJwtUnattendedAccessSuite:
         # Missing “exp” in jwt claims
         (
             {
-                'kid': 'test-rs512',
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
@@ -225,7 +225,7 @@ class TestJwtUnattendedAccessSuite:
         # “Exp” in the past
         (
             {
-                'kid': 'test-rs512',
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
@@ -241,7 +241,7 @@ class TestJwtUnattendedAccessSuite:
         # “Exp” too far into the future (more than 5 minuets)
         (
             {
-                'kid': 'test-rs512',
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": config.JWT_APP_KEY,
@@ -351,7 +351,7 @@ class TestJwtUnattendedAccessSuite:
                 "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
                 "grant_type": "INVALID",
             },
-            {'error': 'invalid_request', 'error_description': "Unsupported grant_type: 'INVALID'"}
+            {'error': 'unsupported_grant_type', 'error_description': 'grant_type is invalid'}
         ),
 
         # Missing formdata "grant_type"
@@ -361,14 +361,14 @@ class TestJwtUnattendedAccessSuite:
             },
             {
                 'error': 'invalid_request',
-                'error_description': "The request is missing a required parameter: 'grant_type'"
+                'error_description': 'grant_type is missing'
             }
         )
 
     ])
     def test_invalid_form_data(self, form_data, expected_response):
         assert self.oauth.check_jwt_token_response(
-            jwt=self.oauth.create_jwt(kid='test-rs512'),
+            jwt=self.oauth.create_jwt(kid='test-1'),
             form_data=form_data,
             expected_response=expected_response,
             expected_status_code=400
@@ -429,7 +429,7 @@ class TestJwtUnattendedAccessSuite:
     def test_invalid_jwks_resource_url(self):
         config.JWT_APP_KEY = config.JWT_APP_KEY_WITH_INVALID_JWKS_URL
         assert self.oauth.check_jwt_token_response(
-            jwt=self.oauth.create_jwt(kid='test-rs512'),
+            jwt=self.oauth.create_jwt(kid='test-1'),
             expected_response={
                 'error': 'public_key error',
                 'error_description': 'Misconfigured public key - contact us'
