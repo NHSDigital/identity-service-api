@@ -677,15 +677,13 @@ class TestOauthEndpointSuite:
     @pytest.mark.asyncio
     async def test_user_restricted_scope_when_assigned_to_app_restricted(self, test_application):
 
-        credentials = await test_application.get_app_keys()
         callback_url = await test_application.get_callback_url()
 
         await test_application.add_api_product(
             api_products=[
                 "personal-demographics-pr-527-application-restricted",
                 "identity-service-pr-123"
-            ],
-            client_id=credentials["client_id"]
+            ]
         )
 
         assert self.oauth.check_endpoint(
@@ -697,13 +695,13 @@ class TestOauthEndpointSuite:
                 "error_description": "the authenticated client is not authorized to use this authorization grant type",
             },
             data={
-                "client_id": credentials["client_id"],
-                "client_secret": credentials["client_secret"],
+                "client_id": test_application.get_client_id(),
+                "client_secret": test_application.get_client_secret(),
                 "redirect_uri": callback_url,
                 "grant_type": "authorization_code",
                 "code": self.oauth.get_authenticated(
-                    client_id=credentials["client_id"],
-                    client_secret=credentials["client_secret"]
+                    client_id=test_application.get_client_id(),
+                    client_secret=test_application.get_client_secret()
                 ),
             },
         )

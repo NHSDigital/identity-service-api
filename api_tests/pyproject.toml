@@ -10,7 +10,7 @@ requests = "^2.25.0"
 pytest = "^6.1.2"
 pytest-xdist = "^2.1.0"
 pytest-sugar = "^0.9.4"
-api-test-utils = {url = "https://github.com/NHSDigital/apim-test-utils/releases/download/v1.0.42-alpha/api_test_utils-1.0.42a0-py3-none-any.whl"}
+api-test-utils = {url = "https://github.com/NHSDigital/apim-test-utils/releases/download/v1.0.44-alpha/api_test_utils-1.0.44a0-py3-none-any.whl"}
 
 [tool.poetry.dev-dependencies]
 
