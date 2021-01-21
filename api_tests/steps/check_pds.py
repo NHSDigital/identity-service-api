@@ -36,7 +36,7 @@ class CheckPds(GenericRequest):
 
     @staticmethod
     def check_patch_error_response(token: str, patient_id: str, expected_response: dict):
-        patient = PdsRequest(token, patient_id=patient_id, proxy="personal-demographics-pr-464")
+        patient = PdsRequest(token, patient_id=patient_id, proxy=config.PDS_PROXY)
         patient.patch_record(op='replace', path="/gender", value="male")
         assert patient.patched_record.get_consolidated_error() == expected_response, \
             f"UNEXPECTED RESPONSE {patient.patched_record.status_code}: {patient.patched_record.response}"
@@ -44,7 +44,7 @@ class CheckPds(GenericRequest):
 
     @staticmethod
     def check_patch_response_code(token: str, patient_id: str, op: str, path: str, value: str, expected_status_code):
-        patient = PdsRequest(token, patient_id=patient_id, proxy="personal-demographics")
+        patient = PdsRequest(token, patient_id=patient_id, proxy=config.PDS_PROXY)
         assert patient.patch_record(op, path, value) == expected_status_code, f"UNEXPECTED RESPONSE " \
                                                                               f"{patient.patched_record.status_code}:" \
                                                                               f" {patient.patched_record.response}"
@@ -52,7 +52,7 @@ class CheckPds(GenericRequest):
 
     @staticmethod
     def check_search_response(token: str, search_params: dict, expected_patient_id: Union[int, str]):
-        patient = PdsRequest(token, search_params=search_params, proxy="personal-demographics-pr-464")
+        patient = PdsRequest(token, search_params=search_params, proxy=config.PDS_PROXY)
         assert patient.record.records[0].id == str(expected_patient_id)
         return True
 
@@ -60,7 +60,7 @@ class CheckPds(GenericRequest):
     def check_retrieve_response_code(token: str, patient_id: str, expected_status_code: int):
         # y = PdsRequest(patient_id, "5900018512", proxy="personal-demographics-pr-408") # sensitive
         # {'family':'Middleton', 'gender':'female', 'birthdate': '2000-01-01', 'given': 'Cynthia'}
-        patient = PdsRequest(token, patient_id=patient_id, proxy="personal-demographics-pr-464")
+        patient = PdsRequest(token, patient_id=patient_id, proxy=config.PDS_PROXY)
         assert patient.record.status_code == expected_status_code, f"UNEXPECTED RESPONSE " \
                                                                    f"{patient.record.status_code}: " \
                                                                    f"{patient.record.response}"
@@ -68,7 +68,7 @@ class CheckPds(GenericRequest):
 
     @staticmethod
     def update_patient_gender(token: str, patient_id: str):
-        patient = PdsRequest(token, patient_id=patient_id, proxy="personal-demographics")
+        patient = PdsRequest(token, patient_id=patient_id, proxy=config.PDS_PROXY)
         gender = ('male', 'female')[patient.record.gender == 'male']
         patient.patch_record(op='replace', path="/gender", value=gender)
         assert patient.patched_record.gender == gender, "Failed to update Patient gender"
