@@ -33,6 +33,7 @@ extends:
     product_display_name: ${{ variables.product_display_name }}
     product_description: ${{ variables.product_description }}
     enable_monitoring: true
+    disable_status: true
     jinja_templates:
       IDENTITY_TARGET_SERVER: identity-server
       VARIABLES_KVM: identity-service-variables
@@ -70,6 +71,7 @@ extends:
           - internal_dev
       - environment: ref
       - environment: dev
+      - environment: sandbox # required for hello-world https://portal.developer.nhs.uk/docs/hello-world-sandbox/1/routes/hello/application/get
       - environment: int
       - environment: int
         stage_name: int_no_smartcard
