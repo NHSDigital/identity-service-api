@@ -13,7 +13,7 @@ class TestOauthTokenSuite:
     def test_access_token(self):
         assert self.oauth.check_endpoint(
             verb='GET',
-            endpoint='api',
+            endpoint='hello_world',
             expected_status_code=200,
             expected_response={"message": "hello user!"},
             headers={
@@ -75,7 +75,7 @@ class TestOauthTokenSuite:
     def test_invalid_access_token(self, headers: dict):
         assert self.oauth.check_endpoint(
             verb='POST',
-            endpoint='api',
+            endpoint='hello_world',
             expected_status_code=400,
             expected_response={},
             headers=headers
@@ -89,7 +89,7 @@ class TestOauthTokenSuite:
         # wait until token has expired
         assert self.oauth.check_endpoint(
             verb='GET',
-            endpoint='api',
+            endpoint='hello_world',
             expected_status_code=200,
             expected_response={"message": "hello user!"},
             headers={
@@ -104,7 +104,7 @@ class TestOauthTokenSuite:
         # Check refresh token still works after access token has expired
         assert self.oauth.check_endpoint(
             verb='GET',
-            endpoint='api',
+            endpoint='hello_world',
             expected_status_code=401,
             expected_response={
                 'fault': {
