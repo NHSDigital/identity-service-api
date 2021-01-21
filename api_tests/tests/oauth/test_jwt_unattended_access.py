@@ -418,7 +418,7 @@ class TestJwtUnattendedAccessSuite:
         assert self.oauth.check_jwt_token_response(
             jwt=self.oauth.modified_jwt(jwt_component_name),
             expected_response={'error': 'invalid_request', 'error_description': 'Malformed JWT in client_assertion'},
-            expected_status_code=401
+            expected_status_code=400
         )
 
     def test_invalid_jwks_resource_url(self):
