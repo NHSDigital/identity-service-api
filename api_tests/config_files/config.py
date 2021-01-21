@@ -40,8 +40,13 @@ VALID_UNAPPROVED_CLIENT_REDIRECT_URI = ENV['oauth']['valid_unapproved_redirect_u
 # Authentication provider (Simulated OAuth)
 AUTHENTICATE_URL = ENV['oauth']['authenticate_url']
 
-# Test API
-API_URL = ENV['hello_world']['api_url']
+# Test API (Hwllo World)
+HELLO_WORLD_API_URL = ENV['hello_world']['api_url']
+
+# JWT config
+JWT_PRIVATE_KEY = ENV['jwt']['private_key']
+JWT_APP_KEY = ENV['jwt']['app_key']
+JWT_APP_KEY_WITH_INVALID_JWKS_URL = "kstRcl8syAA0CRqFeRBaMG0GiXgLBR2i"
 
 # Endpoints
 ENDPOINTS = {
@@ -50,7 +55,7 @@ ENDPOINTS = {
     'authenticate': AUTHENTICATE_URL,
     'callback': CALLBACK_URL,
     'userinfo': USERINFO_URL,
-    'api': API_URL,
+    'hello_world': HELLO_WORLD_API_URL,
     'pds': PDS_API,
     'sim_auth': SIM_AUTH_URL,
     'ping': f'{BASE_URL}/{IDENTITY_PROXY}/_ping'
