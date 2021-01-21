@@ -417,12 +417,7 @@ class TestJwtUnattendedAccessSuite:
     def test_manipulated_jwt_json(self, jwt_component_name):
         assert self.oauth.check_jwt_token_response(
             jwt=self.oauth.modified_jwt(jwt_component_name),
-            expected_response={
-                'error': 'unknown_error',
-                'error_description': 'An unknown error occurred processing this request. '
-                                     'Contact us for assistance diagnosing this issue: '
-                                     'https://digital.nhs.uk/developer/help-and-support quoting Message ID'
-            },
+            expected_response={'error': 'invalid_request', 'error_description': 'Malformed JWT in client_assertion'},
             expected_status_code=401
         )
 
