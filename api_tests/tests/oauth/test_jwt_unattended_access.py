@@ -2,11 +2,23 @@ from api_tests.config_files import config
 import pytest
 from uuid import uuid4
 from time import time, sleep
+from api_test_utils.apigee_api import ApigeeApiDeveloperApps
 
 
 @pytest.mark.usefixtures("setup")
 class TestJwtUnattendedAccessSuite:
     """ A test suit to verify all the happy path oauth endpoints """
+    
+    @pytest.fixture()
+    async def test_application(self):
+        apigee_api = ApigeeApiDeveloperApps()
+        await apigee_api.create_new_app(
+            callback_url=config.REDIRECT_URI
+        )
+
+        yield apigee_api
+
+        await apigee_api.destroy_app()    
 
     @pytest.mark.parametrize('jwt_claims, expected_response, expected_status_code', [
         # Incorrect JWT algorithm using “HS256” instead of “RS512”
@@ -431,3 +443,68 @@ class TestJwtUnattendedAccessSuite:
             },
             expected_status_code=500
         )
+
+    @pytest.mark.happy_path
+    @pytest.mark.errors
+    @pytest.mark.asyncio
+    async def test_application_restricted_scope_when_app_assigned_to_user_restricted_product(self, test_application):
+
+        await test_application.add_api_product(
+            api_products=[
+                "personal-demographics-pr-535",
+                "identity-service-pr-123"
+            ],
+        )
+        await test_application.set_custom_attributes({'jwks-resource-url': 'https://raw.githubusercontent.com/NHSDigital/identity-service-jwks/main/jwks/internal-dev/9baed6f4-1361-4a8e-8531-1f8426e3aba8.json'})
+
+        config.JWT_APP_KEY = test_application.get_client_id()
+        assert self.oauth.check_jwt_token_response(
+            jwt=self.oauth.create_jwt(kid='test-1'),
+            expected_response={
+                "error": "unauthorized_client",
+                "error_description": "the authenticated client is not authorized to use this authorization grant type",
+            },
+            expected_status_code=401
+        )
+
+    @pytest.mark.happy_path
+    @pytest.mark.errors
+    @pytest.mark.asyncio
+    async def test_application_restricted_scope_when_app_assigned_to_product_with_no_scope(self, test_application):
+
+        await test_application.add_api_product(
+            api_products=[
+                "identity-service-pr-123"
+            ],
+        )
+        await test_application.set_custom_attributes({'jwks-resource-url': 'https://raw.githubusercontent.com/NHSDigital/identity-service-jwks/main/jwks/internal-dev/9baed6f4-1361-4a8e-8531-1f8426e3aba8.json'})
+
+        config.JWT_APP_KEY = test_application.get_client_id()
+        assert self.oauth.check_jwt_token_response(
+            jwt=self.oauth.create_jwt(kid='test-1'),
+            expected_response={
+                "error": "unauthorized_client",
+                "error_description": "the authenticated client is not authorized to use this authorization grant type",
+            },
+            expected_status_code=401
+        )
+
+    @pytest.mark.happy_path
+    @pytest.mark.errors
+    @pytest.mark.asyncio
+    async def test_application_restricted_scope_when_app_assigned_to_both_types_of_products(self, test_application):
+
+        await test_application.add_api_product(
+            api_products=[
+                "personal-demographics-pr-535-application-restricted",
+                "personal-demographics-pr-535",
+                "identity-service-pr-123"
+            ],
+        )
+        await test_application.set_custom_attributes({'jwks-resource-url': 'https://raw.githubusercontent.com/NHSDigital/identity-service-jwks/main/jwks/internal-dev/9baed6f4-1361-4a8e-8531-1f8426e3aba8.json'})
+
+        config.JWT_APP_KEY = test_application.get_client_id()
+        jwt=self.oauth.create_jwt(kid='test-1')
+        response = self.oauth.get_jwt_token_response(jwt)
+        assert list(response[0].keys()) == ['access_token', 'expires_in', 'token_type']
+        assert response[1] == 200
