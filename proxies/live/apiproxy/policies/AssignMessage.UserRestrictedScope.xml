@@ -1,6 +1,6 @@
 <AssignMessage name="AssignMessage.UserRestrictedScope">
   <AssignVariable>
     <Name>apigee.user_restricted_scope</Name>
-    <Value>access_mode:USER-RESTRICTED</Value>
+    <Value>urn:nshd:apim:user:aal3</Value>
   </AssignVariable>
 </AssignMessage>

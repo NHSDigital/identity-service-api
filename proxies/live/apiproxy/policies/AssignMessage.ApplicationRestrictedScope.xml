@@ -1,6 +1,6 @@
 <AssignMessage name="AssignMessage.ApplicationRestrictedScope">
   <AssignVariable>
     <Name>apigee.application_restricted_scope</Name>
-    <Value>access_mode:APPLICATION-RESTRICTED</Value>
+    <Value>urn:nshd:apim:app:jwks</Value>
   </AssignVariable>
 </AssignMessage>

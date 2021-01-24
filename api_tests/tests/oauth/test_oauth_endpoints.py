@@ -681,7 +681,7 @@ class TestOauthEndpointSuite:
 
         await test_application.add_api_product(
             api_products=[
-                "personal-demographics-pr-527-application-restricted",
+                "personal-demographics-pr-535-application-restricted",
                 "identity-service-pr-123"
             ]
         )
