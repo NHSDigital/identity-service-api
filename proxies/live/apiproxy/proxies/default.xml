@@ -342,7 +342,7 @@
             </Step>
             <Step>
                 <!-- The JWT Header may be valid, but the rest of the JWT may be malformed or missing.
-                     This catches that eventuality: -->
+                 This catches that eventuality: -->
                 <Name>RaiseFault.WarningDecodingJWT</Name>
                 <Condition>jwt.DecodeJWT.FromClientAssertionFormParam.warning != null</Condition>
             </Step>
@@ -363,11 +363,11 @@
                 <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti Equals "")</Condition>
             </Step>
             <!--
-            <Step>
-                <Name>RaiseFault.MissingExpClaim</Name>
-                <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Equals "")</Condition>
-            </Step>
-            !-->
+        <Step>
+            <Name>RaiseFault.MissingExpClaim</Name>
+            <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Equals "")</Condition>
+        </Step>
+        !-->
             <Step>
                 <!-- We advise to limit expiry time to now + 5 minutes. Allowing an extra 10 seconds to mitigate edge cases: -->
                 <Name>RaiseFault.ExpClaimTooLong</Name>
@@ -377,11 +377,11 @@
                 <Name>LookupCache.JTIClaim</Name>
             </Step>
             <!--
-            <Step>
-                <Name>RaiseFault.JTIValueExistsInCache</Name>
-                <Condition>JTICachedValue = jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti</Condition>
-            </Step>
-            !-->
+        <Step>
+            <Name>RaiseFault.JTIValueExistsInCache</Name>
+            <Condition>JTICachedValue = jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti</Condition>
+        </Step>
+        !-->
             <Step>
                 <Name>PopulateCache.JTIClaim</Name>
             </Step>
@@ -436,21 +436,21 @@
                 <Name>VerifyJWT.SubjectToken</Name>
             </Step>
             <!-- Next step allows optional REDUCTION of access_token_expiry KVM values
-                    using _access_token_expiry_ms form param -->
+                using _access_token_expiry_ms form param -->
             <Step>
                 <Name>AssignMessage.AccessTokenExpiryOverride</Name>
                 <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
             </Step>
             <!-- grant type needs changing from Token Exchange because apigee doesn't support it !-->
             <Step>
-                <Name>AssignMessage.ChangeGrantType</Name>
+                <Name>AssignMessage.ChangeGrantTypeToClientCrentials</Name>
             </Step>
             <Step>
-                <Name>OAuthV2.ClientCredentialsGenerateAccessToken</Name>
+                <Name>OAuthV2.TokenExchangeGenerateAccessToken</Name>
             </Step>
         </Request>
         <Response>
-            <Name>AssignMessage.ClientCredentialsGenerateTokenResponse</Name>
+            <Name>AssignMessage.TokenExchangeGenerateTokenResponse</Name>
         </Response>
         <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Equals "urn:ietf:params:oauth:grant-type:token-exchange"))</Condition>
     </Flow>
