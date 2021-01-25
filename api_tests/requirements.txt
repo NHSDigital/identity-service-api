@@ -2,3 +2,5 @@ requests
 pytest
 pytest-xdist
 pytest-sugar
+pyjwt
+cryptography

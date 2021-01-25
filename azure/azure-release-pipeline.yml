@@ -52,6 +52,9 @@ extends:
       - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITHOUT_ASID_SECRET
       - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITH_ASID_KEY
       - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITH_ASID_SECRET
+      - ptl/app-credentials/jwt_testing/non-prod/JWT_TESTING_API_KEY
+    secret_file_ids:
+      - ptl/app-credentials/jwt_testing/non-prod/JWT_TESTING_PRIVATE_KEY
     apigee_deployments:
       - environment: internal-dev
         post_deploy:
@@ -60,13 +63,14 @@ extends:
               service_name: ${{ variables.service_name }}
       - environment: internal-dev-sandbox
       - environment: internal-qa
-        depends_on: 
+        depends_on:
           - internal_dev
       - environment: internal-qa-sandbox
-        depends_on: 
+        depends_on:
           - internal_dev
       - environment: ref
       - environment: dev
+      - environment: sandbox # required for hello-world https://portal.developer.nhs.uk/docs/hello-world-sandbox/1/routes/hello/application/get
       - environment: int
       - environment: int
         stage_name: int_no_smartcard

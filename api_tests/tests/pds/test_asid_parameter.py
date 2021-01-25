@@ -97,7 +97,8 @@ class TestAsidSuite:
 
     @pytest.mark.apm_1276
     @pytest.mark.errors
-    def test_app_without_asid_where_asid_is_required(self, switch_to_asid_required_proxy, switch_to_no_asid_application, get_token):
+    def test_app_without_asid_where_asid_is_required(self, switch_to_asid_required_proxy, switch_to_no_asid_application,
+                                                     get_token):
         """While missing the ASID parameter the response should error stating ASID is missing"""
         assert self.pds.check_asid_parameter(
             expected_status_code=400,
