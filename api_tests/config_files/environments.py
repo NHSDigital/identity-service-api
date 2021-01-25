@@ -32,6 +32,7 @@ ENV = {
     'oauth': {
         'apigee_client_id': get_env('APIGEE_CLIENT_ID'),
 
+        'service_name': get_env('SERVICE_NAME'),
         'identity_proxy': get_env('IDENTITY_PROXY'),
         'base_url': get_env('BASE_URL'),
         'client_id': get_env('CLIENT_ID'),

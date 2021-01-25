@@ -15,6 +15,7 @@ steps:
       source ./test_env/bin/activate
 
       export BASE_URL="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk"
+      export NAMESPACE="${{ parameters.service_name }}"
       export IDENTITY_PROXY="$(SERVICE_BASE_PATH)"
       export CLIENT_ID="$(CLIENT_ID)"
       export CLIENT_SECRET="$(CLIENT_SECRET)"

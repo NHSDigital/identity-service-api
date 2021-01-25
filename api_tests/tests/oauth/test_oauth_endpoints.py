@@ -696,13 +696,10 @@ class TestOauthEndpointSuite:
         test_product, test_app = test_app_and_product
 
         await test_product.update_scopes(['urn:nshd:apim:app:jwks'])
-        await test_product.update_attributes(attributes={"ratelimit": "5ps"})  # can remove once default set
-        await test_product.update_proxies(
-            [
-                'personal-demographics-pr-535',
-                'identity-service-pr-123'
-            ]
-        )
+        await test_product.update_attributes(
+            attributes={"ratelimit": "10ps"}
+        )  # can remove once default set on test utils
+        await test_product.update_proxies([config.SERVICE_NAME])
 
         callback_url = await test_app.get_callback_url()
 

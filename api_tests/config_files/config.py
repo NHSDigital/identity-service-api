@@ -5,6 +5,7 @@ from .environments import ENV
 APIGEE_CLIENT_ID = ENV['oauth']['apigee_client_id']
 IDENTITY_PROXY = ENV['oauth']['identity_proxy']
 BASE_URL = ENV['oauth']['base_url']
+SERVICE_NAME = ENV['oauth']['service_name']
 
 AUTHORIZE_URL = f"{BASE_URL}/{IDENTITY_PROXY}/authorize"
 TOKEN_URL = f"{BASE_URL}/{IDENTITY_PROXY}/token"
