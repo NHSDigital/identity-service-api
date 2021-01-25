@@ -4,6 +4,7 @@ from api_tests.config_files.environments import ENV
 import pytest
 import random
 from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
+from api_test_utils.apigee_api_products import ApigeeApiProducts
 
 
 @pytest.mark.usefixtures("setup")
@@ -19,7 +20,16 @@ class TestOauthEndpointSuite:
 
         yield apigee_api
 
-        await apigee_api.destroy_app()
+        # await apigee_api.destroy_app()
+
+    @pytest.fixture()
+    async def test_product(self):
+        apigee_product = ApigeeApiProducts()
+        await apigee_product.create_new_product()
+
+        yield apigee_product
+
+        # await apigee_product.destroy_product()
 
     @staticmethod
     def switch_to_valid_asid_application():
@@ -675,14 +685,21 @@ class TestOauthEndpointSuite:
     @pytest.mark.happy_path
     @pytest.mark.errors
     @pytest.mark.asyncio
-    async def test_user_restricted_scope_when_assigned_to_app_restricted(self, test_application):
+    async def test_user_restricted_scope_when_assigned_to_app_restricted(self, test_application, test_product):
+
+        await test_product.update_scopes(['urn:nshd:apim:app:jwks'])
+        await test_product.update_proxies(
+            [
+                'personal-demographics-pr-535',
+                'identity-service-pr-123'
+            ]
+        )
 
         callback_url = await test_application.get_callback_url()
 
         await test_application.add_api_product(
             api_products=[
-                "personal-demographics-pr-535-application-restricted",
-                "identity-service-pr-123"
+                test_product.name
             ]
         )
 
