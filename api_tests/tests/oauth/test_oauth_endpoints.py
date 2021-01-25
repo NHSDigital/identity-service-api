@@ -11,17 +11,6 @@ from api_test_utils.apigee_api_products import ApigeeApiProducts
 class TestOauthEndpointSuite:
     """ A test suit to verify all the happy path oauth endpoints """
 
-    # @pytest.fixture()
-    # async def test_application(self):
-    #     apigee_api = ApigeeApiDeveloperApps()
-    #     await apigee_api.create_new_app(
-    #         callback_url=config.REDIRECT_URI
-    #     )
-    #
-    #     yield apigee_api
-    #
-    #     await apigee_api.destroy_app()
-
     @pytest.fixture()
     async def test_app_and_product(self):
         apigee_product = ApigeeApiProducts()
