@@ -11,17 +11,6 @@ from api_test_utils.apigee_api_products import ApigeeApiProducts
 class TestOauthEndpointSuite:
     """ A test suit to verify all the happy path oauth endpoints """
 
-    # @pytest.fixture()
-    # async def test_application(self):
-    #     apigee_api = ApigeeApiDeveloperApps()
-    #     await apigee_api.create_new_app(
-    #         callback_url=config.REDIRECT_URI
-    #     )
-    #
-    #     yield apigee_api
-    #
-    #     await apigee_api.destroy_app()
-
     @pytest.fixture()
     async def test_app_and_product(self):
         apigee_product = ApigeeApiProducts()
@@ -695,10 +684,9 @@ class TestOauthEndpointSuite:
 
         test_product, test_app = test_app_and_product
 
+        print(test_product.rate_limits)
+
         await test_product.update_scopes(['urn:nshd:apim:app:jwks'])
-        await test_product.update_attributes(
-            attributes={"ratelimit": "10ps"}
-        )  # can remove once default set on test utils
         await test_product.update_proxies([config.SERVICE_NAME])
 
         callback_url = await test_app.get_callback_url()

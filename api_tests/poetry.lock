@@ -23,7 +23,7 @@ description = ""
 name = "api-test-utils"
 optional = false
 python-versions = ">=3.8,<4.0"
-version = "1.0.44a0"
+version = "1.0.53a0"
 
 [package.dependencies]
 aiohttp = ">=3.7.3,<4.0.0"
@@ -33,7 +33,7 @@ pytest-asyncio = ">=0.14.0,<0.15.0"
 [package.source]
 reference = ""
 type = "url"
-url = "https://github.com/NHSDigital/apim-test-utils/releases/download/v1.0.44-alpha/api_test_utils-1.0.44a0-py3-none-any.whl"
+url = "https://github.com/NHSDigital/apim-test-utils/releases/download/v1.0.53-alpha/api_test_utils-1.0.53a0-py3-none-any.whl"
 [[package]]
 category = "main"
 description = "apipkg: namespace control and lazy-import mechanism"
@@ -329,7 +329,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "389b007d1e898d61dfded6239275e7f19cd9789a8a00fae826ec2c2462033488"
+content-hash = "2d2d8bc407eeacb722de7f394c0202ad4a00335a4467d95aeea01c674d20fa7a"
 python-versions = "^3.8"
 
 [metadata.files]
