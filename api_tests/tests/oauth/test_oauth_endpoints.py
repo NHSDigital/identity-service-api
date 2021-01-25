@@ -11,25 +11,31 @@ from api_test_utils.apigee_api_products import ApigeeApiProducts
 class TestOauthEndpointSuite:
     """ A test suit to verify all the happy path oauth endpoints """
 
+    # @pytest.fixture()
+    # async def test_application(self):
+    #     apigee_api = ApigeeApiDeveloperApps()
+    #     await apigee_api.create_new_app(
+    #         callback_url=config.REDIRECT_URI
+    #     )
+    #
+    #     yield apigee_api
+    #
+    #     await apigee_api.destroy_app()
+
     @pytest.fixture()
-    async def test_application(self):
-        apigee_api = ApigeeApiDeveloperApps()
-        await apigee_api.create_new_app(
-            callback_url=config.REDIRECT_URI
-        )
-
-        yield apigee_api
-
-        # await apigee_api.destroy_app()
-
-    @pytest.fixture()
-    async def test_product(self):
+    async def test_app_and_product(self):
         apigee_product = ApigeeApiProducts()
         await apigee_product.create_new_product()
 
-        yield apigee_product
+        apigee_app = ApigeeApiDeveloperApps()
+        await apigee_app.create_new_app(
+            callback_url=config.REDIRECT_URI
+        )
 
-        # await apigee_product.destroy_product()
+        yield apigee_product, apigee_app
+
+        await apigee_app.destroy_app()
+        await apigee_product.destroy_product()
 
     @staticmethod
     def switch_to_valid_asid_application():
@@ -685,9 +691,12 @@ class TestOauthEndpointSuite:
     @pytest.mark.happy_path
     @pytest.mark.errors
     @pytest.mark.asyncio
-    async def test_user_restricted_scope_when_assigned_to_app_restricted(self, test_application, test_product):
+    async def test_user_restricted_scope_when_assigned_to_app_restricted(self, test_app_and_product):
+
+        test_product, test_app = test_app_and_product
 
         await test_product.update_scopes(['urn:nshd:apim:app:jwks'])
+        await test_product.update_attributes(attributes={"ratelimit": "5ps"})  # can remove once default set
         await test_product.update_proxies(
             [
                 'personal-demographics-pr-535',
@@ -695,9 +704,9 @@ class TestOauthEndpointSuite:
             ]
         )
 
-        callback_url = await test_application.get_callback_url()
+        callback_url = await test_app.get_callback_url()
 
-        await test_application.add_api_product(
+        await test_app.add_api_product(
             api_products=[
                 test_product.name
             ]
@@ -712,13 +721,13 @@ class TestOauthEndpointSuite:
                 "error_description": "the authenticated client is not authorized to use this authorization grant type",
             },
             data={
-                "client_id": test_application.get_client_id(),
-                "client_secret": test_application.get_client_secret(),
+                "client_id": test_app.get_client_id(),
+                "client_secret": test_app.get_client_secret(),
                 "redirect_uri": callback_url,
                 "grant_type": "authorization_code",
                 "code": self.oauth.get_authenticated(
-                    client_id=test_application.get_client_id(),
-                    client_secret=test_application.get_client_secret()
+                    client_id=test_app.get_client_id(),
+                    client_secret=test_app.get_client_secret()
                 ),
             },
         )
