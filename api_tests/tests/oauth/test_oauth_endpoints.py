@@ -3,7 +3,7 @@ from api_tests.scripts.response_bank import BANK
 from api_tests.config_files.environments import ENV
 import pytest
 import random
-from api_test_utils.apigee_api import ApigeeApiDeveloperApps
+from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
 
 
 @pytest.mark.usefixtures("setup")

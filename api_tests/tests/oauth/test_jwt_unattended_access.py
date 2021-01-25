@@ -2,7 +2,8 @@ from api_tests.config_files import config
 import pytest
 from uuid import uuid4
 from time import time, sleep
-from api_test_utils.apigee_api import ApigeeApiDeveloperApps
+from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
+from api_test_utils.apigee_api_products import ApigeeApiProducts
 
 
 @pytest.mark.usefixtures("setup")
@@ -493,7 +494,7 @@ class TestJwtUnattendedAccessSuite:
     @pytest.mark.errors
     @pytest.mark.asyncio
     async def test_application_restricted_scope_when_app_assigned_to_both_types_of_products(self, test_application):
-
+        callback_url = await test_application.get_callback_url()
         await test_application.add_api_product(
             api_products=[
                 "personal-demographics-pr-535-application-restricted",
