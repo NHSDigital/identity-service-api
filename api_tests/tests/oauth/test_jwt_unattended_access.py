@@ -3,7 +3,7 @@ import pytest
 from uuid import uuid4
 from time import time, sleep
 from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
-from api_test_utils.apigee_api_products import ApigeeApiProducts
+
 
 
 @pytest.mark.usefixtures("setup")
