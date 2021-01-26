@@ -710,7 +710,7 @@ class TestOauthEndpointSuite:
                 "grant_type": "authorization_code",
                 "code": self.oauth.get_authenticated(
                     client_id=test_app.get_client_id(),
-                    client_secret=test_app.get_client_secret()
+                    redirect_uri=callback_url
                 ),
             },
         )
