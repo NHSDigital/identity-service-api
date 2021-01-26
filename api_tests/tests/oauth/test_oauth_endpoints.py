@@ -684,8 +684,6 @@ class TestOauthEndpointSuite:
 
         test_product, test_app = test_app_and_product
 
-        print(test_product.rate_limits)
-
         await test_product.update_scopes(['urn:nshd:apim:app:jwks'])
         await test_product.update_proxies([config.SERVICE_NAME])
 
