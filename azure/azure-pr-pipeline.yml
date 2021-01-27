@@ -36,9 +36,9 @@ extends:
     product_description: ${{ variables.product_description }}
     ping: false
     jinja_templates:
-      IDENTITY_TARGET_SERVER: identity-server-DEV
-      VARIABLES_KVM: identity-service-internal-dev-DEV-variables
-      ENCRYPTED_VARIABLES_KVM: identity-service-internal-dev-DEV-variables-encrypted
+      IDENTITY_TARGET_SERVER: identity-server
+      VARIABLES_KVM: identity-service-variables
+      ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
       NUM_RANDOM_LONG_INTS_FOR_STATE: 4
     config_ids:
       - /ptl/azure-devops/env-internal-dev/test-app/internal-testing-internal-dev/CLIENT_ID
