@@ -320,14 +320,16 @@
           </Step>
         </Request>
         <Response>
+          <!-- Because the Token Exchange flow changes it's grant_type to client credentials it executes the
+               response from the Client Credentials flow instead -->
           <Step>
-            <Name>AssignMessage.TokenExchangeGenerateTokenResponse</Name>
-            <Condition>response.formparam.subject_token != "" or response.formparam.subject_token != null</Condition>
+              <Name>AssignMessage.ClientCredentialsGenerateTokenResponse</Name>
+              <Condition>response.formparam.subject_token = "" or response.formparam.subject_token = null</Condition>
           </Step>
           <Step>
-            <Name>AssignMessage.ClientCredentialsGenerateTokenResponse</Name>
+              <Name>AssignMessage.TokenExchangeGenerateTokenResponse</Name>
           </Step>
-        </Response>
+      </Response>
         <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Equals "client_credentials"))</Condition>
       </Flow>
       <Flow name="Flow.PostTokenTokenExchange">
@@ -453,9 +455,9 @@
                 <Name>OAuthV2.TokenExchangeGenerateAccessToken</Name>
             </Step>
         </Request>
-        <Response>
-            <Name>AssignMessage.TokenExchangeGenerateTokenResponse</Name>
-        </Response>
+        <!-- The below response attribute doesn't execute because the grant_type has changes to client_credentials
+                so apigee executes the response from the Client Credentials flow instead -->
+        <Response/>
         <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Equals "urn:ietf:params:oauth:grant-type:token-exchange"))</Condition>
       </Flow>
       <Flow name="Flow.PostTokenAuthorizationCode">
