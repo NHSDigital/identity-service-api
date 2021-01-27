@@ -321,14 +321,14 @@
         </Request>
         <Response>
           <!-- Because the Token Exchange flow changes it's grant_type to client credentials it executes the
-               response from the Client Credentials flow instead -->
+         response from the Client Credentials flow instead -->
           <Step>
               <Name>AssignMessage.ClientCredentialsGenerateTokenResponse</Name>
-              <Condition>response.formparam.subject_token = "" or response.formparam.subject_token = null</Condition>
-          </Step>          
+              <Condition>response.formparam.subject_token_type NotEquals "urn:ietf:params:oauth:token-type:id_token"</Condition>
+          </Step>
           <Step>
               <Name>AssignMessage.TokenExchangeGenerateTokenResponse</Name>
-              <Condition>response.formparam.subject_token != "" and response.formparam.subject_token != null</Condition>
+              <Condition>response.formparam.subject_token_type = "urn:ietf:params:oauth:token-type:id_token"</Condition>
           </Step>
       </Response>
         <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Equals "client_credentials"))</Condition>
