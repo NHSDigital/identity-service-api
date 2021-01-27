@@ -321,6 +321,10 @@
         </Request>
         <Response>
           <Step>
+            <Name>AssignMessage.TokenExchangeGenerateTokenResponse</Name>
+            <Condition>response.formparam.subject_token != "" or response.formparam.subject_token != null</Condition>
+          </Step>
+          <Step>
             <Name>AssignMessage.ClientCredentialsGenerateTokenResponse</Name>
           </Step>
         </Response>
