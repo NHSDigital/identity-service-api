@@ -325,12 +325,11 @@
           <Step>
               <Name>AssignMessage.ClientCredentialsGenerateTokenResponse</Name>
               <Condition>response.formparam.subject_token = "" or response.formparam.subject_token = null</Condition>
-          </Step>
-          <!--
+          </Step>          
           <Step>
               <Name>AssignMessage.TokenExchangeGenerateTokenResponse</Name>
               <Condition>response.formparam.subject_token != "" and response.formparam.subject_token != null</Condition>
-          </Step>-->
+          </Step>
       </Response>
         <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Equals "client_credentials"))</Condition>
       </Flow>
