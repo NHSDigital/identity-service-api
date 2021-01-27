@@ -1,15 +1,16 @@
 import requests
-import json
+from json import loads, JSONDecodeError
 from urllib import parse
-import re
+from re import sub
 from api_tests.config_files import config
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlencode
+from typing import Optional
 from typing import Union
 
 
 class GenericRequest:
-    """This is a base class for OAuth requests used for holding
-    reusable components & functions that can be shared between test cases"""
+    """This is a base class to facilitate testing an API.
+    It contains reusable components & functions that can be shared between different APIs"""
 
     def __init__(self):
         self.session = requests.Session()
@@ -26,12 +27,13 @@ class GenericRequest:
                 raise Exception("Endpoint not found")
 
         # Verify http verb is valid
-        if verb.lower() not in ["post", "get", "put"]:
+        if verb.lower() not in {'post', 'get', 'put', 'patch'}:
             raise Exception(f"Verb: {verb} is invalid")
 
-        func = ((self.get, self.put)[verb.lower() == "put"], self.post)[
-            verb.lower() == "post"
-        ]
+        func = (((self.get,  # else
+                  self.patch)[verb.lower() == 'patch'],
+                 self.put)[verb.lower() == 'put'],
+                self.post)[verb.lower() == 'post']
 
         # Get response
         return func(url, **kwargs)
@@ -88,6 +90,13 @@ class GenericRequest:
         except requests.ConnectionError:
             raise Exception(f"the url: {url} does not exist or is invalid")
 
+    def patch(self, url: str, **kwargs) -> requests.Response:
+        """Sends a patch request and returns the response"""
+        try:
+            return self.session.patch(url, **kwargs)
+        except requests.ConnectionError:
+            raise Exception(f"the url: {url} does not exist or is invalid")
+
     def get_redirects(self, response: requests.Response) -> dict:
         """Returns a list of response objects holding the history of request (url)"""
         self._validate_response(response)
@@ -102,36 +111,25 @@ class GenericRequest:
                 }
         return redirects
 
-    def verify_response_keys(
-        self,
-        response: requests.Response,
-        expected_status_code: int,
-        expected_keys: list,
-    ) -> bool:
+    def verify_response_keys(self, response: requests.Response, expected_status_code: int, expected_keys: list) -> bool:
         """Check a given response is returning the correct keys.
         In case the content is dynamic we can only check the keys and not the values"""
         self._validate_response(response)
 
-        data = json.loads(response.text)
+        data = loads(response.text)
 
         if "error" in data:
             assert data == expected_keys
         else:
             actual_keys = list(data.keys())
-            assert sorted(actual_keys) == sorted(
-                expected_keys
-            ), "Expected: {sorted(expected_keys)} but got: {sorted(actual_keys)}"
+            assert sorted(actual_keys) == sorted(expected_keys), \
+                f"Expected: {sorted(expected_keys)} but got: {sorted(actual_keys)}"
 
-        assert response.status_code == expected_status_code, (
-            f"Status code is incorrect, "
-            f"expected {expected_status_code} "
-            f"but got {response.status_code}"
-        )
+        assert response.status_code == expected_status_code, f"UNEXPECTED RESPONSE {response.status_code}: " \
+                                                             f"{response.text}"
         return True
 
-    def check_status_code(
-        self, response: requests.Response, expected_status_code: int
-    ) -> bool:
+    def check_status_code(self, response: requests.Response, expected_status_code: int) -> bool:
         """Compare the actual and expected status code for a given response"""
         self._validate_response(response)
         self._verify_status_code(expected_status_code)
@@ -191,6 +189,7 @@ class GenericRequest:
             assert self.verify_response_keys(response, expected_status_code, expected_keys=expected_response), \
                 f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"  # type: ignore
             return True
+
         # Check response
         redirected = kwargs["allow_redirects"] if "allow_redirects" in kwargs else True
         assert self._verify_response_content(
@@ -202,9 +201,7 @@ class GenericRequest:
             f"UNEXPECTED RESPONSE {response.status_code}: {response.text}"  # type: ignore
         return True
 
-    def check_response_history(
-        self, verb: str, endpoint: str, expected_redirects: dict, **kwargs
-    ) -> bool:
+    def check_response_history(self, verb: str, endpoint: str, expected_redirects: dict, **kwargs) -> bool:
         """Check the response redirects for a given request is returning the expected values"""
         response = self.get_response(verb, endpoint, **kwargs)
         actual_redirects = self.get_redirects(response)
@@ -235,20 +232,17 @@ class GenericRequest:
     ) -> bool:
         """Check a given response has returned the expected key value pairs"""
 
-        assert self.check_status_code(response, expected_status_code), (
-            f"Status code is incorrect, "
-            f"expected {expected_status_code} "
-            f"but got {response.status_code}"
-        )
+        assert self.check_status_code(response, expected_status_code), \
+            f'UNEXPECTED RESPONSE {response.status_code}: {response.text}'
 
         if not redirected:
             assert (
                 expected_response == response.text
-            ), f"Actual response is different from the expected response:\n\nActual:\n{response.text}\n\nExpected:\n{expected_response}"
+            ), f'UNEXPECTED RESPONSE {response.status_code}: {response.text}'
             return True
 
         try:
-            data = json.loads(response.text)
+            data = loads(response.text)
             # Strip out white spaces
             actual_response = dict(
                 (
@@ -257,16 +251,15 @@ class GenericRequest:
                 )
                 for k, v in data.items()
             )
-            actual_response.pop("message_id", None)
-            assert (
-                actual_response == expected_response
-            ), f"Actual response is different from the expected response:\n\nActual (raw):\n{response.text}\n\nActual (for comparison):\n{actual_response}\n\nExpected:\n{expected_response}"
-        except json.JSONDecodeError:
+            actual_response.pop('message_id', None)
+            assert actual_response == expected_response, f"Expected: {expected_response} but got: {actual_response}"
+        except JSONDecodeError:
             # Might be HTML
             # We need to get rid of the dynamic state here so we can compare the text to the stored value
-            actual_response = re.sub('<input name="state" type="hidden" value="[a-zA-Z0-9_-]{36}">', "", response.text)  # type: ignore
+            actual_response = sub('<input name="state" type="hidden" value="[a-zA-Z0-9_-]{36}">', "", response.text)
 
-            assert actual_response.replace("\n", "").replace(" ", "").strip() == expected_response.replace("\n", "").replace(" ", "").strip(), "Actual response is different from the expected response"  # type: ignore
+            assert actual_response.replace("\n", "").replace(" ", "").strip() == expected_response.replace(
+                "\n", "").replace(" ", "").strip(), f"UNEXPECTED RESPONSE: {actual_response}"
 
         return True
 
@@ -275,6 +268,10 @@ class GenericRequest:
         self._validate_response(response)
         headers = [header.lower() for header in response.headers.keys()]
         return header_key.lower() in headers
+
+    @staticmethod
+    def get_headers(response: requests.Response) -> dict:
+        return dict(response.headers.items())
 
     @staticmethod
     def get_params_from_url(url: str) -> dict:
@@ -289,11 +286,9 @@ class GenericRequest:
     def get_all_values_from_json_response(self, response: requests.Response) -> dict:
         """Convert json response string into a python dictionary"""
         self._validate_response(response)
-        return json.loads(response.text)
+        return loads(response.text)
 
-    def get_value_from_json_response(
-        self, response: requests.Response, key: str
-    ) -> str:
+    def get_value_from_json_response(self, response: requests.Response, key: str) -> str:
         """Returns the content of the response, in unicode"""
         data = self.get_all_values_from_json_response(response)
         try:
@@ -321,3 +316,10 @@ class GenericRequest:
             else:
                 url += f"&{param}"
         return url
+
+    @staticmethod
+    def convert_dict_into_params(obj: dict) -> Optional[str]:
+        """Takes a dictionary and converts it into url parameters
+        e.g. the input: {'a':'A', 'b':'B'} will create the output: 'a=A&b=B'"""
+        if obj:
+            return urlencode(obj)

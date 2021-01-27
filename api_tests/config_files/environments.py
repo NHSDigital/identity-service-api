@@ -2,9 +2,30 @@ import os
 
 
 # Configure Test Environment
-def get_env(variable_name: str, default: str = "") -> str:
+def get_env(variable_name: str) -> str:
     """Returns a environment variable"""
-    return os.environ[variable_name]
+    try:
+        var = os.environ[variable_name]
+        if not var:
+            raise RuntimeError(f"Variable is null, Check {variable_name}.")
+        return var
+    except KeyError:
+        raise RuntimeError(f"Variable is not set, Check {variable_name}.")
+
+
+def get_env_file(variable_name: str) -> str:
+    """Returns a environment variable as path"""
+    try:
+        path = os.path.abspath(os.environ[variable_name])
+        if not path:
+            raise RuntimeError(f"Variable is null, Check {variable_name}.")
+        with open(path, "r") as f:
+            contents = f.read()
+        if not contents:
+            raise RuntimeError(f"Contents of file empty. Check {variable_name}.")
+        return contents
+    except KeyError:
+        raise RuntimeError(f"Variable is not set, Check {variable_name}.")
 
 
 ENV = {
@@ -46,10 +67,14 @@ ENV = {
         'api_authentication': get_env('APIGEE_API_AUTHENTICATION'),
     },
     'hello_world': {
-        'api_url': get_env('API_URL'),
+        'api_url': get_env('HELLO_WORLD_API_URL'),
     },
     'pds': {
         'base_url': get_env('PDS_BASE_URL'),
         'proxy_name': get_env('PDS_PROXY'),
-    }
+    },
+    "jwt": {
+        'app_key': get_env('JWT_APP_KEY'),
+        'private_key': get_env_file('PRIVATE_KEY_DIR'),
+    },
 }

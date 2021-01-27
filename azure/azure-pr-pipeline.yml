@@ -54,6 +54,9 @@ extends:
       - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITHOUT_ASID_SECRET
       - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITH_ASID_KEY
       - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITH_ASID_SECRET
+      - ptl/app-credentials/jwt_testing/non-prod/JWT_TESTING_API_KEY
+    secret_file_ids:
+      - ptl/app-credentials/jwt_testing/non-prod/JWT_TESTING_PRIVATE_KEY
     apigee_deployments:
       - environment: internal-dev
         post_deploy:
