@@ -36,9 +36,9 @@ extends:
     product_description: ${{ variables.product_description }}
     ping: false
     jinja_templates:
-      IDENTITY_TARGET_SERVER: identity-server-DEV
-      VARIABLES_KVM: identity-service-internal-dev-DEV-variables
-      ENCRYPTED_VARIABLES_KVM: identity-service-internal-dev-DEV-variables-encrypted
+      IDENTITY_TARGET_SERVER: identity-server
+      VARIABLES_KVM: identity-service-variables
+      ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
       NUM_RANDOM_LONG_INTS_FOR_STATE: 4
     config_ids:
       - /ptl/azure-devops/env-internal-dev/test-app/internal-testing-internal-dev/CLIENT_ID
@@ -56,10 +56,10 @@ extends:
       - ptl/app-credentials/internal-dev/INTERNAL_TESTING_WITH_ASID_SECRET
     apigee_deployments:
       - environment: internal-dev
-        # post_deploy:
-        #   - template: ./templates/run-integration-tests.yml
-        #     parameters:
-        #       service_name: ${{ variables.service_name }}
+        post_deploy:
+          - template: ./templates/run-integration-tests.yml
+            parameters:
+              service_name: ${{ variables.service_name }}
       - environment: internal-dev
         service_name: ${{ variables.service_name }}-int
         short_service_name: ${{ variables.short_service_name }}-int

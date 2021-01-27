@@ -767,7 +767,7 @@
     </RouteRule>
     <RouteRule name="userinfoRoute">
       <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
-      <TargetEndpoint>identity-server-DEV</TargetEndpoint>
+      <TargetEndpoint>identity-server-userinfo</TargetEndpoint>
     </RouteRule>
     <RouteRule name="loopbackRoute"/>
 </ProxyEndpoint>
