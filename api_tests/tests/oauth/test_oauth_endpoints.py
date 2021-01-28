@@ -678,13 +678,15 @@ class TestOauthEndpointSuite:
         )
 
     @pytest.mark.happy_path
-    @pytest.mark.errors
     @pytest.mark.asyncio
-    async def test_user_restricted_scope_when_assigned_to_app_restricted(self, test_app_and_product):
+    async def test_user_restricted_scopes(self, test_app_and_product):
 
         test_product, test_app = test_app_and_product
 
-        await test_product.update_scopes(['urn:nshd:apim:app:jwks'])
+        await test_product.update_scopes(
+            ['urn:nhsd:apim:user:aal3:personal-demographics-service',
+             'urn:nhsd:apim:user:aal3:ambulance-analytics-service']
+        )
         await test_product.update_proxies([config.SERVICE_NAME])
 
         callback_url = await test_app.get_callback_url()
@@ -698,11 +700,15 @@ class TestOauthEndpointSuite:
         assert self.oauth.check_endpoint(
             verb="POST",
             endpoint="token",
-            expected_status_code=401,
-            expected_response={
-                "error": "unauthorized_client",
-                "error_description": "the authenticated client is not authorized to use this authorization grant type",
-            },
+            expected_status_code=200,
+            expected_response=[
+                "access_token",
+                "expires_in",
+                "refresh_count",
+                "refresh_token",
+                "refresh_token_expires_in",
+                "token_type",
+            ],
             data={
                 "client_id": test_app.get_client_id(),
                 "client_secret": test_app.get_client_secret(),

@@ -196,6 +196,9 @@
                     <Name>RaiseFault.VerifyResponseType</Name>
                     <Condition>request.queryparam.response_type != "code"</Condition>
                 </Step>
+                <Step>
+                  <Name>AccessEntity.ApiKeyRetrieveScopes</Name>
+                </Step>
                 <!-- Complete the rest of authorization flow-->
                 <Step>
                     <Name>AssignMessage.GenerateState</Name>
@@ -203,9 +206,9 @@
                 <Step>
                     <Name>Python.GenerateState</Name>
                 </Step>
-                <Step>
+                <!-- <Step>
                     <Name>AssignMessage.UserRestrictedScope</Name>
-                </Step>
+                </Step> -->
                 <Step>
                     <Name>JavaScript.CreateCacheEntry</Name>
                 </Step>
@@ -514,6 +517,9 @@
                 </Step>
                 <Step>
                   <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>
+                </Step>
+                <Step>
+                  <Name>JavaScript.FilterUserRestrictedScopes</Name>
                 </Step>
                 <Step>
                   <Name>RaiseFault.VerifyAccessLevel</Name>
