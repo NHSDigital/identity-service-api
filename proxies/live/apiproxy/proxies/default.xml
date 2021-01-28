@@ -321,11 +321,17 @@
             <Name>AssignMessage.AccessTokenExpiryOverride</Name>
             <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
           </Step>
-          <Step>
+          <!-- <Step>
             <Name>AssignMessage.ApplicationRestrictedScope</Name>
-          </Step>
+          </Step> -->
           <Step>
             <Name>OAuthV2.ClientCredentialsGenerateAccessToken</Name>
+          </Step>
+          <Step>
+            <Name>JavaScript.FilterApplicationRestrictedScopes</Name>
+          </Step>
+          <Step>
+            <Name>OAuthV2.ClientCredentialsGenerateAccessTokenFilteredScopes</Name>
           </Step>
           <Step>
             <Name>RaiseFault.VerifyAccessLevel</Name>
