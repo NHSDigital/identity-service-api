@@ -685,8 +685,7 @@ class TestOauthEndpointSuite:
 
         await test_product.update_scopes(
             ['urn:nhsd:apim:user:aal3:personal-demographics-service',
-             'urn:nhsd:apim:user:aal3:ambulance-analytics-service',
-             'urn:nhsd:apim:app:jwks:personal-demographics-service']
+             'urn:nhsd:apim:user:aal3:ambulance-analytics-service']
         )
         await test_product.update_proxies([config.SERVICE_NAME])
 

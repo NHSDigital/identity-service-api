@@ -470,6 +470,7 @@ class TestJwtUnattendedAccessSuite:
         await test_product.update_scopes([
             'urn:nshd:apim:app:jwks:personal-demographics',
             'urn:nshd:apim:app:jwks:ambulance-analytics',
+            'urn:nshd:apim:usr:aal3:personal-demographics'
         ])
         await test_product.update_proxies([config.SERVICE_NAME])
 
