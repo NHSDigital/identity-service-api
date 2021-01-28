@@ -1,4 +1,4 @@
-var api_product_scopes = String(context.getVariable('oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuth.api_product_scopes'));
+var api_product_scopes = String(context.getVariable('oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuth.scope'));
 
 var scopes_list = api_product_scopes.split(" ");
 var regex = new RegExp("(urn:nhsd:apim:user:aal3:*)");
