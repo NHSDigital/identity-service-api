@@ -196,6 +196,9 @@
                     <Name>RaiseFault.VerifyResponseType</Name>
                     <Condition>request.queryparam.response_type != "code"</Condition>
                 </Step>
+                <Step>
+                  <Name>AccessEntity.ApiKeyRetrieveScopes</Name>
+                </Step>
                 <!-- Complete the rest of authorization flow-->
                 <Step>
                     <Name>AssignMessage.GenerateState</Name>
