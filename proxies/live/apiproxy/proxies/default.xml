@@ -335,7 +335,7 @@
           </Step>
           <Step>
             <Name>RaiseFault.VerifyAccessLevel</Name>
-            <Condition>(oauthv2accesstoken.OAuthV2.ClientCredentialsGenerateAccessToken.scope = "")</Condition>
+            <Condition>(oauthv2accesstoken.OAuthV2.ClientCredentialsGenerateAccessTokenFilteredScopes.scope = "")</Condition>
           </Step>
         </Request>
         <Response>
