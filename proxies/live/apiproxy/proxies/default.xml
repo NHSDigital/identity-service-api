@@ -368,13 +368,11 @@
             <Step>
                 <Name>RaiseFault.MissingJtiClaim</Name>
                 <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti Equals "")</Condition>
-            </Step>
-            <!--
-        <Step>
+            </Step>        
+            <Step>
             <Name>RaiseFault.MissingExpClaim</Name>
             <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Equals "")</Condition>
-        </Step>
-        !-->
+            </Step>            
             <Step>
                 <!-- We advise to limit expiry time to now + 5 minutes. Allowing an extra 10 seconds to mitigate edge cases: -->
                 <Name>RaiseFault.ExpClaimTooLong</Name>
@@ -382,13 +380,11 @@
             </Step>
             <Step>
                 <Name>LookupCache.JTIClaim</Name>
-            </Step>
-            <!--
-        <Step>
+            </Step>        
+            <Step>
             <Name>RaiseFault.JTIValueExistsInCache</Name>
             <Condition>JTICachedValue = jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti</Condition>
-        </Step>
-        !-->
+            </Step>        
             <Step>
                 <Name>PopulateCache.JTIClaim</Name>
             </Step>
