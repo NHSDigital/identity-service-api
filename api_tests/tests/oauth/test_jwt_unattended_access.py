@@ -463,14 +463,14 @@ class TestJwtUnattendedAccessSuite:
     @pytest.mark.happy_path
     @pytest.mark.errors
     @pytest.mark.asyncio
-    async def test_application_restricted_scope_when_app_assigned_to_user_restricted_product(self, test_app_and_product):
+    async def test_application_restricted_when_app_assigned_to_both_types_of_product(self, test_app_and_product):
 
         test_product, test_app = test_app_and_product
 
         await test_product.update_scopes([
-            'urn:nshd:apim:app:jwks:personal-demographics',
-            'urn:nshd:apim:app:jwks:ambulance-analytics',
-            'urn:nshd:apim:usr:aal3:personal-demographics'
+            'urn:nhsd:apim:app:jwks:personal-demographics',
+            'urn:nhsd:apim:app:jwks:ambulance-analytics',
+            'urn:nhsd:apim:usr:aal3:personal-demographics'
         ])
         await test_product.update_proxies([config.SERVICE_NAME])
 
@@ -481,14 +481,35 @@ class TestJwtUnattendedAccessSuite:
         )
 
         config.JWT_APP_KEY = test_app.get_client_id()
-        assert self.oauth.check_jwt_token_response(
-            jwt=self.oauth.create_jwt(kid='test-1'),
-            expected_response={
-                "error": "unauthorized_client",
-                "error_description": "the authenticated client is not authorized to use this authorization grant type",
-            },
-            expected_status_code=401
-        )
+        jwt = self.oauth.create_jwt(kid='test-1')
+        response = self.oauth.get_jwt_token_response(jwt)
+        assert list(response[0].keys()) == ['access_token', 'expires_in', 'token_type']
+        assert response[1] == 200
+
+    # @pytest.mark.happy_path
+    # @pytest.mark.errors
+    # @pytest.mark.asyncio
+    # async def test_application_restricted_when_app_assigned_to_user_restricted_product(self, test_app_and_product):
+
+    #     test_product, test_app = test_app_and_product
+
+    #     await test_product.update_scopes(['urn:nshd:apim:usr:aal3:personal-demographics'])
+    #     await test_product.update_proxies([config.SERVICE_NAME])
+
+    #     await test_app.add_api_product(
+    #         api_products=[
+    #             test_product.name
+    #         ]
+    #     )
+    #     config.JWT_APP_KEY = test_app.get_client_id()
+    #     assert self.oauth.check_jwt_token_response(
+    #         jwt=self.oauth.create_jwt(kid='test-1'),
+    #         expected_response={
+    #             "error": "unauthorized_client",
+    #             "error_description": "the authenticated client is not authorized to use this authorization grant type",
+    #         },
+    #         expected_status_code=401
+    #     )
 
     # @pytest.mark.happy_path
     # @pytest.mark.errors

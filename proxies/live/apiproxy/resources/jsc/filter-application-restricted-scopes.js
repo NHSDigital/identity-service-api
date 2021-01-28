@@ -7,5 +7,6 @@ var filtered_application_restricted_scopes = scopes_list.filter(scope => {
         return scope;
     }
 });
+filtered_application_restricted_scopes = filtered_application_restricted_scopes.join(' ');
 print(filtered_application_restricted_scopes);
 context.setVariable('apigee.application_restricted_scopes', filtered_application_restricted_scopes);
