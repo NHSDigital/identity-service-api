@@ -331,12 +331,16 @@
             <Name>JavaScript.FilterApplicationRestrictedScopes</Name>
           </Step>
           <Step>
+            <Name>RaiseFault.VerifyAccessLevel</Name>
+            <Condition>(apigee.application_restricted_scopes = "")</Condition>
+          </Step>          
+          <Step>
             <Name>OAuthV2.ClientCredentialsGenerateAccessTokenFilteredScopes</Name>
           </Step>
-          <Step>
+          <!-- <Step>
             <Name>RaiseFault.VerifyAccessLevel</Name>
             <Condition>(oauthv2accesstoken.OAuthV2.ClientCredentialsGenerateAccessTokenFilteredScopes.scope = "")</Condition>
-          </Step>
+          </Step> -->
         </Request>
         <Response>
           <Step>
