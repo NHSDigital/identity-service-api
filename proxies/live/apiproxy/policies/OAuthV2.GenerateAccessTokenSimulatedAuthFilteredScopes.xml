@@ -1,0 +1,22 @@
+<OAuthV2 async="false" continueOnError="false" enabled="true" name="OAuthV2.GenerateAccessTokenSimulatedAuthFilteredScopes">
+  <Operation>GenerateAccessToken</Operation>
+  <RedirectUri>request.formparam.redirect_uri</RedirectUri>
+  <Scope>apigee.user_restricted_scopes</Scope>
+  <!-- 10 minutes: -->
+  <ExpiresIn ref="apigee.access_token_expiry_ms">600000</ExpiresIn>
+  <!-- 10 hours: -->
+  <RefreshTokenExpiresIn ref="apigee.refresh_token_expiry_ms">36000000</RefreshTokenExpiresIn>
+  <Code>request.formparam.code</Code>
+  <SupportedGrantTypes>
+      <GrantType>authorization_code</GrantType>
+  </SupportedGrantTypes>
+  <GenerateResponse enabled="false"/>
+  <Attributes>
+    <Attribute name="id_token" ref="jwt.GenerateJWT.SimulatedAuth.generated_jwt" display="true"/>
+    <Attribute name="id_token-subject" ref="jwt.DecodeJWT.FromGeneratedIdTokenSimulatedAuth.claim.subject" display="true"/>
+    <Attribute name="id_token-issuer" ref="jwt.DecodeJWT.FromGeneratedIdTokenSimulatedAuth.claim.issuer" display="true"/>
+    <Attribute name="id_token-acr" ref="jwt.DecodeJWT.FromGeneratedIdTokenSimulatedAuth.claim.acr" display="true"/>
+    <Attribute name="id_token-amr" ref="jwt.DecodeJWT.FromGeneratedIdTokenSimulatedAuth.claim.amr" display="true"/>
+    <Attribute name="_first_issued" ref="system.timestamp" display="false"/>
+  </Attributes>
+</OAuthV2>

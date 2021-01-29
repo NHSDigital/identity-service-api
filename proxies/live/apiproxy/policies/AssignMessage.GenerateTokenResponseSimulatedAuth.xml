@@ -2,11 +2,11 @@
   <Set>
     <Payload contentType="application/json">
       {
-        "access_token": "{oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuth.access_token}",
-        "expires_in": "{oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuth.expires_in}",
-        "refresh_token": "{oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuth.refresh_token}",
-        "refresh_token_expires_in": "{oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuth.refresh_token_expires_in}",
-        "refresh_count": "{oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuth.refresh_count}",
+        "access_token": "{oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuthFilteredScopes.access_token}",
+        "expires_in": "{oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuthFilteredScopes.expires_in}",
+        "refresh_token": "{oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuthFilteredScopes.refresh_token}",
+        "refresh_token_expires_in": "{oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuthFilteredScopes.refresh_token_expires_in}",
+        "refresh_count": "{oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuthFilteredScopes.refresh_count}",
         "token_type": "Bearer"
       }
     </Payload>

@@ -337,10 +337,6 @@
           <Step>
             <Name>OAuthV2.ClientCredentialsGenerateAccessTokenFilteredScopes</Name>
           </Step>
-          <!-- <Step>
-            <Name>RaiseFault.VerifyAccessLevel</Name>
-            <Condition>(oauthv2accesstoken.OAuthV2.ClientCredentialsGenerateAccessTokenFilteredScopes.scope = "")</Condition>
-          </Step> -->
         </Request>
         <Response>
           <Step>
@@ -533,7 +529,10 @@
                 </Step>
                 <Step>
                   <Name>RaiseFault.VerifyAccessLevel</Name>
-                  <Condition>(oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuth.scope = "")</Condition>
+                  <Condition>(apigee.user_restricted_scopes = "")</Condition>
+                </Step>
+                <Step>
+                  <Name>OAuthV2.GenerateAccessTokenSimulatedAuthFilteredScopes</Name>
                 </Step>
             </Request>
             <Response>
