@@ -510,66 +510,27 @@ class TestJwtUnattendedAccessSuite:
         assert list(response[0].keys()) == ['access_token', 'expires_in', 'token_type']
         assert response[1] == 200
 
-    # @pytest.mark.happy_path
-    # @pytest.mark.errors
-    # @pytest.mark.asyncio
-    # async def test_application_restricted_when_app_assigned_to_user_restricted_product(self, test_app_and_product):
+    @pytest.mark.happy_path
+    @pytest.mark.errors
+    @pytest.mark.asyncio
+    async def test_application_restricted_when_app_assigned_to_user_restricted_product(self, test_app_and_product):
 
-    #     test_product, test_app = test_app_and_product
+        test_product, test_app = test_app_and_product
 
-    #     await test_product.update_scopes(['urn:nshd:apim:usr:aal3:personal-demographics'])
-    #     await test_product.update_proxies([config.SERVICE_NAME])
+        await test_product.update_scopes(['urn:nshd:apim:usr:aal3:personal-demographics'])
+        await test_product.update_proxies([config.SERVICE_NAME])
 
-    #     await test_app.add_api_product(
-    #         api_products=[
-    #             test_product.name
-    #         ]
-    #     )
-    #     config.JWT_APP_KEY = test_app.get_client_id()
-    #     assert self.oauth.check_jwt_token_response(
-    #         jwt=self.oauth.create_jwt(kid='test-1'),
-    #         expected_response={
-    #             "error": "unauthorized_client",
-    #             "error_description": "the authenticated client is not authorized to use this authorization grant type",
-    #         },
-    #         expected_status_code=401
-    #     )
-
-    # @pytest.mark.happy_path
-    # @pytest.mark.errors
-    # @pytest.mark.asyncio
-    # async def test_application_restricted_scope_when_app_assigned_to_product_with_no_scope(self, test_app_and_product):
-
-    #     await test_app_and_product.add_api_product(
-    #         api_products=[
-    #             "identity-service-pr-123"
-    #         ],
-    #     )
-
-    #     config.JWT_APP_KEY = test_app_and_product.get_client_id()
-    #     assert self.oauth.check_jwt_token_response(
-    #         jwt=self.oauth.create_jwt(kid='test-1'),
-    #         expected_response={
-    #             "error": "unauthorized_client",
-    #             "error_description": "the authenticated client is not authorized to use this authorization grant type",
-    #         },
-    #         expected_status_code=401
-    #     )
-
-    # @pytest.mark.happy_path
-    # @pytest.mark.errors
-    # @pytest.mark.asyncio
-    # async def test_application_restricted_scope_when_app_assigned_to_both_types_of_products(self, test_app_and_product):
-    #     await test_app_and_product.add_api_product(
-    #         api_products=[
-    #             "personal-demographics-pr-535-application-restricted",
-    #             "personal-demographics-pr-535",
-    #             "identity-service-pr-123"
-    #         ],
-    #     )
-
-    #     config.JWT_APP_KEY = test_app_and_product.get_client_id()
-    #     jwt = self.oauth.create_jwt(kid='test-1')
-    #     response = self.oauth.get_jwt_token_response(jwt)
-    #     assert list(response[0].keys()) == ['access_token', 'expires_in', 'token_type']
-    #     assert response[1] == 200
+        await test_app.add_api_product(
+            api_products=[
+                test_product.name
+            ]
+        )
+        config.JWT_APP_KEY = test_app.get_client_id()
+        assert self.oauth.check_jwt_token_response(
+            jwt=self.oauth.create_jwt(kid='test-1'),
+            expected_response={
+                "error": "unauthorized_client",
+                "error_description": "the authenticated client is not authorized to use this authorization grant type",
+            },
+            expected_status_code=401
+        )
