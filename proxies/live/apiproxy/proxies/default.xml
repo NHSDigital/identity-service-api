@@ -196,17 +196,7 @@
                     <Name>RaiseFault.VerifyResponseType</Name>
                     <Condition>request.queryparam.response_type != "code"</Condition>
                 </Step>
-                <!-- <Step>
-                  <Name>OAuthV2.GenerateAccessTokenSimulatedAuthDummy</Name>
-                </Step>
-                <Step>
-                  <Name>JavaScript.FilterUserRestrictedScopes</Name>
-                </Step>
-                <Step>
-                  <Name>RaiseFault.VerifyAccessLevel</Name>
-                  <Condition>(apigee.user_restricted_scopes = "")</Condition>
-                </Step> -->
-                <!-- Complete the rest of authorization flow-->
+                <!-- introducte dummy token policy to get scopes, filter them and save them into the cache? -->
                 <Step>
                     <Name>AssignMessage.GenerateState</Name>
                 </Step>
@@ -538,9 +528,9 @@
                   <Name>RaiseFault.VerifyAccessLevel</Name>
                   <Condition>(apigee.user_restricted_scopes = "")</Condition>
                 </Step>
-                <Step>
+                <!-- <Step>
                   <Name>OAuthV2.GenerateAccessTokenSimulatedAuthFilteredScopes</Name>
-                </Step>
+                </Step> -->
             </Request>
             <Response>
                 <Step>
