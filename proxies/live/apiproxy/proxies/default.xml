@@ -198,6 +198,9 @@
                 </Step>
                 <!-- introducte dummy token policy to get scopes, filter them and save them into the cache? -->
                 <Step>
+                  <Name>AssignMessage.SetDummyGrantType</Name>
+                </Step>
+                <Step>
                   <Name>OAuthV2.GenerateAccessTokenDummy</Name>
                 </Step>
                 <Step>

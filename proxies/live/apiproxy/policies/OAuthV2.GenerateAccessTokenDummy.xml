@@ -1,5 +1,12 @@
-<OAuthV2 name="OAuthV2.GenerateAccessTokenDummy">
-    <DisplayName>GenerateAccessTokenImplicit</DisplayName>
-    <Operation>GenerateAccessTokenImplicitGrant</Operation>
-    <GenerateResponse enabled="true"/>
+<OAuthV2 async="false" continueOnError="false" enabled="true" name="OAuthV2.GenerateAccessTokenDummy">
+    <Properties/>
+    <Attributes/>
+    <ExternalAuthorization>false</ExternalAuthorization>
+    <Operation>GenerateAccessToken</Operation>
+    <SupportedGrantTypes>
+        <GrantType>client_credentials</GrantType>
+    </SupportedGrantTypes>
+    <GenerateResponse enabled="false"/>
+    <GrantType>my_grant_type</GrantType>
+    <ClientId>verifyapikey.VerifyAPIKey.ClientId.client_id</ClientId>
 </OAuthV2>
