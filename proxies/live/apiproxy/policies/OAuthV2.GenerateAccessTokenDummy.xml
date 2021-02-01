@@ -7,6 +7,6 @@
         <GrantType>client_credentials</GrantType>
     </SupportedGrantTypes>
     <GenerateResponse enabled="false"/>
-    <GrantType>my_grant_type</GrantType>
+    <GrantType>dummy_grant_type</GrantType>
     <ClientId>verifyapikey.VerifyAPIKey.ClientId.client_id</ClientId>
 </OAuthV2>
