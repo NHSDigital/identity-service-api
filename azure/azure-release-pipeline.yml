@@ -71,6 +71,7 @@ extends:
           - internal_dev
       - environment: ref
       - environment: dev
+      - environment: sandbox # required for hello-world https://portal.developer.nhs.uk/docs/hello-world-sandbox/1/routes/hello/application/get
       - environment: int
       - environment: int
         stage_name: int_no_smartcard
