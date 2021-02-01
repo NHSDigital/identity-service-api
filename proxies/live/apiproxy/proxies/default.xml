@@ -201,6 +201,9 @@
                   <Name>AssignMessage.SetDummyGrantType</Name>
                 </Step>
                 <Step>
+                  <Name>BasicAuthentication.EncodeClientCredentials</Name>
+                </Step>
+                <Step>
                   <Name>OAuthV2.GenerateAccessTokenDummy</Name>
                 </Step>
                 <Step>
