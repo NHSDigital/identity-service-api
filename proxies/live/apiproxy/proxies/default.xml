@@ -197,7 +197,14 @@
                     <Condition>request.queryparam.response_type != "code"</Condition>
                 </Step>
                 <Step>
-                  <Name>AccessEntity.ApiKeyRetrieveScopes</Name>
+                  <Name>OAuthV2.GenerateAccessTokenSimulatedAuthDummy</Name>
+                </Step>
+                <Step>
+                  <Name>JavaScript.FilterUserRestrictedScopes</Name>
+                </Step>
+                <Step>
+                  <Name>RaiseFault.VerifyAccessLevel</Name>
+                  <Condition>(apigee.user_restricted_scopes = "")</Condition>
                 </Step>
                 <!-- Complete the rest of authorization flow-->
                 <Step>
@@ -521,7 +528,7 @@
                 <Step>
                   <Name>DecodeJWT.FromGeneratedIdTokenSimulatedAuth</Name>
                 </Step>
-                <Step>
+                <!-- <Step>
                   <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>
                 </Step>
                 <Step>
@@ -530,7 +537,7 @@
                 <Step>
                   <Name>RaiseFault.VerifyAccessLevel</Name>
                   <Condition>(apigee.user_restricted_scopes = "")</Condition>
-                </Step>
+                </Step> -->
                 <Step>
                   <Name>OAuthV2.GenerateAccessTokenSimulatedAuthFilteredScopes</Name>
                 </Step>
