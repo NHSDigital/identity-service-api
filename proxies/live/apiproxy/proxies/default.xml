@@ -206,6 +206,7 @@
                 <Step>
                   <Name>OAuthV2.GenerateAccessTokenDummy</Name>
                 </Step>
+
                 <Step>
                   <Name>JavaScript.FilterUserRestrictedScopes</Name>
                 </Step>
@@ -239,6 +240,10 @@
                 </Step>
             </Request>
             <Response>
+              <!-- Remove Authorization header if it has been specified -->
+              <Step>
+                <Name>AssignMessage.RemoveAuthorizationHeader</Name>
+              </Step>
               <!-- Determine which auth redirect to return if int PR proxy-->
               <Step>
                 <Name>AssignMessage.SetAuthorizationPRRedirect</Name>
