@@ -198,6 +198,16 @@
                 </Step>
                 <!-- introducte dummy token policy to get scopes, filter them and save them into the cache? -->
                 <Step>
+                  <Name>OAuthV2.GenerateAccessTokenDummy</Name>
+                </Step>
+                <Step>
+                  <Name>JavaScript.FilterUserRestrictedScopes</Name>
+                </Step>
+                <Step>
+                  <Name>RaiseFault.VerifyAccessLevel</Name>
+                  <Condition>(apigee.user_restricted_scopes = "")</Condition>
+                </Step>                
+                <Step>
                     <Name>AssignMessage.GenerateState</Name>
                 </Step>
                 <Step>
@@ -518,19 +528,12 @@
                 <Step>
                   <Name>DecodeJWT.FromGeneratedIdTokenSimulatedAuth</Name>
                 </Step>
-                <Step>
-                  <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>
-                </Step>
-                <Step>
-                  <Name>JavaScript.FilterUserRestrictedScopes</Name>
-                </Step>
-                <Step>
-                  <Name>RaiseFault.VerifyAccessLevel</Name>
-                  <Condition>(apigee.user_restricted_scopes = "")</Condition>
-                </Step>
                 <!-- <Step>
-                  <Name>OAuthV2.GenerateAccessTokenSimulatedAuthFilteredScopes</Name>
+                  <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>
                 </Step> -->
+                <Step>
+                  <Name>OAuthV2.GenerateAccessTokenSimulatedAuthFilteredScopes</Name>
+                </Step>
             </Request>
             <Response>
                 <Step>

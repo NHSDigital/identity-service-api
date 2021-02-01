@@ -1,0 +1,5 @@
+<OAuthV2 name="OAuthV2.GenerateAccessTokenDummy">
+    <DisplayName>GenerateAccessTokenImplicit</DisplayName>
+    <Operation>GenerateAccessTokenImplicitGrant</Operation>
+    <GenerateResponse enabled="true"/>
+</OAuthV2>
