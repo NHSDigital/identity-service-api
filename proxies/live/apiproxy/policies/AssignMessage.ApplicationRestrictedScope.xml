@@ -1,6 +1,0 @@
-<AssignMessage name="AssignMessage.ApplicationRestrictedScope">
-  <AssignVariable>
-    <Name>apigee.application_restricted_scope</Name>
-    <Value>urn:nshd:apim:app:jwks</Value>
-  </AssignVariable>
-</AssignMessage>
