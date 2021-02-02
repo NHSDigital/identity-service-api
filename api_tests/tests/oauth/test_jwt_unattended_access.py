@@ -14,7 +14,9 @@ class TestJwtUnattendedAccessSuite:
         apigee_product = ApigeeApiProducts()
         apigee_product2 = ApigeeApiProducts()
         await apigee_product.create_new_product()
+        await apigee_product.update_proxies([config.SERVICE_NAME])
         await apigee_product2.create_new_product()
+        await apigee_product2.update_proxies([config.SERVICE_NAME])
 
         apigee_app = ApigeeApiDeveloperApps()
         await apigee_app.create_new_app(
@@ -463,41 +465,43 @@ class TestJwtUnattendedAccessSuite:
     @pytest.mark.apm_1701
     @pytest.mark.happy_path
     @pytest.mark.asyncio
-    async def test_application_restricted(self, test_app_and_product):
-
-        test_product, test_product2, test_app = test_app_and_product
-
-        await test_product.update_scopes(['urn:nhsd:apim:app:jwks:personal-demographics'])
-        await test_product.update_proxies([config.SERVICE_NAME])
-
-        await test_app.add_api_product(
-            api_products=[
-                test_product.name
-            ]
+    @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
+        # Scenario 1: Valid scope set, single product
+        (
+            ['urn:nhsd:apim:app:jwks:personal-demographics'],
+            []
+        ),
+        # Scenario 2: Multiple valid scopes set, single product
+        (
+            ['urn:nhsd:apim:app:jwks:personal-demographics', 'urn:nhsd:apim:app:jwks:ambulance-analytics'],
+            []
+        ),
+        # Scenario 3: Single valid scopes set, different products
+        (
+            ['urn:nhsd:apim:app:jwks:personal-demographics-service'],
+            ['urn:nhsd:apim:usr:aal3:personal-demographics-service']
+        ),
+        # Scenario 4: Multiple valid scopes set, multiple products
+        (
+            ['urn:nhsd:apim:app:jwks:personal-demographics-service'],
+            ['urn:nhsd:apim:app:jwks:ambulance-analytics']
         )
-
-        config.JWT_APP_KEY = test_app.get_client_id()
-        jwt = self.oauth.create_jwt(kid='test-1')
-        response = self.oauth.get_jwt_token_response(jwt)
-        assert list(response[0].keys()) == ['access_token', 'expires_in', 'token_type']
-        assert response[1] == 200
-
-    @pytest.mark.apm_1701
-    @pytest.mark.happy_path
-    @pytest.mark.asyncio
-    async def test_application_restricted_when_app_assigned_to_both_types_of_product(self, test_app_and_product):
-
+    ])
+    async def test_valid_application_restricted_scope_combination(
+        self,
+        product_1_scopes,
+        product_2_scopes,
+        test_app_and_product
+    ):
         test_product, test_product2, test_app = test_app_and_product
 
-        await test_product.update_scopes(['urn:nhsd:apim:app:jwks:personal-demographics-service'])
-        await test_product.update_proxies([config.SERVICE_NAME])
-
-        await test_product2.update_scopes(['urn:nhsd:apim:usr:aal3:personal-demographics-service'])
-        await test_product2.update_proxies([config.SERVICE_NAME])
+        await test_product.update_scopes(product_1_scopes)
+        await test_product2.update_scopes(product_2_scopes)
 
         await test_app.add_api_product(
             api_products=[
-                test_product.name, test_product2.name
+                test_product.name,
+                test_product2.name
             ]
         )
 
@@ -510,94 +514,46 @@ class TestJwtUnattendedAccessSuite:
     @pytest.mark.apm_1701
     @pytest.mark.errors
     @pytest.mark.asyncio
-    async def test_application_restricted_when_app_assigned_to_user_restricted_product(self, test_app_and_product):
-
+    @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
+        # Scenario 1: No scopes set, multiple products
+        (
+            [],
+            []
+        ),
+        # Scenario 2: Invalid scope set, single product
+        (
+            ['urn:nshd:apim:usr:aal3:personal-demographics'],
+            []
+        ),
+        # Scenario 3: Multiple invalid scopes set, single product
+        (
+            ['urn:nhsd:apim:user:aal3:personal-demographics', 'urn:nhsd:apim:user:aal3:ambulance-analytics'],
+            []
+        ),
+        # Scenario 3: Invalid scopes set, multiple products
+        (
+            ['urn:nshd:apim:usr:aal3:personal-demographics'],
+            ['urn:nshd:apim:usr:aal3:ambulance-analytics']
+        )
+    ])
+    async def test_error_application_restricted_scope_combination(
+        self,
+        product_1_scopes,
+        product_2_scopes,
+        test_app_and_product
+    ):
         test_product, test_product2, test_app = test_app_and_product
 
-        await test_product.update_scopes(['urn:nshd:apim:usr:aal3:personal-demographics'])
-        await test_product.update_proxies([config.SERVICE_NAME])
+        await test_product.update_scopes(product_1_scopes)
+        await test_product2.update_scopes(product_2_scopes)
 
         await test_app.add_api_product(
             api_products=[
-                test_product.name
-            ]
-        )
-        config.JWT_APP_KEY = test_app.get_client_id()
-        assert self.oauth.check_jwt_token_response(
-            jwt=self.oauth.create_jwt(kid='test-1'),
-            expected_response={
-                "error": "unauthorized_client",
-                "error_description": "the authenticated client is not authorized to use this authorization grant type",
-            },
-            expected_status_code=401
-        )
-
-    @pytest.mark.apm_1701
-    @pytest.mark.happy_path
-    @pytest.mark.asyncio
-    async def test_application_restricted_when_app_assigned_to_multiple_right_product(self, test_app_and_product):
-
-        test_product, test_product2, test_app = test_app_and_product
-
-        await test_product.update_scopes(['urn:nhsd:apim:app:jwks:personal-demographics-service'])
-        await test_product.update_proxies([config.SERVICE_NAME])
-
-        await test_product2.update_scopes(['urn:nhsd:apim:app:jwks:ambulance-analytics'])
-        await test_product2.update_proxies([config.SERVICE_NAME])
-
-        await test_app.add_api_product(
-            api_products=[
-                test_product.name, test_product2.name
+                test_product.name,
+                test_product2.name
             ]
         )
 
-        config.JWT_APP_KEY = test_app.get_client_id()
-        jwt = self.oauth.create_jwt(kid='test-1')
-        response = self.oauth.get_jwt_token_response(jwt)
-        assert list(response[0].keys()) == ['access_token', 'expires_in', 'token_type']
-        assert response[1] == 200
-
-    @pytest.mark.errors
-    @pytest.mark.asyncio
-    async def test_application_restricted_when_app_assigned_to_multiple_wrong_product(self, test_app_and_product):
-
-        test_product, test_product2, test_app = test_app_and_product
-
-        await test_product.update_scopes(['urn:nshd:apim:usr:aal3:personal-demographics'])
-        await test_product.update_proxies([config.SERVICE_NAME])
-
-        await test_product.update_scopes(['urn:nshd:apim:usr:aal3:ambulance-analytics'])
-        await test_product.update_proxies([config.SERVICE_NAME])
-
-        await test_app.add_api_product(
-            api_products=[
-                test_product.name
-            ]
-        )
-        config.JWT_APP_KEY = test_app.get_client_id()
-        assert self.oauth.check_jwt_token_response(
-            jwt=self.oauth.create_jwt(kid='test-1'),
-            expected_response={
-                "error": "unauthorized_client",
-                "error_description": "the authenticated client is not authorized to use this authorization grant type",
-            },
-            expected_status_code=401
-        )
-
-    @pytest.mark.apm_1701
-    @pytest.mark.errors
-    @pytest.mark.asyncio
-    async def test_application_restricted_when_app_assigned_to_product_with_no_scope(self, test_app_and_product):
-
-        test_product, test_product2, test_app = test_app_and_product
-
-        await test_product.update_proxies([config.SERVICE_NAME])
-
-        await test_app.add_api_product(
-            api_products=[
-                test_product.name
-            ]
-        )
         config.JWT_APP_KEY = test_app.get_client_id()
         assert self.oauth.check_jwt_token_response(
             jwt=self.oauth.create_jwt(kid='test-1'),
