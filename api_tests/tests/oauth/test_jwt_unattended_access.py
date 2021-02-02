@@ -70,7 +70,7 @@ class TestJwtUnattendedAccessSuite:
         #  Invalid “iss” in jwt claims and different from “sub"
         (
             {
-                'kid': 'test-1',
+                'kid': 'test-1', 
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": 'INVALID',
