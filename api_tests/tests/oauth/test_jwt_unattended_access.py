@@ -32,6 +32,13 @@ class TestJwtUnattendedAccessSuite:
             }
         )
 
+        await apigee_app.add_api_product(
+            api_products=[
+                apigee_product.name,
+                apigee_product2.name
+            ]
+        )
+
         yield apigee_product, apigee_product2, apigee_app
 
         await apigee_app.destroy_app()
@@ -498,13 +505,6 @@ class TestJwtUnattendedAccessSuite:
         await test_product.update_scopes(product_1_scopes)
         await test_product2.update_scopes(product_2_scopes)
 
-        await test_app.add_api_product(
-            api_products=[
-                test_product.name,
-                test_product2.name
-            ]
-        )
-
         config.JWT_APP_KEY = test_app.get_client_id()
         jwt = self.oauth.create_jwt(kid='test-1')
         response = self.oauth.get_jwt_token_response(jwt)
@@ -546,13 +546,6 @@ class TestJwtUnattendedAccessSuite:
 
         await test_product.update_scopes(product_1_scopes)
         await test_product2.update_scopes(product_2_scopes)
-
-        await test_app.add_api_product(
-            api_products=[
-                test_product.name,
-                test_product2.name
-            ]
-        )
 
         config.JWT_APP_KEY = test_app.get_client_id()
         assert self.oauth.check_jwt_token_response(
