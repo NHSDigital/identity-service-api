@@ -196,7 +196,7 @@
                     <Name>RaiseFault.VerifyResponseType</Name>
                     <Condition>request.queryparam.response_type != "code"</Condition>
                 </Step>
-                <!-- introducte dummy token policy to get scopes, filter them and save them into the cache? -->
+                <!-- introducte dummy token policy to get scopes, filter and save them into the cache -->
                 <Step>
                   <Name>AssignMessage.SetDummyGrantType</Name>
                 </Step>
@@ -206,7 +206,6 @@
                 <Step>
                   <Name>OAuthV2.GenerateAccessTokenDummy</Name>
                 </Step>
-
                 <Step>
                   <Name>JavaScript.FilterUserRestrictedScopes</Name>
                 </Step>
@@ -336,9 +335,6 @@
             <Name>AssignMessage.AccessTokenExpiryOverride</Name>
             <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
           </Step>
-          <!-- <Step>
-            <Name>AssignMessage.ApplicationRestrictedScope</Name>
-          </Step> -->
           <Step>
             <Name>OAuthV2.ClientCredentialsGenerateAccessToken</Name>
           </Step>
@@ -536,12 +532,12 @@
                 <Step>
                   <Name>DecodeJWT.FromGeneratedIdTokenSimulatedAuth</Name>
                 </Step>
-                <!-- <Step>
-                  <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>
-                </Step> -->
                 <Step>
-                  <Name>OAuthV2.GenerateAccessTokenSimulatedAuthFilteredScopes</Name>
+                  <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>
                 </Step>
+                <!-- <Step>
+                  <Name>OAuthV2.GenerateAccessTokenSimulatedAuthFilteredScopes</Name>
+                </Step> -->
             </Request>
             <Response>
                 <Step>

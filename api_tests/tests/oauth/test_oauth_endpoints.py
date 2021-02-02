@@ -743,24 +743,21 @@ class TestOauthEndpointSuite:
         )
 
         assert self.oauth.check_endpoint(
-            verb="POST",
-            endpoint="token",
+            verb="GET",
+            endpoint="authorize",
             expected_status_code=401,
             expected_response={
                 "error": "unauthorized_client",
                 "error_description": "the authenticated client is not authorized to use this authorization grant type"
             },
-            data={
+            params={
                 "client_id": test_app.get_client_id(),
-                "client_secret": test_app.get_client_secret(),
                 "redirect_uri": callback_url,
-                "grant_type": "authorization_code",
-                "code": self.oauth.get_authenticated(
-                    client_id=test_app.get_client_id(),
-                    redirect_uri=callback_url
-                ),
+                "response_type": "code",
+                "state": random.getrandbits(32)
             },
         )
+
 
     @pytest.mark.happy_path
     @pytest.mark.asyncio
@@ -835,22 +832,18 @@ class TestOauthEndpointSuite:
         )
 
         assert self.oauth.check_endpoint(
-            verb="POST",
-            endpoint="token",
+            verb="GET",
+            endpoint="authorize",
             expected_status_code=401,
             expected_response={
                 "error": "unauthorized_client",
                 "error_description": "the authenticated client is not authorized to use this authorization grant type"
             },
-            data={
+            params={
                 "client_id": test_app.get_client_id(),
-                "client_secret": test_app.get_client_secret(),
                 "redirect_uri": callback_url,
-                "grant_type": "authorization_code",
-                "code": self.oauth.get_authenticated(
-                    client_id=test_app.get_client_id(),
-                    redirect_uri=callback_url
-                ),
+                "response_type": "code",
+                "state": random.getrandbits(32)
             },
         )
 
