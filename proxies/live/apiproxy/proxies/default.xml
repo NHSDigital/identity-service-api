@@ -535,9 +535,6 @@
                 <Step>
                   <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>
                 </Step>
-                <!-- <Step>
-                  <Name>OAuthV2.GenerateAccessTokenSimulatedAuthFilteredScopes</Name>
-                </Step> -->
             </Request>
             <Response>
                 <Step>
