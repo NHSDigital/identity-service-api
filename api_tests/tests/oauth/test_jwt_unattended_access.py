@@ -460,6 +460,7 @@ class TestJwtUnattendedAccessSuite:
             expected_status_code=500
         )
 
+    @pytest.mark.apm_1701
     @pytest.mark.happy_path
     @pytest.mark.asyncio
     async def test_application_restricted(self, test_app_and_product):
@@ -481,6 +482,7 @@ class TestJwtUnattendedAccessSuite:
         assert list(response[0].keys()) == ['access_token', 'expires_in', 'token_type']
         assert response[1] == 200
 
+    @pytest.mark.apm_1701
     @pytest.mark.happy_path
     @pytest.mark.asyncio
     async def test_application_restricted_when_app_assigned_to_both_types_of_product(self, test_app_and_product):
@@ -505,6 +507,7 @@ class TestJwtUnattendedAccessSuite:
         assert list(response[0].keys()) == ['access_token', 'expires_in', 'token_type']
         assert response[1] == 200
 
+    @pytest.mark.apm_1701
     @pytest.mark.errors
     @pytest.mark.asyncio
     async def test_application_restricted_when_app_assigned_to_user_restricted_product(self, test_app_and_product):
@@ -529,6 +532,7 @@ class TestJwtUnattendedAccessSuite:
             expected_status_code=401
         )
 
+    @pytest.mark.apm_1701
     @pytest.mark.happy_path
     @pytest.mark.asyncio
     async def test_application_restricted_when_app_assigned_to_multiple_right_product(self, test_app_and_product):
@@ -580,6 +584,7 @@ class TestJwtUnattendedAccessSuite:
             expected_status_code=401
         )
 
+    @pytest.mark.apm_1701
     @pytest.mark.errors
     @pytest.mark.asyncio
     async def test_application_restricted_when_app_assigned_to_product_with_no_scope(self, test_app_and_product):

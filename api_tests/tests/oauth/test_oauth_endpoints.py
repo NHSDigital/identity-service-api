@@ -680,7 +680,9 @@ class TestOauthEndpointSuite:
             }
         )
 
+    @pytest.mark.apm_1701
     @pytest.mark.happy_path
+    @pytest.mark.token_endpoint
     @pytest.mark.asyncio
     async def test_user_restricted_scopes_single_product(self, test_app_and_product):
 
@@ -723,7 +725,9 @@ class TestOauthEndpointSuite:
             },
         )
 
-    @pytest.mark.happy_path
+    @pytest.mark.apm_1701
+    @pytest.mark.errors
+    @pytest.mark.token_endpoint
     @pytest.mark.asyncio
     async def test_user_restricted_wrong_scope_single_product(self, test_app_and_product):
 
@@ -758,8 +762,9 @@ class TestOauthEndpointSuite:
             },
         )
 
-
+    @pytest.mark.apm_1701
     @pytest.mark.happy_path
+    @pytest.mark.token_endpoint
     @pytest.mark.asyncio
     async def test_user_restricted_scopes_multiple_types_products(self, test_app_and_product):
 
@@ -807,7 +812,9 @@ class TestOauthEndpointSuite:
             },
         )
 
-    @pytest.mark.happy_path
+    @pytest.mark.apm_1701
+    @pytest.mark.errors
+    @pytest.mark.token_endpoint
     @pytest.mark.asyncio
     async def test_user_restricted_scopes_multiple_wrong_products(self, test_app_and_product):
 
@@ -847,7 +854,9 @@ class TestOauthEndpointSuite:
             },
         )
 
+    @pytest.mark.apm_1701
     @pytest.mark.happy_path
+    @pytest.mark.token_endpoint
     @pytest.mark.asyncio
     async def test_user_restricted_scopes_multiple_right_products(self, test_app_and_product):
 
@@ -892,5 +901,39 @@ class TestOauthEndpointSuite:
                     client_id=test_app.get_client_id(),
                     redirect_uri=callback_url
                 ),
+            },
+        )
+
+    @pytest.mark.apm_1701
+    @pytest.mark.errors
+    @pytest.mark.token_endpoint
+    @pytest.mark.asyncio
+    async def test_user_restricted_no_scope_in_product(self, test_app_and_product):
+
+        test_product, test_product2, test_app = test_app_and_product
+
+        await test_product.update_proxies([config.SERVICE_NAME])
+
+        callback_url = await test_app.get_callback_url()
+
+        await test_app.add_api_product(
+            api_products=[
+                test_product.name, test_product2.name
+            ]
+        )
+
+        assert self.oauth.check_endpoint(
+            verb="GET",
+            endpoint="authorize",
+            expected_status_code=401,
+            expected_response={
+                "error": "unauthorized_client",
+                "error_description": "the authenticated client is not authorized to use this authorization grant type"
+            },
+            params={
+                "client_id": test_app.get_client_id(),
+                "redirect_uri": callback_url,
+                "response_type": "code",
+                "state": random.getrandbits(32)
             },
         )
