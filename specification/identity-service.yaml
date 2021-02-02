@@ -9,8 +9,6 @@ info:
     You can:
     * Get authorization code
     * Exchange authorization code for access token
-
-    You cannot currently use this API to:
     * Request user information
 
     You can access the following data:
@@ -68,7 +66,7 @@ info:
     To see details for specific endpoints, select from the list on the left hand side of the page:
     * `GET /authorize` - request token or authorization codes via the browser
     * `POST /token` - request or refresh tokens
-    * TODO: Add /callback and /userinfo enpoints
+    * `GET /userinfo` - access details about the user
   contact:
     name: Identity Service API Support
     url: 'https://tbc.api.nhs.net'
@@ -79,6 +77,7 @@ servers:
 tags:
   - name: authorize
   - name: token
+  - name: userinfo
 paths:
   /authorize:
     get:
@@ -230,6 +229,96 @@ paths:
                 required:
                   - access_token
                   - token_type
+        '400':
+          $ref: 'components/responses/InvalidRequest.yaml'
+        '401':
+          $ref: 'components/responses/Unauthorized.yaml'
+  /userinfo:
+    get:
+      tags:
+        - userinfo
+      summary: Access info about the user
+      operationId: userinfo
+      description: The userinfo endpoint may be used to obtain details about the user, including their registered roles. Requests to this endpoint should only be made within an hour of calling the authorize endpoint. Further details on the response format can be found in the [nationalrbacaccess section](https://digital.nhs.uk/services/nhs-identity/guidance-for-developers/detailed-guidance/scopes-and-claims#nationalrbacaccess) of the NHS Identity OpenID Connect guidance.
+      parameters:
+        - name: Authorization
+          in: header
+          description: The access token obtained from the token endpoint, passed as a bearer token.
+          example: Bearer Gzjxmf2rBoy8Amyba_I8R2njcOU
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A successful userinfo request
+          content: 
+            application/json: 
+              schema:
+                type: object
+                properties:
+                  nhsid_useruid:
+                    type: string
+                    description: A 12-digit identifier uniquely identifying the user within NHS Identity. This is commonly referred to as **SDS User ID**.
+                    example: 910000000001
+                  name:
+                    type: string
+                    description: The user's full name
+                    example: USERQ RANDOM Mr
+                  nhsid_nrbac_roles:
+                    type: array
+                    description: An array of the user's registered roles.
+                    items:
+                      type: object
+                      properties:
+                        activities:
+                          type: array
+                          description: An array of activity names assigned to the user's job role. The order of entries in this array is not guaranteed to be the same as that for the associated codes.
+                          items:
+                            type: string
+                            description: The name of an activity assigned to the user's job role
+                            example: Perform Pharmacy Activities
+                        activity_codes:
+                          type: array
+                          description: An array of activity codes assigned to the user's job role. The order of entries in this array is not guaranteed to be the same as that for the associated names.
+                          items:
+                            type: string
+                            description: The code of an activity assigned to the user's job role
+                            example: B0570
+                        org_code:
+                          type: string
+                          description: The organisation's ODS code
+                          example: RBA
+                        person_orgid:
+                          type: string
+                          description: A 12-digit identifier that uniquely identifies the user's association with the organisation.
+                          example: 555254239107
+                        person_roleid:
+                          type: string
+                          description: A 12-digit identifier that uniquely identifies the user's role at the organisation. This is commonly referred to as **SDS Role Profile ID**.
+                          example: 555254241101
+                        role_code:
+                          type: string
+                          description: A colon-separated string of codes comprising a Primary, Secondary and Tertiary Job Role Code. This is commonly referred to as **SDS Job Role Code**.
+                          example: S8000:G8000:R8003
+                        role_name:
+                          type: string
+                          description: A colon-separated string of names comprising a Primary, Secondary and Tertiary Job Role Name.
+                          example: "\"Clinical\":\"Clinical Provision\":\"Health Professional Access Role\""
+                      required:
+                        - org_code
+                        - person_orgid
+                        - person_roleid
+                        - role_code
+                        - role_name
+                  sub:
+                    type: string
+                    description: Duplicate of nhsid_useruid.
+                    example: 910000000001
+                required:
+                  - nhsid_useruid
+                  - name
+                  - nhsid_nrbac_roles
+                  - sub
         '400':
           $ref: 'components/responses/InvalidRequest.yaml'
         '401':
