@@ -16,11 +16,20 @@ class TestOauthEndpointSuite:
         apigee_product = ApigeeApiProducts()
         apigee_product2 = ApigeeApiProducts()
         await apigee_product.create_new_product()
+        await apigee_product.update_proxies([config.SERVICE_NAME])
         await apigee_product2.create_new_product()
+        await apigee_product2.update_proxies([config.SERVICE_NAME])
 
         apigee_app = ApigeeApiDeveloperApps()
         await apigee_app.create_new_app(
             callback_url=config.REDIRECT_URI
+        )
+
+        await apigee_app.add_api_product(
+            api_products=[
+                apigee_product.name,
+                apigee_product2.name
+            ]
         )
 
         yield apigee_product, apigee_product2, apigee_app
@@ -682,203 +691,36 @@ class TestOauthEndpointSuite:
 
     @pytest.mark.apm_1701
     @pytest.mark.happy_path
-    @pytest.mark.token_endpoint
     @pytest.mark.asyncio
-    async def test_user_restricted_scopes_single_product(self, test_app_and_product):
-
-        test_product, test_product2, test_app = test_app_and_product
-
-        await test_product.update_scopes(
-            ['urn:nhsd:apim:user:aal3:personal-demographics-service']
-        )
-        await test_product.update_proxies([config.SERVICE_NAME])
-
-        callback_url = await test_app.get_callback_url()
-
-        await test_app.add_api_product(
-            api_products=[
-                test_product.name, test_product2.name
-            ]
-        )
-
-        assert self.oauth.check_endpoint(
-            verb="POST",
-            endpoint="token",
-            expected_status_code=200,
-            expected_response=[
-                "access_token",
-                "expires_in",
-                "refresh_count",
-                "refresh_token",
-                "refresh_token_expires_in",
-                "token_type",
-            ],
-            data={
-                "client_id": test_app.get_client_id(),
-                "client_secret": test_app.get_client_secret(),
-                "redirect_uri": callback_url,
-                "grant_type": "authorization_code",
-                "code": self.oauth.get_authenticated(
-                    client_id=test_app.get_client_id(),
-                    redirect_uri=callback_url
-                ),
-            },
-        )
-
-    @pytest.mark.apm_1701
-    @pytest.mark.errors
-    @pytest.mark.token_endpoint
-    @pytest.mark.asyncio
-    async def test_user_restricted_wrong_scope_single_product(self, test_app_and_product):
-
-        test_product, test_product2, test_app = test_app_and_product
-
-        await test_product.update_scopes(
-            ['urn:nhsd:apim:user:aal2:personal-demographics-service']
-        )
-        await test_product.update_proxies([config.SERVICE_NAME])
-
-        callback_url = await test_app.get_callback_url()
-
-        await test_app.add_api_product(
-            api_products=[
-                test_product.name, test_product2.name
-            ]
-        )
-
-        assert self.oauth.check_endpoint(
-            verb="GET",
-            endpoint="authorize",
-            expected_status_code=401,
-            expected_response={
-                "error": "unauthorized_client",
-                "error_description": "the authenticated client is not authorized to use this authorization grant type"
-            },
-            params={
-                "client_id": test_app.get_client_id(),
-                "redirect_uri": callback_url,
-                "response_type": "code",
-                "state": random.getrandbits(32)
-            },
-        )
-
-    @pytest.mark.apm_1701
-    @pytest.mark.happy_path
-    @pytest.mark.token_endpoint
-    @pytest.mark.asyncio
-    async def test_user_restricted_scopes_multiple_types_products(self, test_app_and_product):
-
-        test_product, test_product2, test_app = test_app_and_product
-
-        await test_product.update_scopes(
-            ['urn:nhsd:apim:user:aal3:personal-demographics-service']
-        )
-        await test_product.update_proxies([config.SERVICE_NAME])
-
-        await test_product2.update_scopes(
+    @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
+        # Scenario 1: Valid scope set, single product
+        (
+            ['urn:nhsd:apim:user:aal3:personal-demographics-service'],
+            []
+        ),
+        # Scenario 2: Single valid scope set, multiple products
+        (
+            ['urn:nhsd:apim:user:aal3:personal-demographics-service'],
             ['urn:nhsd:apim:app:jwks:ambulance-analytics']
-        )
-        await test_product2.update_proxies([config.SERVICE_NAME])
-
-        callback_url = await test_app.get_callback_url()
-
-        await test_app.add_api_product(
-            api_products=[
-                test_product.name, test_product2.name
-            ]
-        )
-
-        assert self.oauth.check_endpoint(
-            verb="POST",
-            endpoint="token",
-            expected_status_code=200,
-            expected_response=[
-                "access_token",
-                "expires_in",
-                "refresh_count",
-                "refresh_token",
-                "refresh_token_expires_in",
-                "token_type",
-            ],
-            data={
-                "client_id": test_app.get_client_id(),
-                "client_secret": test_app.get_client_secret(),
-                "redirect_uri": callback_url,
-                "grant_type": "authorization_code",
-                "code": self.oauth.get_authenticated(
-                    client_id=test_app.get_client_id(),
-                    redirect_uri=callback_url
-                ),
-            },
-        )
-
-    @pytest.mark.apm_1701
-    @pytest.mark.errors
-    @pytest.mark.token_endpoint
-    @pytest.mark.asyncio
-    async def test_user_restricted_scopes_multiple_wrong_products(self, test_app_and_product):
-
-        test_product, test_product2, test_app = test_app_and_product
-
-        await test_product.update_scopes(
-            ['urn:nhsd:apim:app:jwks:personal-demographics-service']
-        )
-        await test_product.update_proxies([config.SERVICE_NAME])
-
-        await test_product2.update_scopes(
-            ['urn:nhsd:apim:app:jwks:ambulance-analytics']
-        )
-        await test_product2.update_proxies([config.SERVICE_NAME])
-
-        callback_url = await test_app.get_callback_url()
-
-        await test_app.add_api_product(
-            api_products=[
-                test_product.name, test_product2.name
-            ]
-        )
-
-        assert self.oauth.check_endpoint(
-            verb="GET",
-            endpoint="authorize",
-            expected_status_code=401,
-            expected_response={
-                "error": "unauthorized_client",
-                "error_description": "the authenticated client is not authorized to use this authorization grant type"
-            },
-            params={
-                "client_id": test_app.get_client_id(),
-                "redirect_uri": callback_url,
-                "response_type": "code",
-                "state": random.getrandbits(32)
-            },
-        )
-
-    @pytest.mark.apm_1701
-    @pytest.mark.happy_path
-    @pytest.mark.token_endpoint
-    @pytest.mark.asyncio
-    async def test_user_restricted_scopes_multiple_right_products(self, test_app_and_product):
-
-        test_product, test_product2, test_app = test_app_and_product
-
-        await test_product.update_scopes(
-            ['urn:nhsd:apim:user:aal3:personal-demographics-service']
-        )
-        await test_product.update_proxies([config.SERVICE_NAME])
-
-        await test_product2.update_scopes(
+        ),
+        # Scenario 3: Multiple valid scopes set, multiple products
+        (
+            ['urn:nhsd:apim:user:aal3:personal-demographics-service'],
             ['urn:nhsd:apim:user:aal3:ambulance-analytics']
         )
-        await test_product2.update_proxies([config.SERVICE_NAME])
+    ])
+    async def test_user_restricted_scope_combination(
+        self,
+        product_1_scopes,
+        product_2_scopes,
+        test_app_and_product
+    ):
+        test_product, test_product2, test_app = test_app_and_product
+
+        await test_product.update_scopes(product_1_scopes)
+        await test_product2.update_scopes(product_2_scopes)
 
         callback_url = await test_app.get_callback_url()
-
-        await test_app.add_api_product(
-            api_products=[
-                test_product.name, test_product2.name
-            ]
-        )
 
         assert self.oauth.check_endpoint(
             verb="POST",
@@ -906,21 +748,36 @@ class TestOauthEndpointSuite:
 
     @pytest.mark.apm_1701
     @pytest.mark.errors
-    @pytest.mark.token_endpoint
     @pytest.mark.asyncio
-    async def test_user_restricted_no_scope_in_product(self, test_app_and_product):
-
+    @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
+        # Scenario 1: No scopes set, multiple products
+        (
+            [],
+            []
+        ),
+        # Scenario 2: Single invalid scope, single product
+        (
+            ['urn:nhsd:apim:user:aal2:personal-demographics-service'],
+            []
+        ),
+        # Scenario 3: Multiple invalid scopes, multiple products
+        (
+            ['urn:nhsd:apim:app:jwks:personal-demographics-service'],
+            ['urn:nhsd:apim:app:jwks:ambulance-analytics']
+        )
+    ])
+    async def test_error_user_restricted_scope_combination(
+        self,
+        product_1_scopes,
+        product_2_scopes,
+        test_app_and_product
+    ):
         test_product, test_product2, test_app = test_app_and_product
 
-        await test_product.update_proxies([config.SERVICE_NAME])
+        await test_product.update_scopes(product_1_scopes)
+        await test_product2.update_scopes(product_2_scopes)
 
         callback_url = await test_app.get_callback_url()
-
-        await test_app.add_api_product(
-            api_products=[
-                test_product.name, test_product2.name
-            ]
-        )
 
         assert self.oauth.check_endpoint(
             verb="GET",
