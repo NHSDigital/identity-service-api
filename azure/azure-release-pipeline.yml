@@ -33,7 +33,7 @@ extends:
     product_display_name: ${{ variables.product_display_name }}
     product_description: ${{ variables.product_description }}
     enable_monitoring: true
-    disable_status_foo: true
+    disable_status: true
     jinja_templates:
       IDENTITY_TARGET_SERVER: identity-server
       VARIABLES_KVM: identity-service-variables
