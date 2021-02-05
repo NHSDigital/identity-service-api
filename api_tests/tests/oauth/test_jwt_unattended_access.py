@@ -455,9 +455,9 @@ class TestJwtUnattendedAccessSuite:
             jwt=self.oauth.create_jwt(kid='test-1'),
             expected_response={
                 'error': 'public_key error',
-                'error_description': 'Misconfigured public key - contact us'
+                'error_description': 'You need to register a public key to use this authentication method - please contact support to configure'
             },
-            expected_status_code=500
+            expected_status_code=403
         )
 
     @pytest.mark.apm_1701

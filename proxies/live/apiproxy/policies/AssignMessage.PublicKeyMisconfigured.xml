@@ -1,13 +1,14 @@
 <AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.PublicKeyMisconfigured">
     <DisplayName>Public Key Misconfigured</DisplayName>
     <Set>
-        <Payload contentType="application/json">
-          {
-            "error": "public_key error",
-            "error_description": "Misconfigured public key - contact us",
-            "message_id": "{messageid}"
-          }
-        </Payload>
+      <StatusCode>403</StatusCode>
+      <Payload contentType="application/json">
+        {
+          "error": "public_key error",
+          "error_description": "You need to register a public key to use this authentication method - please contact support to configure",
+          "message_id": "{messageid}"
+        }
+      </Payload>
     </Set>
     <AssignTo createNew="false" transport="https" type="response"/>
     <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
