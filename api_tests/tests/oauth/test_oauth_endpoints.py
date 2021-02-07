@@ -693,7 +693,7 @@ class TestOauthEndpointSuite:
     @pytest.mark.happy_path
     @pytest.mark.asyncio
     @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
-        # Scenario 1: one product with valid scope, one product with no scope
+        # Scenario 1: one product with valid scope
         (
             ['urn:nhsd:apim:user:aal3:personal-demographics-service'],
             []

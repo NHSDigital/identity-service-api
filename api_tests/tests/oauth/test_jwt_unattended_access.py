@@ -473,26 +473,46 @@ class TestJwtUnattendedAccessSuite:
     @pytest.mark.happy_path
     @pytest.mark.asyncio
     @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
-        # Scenario 1: Valid scope set, single product
+        # Scenario 1: one product with valid scope
         (
             ['urn:nhsd:apim:app:jwks:personal-demographics'],
             []
         ),
-        # Scenario 2: Multiple valid scopes set, single product
-        (
-            ['urn:nhsd:apim:app:jwks:personal-demographics', 'urn:nhsd:apim:app:jwks:ambulance-analytics'],
-            []
-        ),
-        # Scenario 3: Single valid scopes set, different products
+        # Scenario 2: one product with valid scope, one product with invalid scope
         (
             ['urn:nhsd:apim:app:jwks:personal-demographics-service'],
             ['urn:nhsd:apim:usr:aal3:personal-demographics-service']
         ),
-        # Scenario 4: Multiple valid scopes set, multiple products
+        # Scenario 3: multiple products with valid scopes
         (
             ['urn:nhsd:apim:app:jwks:personal-demographics-service'],
             ['urn:nhsd:apim:app:jwks:ambulance-analytics']
-        )
+        ),
+        # Scenario 4: one product with multiple valid scopes
+        (
+            ['urn:nhsd:apim:app:jwks:personal-demographics', 'urn:nhsd:apim:app:jwks:ambulance-analytics'],
+            []
+        ),
+        # Scenario 5: multiple products with multiple valid scopes
+        (
+            ['urn:nhsd:apim:app:jwks:personal-demographics', 'urn:nhsd:apim:app:jwks:ambulance-analytics'],
+            ['urn:nhsd:apim:app:jwks:example-1', 'urn:nhsd:apim:app:jwks:example-2']
+        ),
+        # Scenario 6: one product with multiple scopes (valid and invalid)
+        (
+            ['urn:nhsd:apim:app:jwks:ambulance-analytics', 'urn:nhsd:apim:user:aal3:personal-demographics-service'],
+            []
+        ),
+        # Scenario 7: multiple products with multiple scopes (valid and invalid)
+        (
+            ['urn:nhsd:apim:app:jwks:ambulance-analytics', 'urn:nhsd:apim:user:aal3:personal-demographics-service'],
+            ['urn:nhsd:apim:app:jwks:example-1', 'urn:nhsd:apim:user:aal3:example-2']
+        ),
+        # Scenario 8: one product with valid scope with triling spaces
+        (
+            [' urn:nhsd:apim:app:jwks:ambulance-analytics '],
+            []
+        ),
     ])
     async def test_valid_application_restricted_scope_combination(
         self,
@@ -515,26 +535,51 @@ class TestJwtUnattendedAccessSuite:
     @pytest.mark.errors
     @pytest.mark.asyncio
     @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
-        # Scenario 1: No scopes set, multiple products
+        # Scenario 1: multiple products with no scopes
         (
             [],
             []
         ),
-        # Scenario 2: Invalid scope set, single product
+        # Scenario 2: one product with invalid scope, one product with no scope
         (
-            ['urn:nshd:apim:usr:aal3:personal-demographics'],
+            ['urn:nhsd:apim:user:aal2:personal-demographics-service'],
             []
         ),
-        # Scenario 3: Multiple invalid scopes set, single product
+        # Scenario 3: multiple products with invalid scopes
         (
-            ['urn:nhsd:apim:user:aal3:personal-demographics', 'urn:nhsd:apim:user:aal3:ambulance-analytics'],
+            ['urn:nhsd:apim:user:aal3:personal-demographics-service'],
+            ['urn:nhsd:apim:user:aal3:ambulance-analytics']
+        ),
+        # Scenario 4: one product with multiple invalid scopes
+        (
+            ['urn:nhsd:apim:user:aal3:personal-demographics-service', 'urn:nhsd:apim:user:aal3:ambulance-analytics'],
             []
         ),
-        # Scenario 3: Invalid scopes set, multiple products
+        # Scenario 5: multiple products with multiple invalid scopes
         (
-            ['urn:nshd:apim:usr:aal3:personal-demographics'],
-            ['urn:nshd:apim:usr:aal3:ambulance-analytics']
-        )
+            ['urn:nhsd:apim:user:aal3:personal-demographics-service', 'urn:nhsd:apim:user:aal3:ambulance-analytics'],
+            ['urn:nhsd:apim:user:aal3:example-1', 'urn:nhsd:apim:user:aal3:example-2']
+        ),
+        # Scenario 6: one product with invalid scope (wrong formation)
+        (
+            ['ThisDoesNotExist'],
+            []
+        ),
+        # Scenario 7: one product with invalid scope (special caracters)
+        (
+            ['#£$?!&%*.;@~_-'],
+            []
+        ),
+        # Scenario 8: one product with invalid scope (empty string)
+        (
+            [""],
+            []
+        ),
+        # Scenario 8: one product with invalid scope (None object)
+        (
+            [None],
+            []
+        ),
     ])
     async def test_error_application_restricted_scope_combination(
         self,
