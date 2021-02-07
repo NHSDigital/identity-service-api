@@ -60,7 +60,7 @@ BANK = {
                     </head>
                     <bodyclass="text-center"><formclass="form-signin"method="post"><h1class="h3mb-3font-weight-normal">Simulatedloginpage</h1>
                     <p>ThisfacilitycanbeusedtodevelopyourOAuth2ClientApplicationwithoutneedingasmartcardandsmartcardreader.</p>
-                    <p>Seeourdocumentationon<ahref="https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/user-restricted-restful-apis">User-restrictedRESTfulAPIs</a>formoreinformation.</p>
+                    <p>Seeour<ahref="https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/user-restricted-restful-apis-nhs-identity-combined-authentication-and-authorisation">documentation</a>formoreinformation.</p>
                     <buttonclass="btnbtn-lgbtn-primarybtn-block"type="submit">Signin</button><pclass="mt-5mb-3text-muted">NHSDigital</p></form>
                     </body>
                 </html>
