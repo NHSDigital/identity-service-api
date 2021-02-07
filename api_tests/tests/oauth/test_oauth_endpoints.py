@@ -728,7 +728,7 @@ class TestOauthEndpointSuite:
             ['urn:nhsd:apim:user:aal3:personal-demographics-service', 'urn:nhsd:apim:app:jwks:ambulance-analytics'],
             ['urn:nhsd:apim:user:aal3:example-1', 'urn:nhsd:apim:app:jwks:example-2']
         ),
-        # Scenario 8: one product with valid scope with triling spaces
+        # Scenario 8: one product with valid scope with trailing and leading spaces
         (
             [' urn:nhsd:apim:user:aal3:personal-demographics-service '],
             []
