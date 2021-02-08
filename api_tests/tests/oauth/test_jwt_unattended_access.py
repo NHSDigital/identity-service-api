@@ -475,42 +475,42 @@ class TestJwtUnattendedAccessSuite:
     @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
         # Scenario 1: one product with valid scope
         (
-            ['urn:nhsd:apim:app:jwks:personal-demographics'],
+            ['urn:nhsd:apim:app:level3:personal-demographics'],
             []
         ),
         # Scenario 2: one product with valid scope, one product with invalid scope
         (
-            ['urn:nhsd:apim:app:jwks:personal-demographics-service'],
-            ['urn:nhsd:apim:usr:aal3:personal-demographics-service']
+            ['urn:nhsd:apim:app:level3:personal-demographics-service'],
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service']
         ),
         # Scenario 3: multiple products with valid scopes
         (
-            ['urn:nhsd:apim:app:jwks:personal-demographics-service'],
-            ['urn:nhsd:apim:app:jwks:ambulance-analytics']
+            ['urn:nhsd:apim:app:level3:personal-demographics-service'],
+            ['urn:nhsd:apim:app:level3:ambulance-analytics']
         ),
         # Scenario 4: one product with multiple valid scopes
         (
-            ['urn:nhsd:apim:app:jwks:personal-demographics', 'urn:nhsd:apim:app:jwks:ambulance-analytics'],
+            ['urn:nhsd:apim:app:level3:personal-demographics', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
             []
         ),
         # Scenario 5: multiple products with multiple valid scopes
         (
-            ['urn:nhsd:apim:app:jwks:personal-demographics', 'urn:nhsd:apim:app:jwks:ambulance-analytics'],
-            ['urn:nhsd:apim:app:jwks:example-1', 'urn:nhsd:apim:app:jwks:example-2']
+            ['urn:nhsd:apim:app:level3:personal-demographics', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
+            ['urn:nhsd:apim:app:level3:example-1', 'urn:nhsd:apim:app:level3:example-2']
         ),
         # Scenario 6: one product with multiple scopes (valid and invalid)
         (
-            ['urn:nhsd:apim:app:jwks:ambulance-analytics', 'urn:nhsd:apim:user:aal3:personal-demographics-service'],
+            ['urn:nhsd:apim:app:level3:ambulance-analytics', 'urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
             []
         ),
         # Scenario 7: multiple products with multiple scopes (valid and invalid)
         (
-            ['urn:nhsd:apim:app:jwks:ambulance-analytics', 'urn:nhsd:apim:user:aal3:personal-demographics-service'],
-            ['urn:nhsd:apim:app:jwks:example-1', 'urn:nhsd:apim:user:aal3:example-2']
+            ['urn:nhsd:apim:app:level3:ambulance-analytics', 'urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
+            ['urn:nhsd:apim:app:level3:example-1', 'urn:nhsd:apim:user-nhs-id:aal3:example-2']
         ),
         # Scenario 8: one product with valid scope with trailing and leading spaces
         (
-            [' urn:nhsd:apim:app:jwks:ambulance-analytics '],
+            [' urn:nhsd:apim:app:level3:ambulance-analytics '],
             []
         ),
     ])
@@ -542,23 +542,23 @@ class TestJwtUnattendedAccessSuite:
         ),
         # Scenario 2: one product with invalid scope, one product with no scope
         (
-            ['urn:nhsd:apim:user:aal2:personal-demographics-service'],
+            ['urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service'],
             []
         ),
         # Scenario 3: multiple products with invalid scopes
         (
-            ['urn:nhsd:apim:user:aal3:personal-demographics-service'],
-            ['urn:nhsd:apim:user:aal3:ambulance-analytics']
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
+            ['urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics']
         ),
         # Scenario 4: one product with multiple invalid scopes
         (
-            ['urn:nhsd:apim:user:aal3:personal-demographics-service', 'urn:nhsd:apim:user:aal3:ambulance-analytics'],
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service', 'urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics'],
             []
         ),
         # Scenario 5: multiple products with multiple invalid scopes
         (
-            ['urn:nhsd:apim:user:aal3:personal-demographics-service', 'urn:nhsd:apim:user:aal3:ambulance-analytics'],
-            ['urn:nhsd:apim:user:aal3:example-1', 'urn:nhsd:apim:user:aal3:example-2']
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service', 'urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics'],
+            ['urn:nhsd:apim:user-nhs-id:aal3:example-1', 'urn:nhsd:apim:user-nhs-id:aal3:example-2']
         ),
         # Scenario 6: one product with invalid scope (wrong formation)
         (
@@ -580,9 +580,9 @@ class TestJwtUnattendedAccessSuite:
             [None],
             []
         ),
-        # Scenario 2: one product with invalid scope, one product with no scope
+        # Scenario 9: one product with invalid scope (missing colon)
         (
-            ['urn:nhsd:apim:app:jwkspersonal-demographics-service'],
+            ['urn:nshd:apim:app:level3personal-demographics-service'],
             []
         )
     ])
