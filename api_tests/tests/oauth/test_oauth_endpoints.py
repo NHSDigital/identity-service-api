@@ -820,6 +820,11 @@ class TestOauthEndpointSuite:
             [None],
             []
         ),
+        # Scenario 9: one product with invalid scope, one product with no scope
+        (
+            ['urn:nhsd:apim:user:aal3personal-demographics-service'],
+            []
+        ),
     ])
     async def test_error_user_restricted_scope_combination(
         self,

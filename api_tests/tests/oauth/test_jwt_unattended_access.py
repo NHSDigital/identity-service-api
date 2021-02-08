@@ -580,6 +580,11 @@ class TestJwtUnattendedAccessSuite:
             [None],
             []
         ),
+        # Scenario 2: one product with invalid scope, one product with no scope
+        (
+            ['urn:nhsd:apim:app:jwkspersonal-demographics-service'],
+            []
+        )
     ])
     async def test_error_application_restricted_scope_combination(
         self,
