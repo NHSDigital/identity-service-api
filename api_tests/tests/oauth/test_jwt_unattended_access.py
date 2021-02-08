@@ -602,7 +602,7 @@ class TestJwtUnattendedAccessSuite:
             jwt=self.oauth.create_jwt(kid='test-1'),
             expected_response={
                 "error": "unauthorized_client",
-                "error_description": "the authenticated client is not authorized to use this authorization grant type",
+                "error_description": "you have tried to requests authorization but your application is not configured to use this authorization grant type",
             },
             expected_status_code=401
         )

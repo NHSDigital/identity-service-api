@@ -845,7 +845,7 @@ class TestOauthEndpointSuite:
             expected_status_code=401,
             expected_response={
                 "error": "unauthorized_client",
-                "error_description": "the authenticated client is not authorized to use this authorization grant type"
+                "error_description": "you have tried to requests authorization but your application is not configured to use this authorization grant type"
             },
             params={
                 "client_id": test_app.get_client_id(),
