@@ -721,7 +721,7 @@ class TestOauthEndpointSuite:
         # Then 
         response_dict = json.loads(response.text)
 
-        assert expected_status_code == response.status_code
+        assert expected_status_code == response.status_code, response.text
         assert 'access_token' in response_dict    
         assert expected_expires_in == response_dict['expires_in']
         assert expected_token_type == response_dict['token_type']
