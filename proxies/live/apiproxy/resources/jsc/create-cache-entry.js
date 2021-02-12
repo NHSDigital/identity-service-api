@@ -7,7 +7,7 @@ if (context.getVariable('identity_service.simulated_idp') == 'true') {
 }
 redirect_uri = context.getVariable('request.queryparam.redirect_uri');
 response_type = context.getVariable('request.queryparam.response_type');
-scope = context.getVariable('request.queryparam.scope');
+scope = context.getVariable('apigee.user_restricted_scopes');
 
 var cacheEntry = {
   client_id: client_id,
