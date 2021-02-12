@@ -389,3 +389,4 @@ class TestJwtUnattendedAccessSuite:
                 'error_description': 'You need to register a public key to use this '
                                      'authentication method - please contact support to configure'
             }
+        )
