@@ -33,6 +33,13 @@ class TestOauthEndpoints:
             ]
         )
 
+        [await product.update_ratelimits(
+            quota=60000,
+            quota_interval="1",
+            quota_time_unit="minute",
+            rate_limit="1000ps"
+        ) for product in [apigee_product, apigee_product2]]
+
         yield apigee_product, apigee_product2, apigee_app
 
         await apigee_app.destroy_app()
