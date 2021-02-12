@@ -14,12 +14,11 @@ steps:
   - bash: |
       source ./test_env/bin/activate
 
-      export BASE_URL="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk"
-      export IDENTITY_PROXY="$(SERVICE_BASE_PATH)"
+      export OAUTH_BASE_URI="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk"
+      export OAUTH_PROXY="$(SERVICE_BASE_PATH)"
       export CLIENT_ID="$(CLIENT_ID)"
       export CLIENT_SECRET="$(CLIENT_SECRET)"
       export REDIRECT_URI="https://nhsd-apim-testing-$(APIGEE_ENVIRONMENT).herokuapp.com/callback"
-      export AUTHENTICATE_URL="https://nhsd-apim-testing-$(APIGEE_ENVIRONMENT).herokuapp.com/"
       export HELLO_WORLD_API_URL="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk/hello-world/hello/user"
       export APIGEE_CLIENT_ID="969567331415.apps.national"
       export APIGEE_API_AUTHENTICATION="$(secret.AccessToken)"
@@ -32,7 +31,7 @@ steps:
       export VALID_ASID_CLIENT_SECRET="$(INTERNAL_TESTING_WITH_VALID_ASID_SECRET)"
       export MISSING_ASID_CLIENT_ID="$(INTERNAL_TESTING_WITHOUT_ASID_KEY)"
       export MISSING_ASID_CLIENT_SECRET="$(INTERNAL_TESTING_WITHOUT_ASID_SECRET)"
-      export PRIVATE_KEY_DIR="$(Pipeline.Workspace)/secrets/$(JWT_TESTING_PRIVATE_KEY)"
+      export JWT_PRIVATE_KEY_ABSOLUTE_PATH="$(Pipeline.Workspace)/secrets/$(JWT_TESTING_PRIVATE_KEY)"
       export JWT_APP_KEY="$(JWT_TESTING_API_KEY)"
       export VALID_UNSUBSCRIBED_CLIENT_ID="$(VALID_UNSUBSCRIBED_CLIENT_ID)"
       export VALID_UNSUBSCRIBED_CLIENT_SECRET="$(VALID_UNSUBSCRIBED_CLIENT_SECRET)"

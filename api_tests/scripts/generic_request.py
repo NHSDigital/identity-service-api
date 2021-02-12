@@ -149,11 +149,11 @@ class GenericRequest:
         return response
 
     def check_redirect(self,
-                       response: requests.Response,
+                       response: dict,
                        expected_params: dict,
                        client_redirect: str = None,
                        state: str = None):
-        redirected_url = response.headers["Location"]
+        redirected_url = response['headers']["Location"]
         params = self.get_params_from_url(redirected_url)
         if state:
             expected_params["state"] = str(state)
