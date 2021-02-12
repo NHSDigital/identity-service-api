@@ -237,7 +237,7 @@ class TestJwtUnattendedAccessSuite:
                     "iss": config.JWT_APP_KEY,
                     "jti": str(uuid4()),
                     "aud": config.TOKEN_URL,
-                    "exp": int(time()) + 320,  # this includes the +10 seconds grace
+                    "exp": int(time()) + 330,  # this includes the +30 seconds grace
                 }
             },
             {'error': 'invalid_request',
