@@ -15,7 +15,7 @@ __pycache__/
 .idea/
 .vscode
 .pytest_cache/
-docker.env
+*.env
 
 .direnv
 .venv
