@@ -1,14 +1,15 @@
 from api_tests.config_files import config
 from api_tests.scripts.response_bank import BANK
-from api_tests.config_files.environments import ENV
 import pytest
 import random
 from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
 from api_test_utils.apigee_api_products import ApigeeApiProducts
+from api_tests.config_files.environments import ENV
+from api_test_utils.oauth_helper import OauthHelper
 
 
-@pytest.mark.usefixtures("setup")
-class TestOauthEndpointSuite:
+@pytest.mark.asyncio
+class TestOauthEndpoints:
     """ A test suit to verify all the happy path oauth endpoints """
 
     @pytest.fixture()
@@ -38,83 +39,71 @@ class TestOauthEndpointSuite:
         await apigee_product.destroy_product()
         await apigee_product2.destroy_product()
 
-    @staticmethod
-    def switch_to_valid_asid_application():
-        config.CLIENT_ID = ENV["oauth"]["valid_asic_client_id"]
-        config.CLIENT_SECRET = ENV["oauth"]["valid_asid_client_secret"]
-        config.REDIRECT_URI = "https://example.com/callback"
-
-    @staticmethod
-    def switch_to_application():
-        config.CLIENT_ID = ENV["oauth"]["client_id"]
-        config.CLIENT_SECRET = ENV["oauth"]["client_secret"]
-        config.REDIRECT_URI = ENV["oauth"]["redirect_uri"]
-
     @pytest.mark.apm_801
     @pytest.mark.happy_path
     @pytest.mark.authorize_endpoint
-    def test_authorize_endpoint(self):
-        # Test authorize endpoint is redirected and returns a 200
-        self.oauth.check_endpoint(
-            verb="GET",
+    @pytest.mark.skip("Temporary Skip")
+    async def test_authorize_endpoint(self):
+        resp = await self.oauth.hit_oauth_endpoint(
+            method="GET",
             endpoint="authorize",
-            expected_status_code=200,
-            expected_response=BANK.get(self.name)["response"],
             params={
-                "client_id": config.CLIENT_ID,
-                "redirect_uri": config.REDIRECT_URI,
+                "client_id": self.oauth.client_id,
+                "redirect_uri": self.oauth.redirect_uri,
                 "response_type": "code",
                 "state": random.getrandbits(32)
-            },
+            }
         )
+
+        assert resp['status_code'] == 200
+        assert resp['body'] == BANK.get(self.name)["response"]
 
     @pytest.mark.apm_801
     @pytest.mark.happy_path
     @pytest.mark.token_endpoint
-    def test_token_endpoint(self):
-        assert self.oauth.check_endpoint(
-            verb="POST",
-            endpoint="token",
-            expected_status_code=200,
-            expected_response=[
-                "access_token",
-                "expires_in",
-                "refresh_count",
-                "refresh_token",
-                "refresh_token_expires_in",
-                "token_type",
-            ],
-            data={
-                "client_id": config.CLIENT_ID,
-                "client_secret": config.CLIENT_SECRET,
-                "redirect_uri": config.REDIRECT_URI,
-                "grant_type": "authorization_code",
-                "code": self.oauth.get_authenticated(),
-            },
-        )
+    @pytest.mark.asyncio
+    async def test_token_endpoint(self):
+        resp = await self.oauth.get_token_response(grant_type="authorization_code")
+
+        assert resp['status_code'] == 200
+        assert sorted(list(resp['body'].keys())) == [
+            "access_token",
+            "expires_in",
+            "refresh_count",
+            "refresh_token",
+            "refresh_token_expires_in",
+            "token_type",
+        ]
 
     @pytest.mark.apm_1618
-    @pytest.mark.errors
-    @pytest.mark.token_endpoint
-    def test_token_endpoint_http_allowed_methods(self):
-        response = self.oauth.check_and_return_endpoint(
-            verb="GET", endpoint="token", expected_status_code=405, expected_response=""
-        )
-        assert response.headers["Allow"] == "POST"
-
     @pytest.mark.apm_1475
     @pytest.mark.errors
+    @pytest.mark.token_endpoint
     @pytest.mark.authorize_endpoint
-    def test_authorize_endpoint_http_allowed_methods(self):
-        response = self.oauth.check_and_return_endpoint(
-            verb="POST", endpoint="authorize", expected_status_code=405, expected_response=""
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "method, endpoint",
+        [
+            ("GET", "token"),
+            ("POST", "authorize"),
+        ],
+    )
+    async def test_token_endpoint_http_allowed_methods(self, method, endpoint):
+        resp = await self.oauth.hit_oauth_endpoint(
+            method=method,
+            endpoint=endpoint
         )
-        assert response.headers["Allow"] == "GET"
+
+        allow = ("POST", "GET")[method == "POST"]
+
+        assert resp['status_code'] == 405
+        assert resp['body'] == ""
+        assert resp['headers'].get("Allow", "The Allow Header is Missing") == allow
 
     @pytest.mark.apm_993
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
-    def test_cache_invalidation(self):
+    def test_cache_invalidation(self, helper):
         """
         Test identity cache invalidation after use:
             * Given i am authorizing
@@ -124,33 +113,33 @@ class TestOauthEndpointSuite:
         """
 
         # Make authorize request to retrieve state2
-        response = self.oauth.check_and_return_endpoint(
+        response = helper.check_and_return_endpoint(
             verb="GET",
             endpoint="authorize",
             expected_status_code=302,
             expected_response="",
             params={
-                "client_id": config.CLIENT_ID,
-                "redirect_uri": config.REDIRECT_URI,
+                "client_id": self.oauth.client_id,
+                "redirect_uri": self.oauth.redirect_uri,
                 "response_type": "code",
                 "state": "1234567890",
             },
             allow_redirects=False,
         )
-        state2 = self.oauth.get_param_from_url(
+        state2 = helper.get_param_from_url(
             url=response.headers["Location"], param="state"
         )
 
         # Make simulated auth request to authenticate
-        response = self.oauth.check_and_return_endpoint(
+        response = helper.check_and_return_endpoint(
             verb="POST",
             endpoint="sim_auth",
             expected_status_code=302,
             expected_response="",
             params={
                 "response_type": "code",
-                "client_id": config.CLIENT_ID,
-                "redirect_uri": config.REDIRECT_URI,
+                "client_id": self.oauth.client_id,
+                "redirect_uri": self.oauth.redirect_uri,
                 "scope": "openid",
                 "state": state2,
             },
@@ -160,10 +149,10 @@ class TestOauthEndpointSuite:
         )
 
         # Make initial callback request
-        auth_code = self.oauth.get_param_from_url(
+        auth_code = helper.get_param_from_url(
             url=response.headers["Location"], param="code"
         )
-        response = self.oauth.check_and_return_endpoint(
+        response = helper.check_and_return_endpoint(
             verb="GET",
             endpoint="callback",
             expected_status_code=302,
@@ -173,12 +162,12 @@ class TestOauthEndpointSuite:
         )
 
         # Verify auth code and state are returned
-        response_params = self.oauth.get_params_from_url(response.headers["Location"])
+        response_params = helper.get_params_from_url(response.headers["Location"])
         assert response_params["code"]
         assert response_params["state"]
 
         # Make second callback request with same state value
-        assert self.oauth.check_endpoint(
+        assert helper.check_endpoint(
             verb="GET",
             endpoint="callback",
             expected_status_code=400,
@@ -255,10 +244,10 @@ class TestOauthEndpointSuite:
             {
                 "expected_status_code": 401,
                 "expected_response": {
-                    "error": "access_denied",
-                    "error_description": "api key supplied does not have access to this resource."
-                                         " please check the api key you are using belongs to an app"
-                                         " which has sufficient access to access this resource.",
+                    'error': 'access_denied',
+                    'error_description': 'API Key supplied does not have access to this resource. '
+                                         'Please check the API Key you are using belongs to an app '
+                                         'which has sufficient access to access this resource.'
                 },
                 "params": {
                     "client_id": config.VALID_UNSUBSCRIBED_CLIENT_ID,
@@ -272,7 +261,7 @@ class TestOauthEndpointSuite:
                 "expected_status_code": 401,
                 "expected_response": {
                     "error": "access_denied",
-                    "error_description": "the developer app associated with the api key is not approved or revoked",
+                    "error_description": "The developer app associated with the API key is not approved or revoked",
                 },
                 "params": {
                     "client_id": config.VALID_UNAPPROVED_CLIENT_ID,
@@ -283,14 +272,22 @@ class TestOauthEndpointSuite:
             },
         ],
     )
-    def test_authorization_error_conditions(self, request_data: dict):
-        assert self.oauth.check_endpoint("GET", "authorize", **request_data)
+    @pytest.mark.asyncio
+    async def test_authorization_error_conditions(self, request_data: dict):
+        resp = await self.oauth.hit_oauth_endpoint(
+            method="GET",
+            endpoint="authorize",
+            params=request_data["params"]
+        )
+
+        assert resp['status_code'] == request_data['expected_status_code']
+        assert resp['body'] == request_data['expected_response']
 
     @pytest.mark.apm_1475
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
     @pytest.mark.parametrize(
-        "request_data",
+        "test_case",
         [
             # condition 1: missing state
             {
@@ -337,258 +334,305 @@ class TestOauthEndpointSuite:
             },
         ],
     )
-    def test_authorization_error_redirects(self, request_data: dict):
-        response = self.oauth.check_and_return_endpoint(
-            verb="GET",
+    async def test_authorization_error_redirects(self, test_case: dict, helper):
+        resp = await self.oauth.hit_oauth_endpoint(
+            method="GET",
             endpoint="authorize",
-            expected_status_code=request_data["expected_status_code"],
-            expected_response=request_data["expected_response"],
-            params=request_data["params"],
+            params=test_case['params'],
             allow_redirects=False
         )
-        self.oauth.check_redirect(
-            response=response,
-            expected_params=request_data["expected_params"],
+
+        assert resp['status_code'] == test_case['expected_status_code']
+        assert resp['body'] == test_case['expected_response']
+
+        helper.check_redirect(
+            response=resp,
+            expected_params=test_case["expected_params"],
             client_redirect=config.REDIRECT_URI,
-            state=request_data["params"].get("state")
+            state=test_case["params"].get("state")
         )
 
     @pytest.mark.apm_1631
     @pytest.mark.errors
     @pytest.mark.token_endpoint
-    @pytest.mark.parametrize(
-        "request_data",
-        [
-            {
-                "expected_status_code": 401,
-                "expected_response": {
-                    "error": "access_denied",
-                    "error_description": "API Key supplied does not have access to this resource."
-                                         " Please check the API Key you are using belongs to an app"
-                                         " which has sufficient access to access this resource.",
-                },
-                "params": {
-                    "client_id": config.VALID_UNSUBSCRIBED_CLIENT_ID,
-                    "client_secret": config.VALID_UNSUBSCRIBED_CLIENT_SECRET,
-                    "redirect_uri": config.VALID_UNSUBSCRIBED_REDIRECT_URI,
-                    "grant_type": "authorization_code",
-                },
-            },
-        ],
-    )
-    def test_token_unsubscribed_error_conditions(self, request_data: dict):
-        request_data["params"]["code"] = self.oauth.get_authenticated()
-        response = self.oauth.get_custom_token_response(request_data["params"])
+    async def test_token_unsubscribed_error_conditions(self):
+        resp = await self.oauth.get_token_response(
+            grant_type="authorization_code",
+            data={
+                "client_id": config.VALID_UNSUBSCRIBED_CLIENT_ID,
+                "client_secret": config.VALID_UNSUBSCRIBED_CLIENT_SECRET,
+                "redirect_uri": config.VALID_UNSUBSCRIBED_REDIRECT_URI,
+                "grant_type": "authorization_code",
+                "code": await self.oauth.get_authenticated_with_simulated_auth()
+            }
+        )
 
-        assert response.status_code == request_data["expected_status_code"]
-
-        response_data = response.json()
-        assert response_data["error"] == request_data["expected_response"]["error"]
-        assert response_data["error_description"] == request_data["expected_response"]["error_description"]
+        assert resp['status_code'] == 401
+        assert resp['body'] == {
+            "error": "access_denied",
+            "error_description": "API Key supplied does not have access to this resource."
+                                 " Please check the API Key you are using belongs to an app"
+                                 " which has sufficient access to access this resource.",
+        }
 
     @pytest.mark.apm_1618
     @pytest.mark.errors
     @pytest.mark.token_endpoint
     @pytest.mark.parametrize(
-        "request_data",
+        "request_data, expected_response",
         [
-            # condition 1: no params provided
-            {
-                "expected_status_code": 400,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "grant_type is missing",
+            # condition 1: no data provided
+            (
+                {
+                    "data": {}
                 },
-                "params": {},
-            },
+
+                {
+                    "status_code": 400,
+                    "body": {
+                        "error": "invalid_request",
+                        "error_description": "grant_type is missing",
+                    }
+                }
+            ),
+
             # condition 2: invalid grant type
-            {
-                "expected_status_code": 400,
-                "expected_response": {
-                    "error": "unsupported_grant_type",
-                    "error_description": "grant_type is invalid",
+            (
+                {
+                    "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+                    "data": {
+                        "client_id": config.CLIENT_ID,
+                        "client_secret": config.CLIENT_SECRET,
+                        "redirect_uri": config.REDIRECT_URI,
+                        "grant_type": "invalid",
+                    }
                 },
-                "headers": {"Content-Type": "application/x-www-form-urlencoded"},
-                "params": {},
-                "data": {
-                    "client_id": config.CLIENT_ID,
-                    "client_secret": config.CLIENT_SECRET,
-                    "redirect_uri": config.REDIRECT_URI,
-                    "grant_type": "invalid",
-                },
-            },
+
+                {
+                    "status_code": 400,
+                    "body": {
+                        "error": "unsupported_grant_type",
+                        "error_description": "grant_type is invalid",
+                    }
+                }
+            ),
+
             # condition 3: missing grant_type
-            {
-                "expected_status_code": 400,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "grant_type is missing",
+            (
+                {
+                    "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+                    "data": {
+                        "client_id": config.CLIENT_ID,
+                        "client_secret": config.CLIENT_SECRET,
+                        "redirect_uri": config.REDIRECT_URI,
+                    }
                 },
-                "headers": {"Content-Type": "application/x-www-form-urlencoded"},
-                "params": {},
-                "data": {
-                    "client_id": config.CLIENT_ID,
-                    "client_secret": config.CLIENT_SECRET,
-                    "redirect_uri": config.REDIRECT_URI,
-                },
-            },
+
+                {
+                    "status_code": 400,
+                    "body": {
+                        "error": "invalid_request",
+                        "error_description": "grant_type is missing",
+                    }
+                }
+            ),
+
             # condition 4: missing client_id
-            {
-                "expected_status_code": 401,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "client_id is missing",
+            (
+                {
+                    "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+                    "data": {
+                        "client_secret": config.CLIENT_SECRET,
+                        "redirect_uri": config.REDIRECT_URI,
+                        "grant_type": "authorization_code",
+                    }
                 },
-                "headers": {"Content-Type": "application/x-www-form-urlencoded"},
-                "params": {},
-                "data": {
-                    "client_secret": config.CLIENT_SECRET,
-                    "redirect_uri": config.REDIRECT_URI,
-                    "grant_type": "authorization_code",
-                },
-            },
+
+                {
+                    "status_code": 401,
+                    "body": {
+                        "error": "invalid_request",
+                        "error_description": "client_id is missing",
+                    }
+                }
+            ),
+
             # condition 5: invalid client_id
-            {
-                "expected_status_code": 401,
-                "expected_response": {
-                    "error": "invalid_client",
-                    "error_description": "client_id or client_secret is invalid",
+            (
+                {
+                    "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+                    "data": {
+                        "client_id": "THISisANinvalidCLIENTid12345678",
+                        "client_secret": config.CLIENT_SECRET,
+                        "redirect_uri": config.REDIRECT_URI,
+                        "grant_type": "authorization_code",
+                    }
                 },
-                "headers": {"Content-Type": "application/x-www-form-urlencoded"},
-                "params": {},
-                "data": {
-                    "client_id": "THISisANinvalidCLIENTid12345678",
-                    "client_secret": config.CLIENT_SECRET,
-                    "redirect_uri": config.REDIRECT_URI,
-                    "grant_type": "authorization_code",
+
+                {
+                    "status_code": 401,
+                    "body": {
+                        "error": "invalid_client",
+                        "error_description": "client_id or client_secret is invalid",
+                    }
+                }
+            ),
+
+            # condition 6: invalid client secret
+            (
+                {
+                    "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+                    "data": {
+                        "client_id": config.CLIENT_ID,
+                        "client_secret": "ThisSecretIsInvalid",
+                        "redirect_uri": config.REDIRECT_URI,
+                        "grant_type": "authorization_code",
+                    }
                 },
-            },
-            # condition 7: invalid client secret
-            {
-                "expected_status_code": 401,
-                "expected_response": {
-                    "error": "invalid_client",
-                    "error_description": "client_id or client_secret is invalid",
+
+                {
+                    "status_code": 401,
+                    "body": {
+                        "error": "invalid_client",
+                        "error_description": "client_id or client_secret is invalid",
+                    }
+                }
+            ),
+
+            # condition 7: missing client secret
+            (
+                {
+                    "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+                    "data": {
+                        "client_id": config.CLIENT_ID,
+                        "redirect_uri": config.REDIRECT_URI,
+                        "grant_type": "authorization_code",
+                    }
                 },
-                "headers": {"Content-Type": "application/x-www-form-urlencoded"},
-                "params": {},
-                "data": {
-                    "client_id": config.CLIENT_ID,
-                    "client_secret": "ThisSecretIsInvalid",
-                    "redirect_uri": config.REDIRECT_URI,
-                    "grant_type": "authorization_code",
+
+                {
+                    "status_code": 401,
+                    "body": {
+                        "error": "invalid_request",
+                        "error_description": "client_secret is missing",
+                    }
+                }
+            ),
+
+            # condition 8: redirect_uri is missing
+            (
+                {
+                    "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+                    "data": {
+                        "client_id": config.CLIENT_ID,
+                        "client_secret": config.CLIENT_SECRET,
+                        "grant_type": "authorization_code",
+                    }
                 },
-            },
-            # condition 8: missing client secret
-            {
-                "expected_status_code": 401,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "client_secret is missing",
-                },
-                "headers": {"Content-Type": "application/x-www-form-urlencoded"},
-                "params": {},
-                "data": {
-                    "client_id": config.CLIENT_ID,
-                    "redirect_uri": config.REDIRECT_URI,
-                    "grant_type": "authorization_code",
-                },
-            },
-            # condition 9: redirect_uri is missing
-            {
-                "expected_status_code": 400,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "redirect_uri is missing",
-                },
-                "headers": {"Content-Type": "application/x-www-form-urlencoded"},
-                "params": {},
-                "data": {
-                    "client_id": config.CLIENT_ID,
-                    "client_secret": config.CLIENT_SECRET,
-                    "grant_type": "authorization_code",
-                },
-            },
+
+                {
+                    "status_code": 400,
+                    "body": {
+                        "error": "invalid_request",
+                        "error_description": "redirect_uri is missing",
+                    }
+                }
+            ),
+
             # condition 9: redirect_uri is invalid
-            {
-                "expected_status_code": 400,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "redirect_uri is invalid",
+            (
+                {
+                    "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+                    "data": {
+                        "client_id": config.CLIENT_ID,
+                        "client_secret": config.CLIENT_SECRET,
+                        "redirect_uri": 'invalid',
+                        "grant_type": "authorization_code",
+                    }
                 },
-                "headers": {"Content-Type": "application/x-www-form-urlencoded"},
-                "params": {},
-                "data": {
-                    "client_id": config.CLIENT_ID,
-                    "client_secret": config.CLIENT_SECRET,
-                    "redirect_uri": 'invalid',
-                    "grant_type": "authorization_code",
-                },
-            },
+
+                {
+                    "status_code": 400,
+                    "body": {
+                        "error": "invalid_request",
+                        "error_description": "redirect_uri is invalid",
+                    }
+                }
+            ),
+
             # condition 10: authorization code is missing
-            {
-                "expected_status_code": 400,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "authorization_code is missing",
+            (
+                {
+                    "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+                    "data": {
+                        "client_id": config.CLIENT_ID,
+                        "client_secret": config.CLIENT_SECRET,
+                        "redirect_uri": config.REDIRECT_URI,
+                        "grant_type": "authorization_code",
+                    }
                 },
-                "headers": {"Content-Type": "application/x-www-form-urlencoded"},
-                "params": {},
-                "data": {
-                    "client_id": config.CLIENT_ID,
-                    "client_secret": config.CLIENT_SECRET,
-                    "redirect_uri": config.REDIRECT_URI,
-                    "grant_type": "authorization_code",
-                },
-            },
+
+                {
+                    "status_code": 400,
+                    "body": {
+                        "error": "invalid_request",
+                        "error_description": "authorization_code is missing",
+                    }
+                }
+            ),
+
             # condition 11: authorization code is invalid
-            {
-                "expected_status_code": 400,
-                "expected_response": {
-                    "error": "invalid_grant",
-                    "error_description": "authorization_code is invalid",
+            (
+                {
+                    "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+                    "data": {
+                        "client_id": config.CLIENT_ID,
+                        "client_secret": config.CLIENT_SECRET,
+                        "redirect_uri": config.REDIRECT_URI,
+                        "grant_type": "authorization_code",
+                        "code": "invalid",
+                    }
                 },
-                "headers": {"Content-Type": "application/x-www-form-urlencoded"},
-                "params": {},
-                "data": {
-                    "client_id": config.CLIENT_ID,
-                    "client_secret": config.CLIENT_SECRET,
-                    "redirect_uri": config.REDIRECT_URI,
-                    "grant_type": "authorization_code",
-                    "code": "invalid",
-                },
-            },
+
+                {
+                    "status_code": 400,
+                    "body": {
+                        "error": "invalid_grant",
+                        "error_description": "authorization_code is invalid",
+                    }
+                }
+            ),
         ],
     )
-    def test_token_error_conditions(self, request_data: dict):
-        assert self.oauth.check_endpoint("POST", "token", **request_data)
+    @pytest.mark.asyncio
+    async def test_token_error_conditions(self, request_data: dict, expected_response: dict):
+        resp = await self.oauth.get_token_response(grant_type="authorization_code", **request_data)
+
+        assert resp["status_code"] == expected_response["status_code"]
+        assert resp['body'] == expected_response["body"]
 
     @pytest.mark.apm_1064
     @pytest.mark.errors
     @pytest.mark.callback_endpoint
-    @pytest.mark.parametrize(
-        "request_data",
-        [
-            # condition 1: invalid client id
-            {
-                "expected_status_code": 401,
-                "expected_response": "",
-                "params": {
-                    "code": "some-code",
-                    "client_id": "invalid-client-id",
-                    "state": random.getrandbits(32),
-                },
-            },
-        ],
-    )
-    def test_callback_error_conditions(self, request_data: dict):
-        assert self.oauth.check_endpoint("GET", "callback", **request_data)
+    async def test_callback_error_conditions(self):
+        resp = await self.oauth.hit_oauth_endpoint(
+            method="GET",
+            endpoint="callback",
+            params={
+                "code": "some-code",
+                "client_id": "invalid-client-id",
+                "state": random.getrandbits(32),
+            }
+        )
+
+        assert resp['status_code'] == 401
+        assert resp['body'] == ""
 
     @pytest.mark.apm_1475
     @pytest.mark.errors
     @pytest.mark.token_endpoint
     @pytest.mark.parametrize(
-        "request_data",
+        "test_case",
         [
             # condition 1: missing client id
             {
@@ -669,24 +713,26 @@ class TestOauthEndpointSuite:
             },
         ],
     )
-    def test_refresh_token_error_conditions(self, request_data: dict):
-        assert self.oauth.check_endpoint("POST", "token", **request_data)
+    async def test_refresh_token_error_conditions(self, test_case: dict):
+        resp = await self.oauth.get_token_response(grant_type="refresh_token", data=test_case['data'])
 
-    def test_ping(self):
-        assert self.oauth.check_endpoint('GET', 'ping', 200, ["version", "revision", "releaseId", "commitId"])
+        assert resp['status_code'] == test_case['expected_status_code']
+        assert resp['body'] == test_case['expected_response']
+
+    async def test_ping(self):
+        resp = await self.oauth.hit_oauth_endpoint(method='GET', endpoint='_ping')
+
+        assert resp['status_code'] == 200
+        assert list(resp['body'].keys()) == ["version", "revision", "releaseId", "commitId"]
 
     @pytest.mark.aea_756
     @pytest.mark.happy_path
-    @pytest.mark.usefixtures('get_token')
-    def test_userinfo(self):
-        assert self.oauth.check_endpoint(
-            verb='GET',
-            endpoint='userinfo',
-            expected_status_code=200,
-            expected_response=BANK.get(self.name)["response"],
-            headers={
-                'Authorization': f'Bearer {self.token}'
-            }
+    @pytest.mark.usefixtures("set_access_token")
+    async def test_userinfo(self):
+        resp = await self.oauth.hit_oauth_endpoint(
+            method="GET",
+            endpoint="userinfo",
+            headers={'Authorization': f'Bearer {self.oauth.access_token}'}
         )
 
     @pytest.mark.apm_1701
@@ -738,7 +784,8 @@ class TestOauthEndpointSuite:
         self,
         product_1_scopes,
         product_2_scopes,
-        test_app_and_product
+        test_app_and_product,
+        helper
     ):
         test_product, test_product2, test_app = test_app_and_product
 
@@ -747,7 +794,9 @@ class TestOauthEndpointSuite:
 
         callback_url = await test_app.get_callback_url()
 
-        assert self.oauth.check_endpoint(
+        oauth = OauthHelper(test_app.client_id, test_app.client_secret, callback_url)
+
+        assert helper.check_endpoint(
             verb="POST",
             endpoint="token",
             expected_status_code=200,
@@ -764,10 +813,7 @@ class TestOauthEndpointSuite:
                 "client_secret": test_app.get_client_secret(),
                 "redirect_uri": callback_url,
                 "grant_type": "authorization_code",
-                "code": self.oauth.get_authenticated(
-                    client_id=test_app.get_client_id(),
-                    redirect_uri=callback_url
-                ),
+                "code": await oauth.get_authenticated_with_simulated_auth(),
             },
         )
 
@@ -830,7 +876,8 @@ class TestOauthEndpointSuite:
         self,
         product_1_scopes,
         product_2_scopes,
-        test_app_and_product
+        test_app_and_product,
+        helper
     ):
         test_product, test_product2, test_app = test_app_and_product
 
@@ -839,7 +886,7 @@ class TestOauthEndpointSuite:
 
         callback_url = await test_app.get_callback_url()
 
-        assert self.oauth.check_endpoint(
+        assert helper.check_endpoint(
             verb="GET",
             endpoint="authorize",
             expected_status_code=401,

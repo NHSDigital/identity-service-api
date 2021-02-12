@@ -3,15 +3,15 @@ from .environments import ENV
 
 # Api details
 APIGEE_CLIENT_ID = ENV['oauth']['apigee_client_id']
-IDENTITY_PROXY = ENV['oauth']['identity_proxy']
-BASE_URL = ENV['oauth']['base_url']
+OAUTH_PROXY = ENV['oauth']['oauth_proxy']
+OAUTH_BASE_URI = ENV['oauth']['base_url']
 SERVICE_NAME = ENV['oauth']['service_name']
 
-AUTHORIZE_URL = f"{BASE_URL}/{IDENTITY_PROXY}/authorize"
-TOKEN_URL = f"{BASE_URL}/{IDENTITY_PROXY}/token"
-SIM_AUTH_URL = f"{BASE_URL}/{IDENTITY_PROXY}/simulated_auth"
-CALLBACK_URL = f"{BASE_URL}/{IDENTITY_PROXY}/callback"
-USERINFO_URL = f"{BASE_URL}/{IDENTITY_PROXY}/userinfo"
+AUTHORIZE_URL = f"{OAUTH_BASE_URI}/{OAUTH_PROXY}/authorize"
+TOKEN_URL = f"{OAUTH_BASE_URI}/{OAUTH_PROXY}/token"
+SIM_AUTH_URL = f"{OAUTH_BASE_URI}/{OAUTH_PROXY}/simulated_auth"
+CALLBACK_URL = f"{OAUTH_BASE_URI}/{OAUTH_PROXY}/callback"
+USERINFO_URL = f"{OAUTH_BASE_URI}/{OAUTH_PROXY}/userinfo"
 
 # Apigee API details
 APIGEE_API_URL = ENV['apigee']['base_url']
@@ -38,9 +38,6 @@ VALID_UNAPPROVED_CLIENT_ID = ENV['oauth']['valid_unapproved_client_id']
 VALID_UNAPPROVED_CLIENT_SECRET = ENV['oauth']['valid_unapproved_client_secret']
 VALID_UNAPPROVED_CLIENT_REDIRECT_URI = ENV['oauth']['valid_unapproved_redirect_uri']
 
-# Authentication provider (Simulated OAuth)
-AUTHENTICATE_URL = ENV['oauth']['authenticate_url']
-
 # Test API (Hwllo World)
 HELLO_WORLD_API_URL = ENV['hello_world']['api_url']
 
@@ -53,13 +50,11 @@ JWT_APP_KEY_WITH_INVALID_JWKS_URL = "kstRcl8syAA0CRqFeRBaMG0GiXgLBR2i"
 ENDPOINTS = {
     'authorize': AUTHORIZE_URL,
     'token': TOKEN_URL,
-    'authenticate': AUTHENTICATE_URL,
     'callback': CALLBACK_URL,
     'userinfo': USERINFO_URL,
     'hello_world': HELLO_WORLD_API_URL,
     'pds': PDS_API,
     'sim_auth': SIM_AUTH_URL,
-    'ping': f'{BASE_URL}/{IDENTITY_PROXY}/_ping'
 }
 
 # Flag to indicate if tests are running locally or remotely i.e. in the pipeline

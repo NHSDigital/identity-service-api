@@ -3,106 +3,106 @@ from api_tests.config_files import config
 from time import sleep
 
 
-@pytest.mark.usefixtures("setup")
+@pytest.mark.asyncio
 class TestOauthTokenSuite:
     """ A test suite to confirm Oauth tokens error responses are as expected"""
 
     @pytest.mark.apm_801
     @pytest.mark.happy_path
-    @pytest.mark.usefixtures('get_token')
-    def test_access_token(self):
-        assert self.oauth.check_endpoint(
+    @pytest.mark.usefixtures('set_access_token')
+    def test_access_token(self, helper):
+        assert helper.check_endpoint(
             verb='GET',
             endpoint='hello_world',
             expected_status_code=200,
             expected_response={"message": "hello user!"},
             headers={
-                'Authorization': f'Bearer {self.token}',
+                'Authorization': f'Bearer {self.oauth.access_token}',
                 'NHSD-Session-URID': 'ROLD-ID',
             }
         )
 
     @pytest.mark.apm_801
     @pytest.mark.happy_path
-    @pytest.mark.usefixtures('get_refresh_token')
-    def test_refresh_token(self):
-        assert self.oauth.check_endpoint(
-            verb='POST',
-            endpoint='token',
-            expected_status_code=200,
-            expected_response=[
-                'access_token',
-                'expires_in',
-                'refresh_count',
-                'refresh_token',
-                'refresh_token_expires_in',
-                'token_type'
-            ],
-            data={
-                'client_id': config.CLIENT_ID,
-                'client_secret': config.CLIENT_SECRET,
-                'grant_type': 'refresh_token',
-                'refresh_token': self.refresh_token,
-            })
+    @pytest.mark.usefixtures('set_refresh_token')
+    async def test_refresh_token(self):
+        resp = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=self.oauth.refresh_token)
+
+        assert resp['status_code'] == 200
+        assert sorted(list(resp['body'].keys())) == [
+            'access_token',
+            'expires_in',
+            'refresh_count',
+            'refresh_token',
+            'refresh_token_expires_in',
+            'token_type'
+        ]
 
     @pytest.mark.apm_801
     @pytest.mark.errors
-    @pytest.mark.usefixtures("update_token_in_parametrized_headers")
-    @pytest.mark.parametrize('headers', [
+    @pytest.mark.parametrize('token', [
         # Condition 1: Using an invalid token
-        {
-            'Authorization': 'Bearer ThisTokenIsInvalid',
-            'NHSD-Session-URID': '',
-        },
+        "ThisTokenIsInvalid",
 
-        # Condition 2: Using an Expired Token
-        {
-            'Authorization': 'Bearer QjMGgujVxVbCV98omVaOlY1zR8aB',  # This token has expired
-            'NHSD-Session-URID': '',
-        },
+        # Condition 2: Using an expired token
+        "QjMGgujVxVbCV98omVaOlY1zR8aB",
 
-        # Condition 3: Missing token from header
-        {
-            'NHSD-Session-URID': '',
-        },
-
-        # Condition 4: Missing Role-ID
-        {
-            'Authorization': 'valid_token',  # This placeholder this will automatically  be replaced with a valid token
-        },
+        # Condition 3: Empty token
+        "",
     ])
-    @pytest.mark.skip(reason="Not implemented")
-    def test_invalid_access_token(self, headers: dict):
-        assert self.oauth.check_endpoint(
+    @pytest.mark.errors
+    async def test_invalid_access_token(self, token: str, helper):
+        assert helper.check_endpoint(
             verb='POST',
             endpoint='hello_world',
-            expected_status_code=400,
-            expected_response={},
-            headers=headers
+            expected_status_code=404,
+            expected_response="""
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+            <meta charset="utf-8">
+            <title>Error</title>
+            </head>
+            <body>
+            <pre>Cannot POST /hello/user</pre>
+            </body>
+            </html>
+            """,
+            headers={
+                'Authorization': f'Bearer {token}',
+                'NHSD-Session-URID': ''}
+        )
+
+    def test_missing_access_token(self, helper):
+        assert helper.check_endpoint(
+            verb='POST',
+            endpoint='hello_world',
+            expected_status_code=404,
+            expected_response="""
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+            <meta charset="utf-8">
+            <title>Error</title>
+            </head>
+            <body>
+            <pre>Cannot POST /hello/user</pre>
+            </body>
+            </html>
+            """,
+            headers={'NHSD-Session-URID': ''}
         )
 
     @pytest.mark.apm_801
     @pytest.mark.errors
-    @pytest.mark.usefixtures('get_token')
-    def test_access_token_does_expire(self):
-        # Get token with a timeout set to 5 second &
+    @pytest.mark.usefixtures('set_access_token')
+    def test_access_token_does_expire(self, helper):
+        # Set token fixture is executed
         # wait until token has expired
-        assert self.oauth.check_endpoint(
-            verb='GET',
-            endpoint='hello_world',
-            expected_status_code=200,
-            expected_response={"message": "hello user!"},
-            headers={
-                'Authorization': f'Bearer {self.token}',
-                'NHSD-Session-URID': '',
-            }
-        )
-
-        # Wait for token to expire
         sleep(5)
 
-        # Check refresh token still works after access token has expired
-        assert self.oauth.check_endpoint(
+        # Check token still works after access token has expired
+        assert helper.check_endpoint(
             verb='GET',
             endpoint='hello_world',
             expected_status_code=401,
@@ -114,124 +114,95 @@ class TestOauthTokenSuite:
                 }
             },
             headers={
-                'Authorization': f'Bearer {self.token}',
+                'Authorization': f'Bearer {self.oauth.access_token}',
                 'NHSD-Session-URID': '',
             }
         )
 
     @pytest.mark.apm_1618
     @pytest.mark.errors
-    def test_access_token_with_params(self):
-        assert self.oauth.check_endpoint(
-            verb='POST',
-            endpoint='token',
-            expected_status_code=400,
-            expected_response={
-                "error": "invalid_request",
-                "error_description": "grant_type is missing"
-            },
-            params={"put_some_query_params_here": "test"}
+    async def test_access_token_with_params(self):
+        resp = await self.oauth.hit_oauth_endpoint(
+            method="POST",
+            endpoint="token",
+            params={
+                'client_id': self.oauth.client_id,
+                'client_secret': self.oauth.client_secret,
+                'grant_type': "authorization_code",
+                'redirect_uri': self.oauth.redirect_uri,
+                'code': await self.oauth.get_authenticated_with_simulated_auth(),
+                '_access_token_expiry_ms': 5000
+            }
         )
 
-    @pytest.mark.apm_1010
-    @pytest.mark.errors
-    @pytest.mark.usefixtures('get_refresh_token')
-    def test_refresh_token_does_expire(self):
-        sleep(5)
-        assert self.oauth.check_endpoint(
-            verb='POST',
-            endpoint='token',
-            expected_status_code=401,
-            expected_response={
-                "error": "invalid_grant",
-                "error_description": "access token refresh period has expired"
-            },
-            headers={
-                'NHSD-Session-URID': '',
-            },
-            data={
-                'client_id': config.CLIENT_ID,
-                'client_secret': config.CLIENT_SECRET,
-                'grant_type': 'refresh_token',
-                'refresh_token': self.refresh_token
-            })
+        assert resp['status_code'] == 400
+        assert resp['body'] == {
+            "error": "invalid_request",
+            "error_description": "grant_type is missing"
+        }
 
     @pytest.mark.apm_1010
     @pytest.mark.errors
-    @pytest.mark.usefixtures('get_refresh_token')
-    def test_refresh_tokens_validity_expires(self):
+    @pytest.mark.usefixtures('set_refresh_token')
+    async def test_refresh_token_does_expire(self):
+        sleep(5)
+        resp = await self.oauth.get_token_response(
+            grant_type="refresh_token",
+            refresh_token=self.oauth.refresh_token
+        )
+
+        assert resp['status_code'] == 401
+        assert resp['body'] == {
+            "error": "invalid_grant",
+            "error_description": "access token refresh period has expired",
+        }
+
+    @pytest.mark.apm_1010
+    @pytest.mark.errors
+    @pytest.mark.usefixtures('set_refresh_token')
+    async def test_refresh_tokens_validity_expires(self):
         # Set refresh token validity to 0
-        assert self.oauth.check_endpoint(
-            verb='POST',
-            endpoint='token',
-            expected_status_code=401,
-            expected_response={
-                "error": "invalid_grant",
-                "error_description": "access token refresh period has expired"
-            },
+        resp = await self.oauth.get_token_response(
+            grant_type="refresh_token",
+            refresh_token=self.oauth.refresh_token,
             data={
                 'client_id': config.CLIENT_ID,
                 'client_secret': config.CLIENT_SECRET,
                 'grant_type': 'refresh_token',
-                'refresh_token': self.refresh_token,
+                'refresh_token': self.oauth.refresh_token,
                 '_refresh_tokens_validity_ms': 0
-            })
+            }
+        )
+
+        assert resp['status_code'] == 401
+        assert resp['body'] == {
+            "error": "invalid_grant",
+            "error_description": "access token refresh period has expired"
+        }
 
     @pytest.mark.apm_1475
     @pytest.mark.errors
-    @pytest.mark.usefixtures('get_token')
-    def test_re_use_of_refresh_token(self):
-        response = self.oauth.check_and_return_endpoint(
-            verb="POST",
-            endpoint="token",
-            expected_status_code=200,
-            expected_response=[
-                "access_token",
-                "expires_in",
-                "refresh_count",
-                "refresh_token",
-                "refresh_token_expires_in",
-                "token_type",
-            ],
-            data={
-                "client_id": config.CLIENT_ID,
-                "client_secret": config.CLIENT_SECRET,
-                "redirect_uri": config.REDIRECT_URI,
-                "grant_type": "authorization_code",
-                "code": self.oauth.get_authenticated(),
-            },
-        )
+    @pytest.mark.usefixtures('set_refresh_token')
+    async def test_re_use_of_refresh_token(self):
+        resp = await self.oauth.get_token_response(grant_type="refresh_token",
+                                                   refresh_token=self.oauth.refresh_token)
 
-        assert self.oauth.check_endpoint(
-            verb='POST',
-            endpoint='token',
-            expected_status_code=200,
-            expected_response=[
-                'access_token',
-                'expires_in',
-                'refresh_count',
-                'refresh_token',
-                'refresh_token_expires_in',
-                'token_type'
-            ],
-            data={
-                'client_id': config.CLIENT_ID,
-                'client_secret': config.CLIENT_SECRET,
-                'grant_type': 'refresh_token',
-                'refresh_token': response.json()["refresh_token"],
-            })
+        assert resp['status_code'] == 200
+        assert sorted(list(resp['body'].keys())) == [
+            'access_token',
+            'expires_in',
+            'refresh_count',
+            'refresh_token',
+            'refresh_token_expires_in',
+            'token_type'
+        ]
 
-        assert self.oauth.check_endpoint(
-            verb='POST',
-            endpoint='token',
-            expected_status_code=401,
-            expected_response={
-                "error": "invalid_grant",
-                "error_description": "refresh_token is invalid"
-            },
-            data={
-                'client_id': config.CLIENT_ID,
-                'client_secret': config.CLIENT_SECRET,
-                'grant_type': 'refresh_token',
-                'refresh_token': response.json()["refresh_token"],
-            })
+        # Sending another request with the same refresh token
+        resp = await self.oauth.get_token_response(grant_type="refresh_token",
+                                                   refresh_token=self.oauth.refresh_token)
+
+        assert resp['status_code'] == 401
+        assert resp['body'] == {
+            "error": "invalid_grant",
+            "error_description": "refresh_token is invalid"
+        }
