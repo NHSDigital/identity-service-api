@@ -296,6 +296,10 @@ class TestJwtUnattendedAccessSuite:
         jwt = self.oauth.create_jwt(**jwt_claims)
         resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
 
+        if resp['status_code'] == 429:
+            sleep(3)
+            resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
+
         assert resp['status_code'] == expected_status_code
         assert resp['body'] == expected_response
 
