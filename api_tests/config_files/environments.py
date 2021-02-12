@@ -34,7 +34,6 @@ ENV = {
         'client_id': get_env('CLIENT_ID'),
         'client_secret': get_env('CLIENT_SECRET'),
         'redirect_uri': get_env('REDIRECT_URI'),
-        'authenticate_url': get_env('AUTHENTICATE_URL'),
 
         # Valid but unsubscribed app details
         'valid_unsubscribed_client_id': get_env('VALID_UNSUBSCRIBED_CLIENT_ID'),
