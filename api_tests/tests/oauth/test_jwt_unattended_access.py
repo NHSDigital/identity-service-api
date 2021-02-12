@@ -1,7 +1,8 @@
 from api_tests.config_files import config
 import pytest
+import asyncio
 from uuid import uuid4
-from time import time, sleep
+from time import time
 
 from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
 from api_test_utils.apigee_api_products import ApigeeApiProducts
@@ -297,7 +298,7 @@ class TestJwtUnattendedAccessSuite:
         resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
 
         if resp['status_code'] == 429:
-            sleep(3)
+            await asyncio.sleep(3)
             resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
 
         assert resp['status_code'] == expected_status_code
