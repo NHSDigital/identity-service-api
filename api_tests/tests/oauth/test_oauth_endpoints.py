@@ -760,7 +760,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }
         )
-        sleep(1)
+        sleep(2)
 
         # Then 
         response_dict = json.loads(response.text)
@@ -786,7 +786,7 @@ class TestOauthEndpoints:
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange'                 
             }            
         )
-        sleep(1)
+        sleep(2)
 
         response_dict = json.loads(response.text)
 
@@ -813,7 +813,7 @@ class TestOauthEndpoints:
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange'
             }            
         )
-        sleep(1)
+        sleep(2)
 
         response_dict = json.loads(response.text)
 
@@ -853,7 +853,7 @@ class TestOauthEndpoints:
             }            
         )
 
-        sleep(1)
+        sleep(2)
 
         response_dict = json.loads(response.text)
 
@@ -892,7 +892,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }            
         )
-        sleep(1)
+        sleep(2)
         response_dict = json.loads(response.text)
 
         # Then
@@ -929,7 +929,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }            
         )
-        sleep(1)
+        sleep(2)
 
         response_dict = json.loads(response.text)
 
@@ -968,7 +968,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }            
         )
-        sleep(1)
+        sleep(2)
 
         response_dict = json.loads(response.text)
 
@@ -1006,7 +1006,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }            
         )
-        sleep(1)
+        sleep(2)
 
         response_dict = json.loads(response.text)
 
@@ -1045,7 +1045,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }            
         )
-        sleep(1)
+        sleep(2)
 
         response_dict = json.loads(response.text)
 
@@ -1106,7 +1106,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }
         )
-        sleep(1)
+        sleep(2)
 
         response = requests.post(
             url=config.TOKEN_URL,
@@ -1179,7 +1179,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }            
         )
-        sleep(1)
+        sleep(2)
 
         response_dict = json.loads(response.text)
 
@@ -1239,7 +1239,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }            
         )
-        sleep(1)
+        sleep(2)
 
         response_dict = json.loads(response.text)
 
@@ -1300,7 +1300,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }            
         )
-        sleep(1)
+        sleep(2)
 
         response_dict = json.loads(response.text)
 
