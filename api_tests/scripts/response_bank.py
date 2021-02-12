@@ -68,20 +68,20 @@ BANK = {
         'redirects': {
             0: {
                 'status_code': 302,
-                'url': f'{config.BASE_URL}/authorize?'
+                'url': f'{config.OAUTH_BASE_URI}/authorize?'
                        'client_id=Too5BdPayTQACdw1AJK1rD4nKUD0Ag7J'
                        '&redirect_uri=https%3A%2F%2Fnhsd-apim-testing-internal-dev.herokuapp.com%2Fcallback'
                        '&response_type=code',
                 'headers': {
-                    'Location': f'{config.BASE_URL}/simulated_auth?response_type=code&client_id=some-client-id'
-                                f'&redirect_uri={config.BASE_URL}/callback&scope=openid&prompt=login'
+                    'Location': f'{config.OAUTH_BASE_URI}/simulated_auth?response_type=code&client_id=some-client-id'
+                                f'&redirect_uri={config.OAUTH_BASE_URI}/callback&scope=openid&prompt=login'
                 }
                 },
             1: {
                 'status_code': 302,
                 'url': 'https://am.nhsspit-2.ptl.nhsd-esa.net/openam/oauth2/realms/root/realms/oidc/authorize?'
                        'response_type=code&client_id=969567331415.apps.national&'
-                       f'redirect_uri={config.BASE_URL}/callback&scope=openid',
+                       f'redirect_uri={config.OAUTH_BASE_URI}/callback&scope=openid',
                 'headers': {
                             'Location': 'https://am.nhsspit-2.ptl.nhsd-esa.net/openam/UI/Login?'
                                         'realm=%2Foidc&goto=https%3A%2F%2Fam.nhsspit-2.ptl.nhsd-esa.net%3A443%2Fopenam'

@@ -88,8 +88,8 @@ class TestOauthEndpoints:
             expected_status_code=302,
             expected_response="",
             params={
-                "client_id": config.CLIENT_ID,
-                "redirect_uri": config.REDIRECT_URI,
+                "client_id": self.oauth.client_id,
+                "redirect_uri": self.oauth.redirect_uri,
                 "response_type": "code",
                 "state": "1234567890",
             },
@@ -107,8 +107,8 @@ class TestOauthEndpoints:
             expected_response="",
             params={
                 "response_type": "code",
-                "client_id": config.CLIENT_ID,
-                "redirect_uri": config.REDIRECT_URI,
+                "client_id": self.oauth.client_id,
+                "redirect_uri": self.oauth.redirect_uri,
                 "scope": "openid",
                 "state": state2,
             },
