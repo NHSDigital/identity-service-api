@@ -111,7 +111,7 @@ BANK = {
     'test_userinfo': {
         'response': {
             "nhsid_useruid": "910000000001",
-            "name": "userq random mr",
+            "name": "USERQ RANDOM Mr",
             "nhsid_nrbac_roles": [
                 {
                     "activities": [
