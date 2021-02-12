@@ -1,6 +1,7 @@
 import pytest
-from api_tests.steps.check_oauth import CheckOauth
-from api_tests.steps.check_pds import CheckPds
+from api_test_utils.oauth_helper import OauthHelper
+from api_tests.config_files import config
+from api_tests.scripts.generic_request import GenericRequest
 
 
 def _get_parametrized_values(request):
@@ -11,81 +12,69 @@ def _get_parametrized_values(request):
             return mark.args[1]
 
 
-@ pytest.fixture()
-def get_token_using_jwt(request):
-    """Get a token using a signed JWT and assign it to the test instance"""
-    oauth_endpoints = CheckOauth()
-    _jwt = oauth_endpoints.create_jwt(kid="test-1")
-    response, _ = oauth_endpoints.get_jwt_token_response(_jwt)
-    try:
-        setattr(request.cls, 'jwt_response', response)
-        setattr(request.cls, 'jwt_signed_token', response['access_token'])
-    except KeyError:
-        raise Exception(f"UNEXPECTED RESPONSE {response.status_code}: {response.text}")
-
-
 @pytest.fixture()
 def get_token(request):
-    """Get the token and assign it to the test instance"""
-    oauth_endpoints = CheckOauth()
-    token = oauth_endpoints.get_token_response()
-    setattr(request.cls, 'token', token['access_token'])
-    setattr(request.cls, 'refresh', token['refresh_token'])  # This is required if you want to request a refresh token
-    return oauth_endpoints
+    """Get an access or refresh token
+    some examples:
+        1. access_token via simulated oauth (default)
+            get_token()
+        2. get access token with a specified timeout value (default is 5 seconds)
+            get_token(timeout=500000)  # 5 minuets
+        3. refresh_token via simulated oauth
+            get_token(grant_type="refresh_token", refresh_token=<refresh_token>)
+        4. access_token with JWT
+            get_token(grant_type='client_credentials', _jwt=jwt)
+    """
+
+    async def _token(
+        oauth: OauthHelper = request.cls.oauth,
+        grant_type: str = "authorization_code",
+        **kwargs
+    ):
+        resp = await oauth.get_token_response(grant_type=grant_type, **kwargs)
+
+        if resp['status_code'] != 200:
+            message = 'unable to get token'
+            raise RuntimeError(f"\n{'*' * len(message)}\n"
+                               f"MESSAGE: {message}\n"
+                               f"URL: {resp.get('url')}\n"
+                               f"STATUS CODE: {resp.get('status_code')}\n"
+                               f"RESPONSE: {resp.get('body')}\n"
+                               f"HEADERS: {resp.get('headers')}\n"
+                               f"{'*' * len(message)}\n")
+        return resp['body']
+    return _token
 
 
 @pytest.fixture()
-def get_refresh_token(request, get_token):
-    """Get the refresh token and assign it to the test instance"""
-    # Requesting a refresh token will expire the previous access token
-    refresh_token = get_token.get_token_response(grant_type='refresh_token', refresh_token=request.cls.refresh)
-    setattr(request.cls, 'refresh_token', refresh_token['refresh_token'])
+async def set_access_token(request, get_token):
+    token = await get_token()
+    setattr(request.cls.oauth, "access_token", token['access_token'])
+    setattr(request.cls.oauth, "refresh_token", token['refresh_token'])
 
 
 @pytest.fixture()
-def get_token_with_extra_long_expiry_time(request):
-    """Useful for debugging and for tests that take longer and are require to reuse the token"""
-    oauth_endpoints = CheckOauth()
-    token = oauth_endpoints.get_token_response(timeout=500000)  # 5 minuets
-    setattr(request.cls, 'token', token['access_token'])
-    setattr(request.cls, 'refresh', token['refresh_token'])  # This is required if you want to request a refresh token
-    return oauth_endpoints
+async def set_refresh_token(request, get_token, set_access_token):
+    refresh_token = await get_token(grant_type="refresh_token", refresh_token=request.cls.oauth.refresh_token)
+    setattr(request.cls.oauth, "refresh_token", refresh_token['refresh_token'])
 
 
-@pytest.fixture(scope='function')
-def update_token_in_parametrized_headers(request):
-    # Manually setting this fixture for session use because the pytest
-    # session scope is called before any of the markers are set.
-    if not hasattr(request.cls, 'setup_done'):
-        token = CheckOauth().get_token_response()
-        for value in _get_parametrized_values(request):
-            if value.get('Authorization', None) == 'valid_token':
-                value['Authorization'] = f'Bearer {token["access_token"]}'
-
-        # Make sure the token is not refreshed before every test
-        setattr(request.cls, 'setup_done', True)
+@pytest.fixture()
+def helper():
+    return GenericRequest()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(autouse=True)
 def setup(request):
     """This function is called before each test is executed"""
     # Get the name of the current test and attach it the the test instance
     name = (request.node.name, request.node.originalname)[request.node.originalname is not None]
     setattr(request.cls, "name", name)
 
-    oauth = CheckOauth()
+    oauth = OauthHelper(config.CLIENT_ID, config.CLIENT_SECRET, config.REDIRECT_URI)
     setattr(request.cls, "oauth", oauth)
-
-    pds = CheckPds()
-    setattr(request.cls, "pds", pds)
 
     yield  # Handover to test
 
     # Teardown
-    try:
-        # Close any lingering sessions
-        request.cls.test.session.close()
-    except AttributeError:
-        # Probably failed during setup
-        # so nothing to teardown
-        pass
+    pass

@@ -61,7 +61,7 @@
               This facility can be used to develop your OAuth 2 Client Application without needing a smartcard and smartcard reader.
             </p>
             <p>
-              See our documentation on <a href="https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/user-restricted-restful-apis">User-restricted RESTful APIs</a> for more information.
+              See our <a href="https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/user-restricted-restful-apis-nhs-identity-combined-authentication-and-authorisation">documentation</a> for more information.
             </p>
             <input type="hidden" name="state" value="{request.queryparam.state}" />
             <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>

@@ -60,7 +60,7 @@ BANK = {
                     </head>
                     <bodyclass="text-center"><formclass="form-signin"method="post"><h1class="h3mb-3font-weight-normal">Simulatedloginpage</h1>
                     <p>ThisfacilitycanbeusedtodevelopyourOAuth2ClientApplicationwithoutneedingasmartcardandsmartcardreader.</p>
-                    <p>Seeourdocumentationon<ahref="https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/user-restricted-restful-apis">User-restrictedRESTfulAPIs</a>formoreinformation.</p>
+                    <p>Seeour<ahref="https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/user-restricted-restful-apis-nhs-identity-combined-authentication-and-authorisation">documentation</a>formoreinformation.</p>
                     <buttonclass="btnbtn-lgbtn-primarybtn-block"type="submit">Signin</button><pclass="mt-5mb-3text-muted">NHSDigital</p></form>
                     </body>
                 </html>
@@ -68,20 +68,20 @@ BANK = {
         'redirects': {
             0: {
                 'status_code': 302,
-                'url': f'{config.BASE_URL}/authorize?'
+                'url': f'{config.OAUTH_BASE_URI}/authorize?'
                        'client_id=Too5BdPayTQACdw1AJK1rD4nKUD0Ag7J'
                        '&redirect_uri=https%3A%2F%2Fnhsd-apim-testing-internal-dev.herokuapp.com%2Fcallback'
                        '&response_type=code',
                 'headers': {
-                    'Location': f'{config.BASE_URL}/simulated_auth?response_type=code&client_id=some-client-id'
-                                f'&redirect_uri={config.BASE_URL}/callback&scope=openid&prompt=login'
+                    'Location': f'{config.OAUTH_BASE_URI}/simulated_auth?response_type=code&client_id=some-client-id'
+                                f'&redirect_uri={config.OAUTH_BASE_URI}/callback&scope=openid&prompt=login'
                 }
                 },
             1: {
                 'status_code': 302,
                 'url': 'https://am.nhsspit-2.ptl.nhsd-esa.net/openam/oauth2/realms/root/realms/oidc/authorize?'
                        'response_type=code&client_id=969567331415.apps.national&'
-                       f'redirect_uri={config.BASE_URL}/callback&scope=openid',
+                       f'redirect_uri={config.OAUTH_BASE_URI}/callback&scope=openid',
                 'headers': {
                             'Location': 'https://am.nhsspit-2.ptl.nhsd-esa.net/openam/UI/Login?'
                                         'realm=%2Foidc&goto=https%3A%2F%2Fam.nhsspit-2.ptl.nhsd-esa.net%3A443%2Fopenam'
@@ -111,7 +111,7 @@ BANK = {
     'test_userinfo': {
         'response': {
             "nhsid_useruid": "910000000001",
-            "name": "userq random mr",
+            "name": "USERQ RANDOM Mr",
             "nhsid_nrbac_roles": [
                 {
                     "activities": [
