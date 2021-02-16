@@ -444,9 +444,6 @@
                 <Name>DecodeJWT.FromSubjectTokenFormParam</Name>
             </Step>
             <Step>
-                <Name>JavaScript.IdTokenValidation</Name>
-            </Step>
-            <Step>
               <Name>RaiseFault.MissingExpClaim</Name>
               <Condition>(jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.exp Equals "")</Condition>
           </Step>
