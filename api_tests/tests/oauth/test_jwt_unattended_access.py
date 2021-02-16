@@ -70,7 +70,6 @@ class TestJwtUnattendedAccessSuite:
             },
             400
         ),
-
         # Invalid “sub” & “iss” in jwt claims
         (
             {
@@ -86,7 +85,6 @@ class TestJwtUnattendedAccessSuite:
             {'error': 'invalid_request', 'error_description': 'Invalid iss/sub claims in JWT'},
             401
         ),
-
         # Invalid “sub” in jwt claims and different from “iss”
         (
             {
@@ -102,11 +100,10 @@ class TestJwtUnattendedAccessSuite:
             {'error': 'invalid_request', 'error_description': 'Missing or non-matching iss/sub claims in JWT'},
             400
         ),
-
         #  Invalid “iss” in jwt claims and different from “sub"
         (
             {
-                'kid': 'test-1', 
+                'kid': 'test-1',
                 'claims': {
                     "sub": config.JWT_APP_KEY,
                     "iss": 'INVALID',
@@ -118,7 +115,6 @@ class TestJwtUnattendedAccessSuite:
             {'error': 'invalid_request', 'error_description': 'Missing or non-matching iss/sub claims in JWT'},
             400
         ),
-
         # Missing “sub” in jwt claims
         (
             {
@@ -133,7 +129,6 @@ class TestJwtUnattendedAccessSuite:
             {'error': 'invalid_request', 'error_description': 'Missing or non-matching iss/sub claims in JWT'},
             400
         ),
-
         # Missing “iss” in jwt claims
         (
             {
@@ -148,7 +143,6 @@ class TestJwtUnattendedAccessSuite:
             {'error': 'invalid_request', 'error_description': 'Missing or non-matching iss/sub claims in JWT'},
             400
         ),
-
         # Invalid “jti” in jwt claims e.g using an INT type instead of a STRING
         (
             {
@@ -164,7 +158,6 @@ class TestJwtUnattendedAccessSuite:
             {'error': 'invalid_request', 'error_description': 'Failed to decode JWT'},
             400
         ),
-
         #  Missing “jti” in jwt claims
         (
             {
@@ -179,7 +172,6 @@ class TestJwtUnattendedAccessSuite:
             {'error': 'invalid_request', 'error_description': 'Missing jti claim in JWT'},
             400
         ),
-
         # Reusing the same “jti”
         (
             {
@@ -195,7 +187,6 @@ class TestJwtUnattendedAccessSuite:
             {'error': 'invalid_request', 'error_description': 'Non-unique jti claim in JWT'},
             400
         ),
-
         # Invalid “aud” in jwt claims
         (
             {
@@ -211,7 +202,6 @@ class TestJwtUnattendedAccessSuite:
             {'error': 'invalid_request', 'error_description': 'Missing or invalid aud claim in JWT'},
             401
         ),
-
         # Missing “aud” in jwt claims
         (
             {
@@ -226,7 +216,6 @@ class TestJwtUnattendedAccessSuite:
             {'error': 'invalid_request', 'error_description': 'Missing or invalid aud claim in JWT'},
             401
         ),
-
         # Invalid “exp” in jwt claims e.g. using a STRING type
         (
             {
@@ -242,7 +231,6 @@ class TestJwtUnattendedAccessSuite:
             {'error': 'invalid_request', 'error_description': 'Failed to decode JWT'},
             400
         ),
-
         # Missing “exp” in jwt claims
         (
             {
@@ -257,7 +245,6 @@ class TestJwtUnattendedAccessSuite:
             {'error': 'invalid_request', 'error_description': 'Missing exp claim in JWT'},
             400
         ),
-
         # “Exp” in the past
         (
             {
@@ -273,7 +260,6 @@ class TestJwtUnattendedAccessSuite:
             {'error': 'invalid_request', 'error_description': 'Invalid exp claim in JWT - JWT has expired'},
             400
         ),
-
         # “Exp” too far into the future (more than 5 minuets)
         (
             {
@@ -327,9 +313,7 @@ class TestJwtUnattendedAccessSuite:
                 'error_description': "Missing or invalid client_assertion_type - "
                                      "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
             }
-
         ),
-
         # Missing formdata “client_assertion_type”
         (
             {
@@ -341,7 +325,6 @@ class TestJwtUnattendedAccessSuite:
                                      "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
             }
         ),
-
         # Invalid formdata “client_assertion”
         (
             {
@@ -351,7 +334,6 @@ class TestJwtUnattendedAccessSuite:
             },
             {'error': 'invalid_request', 'error_description': 'Malformed JWT in client_assertion'}
         ),
-
         # Missing formdata “client_assertion”
         (
             {
@@ -360,7 +342,6 @@ class TestJwtUnattendedAccessSuite:
             },
             {'error': 'invalid_request', 'error_description': 'Missing client_assertion'}
         ),
-
         # Invalid formdata “grant_type”
         (
             {
@@ -369,7 +350,6 @@ class TestJwtUnattendedAccessSuite:
             },
             {'error': 'unsupported_grant_type', 'error_description': 'grant_type is invalid'}
         ),
-
         # Missing formdata "grant_type"
         (
             {
@@ -380,7 +360,6 @@ class TestJwtUnattendedAccessSuite:
                 'error_description': 'grant_type is missing'
             }
         )
-
     ])
     async def test_invalid_form_data(self, form_data, expected_response):
         jwt = self.oauth.create_jwt(kid="test-1")
@@ -400,17 +379,14 @@ class TestJwtUnattendedAccessSuite:
             {'error': 'invalid_request', 'error_description': "Invalid 'kid' header in JWT - no matching public key"},
             401
         ),
-
         # Missing KID Header
         (
             {
                 'kid': None,
-
             },
             {'error': 'invalid_request', 'error_description': "Missing 'kid' header in JWT"},
             400
         ),
-
     ])
     async def test_invalid_jwt(self, jwt_details, expected_response, expected_status_code):
         jwt = self.oauth.create_jwt(**jwt_details, client_id=config.JWT_APP_KEY)
@@ -429,12 +405,12 @@ class TestJwtUnattendedAccessSuite:
         assert resp['status_code'] == 400
         assert resp['body'] == {'error': 'invalid_request', 'error_description': 'Malformed JWT in client_assertion'}
 
-    @pytest.mark.skip(reason='temp skip test')
-    def test_invalid_jwks_resource_url(self):
-        #config.JWT_APP_KEY = config.JWT_APP_KEY_WITH_INVALID_JWKS_URL
-        assert self.oauth.check_jwt_token_response(
-            jwt=self.oauth.create_jwt(kid='test-1'),
-            expected_response={
+    async def test_invalid_jwks_resource_url(self):
+        jwt = self.oauth.create_jwt(kid='test-1', client_id=config.JWT_APP_KEY_WITH_INVALID_JWKS_URL)
+        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
+
+        assert resp['status_code'] == 403
+        assert resp['body'] == {
                 'error': 'public_key error',
                 'error_description': 'You need to register a public key to use this '
                                      'authentication method - please contact support to configure'
