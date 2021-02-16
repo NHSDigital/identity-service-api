@@ -1,0 +1,7 @@
+<AssignMessage name="AssignMessage.RemoveAuthorizationHeader">
+    <Remove>
+        <Headers>
+            <Header name="Authorization"/>
+        </Headers>
+    </Remove>
+</AssignMessage>

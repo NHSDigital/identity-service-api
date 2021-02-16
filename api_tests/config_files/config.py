@@ -5,6 +5,7 @@ from .environments import ENV
 APIGEE_CLIENT_ID = ENV['oauth']['apigee_client_id']
 OAUTH_PROXY = ENV['oauth']['oauth_proxy']
 OAUTH_BASE_URI = ENV['oauth']['base_url']
+SERVICE_NAME = ENV['oauth']['service_name']
 
 AUTHORIZE_URL = f"{OAUTH_BASE_URI}/{OAUTH_PROXY}/authorize"
 TOKEN_URL = f"{OAUTH_BASE_URI}/{OAUTH_PROXY}/token"
@@ -55,7 +56,6 @@ ENDPOINTS = {
     'hello_world': HELLO_WORLD_API_URL,
     'pds': PDS_API,
     'sim_auth': SIM_AUTH_URL,
-    'ping': f'{OAUTH_BASE_URI}/{OAUTH_PROXY}/_ping'
 }
 
 # Flag to indicate if tests are running locally or remotely i.e. in the pipeline
