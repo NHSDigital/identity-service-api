@@ -14,6 +14,7 @@ steps:
   - bash: |
       source ./test_env/bin/activate
 
+      export SERVICE_NAME="$(FULLY_QUALIFIED_SERVICE_NAME)"
       export OAUTH_BASE_URI="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk"
       export OAUTH_PROXY="$(SERVICE_BASE_PATH)"
       export CLIENT_ID="$(CLIENT_ID)"
@@ -21,7 +22,7 @@ steps:
       export REDIRECT_URI="https://nhsd-apim-testing-$(APIGEE_ENVIRONMENT).herokuapp.com/callback"
       export HELLO_WORLD_API_URL="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk/hello-world/hello/user"
       export APIGEE_CLIENT_ID="969567331415.apps.national"
-      export APIGEE_API_AUTHENTICATION="$(secret.AccessToken)"
+      export APIGEE_API_TOKEN="$(secret.AccessToken)"
       export APIGEE_API_URL="https://api.enterprise.apigee.com/v1/organizations/nhsd-nonprod"
       export PDS_BASE_URL="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk"
       export PDS_PROXY="personal-demographics"
