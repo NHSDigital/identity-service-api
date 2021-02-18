@@ -10,7 +10,10 @@ def _get_service_name():
 # Oauth details
 OAUTH_BASE_URI = environ["OAUTH_BASE_URI"]
 OAUTH_PROXY = environ["OAUTH_PROXY"]
-SERVICE_NAME = ('identity-service-internal-dev', OAUTH_PROXY.replace('oauth2', 'identity-service'))["pr" in OAUTH_PROXY]
+SERVICE_NAME = environ.get(
+    "SERVICE_NAME",
+    ('identity-service-internal-dev', OAUTH_PROXY.replace('oauth2', 'identity-service'))["pr" in OAUTH_PROXY]
+)
 
 TOKEN_URL = f"{OAUTH_BASE_URI}/{OAUTH_PROXY}/token"
 
