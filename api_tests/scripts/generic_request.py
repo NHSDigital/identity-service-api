@@ -2,7 +2,6 @@ import requests
 from json import loads, JSONDecodeError
 from urllib import parse
 from re import sub
-from api_tests.config_files import config
 from urllib.parse import urlparse, urlencode
 from typing import Optional
 from typing import Union
@@ -14,17 +13,11 @@ class GenericRequest:
 
     def __init__(self):
         self.session = requests.Session()
-        self.endpoints = config.ENDPOINTS
 
-    def get_response(self, verb: str, endpoint: str, **kwargs) -> requests.Response:
+    def get_response(self, verb: str, url: str, **kwargs) -> requests.Response:
         """Verify the arguments and then send a request and return the response"""
-        try:
-            url = self.endpoints[endpoint]
-        except KeyError:
-            if self.is_url(endpoint):
-                url = endpoint
-            else:
-                raise Exception("Endpoint not found")
+        if not self.is_url(url):
+            raise Exception("Endpoint not found")
 
         # Verify http verb is valid
         if verb.lower() not in {'post', 'get', 'put', 'patch'}:
@@ -56,6 +49,13 @@ class GenericRequest:
     @staticmethod
     def check_params(params, expected_params):
         return all(params.get(key) and params[key] == value for key, value in expected_params.items())
+
+    def verify_params_exist_in_url(self, params: list, url: str) -> bool:
+        _params = self.get_params_from_url(url)
+        for param in params:
+            if not _params[param]:
+                return False
+        return True
 
     @staticmethod
     def _verify_status_code(status_code: Union[int, str]) -> None:
