@@ -127,28 +127,32 @@ def setup_application_restricted(request, test_app, test_product):
     asyncio.run(test_app.destroy_app())
 
 
-@pytest.yield_fixture(scope="session", autouse=True)
-def setup_session(request):
-    """This fixture is automatically called once at the start of pytest execution.
-    The default app created here should be modified by your tests.
-    If your test requires specific app config then please create your own using
-    the fixture test_app"""
+async def _product_with_full_access():
     product = ApigeeApiProducts()
-
-    asyncio.run(product.create_new_product())
+    await product.create_new_product()
     _set_default_rate_limit(product)
-
     product.update_scopes([
         "personal-demographics-service:USER-RESTRICTED",
         "urn:nhsd:apim:app:level3:",
         "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"
     ])
 
+    await product.update_paths(paths=["/", "/*"])
+    return product
+
+
+@pytest.yield_fixture(scope="session", autouse=True)
+def setup_session(request):
+    """This fixture is automatically called once at the start of pytest execution.
+    The default app created here should be modified by your tests.
+    If your test requires specific app config then please create your own using
+    the fixture test_app"""
+    product = asyncio.run(_product_with_full_access())
     app = ApigeeApiDeveloperApps()
 
     print("\nCreating Default App..")
     asyncio.run(app.create_new_app(callback_url="https://nhsd-apim-testing-internal-dev.herokuapp.com/callback"))
-    asyncio.run(app.add_api_product([product.name, "internal-testing-internal-dev"]))
+    asyncio.run(app.add_api_product([product.name]))
 
     # Set default JWT Testing resource url
     asyncio.run(
