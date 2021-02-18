@@ -490,7 +490,8 @@
         <!-- The below response attribute doesn't execute because the grant_type has changes to client_credentials
                 so apigee executes the response from the Client Credentials flow instead -->
         <Response/>
-        <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Equals "urn:ietf:params:oauth:grant-type:token-exchange"))</Condition>
+        <Condition>apim.feature_toggles.enable-token-exchange</Condition>
+        <!--<Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Equals "urn:ietf:params:oauth:grant-type:token-exchange"))</Condition>-->
       </Flow>
       <Flow name="Flow.PostTokenAuthorizationCode">
         <Description>OAuth Token Endpoint - Authorization Code Flow</Description>
