@@ -1,18 +1,31 @@
-from api_tests.config_files import config
+from api_tests.config_files.config import TOKEN_URL
+from api_tests.scripts.generic_helper import check_response
 import pytest
 from uuid import uuid4
-from time import time, sleep
+from time import time
 from random import choice
 from string import ascii_letters
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("setup")
-class TestJwtUnattendedAccessSuite:
+class TestJwtUnattendedAccess:
     """ A test suit to verify all the happy path oauth endpoints """
 
+    def _update_secrets(self, request):
+        if request.get("claims", None):
+            if request["claims"].get("sub", None) == "/replace_me":
+                request["claims"]['sub'] = self.oauth.client_id
+
+            if request["claims"].get("iss", None) == "/replace_me":
+                request["claims"]['iss'] = self.oauth.client_id
+        else:
+            if request.get("sub", None) == "/replace_me":
+                request['sub'] = self.oauth.client_id
+            if request.get("iis", None) == "/replace_me":
+                request["iis"] = self.oauth.client_id
+
     @pytest.mark.parametrize('jwt_claims, expected_response, expected_status_code', [
-        # Incorrect JWT algorithm using “HS256” instead of “RS512”
+        # 1. Incorrect JWT algorithm using “HS256” instead of “RS512”
         (
             {
                 'kid': 'test-1',
@@ -25,7 +38,7 @@ class TestJwtUnattendedAccessSuite:
             400
         ),
 
-        # Invalid “sub” & “iss” in jwt claims
+        # 2. Invalid “sub” & “iss” in jwt claims
         (
             {
                 'kid': 'test-1',
@@ -33,7 +46,7 @@ class TestJwtUnattendedAccessSuite:
                     "sub": 'INVALID',
                     "iss": 'INVALID',
                     "jti": str(uuid4()),
-                    "aud": config.TOKEN_URL,
+                    "aud": TOKEN_URL,
                     "exp": int(time()) + 10,
                 }
             },
@@ -41,15 +54,15 @@ class TestJwtUnattendedAccessSuite:
             401
         ),
 
-        # Invalid “sub” in jwt claims and different from “iss”
+        # 3. Invalid “sub” in jwt claims and different from “iss”
         (
             {
                 'kid': 'test-1',
                 'claims': {
                     "sub": 'INVALID',
-                    "iss": config.JWT_APP_KEY,
+                    "iss": "/replace_me",
                     "jti": str(uuid4()),
-                    "aud": config.TOKEN_URL,
+                    "aud": TOKEN_URL,
                     "exp": int(time()) + 10,
                 }
             },
@@ -57,15 +70,15 @@ class TestJwtUnattendedAccessSuite:
             400
         ),
 
-        #  Invalid “iss” in jwt claims and different from “sub"
+        #  4. Invalid “iss” in jwt claims and different from “sub"
         (
             {
                 'kid': 'test-1',
                 'claims': {
-                    "sub": config.JWT_APP_KEY,
+                    "sub": "/replace_me",
                     "iss": 'INVALID',
                     "jti": str(uuid4()),
-                    "aud": config.TOKEN_URL,
+                    "aud": TOKEN_URL,
                     "exp": int(time()) + 10,
                 }
             },
@@ -73,14 +86,14 @@ class TestJwtUnattendedAccessSuite:
             400
         ),
 
-        # Missing “sub” in jwt claims
+        # 5. Missing “sub” in jwt claims
         (
             {
                 'kid': 'test-1',
                 'claims': {
-                    "iss": config.JWT_APP_KEY,
+                    "iss": "/replace_me",
                     "jti": str(uuid4()),
-                    "aud": config.TOKEN_URL,
+                    "aud": TOKEN_URL,
                     "exp": int(time()) + 10,
                 }
             },
@@ -88,14 +101,14 @@ class TestJwtUnattendedAccessSuite:
             400
         ),
 
-        # Missing “iss” in jwt claims
+        # 6. Missing “iss” in jwt claims
         (
             {
                 'kid': 'test-1',
                 'claims': {
-                    "sub": config.JWT_APP_KEY,
+                    "sub": "/replace_me",
                     "jti": str(uuid4()),
-                    "aud": config.TOKEN_URL,
+                    "aud": TOKEN_URL,
                     "exp": int(time()) + 10,
                 }
             },
@@ -103,15 +116,15 @@ class TestJwtUnattendedAccessSuite:
             400
         ),
 
-        # Invalid “jti” in jwt claims e.g using an INT type instead of a STRING
+        # 7. Invalid “jti” in jwt claims e.g using an INT type instead of a STRING
         (
             {
                 'kid': 'test-1',
                 'claims': {
-                    "sub": config.JWT_APP_KEY,
-                    "iss": config.JWT_APP_KEY,
+                    "sub": "/replace_me",
+                    "iss": "/replace_me",
                     "jti": 1234567890,
-                    "aud": config.TOKEN_URL,
+                    "aud": TOKEN_URL,
                     "exp": int(time()) + 10,
                 }
             },
@@ -119,14 +132,14 @@ class TestJwtUnattendedAccessSuite:
             400
         ),
 
-        #  Missing “jti” in jwt claims
+        #  8. Missing “jti” in jwt claims
         (
             {
                 'kid': 'test-1',
                 'claims': {
-                    "sub": config.JWT_APP_KEY,
-                    "iss": config.JWT_APP_KEY,
-                    "aud": config.TOKEN_URL,
+                    "sub": "/replace_me",
+                    "iss": "/replace_me",
+                    "aud": TOKEN_URL,
                     "exp": int(time()) + 10,
                 }
             },
@@ -134,31 +147,15 @@ class TestJwtUnattendedAccessSuite:
             400
         ),
 
-        # Reusing the same “jti”
+        # 9. Invalid “aud” in jwt claims
         (
             {
                 'kid': 'test-1',
                 'claims': {
-                    "sub": config.JWT_APP_KEY,
-                    "iss": config.JWT_APP_KEY,
-                    "jti": '6cd46139-af51-4f78-b850-74fcdf70c75b',
-                    "aud": config.TOKEN_URL,
-                    "exp": int(time()) + 10,
-                }
-            },
-            {'error': 'invalid_request', 'error_description': 'Non-unique jti claim in JWT'},
-            400
-        ),
-
-        # Invalid “aud” in jwt claims
-        (
-            {
-                'kid': 'test-1',
-                'claims': {
-                    "sub": config.JWT_APP_KEY,
-                    "iss": config.JWT_APP_KEY,
+                    "sub": "/replace_me",
+                    "iss": "/replace_me",
                     "jti": str(uuid4()),
-                    "aud": config.TOKEN_URL + 'INVALID',
+                    "aud": TOKEN_URL + 'INVALID',
                     "exp": int(time()) + 10,
                 }
             },
@@ -166,13 +163,13 @@ class TestJwtUnattendedAccessSuite:
             401
         ),
 
-        # Missing “aud” in jwt claims
+        # 10. Missing “aud” in jwt claims
         (
             {
                 'kid': 'test-1',
                 'claims': {
-                    "sub": config.JWT_APP_KEY,
-                    "iss": config.JWT_APP_KEY,
+                    "sub": "/replace_me",
+                    "iss": "/replace_me",
                     "jti": str(uuid4()),
                     "exp": int(time()) + 10,
                 }
@@ -181,15 +178,15 @@ class TestJwtUnattendedAccessSuite:
             401
         ),
 
-        # Invalid “exp” in jwt claims e.g. using a STRING type
+        # 11. Invalid “exp” in jwt claims e.g. using a STRING type
         (
             {
                 'kid': 'test-1',
                 'claims': {
-                    "sub": config.JWT_APP_KEY,
-                    "iss": config.JWT_APP_KEY,
+                    "sub": "/replace_me",
+                    "iss": "/replace_me",
                     "jti": str(uuid4()),
-                    "aud": config.TOKEN_URL,
+                    "aud": TOKEN_URL,
                     "exp": 'INVALID',
                 }
             },
@@ -197,30 +194,30 @@ class TestJwtUnattendedAccessSuite:
             400
         ),
 
-        # Missing “exp” in jwt claims
+        # 12. Missing “exp” in jwt claims
         (
             {
                 'kid': 'test-1',
                 'claims': {
-                    "sub": config.JWT_APP_KEY,
-                    "iss": config.JWT_APP_KEY,
+                    "sub": "/replace_me",
+                    "iss": "/replace_me",
                     "jti": str(uuid4()),
-                    "aud": config.TOKEN_URL,
+                    "aud": TOKEN_URL,
                 }
             },
             {'error': 'invalid_request', 'error_description': 'Missing exp claim in JWT'},
             400
         ),
 
-        # “Exp” in the past
+        # 13. “Exp” in the past
         (
             {
                 'kid': 'test-1',
                 'claims': {
-                    "sub": config.JWT_APP_KEY,
-                    "iss": config.JWT_APP_KEY,
+                    "sub": "/replace_me",
+                    "iss": "/replace_me",
                     "jti": str(uuid4()),
-                    "aud": config.TOKEN_URL,
+                    "aud": TOKEN_URL,
                     "exp": int(time()) - 10,
                 }
             },
@@ -228,15 +225,15 @@ class TestJwtUnattendedAccessSuite:
             400
         ),
 
-        # “Exp” too far into the future (more than 5 minuets)
+        # 14. “Exp” too far into the future (more than 5 minuets)
         (
             {
                 'kid': 'test-1',
                 'claims': {
-                    "sub": config.JWT_APP_KEY,
-                    "iss": config.JWT_APP_KEY,
+                    "sub": "/replace_me",
+                    "iss": "/replace_me",
                     "jti": str(uuid4()),
-                    "aud": config.TOKEN_URL,
+                    "aud": TOKEN_URL,
                     "exp": int(time()) + 330,  # this includes the +30 seconds grace
                 }
             },
@@ -248,15 +245,35 @@ class TestJwtUnattendedAccessSuite:
     @pytest.mark.apm_1521
     @pytest.mark.errors
     async def test_invalid_jwt_claims(self, jwt_claims, expected_response, expected_status_code):
+        self._update_secrets(jwt_claims)
         jwt = self.oauth.create_jwt(**jwt_claims)
         resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
 
-        assert resp['status_code'] == expected_status_code
-        assert resp['body'] == expected_response
+        assert check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.apm_1521
+    @pytest.mark.errors
+    async def test_reusing_same_jti(self):
+        jwt = self.oauth.create_jwt(claims={
+            "sub": self.oauth.client_id,
+            "iss": self.oauth.client_id,
+            "jti": '6cd46139-af51-4f78-b850-74fcdf70c75b',
+            "aud": TOKEN_URL,
+            "exp": int(time()) + 10,
+        },
+            kid="test-1",
+        )
+        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
+        assert check_response(
+            resp, 200, ['access_token', 'expires_in', 'token_type'])
+
+        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
+        assert check_response(
+            resp, 400, {'error': 'invalid_request', 'error_description': 'Non-unique jti claim in JWT'})
 
     @pytest.mark.happy_path
     async def test_successful_jwt_token_response(self):
-        jwt = self.oauth.create_jwt(kid="test-1", client_id=config.JWT_APP_KEY)
+        jwt = self.oauth.create_jwt(kid="test-1")
         resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
 
         assert resp['body']['expires_in'] == '599', f"UNEXPECTED 'expires_in' {resp['expires_in']}"
@@ -363,7 +380,7 @@ class TestJwtUnattendedAccessSuite:
 
     ])
     async def test_invalid_jwt(self, jwt_details, expected_response, expected_status_code):
-        jwt = self.oauth.create_jwt(**jwt_details, client_id=config.JWT_APP_KEY)
+        jwt = self.oauth.create_jwt(**jwt_details)
         resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
 
         assert resp['status_code'] == expected_status_code
@@ -371,7 +388,7 @@ class TestJwtUnattendedAccessSuite:
 
     @pytest.mark.skip("Investigate why this is currently failing")
     async def test_manipulated_jwt_json(self):
-        jwt = self.oauth.create_jwt(kid='test-1', client_id=config.JWT_APP_KEY)
+        jwt = self.oauth.create_jwt(kid='test-1')
         chars = choice(ascii_letters) + choice(ascii_letters)
 
         resp = await self.oauth.get_token_response(grant_type="client_credentials", _jwt=f"{jwt[:-2]}{chars}")
@@ -379,8 +396,10 @@ class TestJwtUnattendedAccessSuite:
         assert resp['status_code'] == 400
         assert resp['body'] == {'error': 'invalid_request', 'error_description': 'Malformed JWT in client_assertion'}
 
-    async def test_invalid_jwks_resource_url(self):
-        jwt = self.oauth.create_jwt(kid='test-1', client_id=config.JWT_APP_KEY_WITH_INVALID_JWKS_URL)
+    async def test_invalid_jwks_resource_url(self, test_app):
+        test_app.set_custom_attributes(attributes={"jwks_resource_url": "http://invalid_url"})
+
+        jwt = self.oauth.create_jwt(kid='test-1', client_id=test_app.client_id)
         resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
 
         assert resp['status_code'] == 403

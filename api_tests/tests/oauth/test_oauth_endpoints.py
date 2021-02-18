@@ -1,6 +1,6 @@
 from api_tests.config_files import config
 from api_tests.scripts.response_bank import BANK
-from api_tests.scripts.generic_request import GenericRequest
+from api_tests.scripts.generic_helper import send_request_and_check_output
 import pytest
 import random
 
@@ -8,6 +8,17 @@ import random
 @pytest.mark.asyncio
 class TestOauthEndpoints:
     """ A test suit to verify all the happy path oauth endpoints """
+
+    def _update_secrets(self, request):
+        key = ("params", "data")[request.get('params', None) is None]
+        if request[key].get("client_id", None) == "/replace_me":
+            request[key]['client_id'] = self.oauth.client_id
+
+        if request[key].get("client_secret", None) == "/replace_me":
+            request[key]['client_secret'] = self.oauth.client_secret
+
+        if request[key].get("redirect_uri", None) == "/replace_me":
+            request[key]['redirect_uri'] = self.oauth.redirect_uri
 
     @pytest.mark.apm_801
     @pytest.mark.happy_path
@@ -72,7 +83,7 @@ class TestOauthEndpoints:
     @pytest.mark.apm_993
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
-    def test_cache_invalidation(self, helper):
+    async def test_cache_invalidation(self, helper):
         """
         Test identity cache invalidation after use:
             * Given i am authorizing
@@ -82,11 +93,9 @@ class TestOauthEndpoints:
         """
 
         # Make authorize request to retrieve state2
-        response = helper.check_and_return_endpoint(
-            verb="GET",
+        response = await self.oauth.hit_oauth_endpoint(
+            method="GET",
             endpoint="authorize",
-            expected_status_code=302,
-            expected_response="",
             params={
                 "client_id": self.oauth.client_id,
                 "redirect_uri": self.oauth.redirect_uri,
@@ -95,56 +104,53 @@ class TestOauthEndpoints:
             },
             allow_redirects=False,
         )
-        state2 = helper.get_param_from_url(
-            url=response.headers["Location"], param="state"
+
+        state = helper.get_param_from_url(
+            url=response["headers"]["Location"], param="state"
         )
 
         # Make simulated auth request to authenticate
-        response = helper.check_and_return_endpoint(
-            verb="POST",
-            endpoint="sim_auth",
-            expected_status_code=302,
-            expected_response="",
+        response = await self.oauth.hit_oauth_endpoint(
+            method="POST",
+            endpoint="simulated_auth",
             params={
                 "response_type": "code",
                 "client_id": self.oauth.client_id,
                 "redirect_uri": self.oauth.redirect_uri,
                 "scope": "openid",
-                "state": state2,
+                "state": state,
             },
             headers={"Content-Type": "application/x-www-form-urlencoded"},
-            data={"state": state2},
+            data={"state": state},
             allow_redirects=False,
         )
 
         # Make initial callback request
         auth_code = helper.get_param_from_url(
-            url=response.headers["Location"], param="code"
+            url=response["headers"]["Location"], param="code"
         )
-        response = helper.check_and_return_endpoint(
-            verb="GET",
+
+        response = await self.oauth.hit_oauth_endpoint(
+            method="GET",
             endpoint="callback",
-            expected_status_code=302,
-            expected_response="",
-            params={"code": auth_code, "client_id": "some-client-id", "state": state2},
+            params={"code": auth_code, "client_id": "some-client-id", "state": state},
             allow_redirects=False,
         )
 
         # Verify auth code and state are returned
-        response_params = helper.get_params_from_url(response.headers["Location"])
-        assert response_params["code"]
-        assert response_params["state"]
+        # response_params = helper.get_params_from_url(response["headers"]["Location"])
+        helper.verify_params_exist_in_url(params=['code', 'state'], url=response["headers"]["Location"])
 
         # Make second callback request with same state value
         assert helper.check_endpoint(
             verb="GET",
-            endpoint="callback",
+            endpoint=f"{config.OAUTH_BASE_URI}/{config.OAUTH_PROXY}/callback",
             expected_status_code=400,
             expected_response={
                 "error": "invalid_request",
                 "error_description": "invalid state parameter.",
             },
-            params={"code": auth_code, "client_id": "some-client-id", "state": state2},
+            params={"code": auth_code, "client_id": "some-client-id", "state": state},
         )
 
     @pytest.mark.apm_801
@@ -163,8 +169,8 @@ class TestOauthEndpoints:
                     "error_description": "redirect_uri is invalid",
                 },
                 "params": {
-                    "client_id": config.CLIENT_ID,
-                    "redirect_uri": f"{config.REDIRECT_URI}/invalid",  # invalid redirect uri
+                    "client_id": "/replace_me",
+                    "redirect_uri": f"/invalid",  # invalid redirect uri
                     "response_type": "code",
                     "state": random.getrandbits(32),
                 },
@@ -176,8 +182,8 @@ class TestOauthEndpoints:
                     "error": "invalid_request",
                     "error_description": "redirect_uri is missing",
                 },
-                "params": {  # not providing redirect uri
-                    "client_id": config.CLIENT_ID,
+                "params": {
+                    "client_id": "/replace_me",
                     "response_type": "code",
                     "state": random.getrandbits(32),
                 },
@@ -191,7 +197,7 @@ class TestOauthEndpoints:
                 },
                 "params": {
                     "client_id": "invalid",  # invalid client id
-                    "redirect_uri": f"{config.REDIRECT_URI}/invalid",
+                    "redirect_uri": "/replace_me",
                     "response_type": "code",
                     "state": random.getrandbits(32),
                 },
@@ -204,53 +210,99 @@ class TestOauthEndpoints:
                     "error_description": "client_id is missing",
                 },
                 "params": {  # not providing client_id
-                    "redirect_uri": config.REDIRECT_URI,
+                    "redirect_uri": "/replace_me",
                     "response_type": "code",
                     "state": random.getrandbits(32),
-                },
-            },
-            # condition 5: app not subscribed
-            {
-                "expected_status_code": 401,
-                "expected_response": {
-                    'error': 'access_denied',
-                    'error_description': 'API Key supplied does not have access to this resource. '
-                                         'Please check the API Key you are using belongs to an app '
-                                         'which has sufficient access to access this resource.'
-                },
-                "params": {
-                    "client_id": config.VALID_UNSUBSCRIBED_CLIENT_ID,
-                    "redirect_uri": config.VALID_UNSUBSCRIBED_REDIRECT_URI,
-                    "response_type": "code",
-                    "state": random.getrandbits(32),
-                },
-            },
-            # condition 6: app revoked
-            {
-                "expected_status_code": 401,
-                "expected_response": {
-                    "error": "access_denied",
-                    "error_description": "The developer app associated with the API key is not approved or revoked",
-                },
-                "params": {
-                    "client_id": config.VALID_UNAPPROVED_CLIENT_ID,
-                    "redirect_uri": config.VALID_UNAPPROVED_CLIENT_REDIRECT_URI,
-                    "response_type": "code",
-                    "state": random.getrandbits(32),
-                },
-            },
+                }
+            }
         ],
     )
-    @pytest.mark.asyncio
     async def test_authorization_error_conditions(self, request_data: dict):
-        resp = await self.oauth.hit_oauth_endpoint(
+        self._update_secrets(request_data)
+
+        assert await send_request_and_check_output(
+            expected_status_code=request_data['expected_status_code'],
+            expected_response=request_data['expected_response'],
+            function=self.oauth.hit_oauth_endpoint,
             method="GET",
             endpoint="authorize",
             params=request_data["params"]
         )
 
-        assert resp['status_code'] == request_data['expected_status_code']
-        assert resp['body'] == request_data['expected_response']
+    @pytest.mark.errors
+    @pytest.mark.authorize_endpoint
+    async def test_authorize_revoked_app(self, app):
+        await app.create_new_app(status="revoked")
+
+        assert await send_request_and_check_output(
+            expected_status_code=401,
+            expected_response={
+                "error": "access_denied",
+                "error_description": "The developer app associated with the API key is not approved or revoked",
+            },
+            function=self.oauth.hit_oauth_endpoint,
+            method="GET",
+            endpoint="authorize",
+            params={
+                "client_id": app.client_id,
+                "redirect_uri": app.redirect_uri,
+                "response_type": "code",
+                "state": random.getrandbits(32),
+            }
+        )
+
+    async def test_authorize_unsubscribed_error_condition(self, test_app, test_product):
+        test_product.update_proxies(["hello-world-internal-dev"])
+        test_app.add_api_product([test_product])
+
+        assert await send_request_and_check_output(
+            expected_status_code=401,
+            expected_response={
+                    'error': 'access_denied',
+                    'error_description': 'API Key supplied does not have access to this resource. '
+                                         'Please check the API Key you are using belongs to an app '
+                                         'which has sufficient access to access this resource.'
+                },
+            function=self.oauth.hit_oauth_endpoint,
+            method="GET",
+            endpoint="authorize",
+            params={
+                "client_id": test_app.client_id,
+                "redirect_uri": test_app.callback_url,
+                "response_type": "code",
+                "state": random.getrandbits(32),
+            }
+        )
+
+    @pytest.mark.apm_1631
+    @pytest.mark.errors
+    @pytest.mark.token_endpoint
+    async def test_token_unsubscribed_error_condition(self, test_app):
+        assert await send_request_and_check_output(
+            expected_status_code=401,
+            expected_response={
+                "error": "access_denied",
+                "error_description": "API Key supplied does not have access to this resource."
+                                     " Please check the API Key you are using belongs to an app"
+                                     " which has sufficient access to access this resource.",
+            },
+            function=self.oauth.get_token_response,
+            grant_type="authorization_code",
+            data={
+                "client_id": test_app.client_id,
+                "client_secret": test_app.client_secret,
+                "redirect_uri": test_app.callback_url,
+                "grant_type": "authorization_code",
+                "code": await self.oauth.get_authenticated_with_simulated_auth()
+            }
+            # data={
+            #     "client_id": config.VALID_UNSUBSCRIBED_CLIENT_ID,
+            #     "client_secret": config.VALID_UNSUBSCRIBED_CLIENT_SECRET,
+            #     "redirect_uri": config.VALID_UNSUBSCRIBED_REDIRECT_URI,
+            #     "grant_type": "authorization_code",
+            #     "code": await self.oauth.get_authenticated_with_simulated_auth()
+            # }
+        )
 
     @pytest.mark.apm_1475
     @pytest.mark.errors
@@ -267,8 +319,8 @@ class TestOauthEndpoints:
                     "error_description": "state is missing",
                 },
                 "params": {
-                    "client_id": config.CLIENT_ID,
-                    "redirect_uri": config.REDIRECT_URI,
+                    "client_id": "/replace_me",
+                    "redirect_uri": "/replace_me",
                     "response_type": "code",
                 },
             },
@@ -281,8 +333,8 @@ class TestOauthEndpoints:
                     "error_description": "response_type is missing",
                 },
                 "params": {
-                    "client_id": config.CLIENT_ID,
-                    "redirect_uri": config.REDIRECT_URI,
+                    "client_id": "/replace_me",
+                    "redirect_uri": "/replace_me",
                     "state": random.getrandbits(32),
                 },
             },
@@ -295,8 +347,8 @@ class TestOauthEndpoints:
                     "error_description": "response_type is invalid",
                 },
                 "params": {
-                    "client_id": config.CLIENT_ID,
-                    "redirect_uri": config.REDIRECT_URI,
+                    "client_id": "/replace_me",
+                    "redirect_uri": "/replace_me",
                     "response_type": "invalid",  # invalid response type
                     "state": random.getrandbits(32),
                 },
@@ -304,6 +356,8 @@ class TestOauthEndpoints:
         ],
     )
     async def test_authorization_error_redirects(self, test_case: dict, helper):
+        self._update_secrets(test_case)
+
         resp = await self.oauth.hit_oauth_endpoint(
             method="GET",
             endpoint="authorize",
@@ -317,32 +371,9 @@ class TestOauthEndpoints:
         helper.check_redirect(
             response=resp,
             expected_params=test_case["expected_params"],
-            client_redirect=config.REDIRECT_URI,
+            client_redirect=self.oauth.redirect_uri,
             state=test_case["params"].get("state")
         )
-
-    @pytest.mark.apm_1631
-    @pytest.mark.errors
-    @pytest.mark.token_endpoint
-    async def test_token_unsubscribed_error_conditions(self):
-        resp = await self.oauth.get_token_response(
-            grant_type="authorization_code",
-            data={
-                "client_id": config.VALID_UNSUBSCRIBED_CLIENT_ID,
-                "client_secret": config.VALID_UNSUBSCRIBED_CLIENT_SECRET,
-                "redirect_uri": config.VALID_UNSUBSCRIBED_REDIRECT_URI,
-                "grant_type": "authorization_code",
-                "code": await self.oauth.get_authenticated_with_simulated_auth()
-            }
-        )
-
-        assert resp['status_code'] == 401
-        assert resp['body'] == {
-            "error": "access_denied",
-            "error_description": "API Key supplied does not have access to this resource."
-                                 " Please check the API Key you are using belongs to an app"
-                                 " which has sufficient access to access this resource.",
-        }
 
     @pytest.mark.apm_1618
     @pytest.mark.errors
@@ -370,9 +401,9 @@ class TestOauthEndpoints:
                 {
                     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                     "data": {
-                        "client_id": config.CLIENT_ID,
-                        "client_secret": config.CLIENT_SECRET,
-                        "redirect_uri": config.REDIRECT_URI,
+                        "client_id": "/replace_me",
+                        "client_secret": "/replace_me",
+                        "redirect_uri": "/replace_me",
                         "grant_type": "invalid",
                     }
                 },
@@ -391,9 +422,9 @@ class TestOauthEndpoints:
                 {
                     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                     "data": {
-                        "client_id": config.CLIENT_ID,
-                        "client_secret": config.CLIENT_SECRET,
-                        "redirect_uri": config.REDIRECT_URI,
+                        "client_id": "/replace_me",
+                        "client_secret": "/replace_me",
+                        "redirect_uri": "/replace_me",
                     }
                 },
 
@@ -411,8 +442,8 @@ class TestOauthEndpoints:
                 {
                     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                     "data": {
-                        "client_secret": config.CLIENT_SECRET,
-                        "redirect_uri": config.REDIRECT_URI,
+                        "client_secret": "/replace_me",
+                        "redirect_uri": "/replace_me",
                         "grant_type": "authorization_code",
                     }
                 },
@@ -432,8 +463,8 @@ class TestOauthEndpoints:
                     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                     "data": {
                         "client_id": "THISisANinvalidCLIENTid12345678",
-                        "client_secret": config.CLIENT_SECRET,
-                        "redirect_uri": config.REDIRECT_URI,
+                        "client_secret": "/replace_me",
+                        "redirect_uri": "/replace_me",
                         "grant_type": "authorization_code",
                     }
                 },
@@ -452,9 +483,9 @@ class TestOauthEndpoints:
                 {
                     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                     "data": {
-                        "client_id": config.CLIENT_ID,
+                        "client_id": "/replace_me",
                         "client_secret": "ThisSecretIsInvalid",
-                        "redirect_uri": config.REDIRECT_URI,
+                        "redirect_uri": "/replace_me",
                         "grant_type": "authorization_code",
                     }
                 },
@@ -473,8 +504,8 @@ class TestOauthEndpoints:
                 {
                     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                     "data": {
-                        "client_id": config.CLIENT_ID,
-                        "redirect_uri": config.REDIRECT_URI,
+                        "client_id": "/replace_me",
+                        "redirect_uri": "/replace_me",
                         "grant_type": "authorization_code",
                     }
                 },
@@ -493,8 +524,8 @@ class TestOauthEndpoints:
                 {
                     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                     "data": {
-                        "client_id": config.CLIENT_ID,
-                        "client_secret": config.CLIENT_SECRET,
+                        "client_id": "/replace_me",
+                        "client_secret": "/replace_me",
                         "grant_type": "authorization_code",
                     }
                 },
@@ -513,8 +544,8 @@ class TestOauthEndpoints:
                 {
                     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                     "data": {
-                        "client_id": config.CLIENT_ID,
-                        "client_secret": config.CLIENT_SECRET,
+                        "client_id": "/replace_me",
+                        "client_secret": "/replace_me",
                         "redirect_uri": 'invalid',
                         "grant_type": "authorization_code",
                     }
@@ -534,9 +565,9 @@ class TestOauthEndpoints:
                 {
                     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                     "data": {
-                        "client_id": config.CLIENT_ID,
-                        "client_secret": config.CLIENT_SECRET,
-                        "redirect_uri": config.REDIRECT_URI,
+                        "client_id": "/replace_me",
+                        "client_secret": "/replace_me",
+                        "redirect_uri": "/replace_me",
                         "grant_type": "authorization_code",
                     }
                 },
@@ -555,9 +586,9 @@ class TestOauthEndpoints:
                 {
                     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                     "data": {
-                        "client_id": config.CLIENT_ID,
-                        "client_secret": config.CLIENT_SECRET,
-                        "redirect_uri": config.REDIRECT_URI,
+                        "client_id": "/replace_me",
+                        "client_secret": "/replace_me",
+                        "redirect_uri": "/replace_me",
                         "grant_type": "authorization_code",
                         "code": "invalid",
                     }
@@ -573,18 +604,24 @@ class TestOauthEndpoints:
             ),
         ],
     )
-    @pytest.mark.asyncio
     async def test_token_error_conditions(self, request_data: dict, expected_response: dict):
-        resp = await self.oauth.get_token_response(grant_type="authorization_code", **request_data)
-
-        assert resp["status_code"] == expected_response["status_code"]
-        assert resp['body'] == expected_response["body"]
+        self._update_secrets(request_data)
+        assert await send_request_and_check_output(
+            expected_status_code=expected_response["status_code"],
+            expected_response=expected_response["body"],
+            function=self.oauth.get_token_response,
+            grant_type="authorization_code",
+            **request_data
+        )
 
     @pytest.mark.apm_1064
     @pytest.mark.errors
     @pytest.mark.callback_endpoint
     async def test_callback_error_conditions(self):
-        resp = await self.oauth.hit_oauth_endpoint(
+        assert await send_request_and_check_output(
+            expected_status_code=401,
+            expected_response="",
+            function=self.oauth.hit_oauth_endpoint,
             method="GET",
             endpoint="callback",
             params={
@@ -593,9 +630,6 @@ class TestOauthEndpoints:
                 "state": random.getrandbits(32),
             }
         )
-
-        assert resp['status_code'] == 401
-        assert resp['body'] == ""
 
     @pytest.mark.apm_1475
     @pytest.mark.errors
@@ -611,7 +645,7 @@ class TestOauthEndpoints:
                     "error_description": "client_id is missing",
                 },
                 "data": {
-                    'client_secret': config.CLIENT_SECRET,
+                    'client_secret': "/replace_me",
                     'grant_type': 'refresh_token',
                 },
             },
@@ -624,7 +658,7 @@ class TestOauthEndpoints:
                 },
                 "data": {
                     "client_id": "invalid-client-id",
-                    'client_secret': config.CLIENT_SECRET,
+                    'client_secret': "/replace_me",
                     'grant_type': 'refresh_token',
                 },
             },
@@ -636,7 +670,7 @@ class TestOauthEndpoints:
                     "error_description": "client_secret is missing",
                 },
                 "data": {
-                    "client_id": config.CLIENT_ID,
+                    "client_id": "/replace_me",
                     'grant_type': 'refresh_token',
                 },
             },
@@ -648,7 +682,7 @@ class TestOauthEndpoints:
                     "error_description": "client_id or client_secret is invalid",
                 },
                 "data": {
-                    "client_id": config.CLIENT_ID,
+                    "client_id": "/replace_me",
                     'client_secret': 'invalid',
                     'grant_type': 'refresh_token',
                 },
@@ -661,8 +695,8 @@ class TestOauthEndpoints:
                     "error_description": "refresh_token is missing",
                 },
                 "data": {
-                    "client_id": config.CLIENT_ID,
-                    'client_secret': config.CLIENT_SECRET,
+                    "client_id": "/replace_me",
+                    'client_secret': "/replace_me",
                     'grant_type': 'refresh_token',
                 },
             },
@@ -674,8 +708,8 @@ class TestOauthEndpoints:
                     "error_description": "refresh_token is invalid",
                 },
                 "data": {
-                    "client_id": config.CLIENT_ID,
-                    'client_secret': config.CLIENT_SECRET,
+                    "client_id": "/replace_me",
+                    'client_secret': "/replace_me",
                     'grant_type': 'refresh_token',
                     'refresh_token': 'invalid'
                 },
@@ -683,25 +717,33 @@ class TestOauthEndpoints:
         ],
     )
     async def test_refresh_token_error_conditions(self, test_case: dict):
-        resp = await self.oauth.get_token_response(grant_type="refresh_token", data=test_case['data'])
-
-        assert resp['status_code'] == test_case['expected_status_code']
-        assert resp['body'] == test_case['expected_response']
+        self._update_secrets(test_case)
+        assert await send_request_and_check_output(
+            expected_status_code=test_case['expected_status_code'],
+            expected_response=test_case['expected_response'],
+            function=self.oauth.get_token_response,
+            grant_type="refresh_token",
+            data=test_case['data']
+        )
 
     async def test_ping(self):
-        resp = await self.oauth.hit_oauth_endpoint(method='GET', endpoint='_ping')
-
-        assert resp['status_code'] == 200
-        assert list(resp['body'].keys()) == ["version", "revision", "releaseId", "commitId"]
+        assert await send_request_and_check_output(
+            expected_status_code=200,
+            expected_response=["version", "revision", "releaseId", "commitId"],
+            function=self.oauth.hit_oauth_endpoint,
+            method="GET",
+            endpoint="_ping"
+        )
 
     @pytest.mark.aea_756
     @pytest.mark.happy_path
     @pytest.mark.usefixtures("set_access_token")
     async def test_userinfo(self):
-        resp = await self.oauth.hit_oauth_endpoint(
+        assert await send_request_and_check_output(
+            expected_status_code=200,
+            expected_response=BANK.get(self.name)["response"],
+            function=self.oauth.hit_oauth_endpoint,
             method="GET",
             endpoint="userinfo",
             headers={'Authorization': f'Bearer {self.oauth.access_token}'}
         )
-        assert resp['status_code'] == 200
-        assert resp['body'] == BANK.get(self.name)["response"]
