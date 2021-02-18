@@ -14,6 +14,7 @@ steps:
   - bash: |
       source ./test_env/bin/activate
 
+      export SERVICE_NAME="$(FULLY_QUALIFIED_SERVICE_NAME)"
       export OAUTH_BASE_URI="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk"
       export OAUTH_PROXY="$(SERVICE_BASE_PATH)"
       export HELLO_WORLD_API_URL="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk/hello-world/hello/user"

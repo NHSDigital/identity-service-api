@@ -3,6 +3,9 @@ from api_tests.scripts.response_bank import BANK
 from api_tests.scripts.generic_helper import send_request_and_check_output
 import pytest
 import random
+from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
+from api_test_utils.apigee_api_products import ApigeeApiProducts
+from api_test_utils.oauth_helper import OauthHelper
 
 
 @pytest.mark.asyncio
@@ -19,6 +22,39 @@ class TestOauthEndpoints:
 
         if request[key].get("redirect_uri", None) == "/replace_me":
             request[key]['redirect_uri'] = self.oauth.redirect_uri
+
+    @pytest.fixture()
+    async def test_app_and_product(self):
+        products = []
+        for i in range(2):
+            products.append(ApigeeApiProducts())
+            await products[i].create_new_product()
+            await products[i].update_proxies([config.SERVICE_NAME])
+
+        apigee_app = ApigeeApiDeveloperApps()
+        await apigee_app.create_new_app(
+            callback_url="https://nhsd-apim-testing-internal-dev.herokuapp.com/callback"
+        )
+
+        await apigee_app.add_api_product(
+            api_products=[
+                products[0].name,
+                products[1].name
+            ]
+        )
+
+        [await product.update_ratelimits(
+            quota=60000,
+            quota_interval="1",
+            quota_time_unit="minute",
+            rate_limit="1000ps"
+        ) for product in products]
+
+        yield products[0], products[1], apigee_app
+
+        await apigee_app.destroy_app()
+        await products[0].destroy_product()
+        await products[1].destroy_product()
 
     @pytest.mark.apm_801
     @pytest.mark.happy_path
@@ -41,7 +77,6 @@ class TestOauthEndpoints:
     @pytest.mark.apm_801
     @pytest.mark.happy_path
     @pytest.mark.token_endpoint
-    @pytest.mark.asyncio
     async def test_token_endpoint(self):
         resp = await self.oauth.get_token_response(grant_type="authorization_code")
 
@@ -60,7 +95,6 @@ class TestOauthEndpoints:
     @pytest.mark.errors
     @pytest.mark.token_endpoint
     @pytest.mark.authorize_endpoint
-    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "method, endpoint",
         [
@@ -245,7 +279,7 @@ class TestOauthEndpoints:
             endpoint="authorize",
             params={
                 "client_id": app.client_id,
-                "redirect_uri": app.redirect_uri,
+                "redirect_uri": app.callback_url,
                 "response_type": "code",
                 "state": random.getrandbits(32),
             }
@@ -746,4 +780,169 @@ class TestOauthEndpoints:
             method="GET",
             endpoint="userinfo",
             headers={'Authorization': f'Bearer {self.oauth.access_token}'}
+        )
+
+    @pytest.mark.apm_1701
+    @pytest.mark.happy_path
+    @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
+        # Scenario 1: one product with valid scope
+        (
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
+            []
+        ),
+        # Scenario 2: one product with valid scope, one product with invalid scope
+        (
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
+            ['urn:nhsd:apim:app:level3:ambulance-analytics']
+        ),
+        # Scenario 3: multiple products with valid scopes
+        (
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
+            ['urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics']
+        ),
+        # Scenario 4: one product with multiple valid scopes
+        (
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service', 'urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics'],
+            []
+        ),
+        # Scenario 5: multiple products with multiple valid scopes
+        (
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service', 'urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics'],
+            ['urn:nhsd:apim:user-nhs-id:aal3:example-1', 'urn:nhsd:apim:user-nhs-id:aal3:example-2']
+        ),
+        # Scenario 6: one product with multiple scopes (valid and invalid)
+        (
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
+            []
+        ),
+        # Scenario 7: multiple products with multiple scopes (valid and invalid)
+        (
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
+            ['urn:nhsd:apim:user-nhs-id:aal3:example-1', 'urn:nhsd:apim:app:level3:example-2']
+        ),
+        # Scenario 8: one product with valid scope with trailing and leading spaces
+        (
+            [' urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service '],
+            []
+        ),
+    ])
+    async def test_user_restricted_scope_combination(
+        self,
+        product_1_scopes,
+        product_2_scopes,
+        test_app_and_product,
+        helper
+    ):
+        test_product, test_product2, test_app = test_app_and_product
+
+        await test_product.update_scopes(product_1_scopes)
+        await test_product2.update_scopes(product_2_scopes)
+
+        callback_url = await test_app.get_callback_url()
+
+        oauth = OauthHelper(test_app.client_id, test_app.client_secret, callback_url)
+
+        assert helper.check_endpoint(
+            verb="POST",
+            endpoint=config.TOKEN_URL,
+            expected_status_code=200,
+            expected_response=[
+                "access_token",
+                "expires_in",
+                "refresh_count",
+                "refresh_token",
+                "refresh_token_expires_in",
+                "token_type",
+            ],
+            data={
+                "client_id": test_app.get_client_id(),
+                "client_secret": test_app.get_client_secret(),
+                "redirect_uri": callback_url,
+                "grant_type": "authorization_code",
+                "code": await oauth.get_authenticated_with_simulated_auth(),
+            },
+        )
+
+    @pytest.mark.apm_1701
+    @pytest.mark.errors
+    @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
+        # Scenario 1: multiple products with no scopes
+        (
+            [],
+            []
+        ),
+        # Scenario 2: one product with invalid scope, one product with no scope
+        (
+            ['urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service'],
+            []
+        ),
+        # Scenario 3: multiple products with invalid scopes
+        (
+            ['urn:nhsd:apim:app:level3:personal-demographics-service'],
+            ['urn:nhsd:apim:app:level3:ambulance-analytics']
+        ),
+        # Scenario 4: one product with multiple invalid scopes
+        (
+            ['urn:nhsd:apim:app:level3:personal-demographics-service', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
+            []
+        ),
+        # Scenario 5: multiple products with multiple invalid scopes
+        (
+            ['urn:nhsd:apim:app:level3:personal-demographics-service', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
+            ['urn:nhsd:apim:app:level3:example-1', 'urn:nhsd:apim:app:level3:example-2']
+        ),
+        # Scenario 6: one product with invalid scope (wrong formation)
+        (
+            ['ThisDoesNotExist'],
+            []
+        ),
+        # Scenario 7: one product with invalid scope (special caracters)
+        (
+            ['#£$?!&%*.;@~_-'],
+            []
+        ),
+        # Scenario 8: one product with invalid scope (empty string)
+        (
+            [""],
+            []
+        ),
+        # Scenario 8: one product with invalid scope (None object)
+        (
+            [None],
+            []
+        ),
+        # Scenario 9: one product with invalid scope, one product with no scope
+        (
+            ['urn:nhsd:apim:user:aal3personal-demographics-service'],
+            []
+        ),
+    ])
+    async def test_error_user_restricted_scope_combination(
+        self,
+        product_1_scopes,
+        product_2_scopes,
+        test_app_and_product,
+        helper
+    ):
+        test_product, test_product2, test_app = test_app_and_product
+
+        await test_product.update_scopes(product_1_scopes)
+        await test_product2.update_scopes(product_2_scopes)
+
+        callback_url = await test_app.get_callback_url()
+
+        assert helper.check_endpoint(
+            verb="GET",
+            endpoint=f"{config.OAUTH_BASE_URI}/{config.OAUTH_PROXY}/authorize",
+            expected_status_code=401,
+            expected_response={
+                "error": "unauthorized_client",
+                "error_description": "you have tried to requests authorization but your application is not configured to use this authorization grant type"
+            },
+            params={
+                "client_id": test_app.get_client_id(),
+                "redirect_uri": callback_url,
+                "response_type": "code",
+                "state": random.getrandbits(32)
+            },
         )
