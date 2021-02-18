@@ -1,16 +1,12 @@
 from api_tests.config_files import config
 from api_tests.scripts.response_bank import BANK
-from api_tests.scripts.generic_helper import send_request_and_check_output
 import pytest
 import random
-from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
-from api_test_utils.apigee_api_products import ApigeeApiProducts
-from api_test_utils.oauth_helper import OauthHelper
 
 
 @pytest.mark.asyncio
 class TestOauthEndpoints:
-    """ A test suit to verify all the happy path oauth endpoints """
+    """ A test suit to verify all the oauth endpoints """
 
     def _update_secrets(self, request):
         key = ("params", "data")[request.get('params', None) is None]
@@ -22,39 +18,6 @@ class TestOauthEndpoints:
 
         if request[key].get("redirect_uri", None) == "/replace_me":
             request[key]['redirect_uri'] = self.oauth.redirect_uri
-
-    @pytest.fixture()
-    async def test_app_and_product(self):
-        products = []
-        for i in range(2):
-            products.append(ApigeeApiProducts())
-            await products[i].create_new_product()
-            await products[i].update_proxies([config.SERVICE_NAME])
-
-        apigee_app = ApigeeApiDeveloperApps()
-        await apigee_app.create_new_app(
-            callback_url="https://nhsd-apim-testing-internal-dev.herokuapp.com/callback"
-        )
-
-        await apigee_app.add_api_product(
-            api_products=[
-                products[0].name,
-                products[1].name
-            ]
-        )
-
-        [await product.update_ratelimits(
-            quota=60000,
-            quota_interval="1",
-            quota_time_unit="minute",
-            rate_limit="1000ps"
-        ) for product in products]
-
-        yield products[0], products[1], apigee_app
-
-        await apigee_app.destroy_app()
-        await products[0].destroy_product()
-        await products[1].destroy_product()
 
     @pytest.mark.apm_801
     @pytest.mark.happy_path
@@ -251,10 +214,10 @@ class TestOauthEndpoints:
             }
         ],
     )
-    async def test_authorization_error_conditions(self, request_data: dict):
+    async def test_authorization_error_conditions(self, request_data: dict, helper):
         self._update_secrets(request_data)
 
-        assert await send_request_and_check_output(
+        assert await helper.send_request_and_check_output(
             expected_status_code=request_data['expected_status_code'],
             expected_response=request_data['expected_response'],
             function=self.oauth.hit_oauth_endpoint,
@@ -265,10 +228,10 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
-    async def test_authorize_revoked_app(self, app):
+    async def test_authorize_revoked_app(self, app, helper):
         await app.create_new_app(status="revoked")
 
-        assert await send_request_and_check_output(
+        assert await helper.send_request_and_check_output(
             expected_status_code=401,
             expected_response={
                 "error": "access_denied",
@@ -285,11 +248,11 @@ class TestOauthEndpoints:
             }
         )
 
-    async def test_authorize_unsubscribed_error_condition(self, test_app, test_product):
-        test_product.update_proxies(["hello-world-internal-dev"])
-        test_app.add_api_product([test_product])
+    async def test_authorize_unsubscribed_error_condition(self, test_product, test_app, helper):
+        await test_product.update_proxies(["hello-world-internal-dev"])
+        await test_app.add_api_product([test_product.name])
 
-        assert await send_request_and_check_output(
+        assert await helper.send_request_and_check_output(
             expected_status_code=401,
             expected_response={
                     'error': 'access_denied',
@@ -311,8 +274,11 @@ class TestOauthEndpoints:
     @pytest.mark.apm_1631
     @pytest.mark.errors
     @pytest.mark.token_endpoint
-    async def test_token_unsubscribed_error_condition(self, test_app):
-        assert await send_request_and_check_output(
+    async def test_token_unsubscribed_error_condition(self, test_product, test_app, helper):
+        await test_product.update_proxies(["hello-world-internal-dev"])
+        await test_app.add_api_product([test_product.name])
+
+        assert await helper.send_request_and_check_output(
             expected_status_code=401,
             expected_response={
                 "error": "access_denied",
@@ -329,13 +295,6 @@ class TestOauthEndpoints:
                 "grant_type": "authorization_code",
                 "code": await self.oauth.get_authenticated_with_simulated_auth()
             }
-            # data={
-            #     "client_id": config.VALID_UNSUBSCRIBED_CLIENT_ID,
-            #     "client_secret": config.VALID_UNSUBSCRIBED_CLIENT_SECRET,
-            #     "redirect_uri": config.VALID_UNSUBSCRIBED_REDIRECT_URI,
-            #     "grant_type": "authorization_code",
-            #     "code": await self.oauth.get_authenticated_with_simulated_auth()
-            # }
         )
 
     @pytest.mark.apm_1475
@@ -638,9 +597,9 @@ class TestOauthEndpoints:
             ),
         ],
     )
-    async def test_token_error_conditions(self, request_data: dict, expected_response: dict):
+    async def test_token_error_conditions(self, request_data: dict, expected_response: dict, helper):
         self._update_secrets(request_data)
-        assert await send_request_and_check_output(
+        assert await helper.send_request_and_check_output(
             expected_status_code=expected_response["status_code"],
             expected_response=expected_response["body"],
             function=self.oauth.get_token_response,
@@ -651,8 +610,8 @@ class TestOauthEndpoints:
     @pytest.mark.apm_1064
     @pytest.mark.errors
     @pytest.mark.callback_endpoint
-    async def test_callback_error_conditions(self):
-        assert await send_request_and_check_output(
+    async def test_callback_error_conditions(self, helper):
+        assert await helper.send_request_and_check_output(
             expected_status_code=401,
             expected_response="",
             function=self.oauth.hit_oauth_endpoint,
@@ -750,9 +709,9 @@ class TestOauthEndpoints:
             },
         ],
     )
-    async def test_refresh_token_error_conditions(self, test_case: dict):
+    async def test_refresh_token_error_conditions(self, test_case: dict, helper):
         self._update_secrets(test_case)
-        assert await send_request_and_check_output(
+        assert await helper.send_request_and_check_output(
             expected_status_code=test_case['expected_status_code'],
             expected_response=test_case['expected_response'],
             function=self.oauth.get_token_response,
@@ -760,8 +719,8 @@ class TestOauthEndpoints:
             data=test_case['data']
         )
 
-    async def test_ping(self):
-        assert await send_request_and_check_output(
+    async def test_ping(self, helper):
+        assert await helper.send_request_and_check_output(
             expected_status_code=200,
             expected_response=["version", "revision", "releaseId", "commitId"],
             function=self.oauth.hit_oauth_endpoint,
@@ -772,177 +731,12 @@ class TestOauthEndpoints:
     @pytest.mark.aea_756
     @pytest.mark.happy_path
     @pytest.mark.usefixtures("set_access_token")
-    async def test_userinfo(self):
-        assert await send_request_and_check_output(
+    async def test_userinfo(self, helper):
+        assert await helper.send_request_and_check_output(
             expected_status_code=200,
             expected_response=BANK.get(self.name)["response"],
             function=self.oauth.hit_oauth_endpoint,
             method="GET",
             endpoint="userinfo",
             headers={'Authorization': f'Bearer {self.oauth.access_token}'}
-        )
-
-    @pytest.mark.apm_1701
-    @pytest.mark.happy_path
-    @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
-        # Scenario 1: one product with valid scope
-        (
-            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
-            []
-        ),
-        # Scenario 2: one product with valid scope, one product with invalid scope
-        (
-            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
-            ['urn:nhsd:apim:app:level3:ambulance-analytics']
-        ),
-        # Scenario 3: multiple products with valid scopes
-        (
-            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
-            ['urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics']
-        ),
-        # Scenario 4: one product with multiple valid scopes
-        (
-            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service', 'urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics'],
-            []
-        ),
-        # Scenario 5: multiple products with multiple valid scopes
-        (
-            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service', 'urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics'],
-            ['urn:nhsd:apim:user-nhs-id:aal3:example-1', 'urn:nhsd:apim:user-nhs-id:aal3:example-2']
-        ),
-        # Scenario 6: one product with multiple scopes (valid and invalid)
-        (
-            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
-            []
-        ),
-        # Scenario 7: multiple products with multiple scopes (valid and invalid)
-        (
-            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
-            ['urn:nhsd:apim:user-nhs-id:aal3:example-1', 'urn:nhsd:apim:app:level3:example-2']
-        ),
-        # Scenario 8: one product with valid scope with trailing and leading spaces
-        (
-            [' urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service '],
-            []
-        ),
-    ])
-    async def test_user_restricted_scope_combination(
-        self,
-        product_1_scopes,
-        product_2_scopes,
-        test_app_and_product,
-        helper
-    ):
-        test_product, test_product2, test_app = test_app_and_product
-
-        await test_product.update_scopes(product_1_scopes)
-        await test_product2.update_scopes(product_2_scopes)
-
-        callback_url = await test_app.get_callback_url()
-
-        oauth = OauthHelper(test_app.client_id, test_app.client_secret, callback_url)
-
-        assert helper.check_endpoint(
-            verb="POST",
-            endpoint=config.TOKEN_URL,
-            expected_status_code=200,
-            expected_response=[
-                "access_token",
-                "expires_in",
-                "refresh_count",
-                "refresh_token",
-                "refresh_token_expires_in",
-                "token_type",
-            ],
-            data={
-                "client_id": test_app.get_client_id(),
-                "client_secret": test_app.get_client_secret(),
-                "redirect_uri": callback_url,
-                "grant_type": "authorization_code",
-                "code": await oauth.get_authenticated_with_simulated_auth(),
-            },
-        )
-
-    @pytest.mark.apm_1701
-    @pytest.mark.errors
-    @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
-        # Scenario 1: multiple products with no scopes
-        (
-            [],
-            []
-        ),
-        # Scenario 2: one product with invalid scope, one product with no scope
-        (
-            ['urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service'],
-            []
-        ),
-        # Scenario 3: multiple products with invalid scopes
-        (
-            ['urn:nhsd:apim:app:level3:personal-demographics-service'],
-            ['urn:nhsd:apim:app:level3:ambulance-analytics']
-        ),
-        # Scenario 4: one product with multiple invalid scopes
-        (
-            ['urn:nhsd:apim:app:level3:personal-demographics-service', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
-            []
-        ),
-        # Scenario 5: multiple products with multiple invalid scopes
-        (
-            ['urn:nhsd:apim:app:level3:personal-demographics-service', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
-            ['urn:nhsd:apim:app:level3:example-1', 'urn:nhsd:apim:app:level3:example-2']
-        ),
-        # Scenario 6: one product with invalid scope (wrong formation)
-        (
-            ['ThisDoesNotExist'],
-            []
-        ),
-        # Scenario 7: one product with invalid scope (special caracters)
-        (
-            ['#£$?!&%*.;@~_-'],
-            []
-        ),
-        # Scenario 8: one product with invalid scope (empty string)
-        (
-            [""],
-            []
-        ),
-        # Scenario 8: one product with invalid scope (None object)
-        (
-            [None],
-            []
-        ),
-        # Scenario 9: one product with invalid scope, one product with no scope
-        (
-            ['urn:nhsd:apim:user:aal3personal-demographics-service'],
-            []
-        ),
-    ])
-    async def test_error_user_restricted_scope_combination(
-        self,
-        product_1_scopes,
-        product_2_scopes,
-        test_app_and_product,
-        helper
-    ):
-        test_product, test_product2, test_app = test_app_and_product
-
-        await test_product.update_scopes(product_1_scopes)
-        await test_product2.update_scopes(product_2_scopes)
-
-        callback_url = await test_app.get_callback_url()
-
-        assert helper.check_endpoint(
-            verb="GET",
-            endpoint=f"{config.OAUTH_BASE_URI}/{config.OAUTH_PROXY}/authorize",
-            expected_status_code=401,
-            expected_response={
-                "error": "unauthorized_client",
-                "error_description": "you have tried to requests authorization but your application is not configured to use this authorization grant type"
-            },
-            params={
-                "client_id": test_app.get_client_id(),
-                "redirect_uri": callback_url,
-                "response_type": "code",
-                "state": random.getrandbits(32)
-            },
         )
