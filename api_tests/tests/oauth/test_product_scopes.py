@@ -51,7 +51,6 @@ class TestProductScopes:
 
     @pytest.mark.apm_1701
     @pytest.mark.happy_path
-    @pytest.mark.asyncio
     @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
         # Scenario 1: one product with valid scope
         (
@@ -115,7 +114,6 @@ class TestProductScopes:
 
     @pytest.mark.apm_1701
     @pytest.mark.errors
-    @pytest.mark.asyncio
     @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
         # Scenario 1: multiple products with no scopes
         (
@@ -195,7 +193,6 @@ class TestProductScopes:
 
     @pytest.mark.apm_1701
     @pytest.mark.happy_path
-    @pytest.mark.asyncio
     @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
         # Scenario 1: one product with valid scope
         (
@@ -281,7 +278,6 @@ class TestProductScopes:
 
     @pytest.mark.apm_1701
     @pytest.mark.errors
-    @pytest.mark.asyncio
     @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
         # Scenario 1: multiple products with no scopes
         (
