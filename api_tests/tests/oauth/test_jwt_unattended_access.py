@@ -2,9 +2,6 @@ from api_tests.config_files.config import TOKEN_URL
 import pytest
 from uuid import uuid4
 from time import time
-from api_tests.config_files.config import SERVICE_NAME
-from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
-from api_test_utils.apigee_api_products import ApigeeApiProducts
 from random import choice
 from string import ascii_letters
 
