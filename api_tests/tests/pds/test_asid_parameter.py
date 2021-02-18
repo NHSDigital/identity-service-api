@@ -1,5 +1,4 @@
 import pytest
-from api_tests.config_files import config
 
 
 @pytest.mark.skip(reason="Design Discussion Required")

@@ -1,7 +1,6 @@
 """ A repository bank which hold large bits of information in a dictionary format.
 the keys are based on the name of tests to better identify what data belongs to which test."""
-from api_tests.config_files import config
-
+from api_tests.scripts import config
 
 BANK = {
     'test_authorize_endpoint': {

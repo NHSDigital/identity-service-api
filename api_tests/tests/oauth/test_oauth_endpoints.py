@@ -1,4 +1,4 @@
-from api_tests.config_files import config
+from api_tests.scripts import config
 from api_tests.scripts.response_bank import BANK
 import pytest
 import random

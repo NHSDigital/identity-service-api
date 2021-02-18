@@ -1,4 +1,4 @@
-from api_tests.config_files.config import TOKEN_URL
+from api_tests.scripts.config import TOKEN_URL
 import pytest
 from uuid import uuid4
 from time import time

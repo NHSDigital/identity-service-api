@@ -1,6 +1,6 @@
 import pytest
 from time import sleep
-from api_tests.config_files.config import HELLO_WORLD_API_URL
+from api_tests.scripts.config import HELLO_WORLD_API_URL
 
 
 @pytest.mark.asyncio

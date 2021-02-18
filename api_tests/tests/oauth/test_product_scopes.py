@@ -1,4 +1,4 @@
-from api_tests.config_files import config
+from api_tests.scripts import config
 import pytest
 import random
 from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
