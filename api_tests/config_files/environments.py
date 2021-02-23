@@ -1,4 +1,6 @@
 import os
+# from dotenv import load_dotenv
+# load_dotenv()
 
 # os.getenvure Test Environment
 def get_env(variable_name: str) -> str:
@@ -29,7 +31,6 @@ def get_env_file(variable_name: str) -> str:
 ENV = {
     'oauth': {
         'apigee_client_id': get_env('APIGEE_CLIENT_ID'),
-
         'service_name': get_env('SERVICE_NAME'),
         'oauth_proxy': get_env('OAUTH_PROXY'),
         'base_url': get_env('OAUTH_BASE_URI'),
@@ -62,7 +63,7 @@ ENV = {
     },
     'apigee': {
         'base_url': get_env('APIGEE_API_URL'),
-        'api_authentication': get_env('APIGEE_API_TOKEN'),
+        'api_authentication': get_env('APIGEE_API_AUTHENTICATION'),
     },
     'hello_world': {
         'api_url': get_env('HELLO_WORLD_API_URL'),
