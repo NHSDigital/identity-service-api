@@ -18,6 +18,8 @@ def get_token(request):
             get_token(grant_type="refresh_token", refresh_token=<refresh_token>)
         4. access_token with JWT
             get_token(grant_type='client_credentials', _jwt=jwt)
+        5. access_token using a specific app
+            get_token(app=<app>)
     """
 
     async def _token(
@@ -26,9 +28,11 @@ def get_token(request):
         **kwargs
     ):
         if test_app:
+            # Use provided test app
             oauth = OauthHelper(test_app.client_id, test_app.client_secret, test_app.callback_url)
             resp = await oauth.get_token_response(grant_type=grant_type, **kwargs)
         else:
+            # Use default test app
             resp = await request.cls.oauth.get_token_response(grant_type=grant_type, **kwargs)
 
         if resp['status_code'] != 200:
@@ -87,7 +91,7 @@ def app():
 
 @pytest.fixture()
 async def test_app(app):
-    """Create a test app which can be modified by the test"""
+    """Create a test app which can be modified in the test"""
     await app.create_new_app()
 
     yield app
@@ -95,7 +99,7 @@ async def test_app(app):
 
 
 @pytest.yield_fixture(scope="class")
-def setup_user_restricted(request, test_app, test_product):
+def setup_user_restricted_app(request, test_app, test_product):
     print("\nCreating User Restricted App..")
     asyncio.run(test_app.create_new_app())
     asyncio.run(test_app.add_api_product(test_product))
@@ -111,7 +115,7 @@ def setup_user_restricted(request, test_app, test_product):
 
 
 @pytest.yield_fixture(scope="class")
-def setup_application_restricted(request, test_app, test_product):
+def setup_application_restricted_app(request, test_app, test_product):
     print("\nCreating Application Restricted App..")
     asyncio.run(test_app.create_new_app())
     asyncio.run(test_app.add_api_product(test_product))
