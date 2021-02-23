@@ -1,6 +1,6 @@
 import os
-# from dotenv import load_dotenv
-# load_dotenv()
+#from dotenv import load_dotenv
+#load_dotenv()
 
 # os.getenvure Test Environment
 def get_env(variable_name: str) -> str:

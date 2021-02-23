@@ -749,7 +749,7 @@ class TestOauthEndpoints:
 
     @pytest.mark.happy_path
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
+    #@pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_happy_path(self):
         # Given
@@ -811,7 +811,7 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
+    #@pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_invalid_client_assertion_type(self):
         # Given
@@ -823,7 +823,8 @@ class TestOauthEndpoints:
             url= config.TOKEN_URL,
             data= {                
                 'client_assertion_type': 'Invalid',
-                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange'                 
+                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+                'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token'                                 
             }            
         )
         sleep(2)
@@ -838,7 +839,7 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
+    #@pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_invalid_subject_token_type(self):
         # Given
@@ -866,7 +867,7 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
+    #@pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_claims_assertion_invalid_kid(self):
         # Given
@@ -907,7 +908,7 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
+    #@pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_claims_assertion_invalid_typ_header(self):
         # Given
@@ -946,7 +947,7 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
+    #@pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_claims_assertion_invalid_iss_claim(self):
         # Given
@@ -985,7 +986,7 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
+    #@pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_claims_assertion_missing_jti_claim(self):
         # Given
@@ -1025,7 +1026,7 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
+    #@pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_claims_assertion_missing_exp_claim(self):
         # Given
@@ -1064,7 +1065,7 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
+    #@pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_claims_assertion_invalid_exp_claim(self):
         # Given
@@ -1104,7 +1105,7 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
+    #@pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_claims_assertion_invalid_jti_claim(self):
         # Given
@@ -1179,7 +1180,7 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
+    #@pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_subject_token_missing_iss_or_sub_claim(self):
         # Given
@@ -1240,7 +1241,7 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
+    #@pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_subject_token_missing_aud_claim(self):
         # Given
@@ -1282,7 +1283,7 @@ class TestOauthEndpoints:
         response = requests.post(
             url= config.TOKEN_URL,
             data= {                
-                'grant_type': 'urn:ietf:params:oau  th:grant-type:token-exchange',
+                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
                 'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
                 'subject_token': id_token_jwt,
@@ -1301,7 +1302,7 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
+    #@pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_subject_token_missing_exp_claim(self):
         # Given

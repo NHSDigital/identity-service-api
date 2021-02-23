@@ -350,18 +350,11 @@
           </Step>
         </Request>
         <Response>
-          <!-- Because the Token Exchange flow changes it's grant_type to client credentials it executes the
-         response from the Client Credentials flow instead -->
           <Step>
               <Name>AssignMessage.ClientCredentialsGenerateTokenResponse</Name>
-              <Condition>response.formparam.subject_token_type NotEquals "urn:ietf:params:oauth:token-type:id_token"</Condition>
-          </Step>
-          <Step>
-              <Name>AssignMessage.TokenExchangeGenerateTokenResponse</Name>
-              <Condition>response.formparam.subject_token_type = "urn:ietf:params:oauth:token-type:id_token"</Condition>
           </Step>
       </Response>
-        <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Equals "client_credentials"))</Condition>
+      <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Equals "client_credentials") and ((request.formparam.subject_token_type NotEquals "urn:ietf:params:oauth:token-type:id_token")))</Condition>
       </Flow>
       <Flow name="Flow.PostTokenTokenExchange">
         <Description>OAuth Token Endpoint - Token-Exchange</Description>
@@ -371,15 +364,15 @@
                 <Condition>(request.formparam.client_assertion_type NotEquals "urn:ietf:params:oauth:client-assertion-type:jwt-bearer")</Condition>
             </Step>
             <Step>
-                <Name>RaiseFault.InvalidSubjectTokenType</Name>
-                <Condition>request.formparam.subject_token_type != "urn:ietf:params:oauth:token-type:id_token"</Condition>
+                <Name>RaiseFault.InvalidGrantType</Name>
+                <Condition>request.formparam.grant_type NotEquals "urn:ietf:params:oauth:grant-type:token-exchange"</Condition>
             </Step>
             <Step>
                 <Name>DecodeJWT.FromClientAssertionFormParam</Name>
             </Step>
             <Step>
                 <!-- The JWT Header may be valid, but the rest of the JWT may be malformed or missing.
-                 This catches that eventuality: -->
+             This catches that eventuality: -->
                 <Name>RaiseFault.WarningDecodingJWT</Name>
                 <Condition>jwt.DecodeJWT.FromClientAssertionFormParam.warning != null</Condition>
             </Step>
@@ -398,11 +391,11 @@
             <Step>
                 <Name>RaiseFault.MissingJtiClaim</Name>
                 <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti Equals "")</Condition>
-            </Step>        
+            </Step>
             <Step>
-            <Name>RaiseFault.MissingExpClaim</Name>
-            <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Equals "")</Condition>
-            </Step>            
+                <Name>RaiseFault.MissingExpClaim</Name>
+                <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Equals "")</Condition>
+            </Step>
             <Step>
                 <!-- We advise to limit expiry time to now + 5 minutes. Allowing an extra 10 seconds to mitigate edge cases: -->
                 <Name>RaiseFault.ExpClaimTooLong</Name>
@@ -410,11 +403,11 @@
             </Step>
             <Step>
                 <Name>LookupCache.JTIClaim</Name>
-            </Step>        
+            </Step>
             <Step>
-            <Name>RaiseFault.JTIValueExistsInCache</Name>
-            <Condition>JTICachedValue = jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti</Condition>
-            </Step>        
+                <Name>RaiseFault.JTIValueExistsInCache</Name>
+                <Condition>JTICachedValue = jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti</Condition>
+            </Step>
             <Step>
                 <Name>PopulateCache.JTIClaim</Name>
             </Step>
@@ -444,17 +437,17 @@
                 <Name>DecodeJWT.FromSubjectTokenFormParam</Name>
             </Step>
             <Step>
-              <Name>RaiseFault.MissingExpClaim</Name>
-              <Condition>(jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.exp Equals "")</Condition>
-          </Step>
-          <Step>
-              <Name>RaiseFault.MissingOrInvalidIssClaim</Name>
-              <Condition>(jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.iss Is null) or (jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.iss Equals "") or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss NotEquals jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.sub)</Condition>
-          </Step>
-          <Step>
-              <Name>RaiseFault.MissingAudClaim</Name>
-              <Condition>(jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.aud Is null) or (jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.aud Equals "")</Condition>
-          </Step>
+                <Name>RaiseFault.MissingExpClaim</Name>
+                <Condition>(jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.exp Equals "")</Condition>
+            </Step>
+            <Step>
+                <Name>RaiseFault.MissingOrInvalidIssClaim</Name>
+                <Condition>(jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.iss Is null) or (jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.iss Equals "") or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss NotEquals jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.sub)</Condition>
+            </Step>
+            <Step>
+                <Name>RaiseFault.MissingAudClaim</Name>
+                <Condition>(jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.aud Is null) or (jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.aud Equals "")</Condition>
+            </Step>
             <Step>
                 <Name>LookupCache.JWKS</Name>
             </Step>
@@ -474,7 +467,7 @@
                 <Name>VerifyJWT.SubjectToken</Name>
             </Step>
             <!-- Next step allows optional REDUCTION of access_token_expiry KVM values
-                using _access_token_expiry_ms form param -->
+            using _access_token_expiry_ms form param -->
             <Step>
                 <Name>AssignMessage.AccessTokenExpiryOverride</Name>
                 <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
@@ -486,12 +479,14 @@
             <Step>
                 <Name>OAuthV2.TokenExchangeGenerateAccessToken</Name>
             </Step>
-        </Request>
-        <!-- The below response attribute doesn't execute because the grant_type has changes to client_credentials
-                so apigee executes the response from the Client Credentials flow instead -->
-        <Response/>        
-        <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Equals "urn:ietf:params:oauth:grant-type:token-exchange") and (apim.feature_toggles.enable-token-exchange != true))</Condition>
-      </Flow>
+        </Request>        
+        <Response>
+            <Step>
+                <Name>AssignMessage.TokenExchangeGenerateTokenResponse</Name>
+            </Step>
+        </Response>
+        <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.subject_token_type Equals "urn:ietf:params:oauth:token-type:id_token"))</Condition>
+    </Flow>
       <Flow name="Flow.PostTokenAuthorizationCode">
         <Description>OAuth Token Endpoint - Authorization Code Flow</Description>
             <Request>
@@ -872,6 +867,14 @@
             </Response>
             <Condition>request.verb == "OPTIONS" AND request.header.origin != null AND request.header.Access-Control-Request-Method != null</Condition>
         </Flow>
+        <Flow name="Flow.PostTokenInvalidSubjectTokenType">
+          <Request>
+              <Step>
+                  <Name>RaiseFault.InvalidSubjectTokenType</Name>
+              </Step>
+          </Request>
+          <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Is "urn:ietf:params:oauth:grant-type:token-exchange") and (request.formparam.subject_token_type NotEquals "urn:ietf:params:oauth:token-type:id_token")</Condition>
+      </Flow>
         <Flow name="Flow.PostTokenInvalidGrantType">
           <Request>
             <Step>
