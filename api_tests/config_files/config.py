@@ -15,7 +15,7 @@ USERINFO_URL = f"{OAUTH_BASE_URI}/{OAUTH_PROXY}/userinfo"
 
 # Apigee API details
 APIGEE_API_URL = ENV['apigee']['base_url']
-APIGEE_AUTHENTICATION = ENV['apigee']['api_authentication']
+#APIGEE_AUTHENTICATION = ENV['apigee']['api_authentication']
 APIGEE_ENVIRONMENT = "internal-dev"
 
 # PDS

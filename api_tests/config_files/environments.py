@@ -63,7 +63,7 @@ ENV = {
     },
     'apigee': {
         'base_url': get_env('APIGEE_API_URL'),
-        'api_authentication': get_env('APIGEE_API_AUTHENTICATION'),
+        #'api_authentication': get_env('APIGEE_API_AUTHENTICATION'),
     },
     'hello_world': {
         'api_url': get_env('HELLO_WORLD_API_URL'),
