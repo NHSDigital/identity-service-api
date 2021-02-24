@@ -17,11 +17,11 @@ class GenericRequest:
     def get_response(self, verb: str, url: str, **kwargs) -> requests.Response:
         """Verify the arguments and then send a request and return the response"""
         if not self.is_url(url):
-            raise Exception("Endpoint not found")
+            raise RuntimeError("Endpoint not found")
 
         # Verify http verb is valid
         if verb.lower() not in {'post', 'get', 'put', 'patch'}:
-            raise Exception(f"Verb: {verb} is invalid")
+            raise RuntimeError(f"Verb: {verb} is invalid")
 
         func = (((self.get,  # else
                   self.patch)[verb.lower() == 'patch'],

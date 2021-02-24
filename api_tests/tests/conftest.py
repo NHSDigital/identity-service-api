@@ -98,38 +98,6 @@ async def test_app(app):
     await app.destroy_app()
 
 
-@pytest.yield_fixture(scope="class")
-def setup_user_restricted_app(request, test_app, test_product):
-    print("\nCreating User Restricted App..")
-    asyncio.run(test_app.create_new_app())
-    asyncio.run(test_app.add_api_product(test_product))
-
-    oauth = OauthHelper(test_app.client_id, test_app.client_secret, test_app.callback_url)
-    setattr(request.cls, "user_restricted", oauth)
-
-    yield
-
-    # Teardown
-    print("\nDestroying User Restricted App..")
-    asyncio.run(test_app.destroy_app())
-
-
-@pytest.yield_fixture(scope="class")
-def setup_application_restricted_app(request, test_app, test_product):
-    print("\nCreating Application Restricted App..")
-    asyncio.run(test_app.create_new_app())
-    asyncio.run(test_app.add_api_product(test_product))
-
-    oauth = OauthHelper(test_app.client_id, test_app.client_secret, test_app.callback_url)
-    setattr(request.cls, "app_restricted", oauth)
-
-    yield
-
-    # Teardown
-    print("\nDestroying Application Restricted App..")
-    asyncio.run(test_app.destroy_app())
-
-
 async def _product_with_full_access():
     product = ApigeeApiProducts()
     await product.create_new_product()
