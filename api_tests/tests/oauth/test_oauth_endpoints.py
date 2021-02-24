@@ -2,6 +2,11 @@ from api_tests.scripts import config
 from api_tests.scripts.response_bank import BANK
 import pytest
 import random
+import requests
+import jwt
+from uuid import uuid4
+from time import time, sleep
+import json
 
 
 @pytest.mark.asyncio
@@ -740,3 +745,619 @@ class TestOauthEndpoints:
             endpoint="userinfo",
             headers={'Authorization': f'Bearer {self.oauth.access_token}'}
         )
+
+    @pytest.mark.happy_path
+    @pytest.mark.token_exchange
+    @pytest.mark.skip(reason='feature turned off')
+    @pytest.mark.usefixtures('get_token')
+    def test_token_exchange_happy_path(self):
+        # Given
+        expected_status_code = 200
+        expected_expires_in = '599'
+        expected_token_type = 'Bearer'
+
+        id_token_claims = {
+            'at_hash': 'tf_-lqpq36lwO7WmSBIJ6Q',
+            'sub': '787807429511',
+            'auditTrackingId': '91f694e6-3749-42fd-90b0-c3134b0d98f6-1546391',
+            'amr': ['N3_SMARTCARD'],
+            'iss': 'https://am.nhsint.ptl.nhsd-esa.net:443/openam/oauth2/realms/root/realms/NHSIdentity/realms/Healthcare',
+            'tokenName': 'id_token',
+            'aud': '969567331415.apps.national',
+            'c_hash': 'bc7zzGkClC3MEiFQ3YhPKg',
+            'acr': 'AAL3_ANY',
+            'org.forgerock.openidconnect.ops': '-I45NjmMDdMa-aNF2sr9hC7qEGQ',
+            's_hash': 'LPJNul-wow4m6Dsqxbning',
+            'azp': '969567331415.apps.national',
+            'auth_time': 1610559802,
+            'realm': '/NHSIdentity/Healthcare',
+            'exp': int(time()) + 600,
+            'tokenType': 'JWTToken',
+            'iat': int(time()) - 10
+        }
+
+        client_assertion_claims = {
+            "sub": self.oauth.client_id,
+            "iss": self.oauth.client_id,
+            "jti": str(uuid4()),
+            "aud": config.TOKEN_URL,
+            "exp": int(time()) + 5,
+        }
+
+        id_token_jwt = jwt.encode(id_token_claims, config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS256', headers={'kid': 'identity-service-tests-1'})
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512', headers={'kid': 'test-1'})
+
+        # When
+        response = requests.post(
+            url=config.TOKEN_URL,
+            data= {
+                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+                'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
+                'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+                'subject_token': id_token_jwt,
+                'client_assertion': client_assertion_jwt
+            }
+        )
+        sleep(2)
+
+        # Then
+        response_dict = json.loads(response.text)
+
+        assert expected_status_code == response.status_code, response.text
+        assert 'access_token' in response_dict
+        assert expected_expires_in == response_dict['expires_in']
+        assert expected_token_type == response_dict['token_type']
+
+    @pytest.mark.errors
+    @pytest.mark.token_exchange
+    @pytest.mark.skip(reason='feature turned off')
+    @pytest.mark.usefixtures('get_token')
+    def test_token_exchange_invalid_client_assertion_type(self):
+        # Given
+        expected_status_code = 400
+        expected_error = 'invalid_request'
+        expected_error_description = "Missing or invalid client_assertion_type - must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+        # When
+        response = requests.post(
+            url= config.TOKEN_URL,
+            data= {
+                'client_assertion_type': 'Invalid',
+                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+                'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token'
+            }
+        )
+        sleep(2)
+
+        response_dict = json.loads(response.text)
+
+        # Then
+        assert expected_status_code == response.status_code
+        assert expected_error == response_dict['error']
+        assert expected_error_description == response_dict['error_description']
+        assert 'message_id' in response_dict
+
+    @pytest.mark.errors
+    @pytest.mark.token_exchange
+    @pytest.mark.skip(reason='feature turned off')
+    @pytest.mark.usefixtures('get_token')
+    def test_token_exchange_invalid_subject_token_type(self):
+        # Given
+        expected_status_code = 400
+        expected_error = 'invalid_request'
+        expected_error_description = "missing or invalid subject_token_type - must be 'urn:ietf:params:oauth:token-type:id_token'"
+        # When
+        response = requests.post(
+            url= config.TOKEN_URL,
+            data= {
+                'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+                'subject_token_type': 'Invalid',
+                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange'
+            }
+        )
+        sleep(2)
+
+        response_dict = json.loads(response.text)
+
+        # Then
+        assert expected_status_code == response.status_code
+        assert expected_error == response_dict['error']
+        assert expected_error_description == response_dict['error_description']
+        assert 'message_id' in response_dict
+
+    @pytest.mark.errors
+    @pytest.mark.token_exchange
+    @pytest.mark.skip(reason='feature turned off')
+    @pytest.mark.usefixtures('get_token')
+    def test_token_exchange_claims_assertion_invalid_kid(self):
+        # Given
+        expected_status_code = 400
+        expected_error = 'invalid_request'
+        expected_error_description = "Missing 'kid' header in JWT"
+
+        client_assertion_claims = {
+            "sub": self.oauth.client_id,
+            "iss": self.oauth.client_id,
+            "jti": str(uuid4()),
+            "aud": config.TOKEN_URL,
+            "exp": int(time()) + 5,
+        }
+
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512')
+
+        # When
+        response = requests.post(
+            url= config.TOKEN_URL,
+            data= {
+                'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+                'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
+                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+                'client_assertion': client_assertion_jwt
+            }
+        )
+
+        sleep(2)
+
+        response_dict = json.loads(response.text)
+
+        # Then
+        assert expected_status_code == response.status_code
+        assert expected_error == response_dict['error']
+        assert expected_error_description == response_dict['error_description']
+        assert 'message_id' in response_dict
+
+    @pytest.mark.errors
+    @pytest.mark.token_exchange
+    @pytest.mark.skip(reason='feature turned off')
+    @pytest.mark.usefixtures('get_token')
+    def test_token_exchange_claims_assertion_invalid_typ_header(self):
+        # Given
+        expected_status_code = 400
+        expected_error = 'invalid_request'
+        expected_error_description = "Invalid 'typ' header in JWT - must be 'JWT'"
+
+        client_assertion_claims = {
+            "sub": self.oauth.client_id,
+            "iss": self.oauth.client_id,
+            "jti": str(uuid4()),
+            "aud": config.TOKEN_URL,
+            "exp": int(time()) + 5,
+        }
+
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512', headers={'kid': 'test-1', 'typ': 'invalid'})
+
+        # When
+        response = requests.post(
+            url= config.TOKEN_URL,
+            data= {
+                'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+                'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
+                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+                'client_assertion': client_assertion_jwt
+            }
+        )
+        sleep(2)
+        response_dict = json.loads(response.text)
+
+        # Then
+        assert expected_status_code == response.status_code
+        assert expected_error == response_dict['error']
+        assert expected_error_description == response_dict['error_description']
+        assert 'message_id' in response_dict
+
+    @pytest.mark.errors
+    @pytest.mark.token_exchange
+    @pytest.mark.skip(reason='feature turned off')
+    @pytest.mark.usefixtures('get_token')
+    def test_token_exchange_claims_assertion_invalid_iss_claim(self):
+        # Given
+        expected_status_code = 400
+        expected_error = 'invalid_request'
+        expected_error_description = "Missing or non-matching iss/sub claims in JWT"
+
+        client_assertion_claims = {
+            "sub": '',
+            "jti": str(uuid4()),
+            "aud": config.TOKEN_URL,
+            "exp": int(time()) + 5,
+        }
+
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512', headers={'kid': 'test-1'})
+
+        # When
+        response = requests.post(
+            url= config.TOKEN_URL,
+            data= {
+                'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+                'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
+                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+                'client_assertion': client_assertion_jwt
+            }
+        )
+        sleep(2)
+
+        response_dict = json.loads(response.text)
+
+        # Then
+        assert expected_status_code == response.status_code
+        assert expected_error == response_dict['error']
+        assert expected_error_description == response_dict['error_description']
+        assert 'message_id' in response_dict
+
+    @pytest.mark.errors
+    @pytest.mark.token_exchange
+    @pytest.mark.skip(reason='feature turned off')
+    @pytest.mark.usefixtures('get_token')
+    def test_token_exchange_claims_assertion_missing_jti_claim(self):
+        # Given
+        expected_status_code = 400
+        expected_error = 'invalid_request'
+        expected_error_description = "Missing jti claim in JWT"
+
+        client_assertion_claims = {
+            "sub": self.oauth.client_id,
+            "iss": self.oauth.client_id,
+            "jti": '',
+            "aud": config.TOKEN_URL,
+            "exp": int(time()) + 5,
+        }
+
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512', headers={'kid': 'test-1'})
+
+        # When
+        response = requests.post(
+            url= config.TOKEN_URL,
+            data= {
+                'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+                'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
+                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+                'client_assertion': client_assertion_jwt
+            }
+        )
+        sleep(2)
+
+        response_dict = json.loads(response.text)
+
+        # Then
+        assert expected_status_code == response.status_code
+        assert expected_error == response_dict['error']
+        assert expected_error_description == response_dict['error_description']
+        assert 'message_id' in response_dict
+
+    @pytest.mark.errors
+    @pytest.mark.token_exchange
+    @pytest.mark.skip(reason='feature turned off')
+    @pytest.mark.usefixtures('get_token')
+    def test_token_exchange_claims_assertion_missing_exp_claim(self):
+        # Given
+        expected_status_code = 400
+        expected_error = 'invalid_request'
+        expected_error_description = "Missing exp claim in JWT"
+
+        client_assertion_claims = {
+            "sub": self.oauth.client_id,
+            "iss": self.oauth.client_id,
+            "jti": str(uuid4()),
+            "aud": config.TOKEN_URL,
+        }
+
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512', headers={'kid': 'test-1'})
+
+        # When
+        response = requests.post(
+            url= config.TOKEN_URL,
+            data= {
+                'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+                'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
+                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+                'client_assertion': client_assertion_jwt
+            }
+        )
+        sleep(2)
+
+        response_dict = json.loads(response.text)
+
+        # Then
+        assert expected_status_code == response.status_code
+        assert expected_error == response_dict['error']
+        assert expected_error_description == response_dict['error_description']
+        assert 'message_id' in response_dict
+
+    @pytest.mark.errors
+    @pytest.mark.token_exchange
+    @pytest.mark.skip(reason='feature turned off')
+    @pytest.mark.usefixtures('get_token')
+    def test_token_exchange_claims_assertion_invalid_exp_claim(self):
+        # Given
+        expected_status_code = 400
+        expected_error = 'invalid_request'
+        expected_error_description = "Invalid exp claim in JWT - more than 5 minutes in future"
+
+        client_assertion_claims = {
+            "sub": self.oauth.client_id,
+            "iss": self.oauth.client_id,
+            "jti": str(uuid4()),
+            "aud": config.TOKEN_URL,
+            "exp": int(time()) + 50000,
+        }
+
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512', headers={'kid': 'test-1'})
+
+        # When
+        response = requests.post(
+            url= config.TOKEN_URL,
+            data= {
+                'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+                'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
+                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+                'client_assertion': client_assertion_jwt
+            }
+        )
+        sleep(2)
+
+        response_dict = json.loads(response.text)
+
+        # Then
+        assert expected_status_code == response.status_code
+        assert expected_error == response_dict['error']
+        assert expected_error_description == response_dict['error_description']
+        assert 'message_id' in response_dict
+
+    @pytest.mark.errors
+    @pytest.mark.token_exchange
+    @pytest.mark.skip(reason='feature turned off')
+    @pytest.mark.usefixtures('get_token')
+    def test_token_exchange_claims_assertion_invalid_jti_claim(self):
+        # Given
+        expected_status_code = 400
+        expected_error = 'invalid_request'
+        expected_error_description = "Non-unique jti claim in JWT"
+
+        id_token_claims = {
+            'at_hash': 'tf_-lqpq36lwO7WmSBIJ6Q',
+            'sub': '787807429511',
+            'auditTrackingId': '91f694e6-3749-42fd-90b0-c3134b0d98f6-1546391',
+            'amr': ['N3_SMARTCARD'],
+            'iss': 'https://am.nhsint.ptl.nhsd-esa.net:443/openam/oauth2/realms/root/realms/NHSIdentity/realms/Healthcare',
+            'tokenName': 'id_token',
+            'aud': '969567331415.apps.national',
+            'c_hash': 'bc7zzGkClC3MEiFQ3YhPKg',
+            'acr': 'AAL3_ANY',
+            'org.forgerock.openidconnect.ops': '-I45NjmMDdMa-aNF2sr9hC7qEGQ',
+            's_hash': 'LPJNul-wow4m6Dsqxbning',
+            'azp': '969567331415.apps.national',
+            'auth_time': 1610559802,
+            'realm': '/NHSIdentity/Healthcare',
+            'exp': int(time()) + 600,
+            'tokenType': 'JWTToken',
+            'iat': int(time()) - 10
+        }
+
+        client_assertion_claims = {
+            "sub": self.oauth.client_id,
+            "iss": self.oauth.client_id,
+            "jti": str(uuid4()),
+            "aud": config.TOKEN_URL,
+            "exp": int(time()) + 5,
+        }
+
+        id_token_jwt = jwt.encode(id_token_claims, config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS256', headers={'kid': 'identity-service-tests-1'})
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512', headers={'kid': 'test-1'})
+
+        # When
+        response = requests.post(
+            url=config.TOKEN_URL,
+            data= {
+                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+                'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
+                'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+                'subject_token': id_token_jwt,
+                'client_assertion': client_assertion_jwt
+            }
+        )
+        sleep(2)
+
+        response = requests.post(
+            url=config.TOKEN_URL,
+            data= {
+                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+                'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
+                'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+                'subject_token': id_token_jwt,
+                'client_assertion': client_assertion_jwt
+            }
+        )
+
+        # Then
+        response_dict = json.loads(response.text)
+
+        # Then
+        assert expected_status_code == response.status_code
+        assert expected_error == response_dict['error']
+        assert expected_error_description == response_dict['error_description']
+        assert 'message_id' in response_dict
+
+
+    @pytest.mark.errors
+    @pytest.mark.token_exchange
+    @pytest.mark.skip(reason='feature turned off')
+    @pytest.mark.usefixtures('get_token')
+    def test_token_exchange_subject_token_missing_iss_or_sub_claim(self):
+        # Given
+        expected_status_code = 400
+        expected_error = 'invalid_request'
+        expected_error_description = "Missing or non-matching iss/sub claims in JWT"
+
+        id_token_claims = {
+            'at_hash': 'tf_-lqpq36lwO7WmSBIJ6Q',
+            'sub': '787807429511',
+            'auditTrackingId': '91f694e6-3749-42fd-90b0-c3134b0d98f6-1546391',
+            'amr': ['N3_SMARTCARD'],
+            'tokenName': 'id_token',
+            'aud': '969567331415.apps.national',
+            'c_hash': 'bc7zzGkClC3MEiFQ3YhPKg',
+            'acr': 'AAL3_ANY',
+            'org.forgerock.openidconnect.ops': '-I45NjmMDdMa-aNF2sr9hC7qEGQ',
+            's_hash': 'LPJNul-wow4m6Dsqxbning',
+            'azp': '969567331415.apps.national',
+            'auth_time': 1610559802,
+            'realm': '/NHSIdentity/Healthcare',
+            'exp': int(time()) + 600,
+            'tokenType': 'JWTToken',
+            'iat': int(time()) - 10
+        }
+
+        client_assertion_claims = {
+            "sub": self.oauth.client_id,
+            "iss": self.oauth.client_id,
+            "jti": str(uuid4()),
+            "aud": config.TOKEN_URL,
+            "exp": int(time()) + 5,
+        }
+
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512', headers={'kid': 'test-1'})
+        id_token_jwt = jwt.encode(id_token_claims, config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS256', headers={'kid': 'identity-service-tests-1'})
+
+        # When
+        response = requests.post(
+            url= config.TOKEN_URL,
+            data= {
+                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+                'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
+                'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+                'subject_token': id_token_jwt,
+                'client_assertion': client_assertion_jwt
+            }
+        )
+        sleep(2)
+
+        response_dict = json.loads(response.text)
+
+        # Then
+        assert expected_status_code == response.status_code
+        assert expected_error == response_dict['error']
+        assert expected_error_description == response_dict['error_description']
+        assert 'message_id' in response_dict
+
+    @pytest.mark.errors
+    @pytest.mark.token_exchange
+    @pytest.mark.skip(reason='feature turned off')
+    @pytest.mark.usefixtures('get_token')
+    def test_token_exchange_subject_token_missing_aud_claim(self):
+        # Given
+        expected_status_code = 400
+        expected_error = 'invalid_request'
+        expected_error_description = "Missing aud claim in JWT"
+
+        id_token_claims = {
+            'at_hash': 'tf_-lqpq36lwO7WmSBIJ6Q',
+            'sub': '787807429511',
+            'auditTrackingId': '91f694e6-3749-42fd-90b0-c3134b0d98f6-1546391',
+            'iss': 'https://am.nhsint.ptl.nhsd-esa.net:443/openam/oauth2/realms/root/realms/NHSIdentity/realms/Healthcare',
+            'amr': ['N3_SMARTCARD'],
+            'tokenName': 'id_token',
+            'c_hash': 'bc7zzGkClC3MEiFQ3YhPKg',
+            'acr': 'AAL3_ANY',
+            'org.forgerock.openidconnect.ops': '-I45NjmMDdMa-aNF2sr9hC7qEGQ',
+            's_hash': 'LPJNul-wow4m6Dsqxbning',
+            'azp': '969567331415.apps.national',
+            'auth_time': 1610559802,
+            'realm': '/NHSIdentity/Healthcare',
+            'exp': int(time()) + 600,
+            'tokenType': 'JWTToken',
+            'iat': int(time()) - 10
+        }
+
+        client_assertion_claims = {
+            "sub": self.oauth.client_id,
+            "iss": self.oauth.client_id,
+            "jti": str(uuid4()),
+            "aud": config.TOKEN_URL,
+            "exp": int(time()) + 5,
+        }
+
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512', headers={'kid': 'test-1'})
+        id_token_jwt = jwt.encode(id_token_claims, config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS256', headers={'kid': 'identity-service-tests-1'})
+
+        # When
+        response = requests.post(
+            url= config.TOKEN_URL,
+            data= {
+                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+                'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
+                'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+                'subject_token': id_token_jwt,
+                'client_assertion': client_assertion_jwt
+            }
+        )
+        sleep(2)
+
+        response_dict = json.loads(response.text)
+
+        # Then
+        assert expected_status_code == response.status_code
+        assert expected_error == response_dict['error']
+        assert expected_error_description == response_dict['error_description']
+        assert 'message_id' in response_dict
+
+    @pytest.mark.errors
+    @pytest.mark.token_exchange
+    @pytest.mark.skip(reason='feature turned off')
+    @pytest.mark.usefixtures('get_token')
+    def test_token_exchange_subject_token_missing_exp_claim(self):
+        # Given
+        expected_status_code = 400
+        expected_error = 'invalid_request'
+        expected_error_description = "Missing exp claim in JWT"
+
+        id_token_claims = {
+            'at_hash': 'tf_-lqpq36lwO7WmSBIJ6Q',
+            'sub': '787807429511',
+            'auditTrackingId': '91f694e6-3749-42fd-90b0-c3134b0d98f6-1546391',
+            'amr': ['N3_SMARTCARD'],
+            'iss': 'https://am.nhsint.ptl.nhsd-esa.net:443/openam/oauth2/realms/root/realms/NHSIdentity/realms/Healthcare',
+            'tokenName': 'id_token',
+            'aud': '969567331415.apps.national',
+            'c_hash': 'bc7zzGkClC3MEiFQ3YhPKg',
+            'acr': 'AAL3_ANY',
+            'org.forgerock.openidconnect.ops': '-I45NjmMDdMa-aNF2sr9hC7qEGQ',
+            's_hash': 'LPJNul-wow4m6Dsqxbning',
+            'azp': '969567331415.apps.national',
+            'auth_time': 1610559802,
+            'realm': '/NHSIdentity/Healthcare',
+            #'exp': int(time()) + 600,
+            'tokenType': 'JWTToken',
+            'iat': int(time()) - 10
+        }
+
+        client_assertion_claims = {
+            "sub": self.oauth.client_id,
+            "iss": self.oauth.client_id,
+            "jti": str(uuid4()),
+            "aud": config.TOKEN_URL,
+            "exp": int(time()) + 5,
+        }
+
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512', headers={'kid': 'test-1'})
+        id_token_jwt = jwt.encode(id_token_claims, config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS256', headers={'kid': 'identity-service-tests-1'})
+
+        # When
+        response = requests.post(
+            url= config.TOKEN_URL,
+            data= {
+                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+                'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
+                'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+                'subject_token': id_token_jwt,
+                'client_assertion': client_assertion_jwt
+            }
+        )
+        sleep(2)
+
+        response_dict = json.loads(response.text)
+
+        # Then
+        assert expected_status_code == response.status_code
+        assert expected_error == response_dict['error']
+        assert expected_error_description == response_dict['error_description']
+        assert 'message_id' in response_dict
+

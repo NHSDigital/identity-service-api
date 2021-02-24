@@ -19,6 +19,7 @@ steps:
       export OAUTH_PROXY="$(SERVICE_BASE_PATH)"
       export HELLO_WORLD_API_URL="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk/hello-world/hello/user"
       export APIGEE_API_TOKEN="$(secret.AccessToken)"
+      export ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH="$(Pipeline.Workspace)/secrets/$(ID_TOKEN_TESTING_PRIVATE_KEY)"
       export JWT_PRIVATE_KEY_ABSOLUTE_PATH="$(Pipeline.Workspace)/secrets/$(JWT_TESTING_PRIVATE_KEY)"
 
       pytest -v --junitxml=test-report.xml

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.TokenExchangeGenerateTokenResponse">
+    <DisplayName>AssignMessage.TokenExchangeGenerateTokenResponse</DisplayName>
+    <Set>
+        <Payload contentType="application/json">
+      {
+        "access_token": "{oauthv2accesstoken.OAuthV2.TokenExchangeGenerateAccessToken.access_token}",
+        "expires_in": "{oauthv2accesstoken.OAuthV2.TokenExchangeGenerateAccessToken.expires_in}",
+        "token_type": "Bearer"
+      }
+</Payload>
+    </Set>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+    <AssignTo createNew="false" transport="http" type="request"/>
+</AssignMessage>

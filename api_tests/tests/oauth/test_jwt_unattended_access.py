@@ -383,7 +383,7 @@ class TestJwtUnattendedAccess:
         assert resp['status_code'] == expected_status_code
         assert resp['body'] == expected_response
 
-    @pytest.mark.skip("Investigate why this is currently failing")
+    @pytest.mark.skip("Fails in the pipeline")
     async def test_manipulated_jwt_json(self):
         jwt = self.oauth.create_jwt(kid='test-1')
         chars = choice(ascii_letters) + choice(ascii_letters)
@@ -405,3 +405,4 @@ class TestJwtUnattendedAccess:
                 'error_description': 'You need to register a public key to use this '
                                      'authentication method - please contact support to configure'
             }
+
