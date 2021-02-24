@@ -1,7 +1,6 @@
 import os
 
-
-# Configure Test Environment
+# os.getenvure Test Environment
 def get_env(variable_name: str) -> str:
     """Returns a environment variable"""
     try:
@@ -27,11 +26,9 @@ def get_env_file(variable_name: str) -> str:
     except KeyError:
         raise RuntimeError(f"Variable is not set, Check {variable_name}.")
 
-
 ENV = {
     'oauth': {
         'apigee_client_id': get_env('APIGEE_CLIENT_ID'),
-
         'service_name': get_env('SERVICE_NAME'),
         'oauth_proxy': get_env('OAUTH_PROXY'),
         'base_url': get_env('OAUTH_BASE_URI'),
@@ -63,8 +60,7 @@ ENV = {
 
     },
     'apigee': {
-        'base_url': get_env('APIGEE_API_URL'),
-        'api_authentication': get_env('APIGEE_API_TOKEN'),
+        'base_url': get_env('APIGEE_API_URL'),        
     },
     'hello_world': {
         'api_url': get_env('HELLO_WORLD_API_URL'),
@@ -75,6 +71,7 @@ ENV = {
     },
     "jwt": {
         'app_key': get_env('JWT_APP_KEY'),
+        'id_token_private_key': get_env_file('ID_TOKEN_PRIVATE_KEY_DIR'),
         'private_key': get_env_file('JWT_PRIVATE_KEY_ABSOLUTE_PATH'),
     },
 }

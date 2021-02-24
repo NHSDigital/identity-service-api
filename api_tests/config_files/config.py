@@ -15,7 +15,6 @@ USERINFO_URL = f"{OAUTH_BASE_URI}/{OAUTH_PROXY}/userinfo"
 
 # Apigee API details
 APIGEE_API_URL = ENV['apigee']['base_url']
-APIGEE_AUTHENTICATION = ENV['apigee']['api_authentication']
 APIGEE_ENVIRONMENT = "internal-dev"
 
 # PDS
@@ -45,6 +44,7 @@ HELLO_WORLD_API_URL = ENV['hello_world']['api_url']
 JWT_PRIVATE_KEY = ENV['jwt']['private_key']
 JWT_APP_KEY = ENV['jwt']['app_key']
 JWT_APP_KEY_WITH_INVALID_JWKS_URL = "kstRcl8syAA0CRqFeRBaMG0GiXgLBR2i"
+ID_TOKEN_PRIVATE_KEY = ENV['jwt']['id_token_private_key']
 
 # Endpoints
 ENDPOINTS = {
