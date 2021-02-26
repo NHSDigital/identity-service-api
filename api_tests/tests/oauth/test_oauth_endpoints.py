@@ -755,7 +755,8 @@ class TestOauthEndpoints:
         expected_status_code = 200
         expected_expires_in = '599'
         expected_token_type = 'Bearer'
-
+        expected_issued_token_type = 'urn:ietf:params:oauth:token-type:access_token'
+        
         id_token_claims = {
             'at_hash': 'tf_-lqpq36lwO7WmSBIJ6Q',
             'sub': '787807429511',
@@ -807,6 +808,7 @@ class TestOauthEndpoints:
         assert 'access_token' in response_dict
         assert expected_expires_in == response_dict['expires_in']
         assert expected_token_type == response_dict['token_type']
+        assert expected_issued_token_type == response_dict['issued_token_type']
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
