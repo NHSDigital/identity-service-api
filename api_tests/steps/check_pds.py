@@ -1,5 +1,5 @@
 from api_tests.scripts.generic_request import GenericRequest
-from api_tests.config_files import config
+from api_tests.scripts import config
 from api_tests.scripts.apigee_api import ApigeeDebugApi
 from api_tests.scripts.pds_request import PdsRequest
 from requests import Response
