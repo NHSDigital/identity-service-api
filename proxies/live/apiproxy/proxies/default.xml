@@ -181,9 +181,9 @@
                 <Step>
                     <Name>RaiseFault.VerifyRedirectUriQueryParam</Name>
                     <Condition>
-                      verifyapikey.VerifyAPIKey.ClientId.redirection_uris != null
-                      And verifyapikey.VerifyAPIKey.ClientId.redirection_uris != ""
-                      And request.queryparam.redirect_uri != verifyapikey.VerifyAPIKey.ClientId.redirection_uris
+                      (verifyapikey.VerifyAPIKey.ClientId.redirection_uris != null)
+                      And (verifyapikey.VerifyAPIKey.ClientId.redirection_uris != "")
+                      And (request.queryparam.redirect_uri != verifyapikey.VerifyAPIKey.ClientId.redirection_uris)
                     </Condition>
                 </Step>
                 <!-- Verify the client has sent a state value-->
@@ -514,9 +514,9 @@
                 <Step>
                   <Name>RaiseFault.VerifyRedirectUriFormParam</Name>
                   <Condition>
-                    verifyapikey.VerifyAPIKey.FromClientSecretFormParam.redirection_uris != null
-                    And verifyapikey.VerifyAPIKey.FromClientSecretFormParam.redirection_uris != ""
-                    And request.formparam.redirect_uri != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.redirection_uris
+                    (verifyapikey.VerifyAPIKey.FromClientSecretFormParam.redirection_uris != null)
+                    And (verifyapikey.VerifyAPIKey.FromClientSecretFormParam.redirection_uris != "")
+                    And (request.formparam.redirect_uri != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.redirection_uris)
                   </Condition>
                 </Step>
                 <!-- Verify the client has sent a valid authorization code -->
@@ -628,9 +628,9 @@
                 <Step>
                   <Name>RaiseFault.VerifyRedirectUriFormParam</Name>
                   <Condition>
-                    verifyapikey.VerifyAPIKey.FromClientSecretFormParam.redirection_uris != null
-                    And verifyapikey.VerifyAPIKey.FromClientSecretFormParam.redirection_uris != ""
-                    And request.formparam.redirect_uri != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.redirection_uris
+                    (verifyapikey.VerifyAPIKey.FromClientSecretFormParam.redirection_uris != null)
+                    And (verifyapikey.VerifyAPIKey.FromClientSecretFormParam.redirection_uris != "")
+                    And (request.formparam.redirect_uri != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.redirection_uris)
                   </Condition>
                 </Step>
                 <!-- Verify the client has sent a authorization code -->
