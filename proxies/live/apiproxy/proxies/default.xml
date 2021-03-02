@@ -476,6 +476,17 @@
             <Step>
                 <Name>AssignMessage.ChangeGrantTypeToClientCrentials</Name>
             </Step>
+            <!-- An access token is generated to fetch all the scopes for filtering -->
+            <Step>
+              <Name>OAuthV2.TokenExchangeGenerateAccessToken</Name>
+          </Step>
+          <Step>
+              <Name>JavaScript.FilterUserRestrictedScopes</Name>
+          </Step>
+          <Step>
+              <Name>RaiseFault.VerifyAccessLevel</Name>
+              <Condition>(apigee.user_restricted_scopes = "")</Condition>
+          </Step>
             <Step>
                 <Name>OAuthV2.TokenExchangeGenerateAccessToken</Name>
             </Step>

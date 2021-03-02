@@ -772,9 +772,9 @@ class TestOauthEndpoints:
             'azp': '969567331415.apps.national',
             'auth_time': 1610559802,
             'realm': '/NHSIdentity/Healthcare',
-            'exp': int(time()) + 600,
+            'exp': int(time()) + 6000,
             'tokenType': 'JWTToken',
-            'iat': int(time()) - 10
+            'iat': int(time()) - 100
         }
 
         client_assertion_claims = {
@@ -799,7 +799,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }
         )
-        sleep(2)
+        
 
         # Then
         response_dict = json.loads(response.text)
@@ -828,7 +828,7 @@ class TestOauthEndpoints:
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token'
             }
         )
-        sleep(2)
+
 
         response_dict = json.loads(response.text)
 
@@ -856,7 +856,7 @@ class TestOauthEndpoints:
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange'
             }
         )
-        sleep(2)
+        
 
         response_dict = json.loads(response.text)
 
@@ -897,7 +897,7 @@ class TestOauthEndpoints:
             }
         )
 
-        sleep(2)
+        
 
         response_dict = json.loads(response.text)
 
@@ -937,7 +937,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }
         )
-        sleep(2)
+        
         response_dict = json.loads(response.text)
 
         # Then
@@ -975,7 +975,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }
         )
-        sleep(2)
+        
 
         response_dict = json.loads(response.text)
 
@@ -1015,7 +1015,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }
         )
-        sleep(2)
+        
 
         response_dict = json.loads(response.text)
 
@@ -1054,7 +1054,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }
         )
-        sleep(2)
+        
 
         response_dict = json.loads(response.text)
 
@@ -1094,7 +1094,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }
         )
-        sleep(2)
+        
 
         response_dict = json.loads(response.text)
 
@@ -1156,7 +1156,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }
         )
-        sleep(2)
+        
 
         response = requests.post(
             url=config.TOKEN_URL,
@@ -1230,7 +1230,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }
         )
-        sleep(2)
+        
 
         response_dict = json.loads(response.text)
 
@@ -1291,7 +1291,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }
         )
-        sleep(2)
+        
 
         response_dict = json.loads(response.text)
 
@@ -1353,7 +1353,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }
         )
-        sleep(2)
+        
 
         response_dict = json.loads(response.text)
 
