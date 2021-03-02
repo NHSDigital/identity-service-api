@@ -1,5 +1,4 @@
 from api_tests.scripts.generic_request import GenericRequest
-from api_tests.config_files import config
 from json import loads, JSONDecodeError
 from uuid import uuid4
 from requests import Response
@@ -9,6 +8,7 @@ from typing import Union
 class PdsRecord:
     """This class turns a PDS response into a object."""
     def __init__(self, response: Response):
+
         if type(response) is dict:
             self.response = response
         else:
@@ -92,15 +92,18 @@ class PdsRecord:
 class PdsRequest(GenericRequest):
     """Send a request to PDS."""
     def __init__(self, token: str, patient_id: Union[int, str] = None, search_params: dict = None, headers: dict = None,
-                 proxy=config.PDS_PROXY):
+                 base_uri: str = None, proxy: str = None):
         super(PdsRequest, self).__init__()
+
+        self.base_uri = base_uri
+        self.proxy = proxy
 
         if patient_id and search_params:
             raise ValueError('Can only use either a patient ID or Search Params, cant use both')
         if not (patient_id or search_params):
             raise ValueError('Either a patient ID or Search Params must be provided')
 
-        self.base_url = f'{config.PDS_BASE_URL}/{proxy}'
+        self.base_url = f'{self.base_uri}/{self.proxy}'
         self.patient_id = str(patient_id)
         self._is_patient_valid(self.patient_id)
 

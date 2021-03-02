@@ -1,33 +1,4 @@
 import pytest
-from api_tests.config_files import config
-from api_tests.config_files.environments import ENV
-
-
-@pytest.fixture()
-def switch_to_invalid_asid_application():
-    config.CLIENT_ID = ENV['oauth']['invalid_asic_client_id']
-    config.CLIENT_SECRET = ENV['oauth']['invalid_asid_client_secret']
-    config.REDIRECT_URI = "https://example.com/callback"
-
-
-@pytest.fixture()
-def switch_to_valid_asid_application():
-    config.CLIENT_ID = ENV['oauth']['valid_asic_client_id']
-    config.CLIENT_SECRET = ENV['oauth']['valid_asid_client_secret']
-    config.REDIRECT_URI = "https://example.com/callback"
-
-
-@pytest.fixture()
-def switch_to_no_asid_application():
-    config.CLIENT_ID = ENV['oauth']['missing_asic_client_id']
-    config.CLIENT_SECRET = ENV['oauth']['missing_asid_client_secret']
-    config.REDIRECT_URI = "https://example.com/callback"
-
-
-@pytest.fixture()
-def switch_to_asid_required_proxy():
-    config.PDS_PROXY = "personal-demographics-asid-required-pr-387"
-    config.PDS_API = f"{config.PDS_BASE_URL}/{config.PDS_PROXY}/Patient"
 
 
 @pytest.mark.skip(reason="Design Discussion Required")
