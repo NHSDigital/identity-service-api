@@ -1,15 +1,9 @@
 import pytest
+import asyncio
 from api_test_utils.oauth_helper import OauthHelper
-from api_tests.config_files import config
+from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
+from api_test_utils.apigee_api_products import ApigeeApiProducts
 from api_tests.scripts.generic_request import GenericRequest
-
-
-def _get_parametrized_values(request):
-    for mark in request.node.own_markers:
-        if mark.name == 'parametrize':
-            # index 0 is the argument name while index 1 is the argument values,
-            # here we are only interested in the values
-            return mark.args[1]
 
 
 @pytest.fixture()
@@ -24,14 +18,22 @@ def get_token(request):
             get_token(grant_type="refresh_token", refresh_token=<refresh_token>)
         4. access_token with JWT
             get_token(grant_type='client_credentials', _jwt=jwt)
+        5. access_token using a specific app
+            get_token(app=<app>)
     """
 
     async def _token(
-        oauth: OauthHelper = request.cls.oauth,
         grant_type: str = "authorization_code",
+        test_app: ApigeeApiDeveloperApps = None,
         **kwargs
     ):
-        resp = await oauth.get_token_response(grant_type=grant_type, **kwargs)
+        if test_app:
+            # Use provided test app
+            oauth = OauthHelper(test_app.client_id, test_app.client_secret, test_app.callback_url)
+            resp = await oauth.get_token_response(grant_type=grant_type, **kwargs)
+        else:
+            # Use default test app
+            resp = await request.cls.oauth.get_token_response(grant_type=grant_type, **kwargs)
 
         if resp['status_code'] != 200:
             message = 'unable to get token'
@@ -43,6 +45,7 @@ def get_token(request):
                                f"HEADERS: {resp.get('headers')}\n"
                                f"{'*' * len(message)}\n")
         return resp['body']
+
     return _token
 
 
@@ -64,17 +67,90 @@ def helper():
     return GenericRequest()
 
 
-@pytest.fixture(autouse=True)
-def setup(request):
+def _set_default_rate_limit(product: ApigeeApiProducts):
+    product.update_ratelimits(quota=60000,
+                              quota_interval="1",
+                              quota_time_unit="minute",
+                              rate_limit="1000ps")
+
+
+@pytest.fixture()
+async def test_product():
+    """Create a test product which can be modified by the test"""
+    product = ApigeeApiProducts()
+    await product.create_new_product()
+    _set_default_rate_limit(product)
+    yield product
+    await product.destroy_product()
+
+
+@pytest.fixture()
+def app():
+    return ApigeeApiDeveloperApps()
+
+
+@pytest.fixture()
+async def test_app(app):
+    """Create a test app which can be modified in the test"""
+    await app.create_new_app()
+
+    yield app
+    await app.destroy_app()
+
+
+async def _product_with_full_access():
+    product = ApigeeApiProducts()
+    await product.create_new_product()
+    _set_default_rate_limit(product)
+    product.update_scopes([
+        "personal-demographics-service:USER-RESTRICTED",
+        "urn:nhsd:apim:app:level3:",
+        "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"
+    ])
+
+    await product.update_paths(paths=["/", "/*"])
+    return product
+
+
+@pytest.yield_fixture(scope="session", autouse=True)
+def setup_session(request):
+    """This fixture is automatically called once at the start of pytest execution.
+    The default app created here should be modified by your tests.
+    If your test requires specific app config then please create your own using
+    the fixture test_app"""
+    product = asyncio.run(_product_with_full_access())
+    app = ApigeeApiDeveloperApps()
+
+    print("\nCreating Default App..")
+    asyncio.run(app.create_new_app(callback_url="https://nhsd-apim-testing-internal-dev.herokuapp.com/callback"))
+    asyncio.run(app.add_api_product([product.name]))
+
+    # Set default JWT Testing resource url
+    asyncio.run(
+        app.set_custom_attributes(
+            {
+                'jwks-resource-url': 'https://raw.githubusercontent.com/NHSDigital/'
+                                     'identity-service-jwks/main/jwks/internal-dev/'
+                                     '9baed6f4-1361-4a8e-8531-1f8426e3aba8.json'
+            }
+        )
+    )
+
+    oauth = OauthHelper(app.client_id, app.client_secret, app.callback_url)
+    for item in request.node.items:
+        setattr(item.cls, "oauth", oauth)
+
+    yield
+
+    # Teardown
+    print("\nDestroying Default App..")
+    asyncio.run(app.destroy_app())
+    asyncio.run(product.destroy_product())
+
+
+@pytest.fixture(scope="function", autouse=True)
+def setup_function(request):
     """This function is called before each test is executed"""
     # Get the name of the current test and attach it the the test instance
     name = (request.node.name, request.node.originalname)[request.node.originalname is not None]
     setattr(request.cls, "name", name)
-
-    oauth = OauthHelper(config.CLIENT_ID, config.CLIENT_SECRET, config.REDIRECT_URI)
-    setattr(request.cls, "oauth", oauth)
-
-    yield  # Handover to test
-
-    # Teardown
-    pass

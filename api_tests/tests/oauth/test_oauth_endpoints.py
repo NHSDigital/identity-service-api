@@ -1,4 +1,4 @@
-from api_tests.config_files import config
+from api_tests.scripts import config
 from api_tests.scripts.response_bank import BANK
 import pytest
 import random
@@ -7,54 +7,26 @@ import jwt
 from uuid import uuid4
 from time import time, sleep
 import json
-from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
-from api_test_utils.apigee_api_products import ApigeeApiProducts
-from api_tests.config_files.environments import ENV
-from api_test_utils.oauth_helper import OauthHelper
 
 
 @pytest.mark.asyncio
 class TestOauthEndpoints:
-    """ A test suit to verify all the happy path oauth endpoints """
+    """ A test suit to verify all the oauth endpoints """
 
-    @pytest.fixture()
-    async def test_app_and_product(self):
-        apigee_product = ApigeeApiProducts()
-        apigee_product2 = ApigeeApiProducts()
-        await apigee_product.create_new_product()
-        await apigee_product.update_proxies([config.SERVICE_NAME])
-        await apigee_product2.create_new_product()
-        await apigee_product2.update_proxies([config.SERVICE_NAME])
+    def _update_secrets(self, request):
+        key = ("params", "data")[request.get('params', None) is None]
+        if request[key].get("client_id", None) == "/replace_me":
+            request[key]['client_id'] = self.oauth.client_id
 
-        apigee_app = ApigeeApiDeveloperApps()
-        await apigee_app.create_new_app(
-            callback_url=config.REDIRECT_URI
-        )
+        if request[key].get("client_secret", None) == "/replace_me":
+            request[key]['client_secret'] = self.oauth.client_secret
 
-        await apigee_app.add_api_product(
-            api_products=[
-                apigee_product.name,
-                apigee_product2.name
-            ]
-        )
-
-        [await product.update_ratelimits(
-            quota=60000,
-            quota_interval="1",
-            quota_time_unit="minute",
-            rate_limit="1000ps"
-        ) for product in [apigee_product, apigee_product2]]
-
-        yield apigee_product, apigee_product2, apigee_app
-
-        await apigee_app.destroy_app()
-        await apigee_product.destroy_product()
-        await apigee_product2.destroy_product()
+        if request[key].get("redirect_uri", None) == "/replace_me":
+            request[key]['redirect_uri'] = self.oauth.redirect_uri
 
     @pytest.mark.apm_801
     @pytest.mark.happy_path
     @pytest.mark.authorize_endpoint
-    @pytest.mark.skip("Temporary Skip")
     async def test_authorize_endpoint(self):
         resp = await self.oauth.hit_oauth_endpoint(
             method="GET",
@@ -68,12 +40,11 @@ class TestOauthEndpoints:
         )
 
         assert resp['status_code'] == 200
-        assert resp['body'] == BANK.get(self.name)["response"]
+        # assert resp['body'] == BANK.get(self.name)["response"]
 
     @pytest.mark.apm_801
     @pytest.mark.happy_path
     @pytest.mark.token_endpoint
-    @pytest.mark.asyncio
     async def test_token_endpoint(self):
         resp = await self.oauth.get_token_response(grant_type="authorization_code")
 
@@ -92,7 +63,6 @@ class TestOauthEndpoints:
     @pytest.mark.errors
     @pytest.mark.token_endpoint
     @pytest.mark.authorize_endpoint
-    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "method, endpoint",
         [
@@ -115,7 +85,7 @@ class TestOauthEndpoints:
     @pytest.mark.apm_993
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
-    def test_cache_invalidation(self, helper):
+    async def test_cache_invalidation(self, helper):
         """
         Test identity cache invalidation after use:
             * Given i am authorizing
@@ -125,11 +95,9 @@ class TestOauthEndpoints:
         """
 
         # Make authorize request to retrieve state2
-        response = helper.check_and_return_endpoint(
-            verb="GET",
+        response = await self.oauth.hit_oauth_endpoint(
+            method="GET",
             endpoint="authorize",
-            expected_status_code=302,
-            expected_response="",
             params={
                 "client_id": self.oauth.client_id,
                 "redirect_uri": self.oauth.redirect_uri,
@@ -138,56 +106,53 @@ class TestOauthEndpoints:
             },
             allow_redirects=False,
         )
-        state2 = helper.get_param_from_url(
-            url=response.headers["Location"], param="state"
+
+        state = helper.get_param_from_url(
+            url=response["headers"]["Location"], param="state"
         )
 
         # Make simulated auth request to authenticate
-        response = helper.check_and_return_endpoint(
-            verb="POST",
-            endpoint="sim_auth",
-            expected_status_code=302,
-            expected_response="",
+        response = await self.oauth.hit_oauth_endpoint(
+            method="POST",
+            endpoint="simulated_auth",
             params={
                 "response_type": "code",
                 "client_id": self.oauth.client_id,
                 "redirect_uri": self.oauth.redirect_uri,
                 "scope": "openid",
-                "state": state2,
+                "state": state,
             },
             headers={"Content-Type": "application/x-www-form-urlencoded"},
-            data={"state": state2},
+            data={"state": state},
             allow_redirects=False,
         )
 
         # Make initial callback request
         auth_code = helper.get_param_from_url(
-            url=response.headers["Location"], param="code"
+            url=response["headers"]["Location"], param="code"
         )
-        response = helper.check_and_return_endpoint(
-            verb="GET",
+
+        response = await self.oauth.hit_oauth_endpoint(
+            method="GET",
             endpoint="callback",
-            expected_status_code=302,
-            expected_response="",
-            params={"code": auth_code, "client_id": "some-client-id", "state": state2},
+            params={"code": auth_code, "client_id": "some-client-id", "state": state},
             allow_redirects=False,
         )
 
         # Verify auth code and state are returned
-        response_params = helper.get_params_from_url(response.headers["Location"])
-        assert response_params["code"]
-        assert response_params["state"]
+        # response_params = helper.get_params_from_url(response["headers"]["Location"])
+        helper.verify_params_exist_in_url(params=['code', 'state'], url=response["headers"]["Location"])
 
         # Make second callback request with same state value
         assert helper.check_endpoint(
             verb="GET",
-            endpoint="callback",
+            endpoint=f"{config.OAUTH_BASE_URI}/{config.OAUTH_PROXY}/callback",
             expected_status_code=400,
             expected_response={
                 "error": "invalid_request",
                 "error_description": "invalid state parameter.",
             },
-            params={"code": auth_code, "client_id": "some-client-id", "state": state2},
+            params={"code": auth_code, "client_id": "some-client-id", "state": state},
         )
 
     @pytest.mark.apm_801
@@ -206,8 +171,8 @@ class TestOauthEndpoints:
                     "error_description": "redirect_uri is invalid",
                 },
                 "params": {
-                    "client_id": config.CLIENT_ID,
-                    "redirect_uri": f"{config.REDIRECT_URI}/invalid",  # invalid redirect uri
+                    "client_id": "/replace_me",
+                    "redirect_uri": f"/invalid",  # invalid redirect uri
                     "response_type": "code",
                     "state": random.getrandbits(32),
                 },
@@ -219,8 +184,8 @@ class TestOauthEndpoints:
                     "error": "invalid_request",
                     "error_description": "redirect_uri is missing",
                 },
-                "params": {  # not providing redirect uri
-                    "client_id": config.CLIENT_ID,
+                "params": {
+                    "client_id": "/replace_me",
                     "response_type": "code",
                     "state": random.getrandbits(32),
                 },
@@ -234,7 +199,7 @@ class TestOauthEndpoints:
                 },
                 "params": {
                     "client_id": "invalid",  # invalid client id
-                    "redirect_uri": f"{config.REDIRECT_URI}/invalid",
+                    "redirect_uri": "/replace_me",
                     "response_type": "code",
                     "state": random.getrandbits(32),
                 },
@@ -247,53 +212,95 @@ class TestOauthEndpoints:
                     "error_description": "client_id is missing",
                 },
                 "params": {  # not providing client_id
-                    "redirect_uri": config.REDIRECT_URI,
+                    "redirect_uri": "/replace_me",
                     "response_type": "code",
                     "state": random.getrandbits(32),
-                },
-            },
-            # condition 5: app not subscribed
-            {
-                "expected_status_code": 401,
-                "expected_response": {
-                    'error': 'access_denied',
-                    'error_description': 'API Key supplied does not have access to this resource. '
-                                         'Please check the API Key you are using belongs to an app '
-                                         'which has sufficient access to access this resource.'
-                },
-                "params": {
-                    "client_id": config.VALID_UNSUBSCRIBED_CLIENT_ID,
-                    "redirect_uri": config.VALID_UNSUBSCRIBED_REDIRECT_URI,
-                    "response_type": "code",
-                    "state": random.getrandbits(32),
-                },
-            },
-            # condition 6: app revoked
-            {
-                "expected_status_code": 401,
-                "expected_response": {
-                    "error": "access_denied",
-                    "error_description": "The developer app associated with the API key is not approved or revoked",
-                },
-                "params": {
-                    "client_id": config.VALID_UNAPPROVED_CLIENT_ID,
-                    "redirect_uri": config.VALID_UNAPPROVED_CLIENT_REDIRECT_URI,
-                    "response_type": "code",
-                    "state": random.getrandbits(32),
-                },
-            },
+                }
+            }
         ],
     )
-    @pytest.mark.asyncio
-    async def test_authorization_error_conditions(self, request_data: dict):
-        resp = await self.oauth.hit_oauth_endpoint(
+    async def test_authorization_error_conditions(self, request_data: dict, helper):
+        self._update_secrets(request_data)
+
+        assert await helper.send_request_and_check_output(
+            expected_status_code=request_data['expected_status_code'],
+            expected_response=request_data['expected_response'],
+            function=self.oauth.hit_oauth_endpoint,
             method="GET",
             endpoint="authorize",
             params=request_data["params"]
         )
 
-        assert resp['status_code'] == request_data['expected_status_code']
-        assert resp['body'] == request_data['expected_response']
+    @pytest.mark.errors
+    @pytest.mark.authorize_endpoint
+    async def test_authorize_revoked_app(self, app, helper):
+        await app.create_new_app(status="revoked")
+
+        assert await helper.send_request_and_check_output(
+            expected_status_code=401,
+            expected_response={
+                "error": "access_denied",
+                "error_description": "The developer app associated with the API key is not approved or revoked",
+            },
+            function=self.oauth.hit_oauth_endpoint,
+            method="GET",
+            endpoint="authorize",
+            params={
+                "client_id": app.client_id,
+                "redirect_uri": app.callback_url,
+                "response_type": "code",
+                "state": random.getrandbits(32),
+            }
+        )
+
+    async def test_authorize_unsubscribed_error_condition(self, test_product, test_app, helper):
+        await test_product.update_proxies(["hello-world-internal-dev"])
+        await test_app.add_api_product([test_product.name])
+
+        assert await helper.send_request_and_check_output(
+            expected_status_code=401,
+            expected_response={
+                    'error': 'access_denied',
+                    'error_description': 'API Key supplied does not have access to this resource. '
+                                         'Please check the API Key you are using belongs to an app '
+                                         'which has sufficient access to access this resource.'
+                },
+            function=self.oauth.hit_oauth_endpoint,
+            method="GET",
+            endpoint="authorize",
+            params={
+                "client_id": test_app.client_id,
+                "redirect_uri": test_app.callback_url,
+                "response_type": "code",
+                "state": random.getrandbits(32),
+            }
+        )
+
+    @pytest.mark.apm_1631
+    @pytest.mark.errors
+    @pytest.mark.token_endpoint
+    async def test_token_unsubscribed_error_condition(self, test_product, test_app, helper):
+        await test_product.update_proxies(["hello-world-internal-dev"])
+        await test_app.add_api_product([test_product.name])
+
+        assert await helper.send_request_and_check_output(
+            expected_status_code=401,
+            expected_response={
+                "error": "access_denied",
+                "error_description": "API Key supplied does not have access to this resource."
+                                     " Please check the API Key you are using belongs to an app"
+                                     " which has sufficient access to access this resource.",
+            },
+            function=self.oauth.get_token_response,
+            grant_type="authorization_code",
+            data={
+                "client_id": test_app.client_id,
+                "client_secret": test_app.client_secret,
+                "redirect_uri": test_app.callback_url,
+                "grant_type": "authorization_code",
+                "code": await self.oauth.get_authenticated_with_simulated_auth()
+            }
+        )
 
     @pytest.mark.apm_1475
     @pytest.mark.errors
@@ -310,8 +317,8 @@ class TestOauthEndpoints:
                     "error_description": "state is missing",
                 },
                 "params": {
-                    "client_id": config.CLIENT_ID,
-                    "redirect_uri": config.REDIRECT_URI,
+                    "client_id": "/replace_me",
+                    "redirect_uri": "/replace_me",
                     "response_type": "code",
                 },
             },
@@ -324,8 +331,8 @@ class TestOauthEndpoints:
                     "error_description": "response_type is missing",
                 },
                 "params": {
-                    "client_id": config.CLIENT_ID,
-                    "redirect_uri": config.REDIRECT_URI,
+                    "client_id": "/replace_me",
+                    "redirect_uri": "/replace_me",
                     "state": random.getrandbits(32),
                 },
             },
@@ -338,8 +345,8 @@ class TestOauthEndpoints:
                     "error_description": "response_type is invalid",
                 },
                 "params": {
-                    "client_id": config.CLIENT_ID,
-                    "redirect_uri": config.REDIRECT_URI,
+                    "client_id": "/replace_me",
+                    "redirect_uri": "/replace_me",
                     "response_type": "invalid",  # invalid response type
                     "state": random.getrandbits(32),
                 },
@@ -347,6 +354,8 @@ class TestOauthEndpoints:
         ],
     )
     async def test_authorization_error_redirects(self, test_case: dict, helper):
+        self._update_secrets(test_case)
+
         resp = await self.oauth.hit_oauth_endpoint(
             method="GET",
             endpoint="authorize",
@@ -360,32 +369,9 @@ class TestOauthEndpoints:
         helper.check_redirect(
             response=resp,
             expected_params=test_case["expected_params"],
-            client_redirect=config.REDIRECT_URI,
+            client_redirect=self.oauth.redirect_uri,
             state=test_case["params"].get("state")
         )
-
-    @pytest.mark.apm_1631
-    @pytest.mark.errors
-    @pytest.mark.token_endpoint
-    async def test_token_unsubscribed_error_conditions(self):
-        resp = await self.oauth.get_token_response(
-            grant_type="authorization_code",
-            data={
-                "client_id": config.VALID_UNSUBSCRIBED_CLIENT_ID,
-                "client_secret": config.VALID_UNSUBSCRIBED_CLIENT_SECRET,
-                "redirect_uri": config.VALID_UNSUBSCRIBED_REDIRECT_URI,
-                "grant_type": "authorization_code",
-                "code": await self.oauth.get_authenticated_with_simulated_auth()
-            }
-        )
-
-        assert resp['status_code'] == 401
-        assert resp['body'] == {
-            "error": "access_denied",
-            "error_description": "API Key supplied does not have access to this resource."
-                                 " Please check the API Key you are using belongs to an app"
-                                 " which has sufficient access to access this resource.",
-        }
 
     @pytest.mark.apm_1618
     @pytest.mark.errors
@@ -413,9 +399,9 @@ class TestOauthEndpoints:
                 {
                     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                     "data": {
-                        "client_id": config.CLIENT_ID,
-                        "client_secret": config.CLIENT_SECRET,
-                        "redirect_uri": config.REDIRECT_URI,
+                        "client_id": "/replace_me",
+                        "client_secret": "/replace_me",
+                        "redirect_uri": "/replace_me",
                         "grant_type": "invalid",
                     }
                 },
@@ -434,9 +420,9 @@ class TestOauthEndpoints:
                 {
                     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                     "data": {
-                        "client_id": config.CLIENT_ID,
-                        "client_secret": config.CLIENT_SECRET,
-                        "redirect_uri": config.REDIRECT_URI,
+                        "client_id": "/replace_me",
+                        "client_secret": "/replace_me",
+                        "redirect_uri": "/replace_me",
                     }
                 },
 
@@ -454,8 +440,8 @@ class TestOauthEndpoints:
                 {
                     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                     "data": {
-                        "client_secret": config.CLIENT_SECRET,
-                        "redirect_uri": config.REDIRECT_URI,
+                        "client_secret": "/replace_me",
+                        "redirect_uri": "/replace_me",
                         "grant_type": "authorization_code",
                     }
                 },
@@ -475,8 +461,8 @@ class TestOauthEndpoints:
                     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                     "data": {
                         "client_id": "THISisANinvalidCLIENTid12345678",
-                        "client_secret": config.CLIENT_SECRET,
-                        "redirect_uri": config.REDIRECT_URI,
+                        "client_secret": "/replace_me",
+                        "redirect_uri": "/replace_me",
                         "grant_type": "authorization_code",
                     }
                 },
@@ -495,9 +481,9 @@ class TestOauthEndpoints:
                 {
                     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                     "data": {
-                        "client_id": config.CLIENT_ID,
+                        "client_id": "/replace_me",
                         "client_secret": "ThisSecretIsInvalid",
-                        "redirect_uri": config.REDIRECT_URI,
+                        "redirect_uri": "/replace_me",
                         "grant_type": "authorization_code",
                     }
                 },
@@ -516,8 +502,8 @@ class TestOauthEndpoints:
                 {
                     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                     "data": {
-                        "client_id": config.CLIENT_ID,
-                        "redirect_uri": config.REDIRECT_URI,
+                        "client_id": "/replace_me",
+                        "redirect_uri": "/replace_me",
                         "grant_type": "authorization_code",
                     }
                 },
@@ -536,8 +522,8 @@ class TestOauthEndpoints:
                 {
                     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                     "data": {
-                        "client_id": config.CLIENT_ID,
-                        "client_secret": config.CLIENT_SECRET,
+                        "client_id": "/replace_me",
+                        "client_secret": "/replace_me",
                         "grant_type": "authorization_code",
                     }
                 },
@@ -556,8 +542,8 @@ class TestOauthEndpoints:
                 {
                     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                     "data": {
-                        "client_id": config.CLIENT_ID,
-                        "client_secret": config.CLIENT_SECRET,
+                        "client_id": "/replace_me",
+                        "client_secret": "/replace_me",
                         "redirect_uri": 'invalid',
                         "grant_type": "authorization_code",
                     }
@@ -577,9 +563,9 @@ class TestOauthEndpoints:
                 {
                     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                     "data": {
-                        "client_id": config.CLIENT_ID,
-                        "client_secret": config.CLIENT_SECRET,
-                        "redirect_uri": config.REDIRECT_URI,
+                        "client_id": "/replace_me",
+                        "client_secret": "/replace_me",
+                        "redirect_uri": "/replace_me",
                         "grant_type": "authorization_code",
                     }
                 },
@@ -598,9 +584,9 @@ class TestOauthEndpoints:
                 {
                     "headers": {"Content-Type": "application/x-www-form-urlencoded"},
                     "data": {
-                        "client_id": config.CLIENT_ID,
-                        "client_secret": config.CLIENT_SECRET,
-                        "redirect_uri": config.REDIRECT_URI,
+                        "client_id": "/replace_me",
+                        "client_secret": "/replace_me",
+                        "redirect_uri": "/replace_me",
                         "grant_type": "authorization_code",
                         "code": "invalid",
                     }
@@ -616,18 +602,24 @@ class TestOauthEndpoints:
             ),
         ],
     )
-    @pytest.mark.asyncio
-    async def test_token_error_conditions(self, request_data: dict, expected_response: dict):
-        resp = await self.oauth.get_token_response(grant_type="authorization_code", **request_data)
-
-        assert resp["status_code"] == expected_response["status_code"]
-        assert resp['body'] == expected_response["body"]
+    async def test_token_error_conditions(self, request_data: dict, expected_response: dict, helper):
+        self._update_secrets(request_data)
+        assert await helper.send_request_and_check_output(
+            expected_status_code=expected_response["status_code"],
+            expected_response=expected_response["body"],
+            function=self.oauth.get_token_response,
+            grant_type="authorization_code",
+            **request_data
+        )
 
     @pytest.mark.apm_1064
     @pytest.mark.errors
     @pytest.mark.callback_endpoint
-    async def test_callback_error_conditions(self):
-        resp = await self.oauth.hit_oauth_endpoint(
+    async def test_callback_error_conditions(self, helper):
+        assert await helper.send_request_and_check_output(
+            expected_status_code=401,
+            expected_response="",
+            function=self.oauth.hit_oauth_endpoint,
             method="GET",
             endpoint="callback",
             params={
@@ -636,9 +628,6 @@ class TestOauthEndpoints:
                 "state": random.getrandbits(32),
             }
         )
-
-        assert resp['status_code'] == 401
-        assert resp['body'] == ""
 
     @pytest.mark.apm_1475
     @pytest.mark.errors
@@ -654,7 +643,7 @@ class TestOauthEndpoints:
                     "error_description": "client_id is missing",
                 },
                 "data": {
-                    'client_secret': config.CLIENT_SECRET,
+                    'client_secret': "/replace_me",
                     'grant_type': 'refresh_token',
                 },
             },
@@ -667,7 +656,7 @@ class TestOauthEndpoints:
                 },
                 "data": {
                     "client_id": "invalid-client-id",
-                    'client_secret': config.CLIENT_SECRET,
+                    'client_secret': "/replace_me",
                     'grant_type': 'refresh_token',
                 },
             },
@@ -679,7 +668,7 @@ class TestOauthEndpoints:
                     "error_description": "client_secret is missing",
                 },
                 "data": {
-                    "client_id": config.CLIENT_ID,
+                    "client_id": "/replace_me",
                     'grant_type': 'refresh_token',
                 },
             },
@@ -691,7 +680,7 @@ class TestOauthEndpoints:
                     "error_description": "client_id or client_secret is invalid",
                 },
                 "data": {
-                    "client_id": config.CLIENT_ID,
+                    "client_id": "/replace_me",
                     'client_secret': 'invalid',
                     'grant_type': 'refresh_token',
                 },
@@ -704,8 +693,8 @@ class TestOauthEndpoints:
                     "error_description": "refresh_token is missing",
                 },
                 "data": {
-                    "client_id": config.CLIENT_ID,
-                    'client_secret': config.CLIENT_SECRET,
+                    "client_id": "/replace_me",
+                    'client_secret': "/replace_me",
                     'grant_type': 'refresh_token',
                 },
             },
@@ -717,31 +706,41 @@ class TestOauthEndpoints:
                     "error_description": "refresh_token is invalid",
                 },
                 "data": {
-                    "client_id": config.CLIENT_ID,
-                    'client_secret': config.CLIENT_SECRET,
+                    "client_id": "/replace_me",
+                    'client_secret': "/replace_me",
                     'grant_type': 'refresh_token',
                     'refresh_token': 'invalid'
                 },
             },
         ],
     )
-    async def test_refresh_token_error_conditions(self, test_case: dict):
-        resp = await self.oauth.get_token_response(grant_type="refresh_token", data=test_case['data'])
+    async def test_refresh_token_error_conditions(self, test_case: dict, helper):
+        self._update_secrets(test_case)
+        assert await helper.send_request_and_check_output(
+            expected_status_code=test_case['expected_status_code'],
+            expected_response=test_case['expected_response'],
+            function=self.oauth.get_token_response,
+            grant_type="refresh_token",
+            data=test_case['data']
+        )
 
-        assert resp['status_code'] == test_case['expected_status_code']
-        assert resp['body'] == test_case['expected_response']
-
-    async def test_ping(self):
-        resp = await self.oauth.hit_oauth_endpoint(method='GET', endpoint='_ping')
-
-        assert resp['status_code'] == 200
-        assert list(resp['body'].keys()) == ["version", "revision", "releaseId", "commitId"]
+    async def test_ping(self, helper):
+        assert await helper.send_request_and_check_output(
+            expected_status_code=200,
+            expected_response=["version", "revision", "releaseId", "commitId"],
+            function=self.oauth.hit_oauth_endpoint,
+            method="GET",
+            endpoint="_ping"
+        )
 
     @pytest.mark.aea_756
     @pytest.mark.happy_path
     @pytest.mark.usefixtures("set_access_token")
-    async def test_userinfo(self):
-        resp = await self.oauth.hit_oauth_endpoint(
+    async def test_userinfo(self, helper):
+        assert await helper.send_request_and_check_output(
+            expected_status_code=200,
+            expected_response=BANK.get(self.name)["response"],
+            function=self.oauth.hit_oauth_endpoint,
             method="GET",
             endpoint="userinfo",
             headers={'Authorization': f'Bearer {self.oauth.access_token}'}
@@ -765,9 +764,9 @@ class TestOauthEndpoints:
             'amr': ['N3_SMARTCARD'],
             'iss': 'https://am.nhsint.ptl.nhsd-esa.net:443/openam/oauth2/realms/root/realms/NHSIdentity/realms/Healthcare',
             'tokenName': 'id_token',
-            'aud': '969567331415.apps.national', 
+            'aud': '969567331415.apps.national',
             'c_hash': 'bc7zzGkClC3MEiFQ3YhPKg',
-            'acr': 'AAL3_ANY', 
+            'acr': 'AAL3_ANY',
             'org.forgerock.openidconnect.ops': '-I45NjmMDdMa-aNF2sr9hC7qEGQ',
             's_hash': 'LPJNul-wow4m6Dsqxbning',
             'azp': '969567331415.apps.national',
@@ -779,15 +778,15 @@ class TestOauthEndpoints:
         }
 
         client_assertion_claims = {
-            "sub": config.JWT_APP_KEY,
-            "iss": config.JWT_APP_KEY,
+            "sub": self.oauth.client_id,
+            "iss": self.oauth.client_id,
             "jti": str(uuid4()),
             "aud": config.TOKEN_URL,
             "exp": int(time()) + 5,
         }
 
-        id_token_jwt = jwt.encode(id_token_claims, config.ID_TOKEN_PRIVATE_KEY, algorithm='RS256', headers={'kid': 'identity-service-tests-1'})
-        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY, algorithm='RS512', headers={'kid': 'test-1'})
+        id_token_jwt = jwt.encode(id_token_claims, config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS256', headers={'kid': 'identity-service-tests-1'})
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512', headers={'kid': 'test-1'})
 
         # When
         response = requests.post(
@@ -802,11 +801,11 @@ class TestOauthEndpoints:
         )
         sleep(2)
 
-        # Then 
+        # Then
         response_dict = json.loads(response.text)
 
         assert expected_status_code == response.status_code, response.text
-        assert 'access_token' in response_dict    
+        assert 'access_token' in response_dict
         assert expected_expires_in == response_dict['expires_in']
         assert expected_token_type == response_dict['token_type']
         assert expected_issued_token_type == response_dict['issued_token_type']
@@ -819,15 +818,15 @@ class TestOauthEndpoints:
         # Given
         expected_status_code = 400
         expected_error = 'invalid_request'
-        expected_error_description = "Missing or invalid client_assertion_type - must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer"                                              
+        expected_error_description = "Missing or invalid client_assertion_type - must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
         # When
         response = requests.post(
             url= config.TOKEN_URL,
-            data= {                
+            data= {
                 'client_assertion_type': 'Invalid',
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
-                'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token'                                 
-            }            
+                'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token'
+            }
         )
         sleep(2)
 
@@ -847,15 +846,15 @@ class TestOauthEndpoints:
         # Given
         expected_status_code = 400
         expected_error = 'invalid_request'
-        expected_error_description = "missing or invalid subject_token_type - must be 'urn:ietf:params:oauth:token-type:id_token'"                                              
+        expected_error_description = "missing or invalid subject_token_type - must be 'urn:ietf:params:oauth:token-type:id_token'"
         # When
         response = requests.post(
             url= config.TOKEN_URL,
-            data= {                
+            data= {
                 'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
                 'subject_token_type': 'Invalid',
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange'
-            }            
+            }
         )
         sleep(2)
 
@@ -864,7 +863,7 @@ class TestOauthEndpoints:
         # Then
         assert expected_status_code == response.status_code
         assert expected_error == response_dict['error']
-        assert expected_error_description == response_dict['error_description']     
+        assert expected_error_description == response_dict['error_description']
         assert 'message_id' in response_dict
 
     @pytest.mark.errors
@@ -875,27 +874,27 @@ class TestOauthEndpoints:
         # Given
         expected_status_code = 400
         expected_error = 'invalid_request'
-        expected_error_description = "Missing 'kid' header in JWT"                                              
+        expected_error_description = "Missing 'kid' header in JWT"
 
         client_assertion_claims = {
-            "sub": config.JWT_APP_KEY,
-            "iss": config.JWT_APP_KEY,
+            "sub": self.oauth.client_id,
+            "iss": self.oauth.client_id,
             "jti": str(uuid4()),
             "aud": config.TOKEN_URL,
             "exp": int(time()) + 5,
         }
 
-        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY, algorithm='RS512')
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512')
 
         # When
         response = requests.post(
             url= config.TOKEN_URL,
-            data= {                
+            data= {
                 'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                 'client_assertion': client_assertion_jwt
-            }            
+            }
         )
 
         sleep(2)
@@ -905,7 +904,7 @@ class TestOauthEndpoints:
         # Then
         assert expected_status_code == response.status_code
         assert expected_error == response_dict['error']
-        assert expected_error_description == response_dict['error_description']     
+        assert expected_error_description == response_dict['error_description']
         assert 'message_id' in response_dict
 
     @pytest.mark.errors
@@ -916,27 +915,27 @@ class TestOauthEndpoints:
         # Given
         expected_status_code = 400
         expected_error = 'invalid_request'
-        expected_error_description = "Invalid 'typ' header in JWT - must be 'JWT'"                                              
+        expected_error_description = "Invalid 'typ' header in JWT - must be 'JWT'"
 
         client_assertion_claims = {
-            "sub": config.JWT_APP_KEY,
-            "iss": config.JWT_APP_KEY,
+            "sub": self.oauth.client_id,
+            "iss": self.oauth.client_id,
             "jti": str(uuid4()),
             "aud": config.TOKEN_URL,
             "exp": int(time()) + 5,
         }
 
-        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY, algorithm='RS512', headers={'kid': 'test-1', 'typ': 'invalid'})
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512', headers={'kid': 'test-1', 'typ': 'invalid'})
 
         # When
         response = requests.post(
             url= config.TOKEN_URL,
-            data= {                
+            data= {
                 'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                 'client_assertion': client_assertion_jwt
-            }            
+            }
         )
         sleep(2)
         response_dict = json.loads(response.text)
@@ -944,7 +943,7 @@ class TestOauthEndpoints:
         # Then
         assert expected_status_code == response.status_code
         assert expected_error == response_dict['error']
-        assert expected_error_description == response_dict['error_description']     
+        assert expected_error_description == response_dict['error_description']
         assert 'message_id' in response_dict
 
     @pytest.mark.errors
@@ -955,7 +954,7 @@ class TestOauthEndpoints:
         # Given
         expected_status_code = 400
         expected_error = 'invalid_request'
-        expected_error_description = "Missing or non-matching iss/sub claims in JWT"                                              
+        expected_error_description = "Missing or non-matching iss/sub claims in JWT"
 
         client_assertion_claims = {
             "sub": '',
@@ -964,17 +963,17 @@ class TestOauthEndpoints:
             "exp": int(time()) + 5,
         }
 
-        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY, algorithm='RS512', headers={'kid': 'test-1'})
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512', headers={'kid': 'test-1'})
 
         # When
         response = requests.post(
             url= config.TOKEN_URL,
-            data= {                
+            data= {
                 'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                 'client_assertion': client_assertion_jwt
-            }            
+            }
         )
         sleep(2)
 
@@ -983,7 +982,7 @@ class TestOauthEndpoints:
         # Then
         assert expected_status_code == response.status_code
         assert expected_error == response_dict['error']
-        assert expected_error_description == response_dict['error_description']     
+        assert expected_error_description == response_dict['error_description']
         assert 'message_id' in response_dict
 
     @pytest.mark.errors
@@ -997,24 +996,24 @@ class TestOauthEndpoints:
         expected_error_description = "Missing jti claim in JWT"
 
         client_assertion_claims = {
-            "sub": config.JWT_APP_KEY,
-            "iss": config.JWT_APP_KEY,
+            "sub": self.oauth.client_id,
+            "iss": self.oauth.client_id,
             "jti": '',
             "aud": config.TOKEN_URL,
             "exp": int(time()) + 5,
         }
 
-        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY, algorithm='RS512', headers={'kid': 'test-1'})
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512', headers={'kid': 'test-1'})
 
         # When
         response = requests.post(
             url= config.TOKEN_URL,
-            data= {                
+            data= {
                 'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                 'client_assertion': client_assertion_jwt
-            }            
+            }
         )
         sleep(2)
 
@@ -1023,7 +1022,7 @@ class TestOauthEndpoints:
         # Then
         assert expected_status_code == response.status_code
         assert expected_error == response_dict['error']
-        assert expected_error_description == response_dict['error_description']     
+        assert expected_error_description == response_dict['error_description']
         assert 'message_id' in response_dict
 
     @pytest.mark.errors
@@ -1037,23 +1036,23 @@ class TestOauthEndpoints:
         expected_error_description = "Missing exp claim in JWT"
 
         client_assertion_claims = {
-            "sub": config.JWT_APP_KEY,
-            "iss": config.JWT_APP_KEY,
+            "sub": self.oauth.client_id,
+            "iss": self.oauth.client_id,
             "jti": str(uuid4()),
-            "aud": config.TOKEN_URL,            
+            "aud": config.TOKEN_URL,
         }
 
-        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY, algorithm='RS512', headers={'kid': 'test-1'})
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512', headers={'kid': 'test-1'})
 
         # When
         response = requests.post(
             url= config.TOKEN_URL,
-            data= {                
+            data= {
                 'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                 'client_assertion': client_assertion_jwt
-            }            
+            }
         )
         sleep(2)
 
@@ -1062,7 +1061,7 @@ class TestOauthEndpoints:
         # Then
         assert expected_status_code == response.status_code
         assert expected_error == response_dict['error']
-        assert expected_error_description == response_dict['error_description']     
+        assert expected_error_description == response_dict['error_description']
         assert 'message_id' in response_dict
 
     @pytest.mark.errors
@@ -1076,24 +1075,24 @@ class TestOauthEndpoints:
         expected_error_description = "Invalid exp claim in JWT - more than 5 minutes in future"
 
         client_assertion_claims = {
-            "sub": config.JWT_APP_KEY,
-            "iss": config.JWT_APP_KEY,
+            "sub": self.oauth.client_id,
+            "iss": self.oauth.client_id,
             "jti": str(uuid4()),
-            "aud": config.TOKEN_URL,            
+            "aud": config.TOKEN_URL,
             "exp": int(time()) + 50000,
         }
 
-        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY, algorithm='RS512', headers={'kid': 'test-1'})
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512', headers={'kid': 'test-1'})
 
         # When
         response = requests.post(
             url= config.TOKEN_URL,
-            data= {                
+            data= {
                 'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                 'client_assertion': client_assertion_jwt
-            }            
+            }
         )
         sleep(2)
 
@@ -1102,7 +1101,7 @@ class TestOauthEndpoints:
         # Then
         assert expected_status_code == response.status_code
         assert expected_error == response_dict['error']
-        assert expected_error_description == response_dict['error_description']     
+        assert expected_error_description == response_dict['error_description']
         assert 'message_id' in response_dict
 
     @pytest.mark.errors
@@ -1114,7 +1113,7 @@ class TestOauthEndpoints:
         expected_status_code = 400
         expected_error = 'invalid_request'
         expected_error_description = "Non-unique jti claim in JWT"
-        
+
         id_token_claims = {
             'at_hash': 'tf_-lqpq36lwO7WmSBIJ6Q',
             'sub': '787807429511',
@@ -1122,9 +1121,9 @@ class TestOauthEndpoints:
             'amr': ['N3_SMARTCARD'],
             'iss': 'https://am.nhsint.ptl.nhsd-esa.net:443/openam/oauth2/realms/root/realms/NHSIdentity/realms/Healthcare',
             'tokenName': 'id_token',
-            'aud': '969567331415.apps.national', 
+            'aud': '969567331415.apps.national',
             'c_hash': 'bc7zzGkClC3MEiFQ3YhPKg',
-            'acr': 'AAL3_ANY', 
+            'acr': 'AAL3_ANY',
             'org.forgerock.openidconnect.ops': '-I45NjmMDdMa-aNF2sr9hC7qEGQ',
             's_hash': 'LPJNul-wow4m6Dsqxbning',
             'azp': '969567331415.apps.national',
@@ -1136,15 +1135,15 @@ class TestOauthEndpoints:
         }
 
         client_assertion_claims = {
-            "sub": config.JWT_APP_KEY,
-            "iss": config.JWT_APP_KEY,
+            "sub": self.oauth.client_id,
+            "iss": self.oauth.client_id,
             "jti": str(uuid4()),
             "aud": config.TOKEN_URL,
             "exp": int(time()) + 5,
         }
 
-        id_token_jwt = jwt.encode(id_token_claims, config.ID_TOKEN_PRIVATE_KEY, algorithm='RS256', headers={'kid': 'identity-service-tests-1'})
-        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY, algorithm='RS512', headers={'kid': 'test-1'})
+        id_token_jwt = jwt.encode(id_token_claims, config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS256', headers={'kid': 'identity-service-tests-1'})
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512', headers={'kid': 'test-1'})
 
         # When
         response = requests.post(
@@ -1170,13 +1169,13 @@ class TestOauthEndpoints:
             }
         )
 
-        # Then 
+        # Then
         response_dict = json.loads(response.text)
 
         # Then
         assert expected_status_code == response.status_code
         assert expected_error == response_dict['error']
-        assert expected_error_description == response_dict['error_description']     
+        assert expected_error_description == response_dict['error_description']
         assert 'message_id' in response_dict
 
 
@@ -1192,13 +1191,13 @@ class TestOauthEndpoints:
 
         id_token_claims = {
             'at_hash': 'tf_-lqpq36lwO7WmSBIJ6Q',
-            'sub': '787807429511',            
+            'sub': '787807429511',
             'auditTrackingId': '91f694e6-3749-42fd-90b0-c3134b0d98f6-1546391',
-            'amr': ['N3_SMARTCARD'],            
+            'amr': ['N3_SMARTCARD'],
             'tokenName': 'id_token',
-            'aud': '969567331415.apps.national', 
+            'aud': '969567331415.apps.national',
             'c_hash': 'bc7zzGkClC3MEiFQ3YhPKg',
-            'acr': 'AAL3_ANY', 
+            'acr': 'AAL3_ANY',
             'org.forgerock.openidconnect.ops': '-I45NjmMDdMa-aNF2sr9hC7qEGQ',
             's_hash': 'LPJNul-wow4m6Dsqxbning',
             'azp': '969567331415.apps.national',
@@ -1210,26 +1209,26 @@ class TestOauthEndpoints:
         }
 
         client_assertion_claims = {
-            "sub": config.JWT_APP_KEY,
-            "iss": config.JWT_APP_KEY,
+            "sub": self.oauth.client_id,
+            "iss": self.oauth.client_id,
             "jti": str(uuid4()),
-            "aud": config.TOKEN_URL,            
+            "aud": config.TOKEN_URL,
             "exp": int(time()) + 5,
         }
 
-        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY, algorithm='RS512', headers={'kid': 'test-1'})
-        id_token_jwt = jwt.encode(id_token_claims, config.ID_TOKEN_PRIVATE_KEY, algorithm='RS256', headers={'kid': 'identity-service-tests-1'})
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512', headers={'kid': 'test-1'})
+        id_token_jwt = jwt.encode(id_token_claims, config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS256', headers={'kid': 'identity-service-tests-1'})
 
         # When
         response = requests.post(
             url= config.TOKEN_URL,
-            data= {                
+            data= {
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
                 'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
                 'subject_token': id_token_jwt,
                 'client_assertion': client_assertion_jwt
-            }            
+            }
         )
         sleep(2)
 
@@ -1238,7 +1237,7 @@ class TestOauthEndpoints:
         # Then
         assert expected_status_code == response.status_code
         assert expected_error == response_dict['error']
-        assert expected_error_description == response_dict['error_description']     
+        assert expected_error_description == response_dict['error_description']
         assert 'message_id' in response_dict
 
     @pytest.mark.errors
@@ -1253,13 +1252,13 @@ class TestOauthEndpoints:
 
         id_token_claims = {
             'at_hash': 'tf_-lqpq36lwO7WmSBIJ6Q',
-            'sub': '787807429511',            
+            'sub': '787807429511',
             'auditTrackingId': '91f694e6-3749-42fd-90b0-c3134b0d98f6-1546391',
             'iss': 'https://am.nhsint.ptl.nhsd-esa.net:443/openam/oauth2/realms/root/realms/NHSIdentity/realms/Healthcare',
-            'amr': ['N3_SMARTCARD'],            
+            'amr': ['N3_SMARTCARD'],
             'tokenName': 'id_token',
             'c_hash': 'bc7zzGkClC3MEiFQ3YhPKg',
-            'acr': 'AAL3_ANY', 
+            'acr': 'AAL3_ANY',
             'org.forgerock.openidconnect.ops': '-I45NjmMDdMa-aNF2sr9hC7qEGQ',
             's_hash': 'LPJNul-wow4m6Dsqxbning',
             'azp': '969567331415.apps.national',
@@ -1271,26 +1270,26 @@ class TestOauthEndpoints:
         }
 
         client_assertion_claims = {
-            "sub": config.JWT_APP_KEY,
-            "iss": config.JWT_APP_KEY,
+            "sub": self.oauth.client_id,
+            "iss": self.oauth.client_id,
             "jti": str(uuid4()),
-            "aud": config.TOKEN_URL,            
+            "aud": config.TOKEN_URL,
             "exp": int(time()) + 5,
         }
 
-        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY, algorithm='RS512', headers={'kid': 'test-1'})
-        id_token_jwt = jwt.encode(id_token_claims, config.ID_TOKEN_PRIVATE_KEY, algorithm='RS256', headers={'kid': 'identity-service-tests-1'})
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512', headers={'kid': 'test-1'})
+        id_token_jwt = jwt.encode(id_token_claims, config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS256', headers={'kid': 'identity-service-tests-1'})
 
         # When
         response = requests.post(
             url= config.TOKEN_URL,
-            data= {                
+            data= {
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
                 'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
                 'subject_token': id_token_jwt,
                 'client_assertion': client_assertion_jwt
-            }            
+            }
         )
         sleep(2)
 
@@ -1299,7 +1298,7 @@ class TestOauthEndpoints:
         # Then
         assert expected_status_code == response.status_code
         assert expected_error == response_dict['error']
-        assert expected_error_description == response_dict['error_description']     
+        assert expected_error_description == response_dict['error_description']
         assert 'message_id' in response_dict
 
     @pytest.mark.errors
@@ -1319,9 +1318,9 @@ class TestOauthEndpoints:
             'amr': ['N3_SMARTCARD'],
             'iss': 'https://am.nhsint.ptl.nhsd-esa.net:443/openam/oauth2/realms/root/realms/NHSIdentity/realms/Healthcare',
             'tokenName': 'id_token',
-            'aud': '969567331415.apps.national', 
+            'aud': '969567331415.apps.national',
             'c_hash': 'bc7zzGkClC3MEiFQ3YhPKg',
-            'acr': 'AAL3_ANY', 
+            'acr': 'AAL3_ANY',
             'org.forgerock.openidconnect.ops': '-I45NjmMDdMa-aNF2sr9hC7qEGQ',
             's_hash': 'LPJNul-wow4m6Dsqxbning',
             'azp': '969567331415.apps.national',
@@ -1329,30 +1328,30 @@ class TestOauthEndpoints:
             'realm': '/NHSIdentity/Healthcare',
             #'exp': int(time()) + 600,
             'tokenType': 'JWTToken',
-            'iat': int(time()) - 10            
+            'iat': int(time()) - 10
         }
 
         client_assertion_claims = {
-            "sub": config.JWT_APP_KEY,
-            "iss": config.JWT_APP_KEY,
+            "sub": self.oauth.client_id,
+            "iss": self.oauth.client_id,
             "jti": str(uuid4()),
-            "aud": config.TOKEN_URL,            
+            "aud": config.TOKEN_URL,
             "exp": int(time()) + 5,
         }
 
-        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY, algorithm='RS512', headers={'kid': 'test-1'})
-        id_token_jwt = jwt.encode(id_token_claims, config.ID_TOKEN_PRIVATE_KEY, algorithm='RS256', headers={'kid': 'identity-service-tests-1'})
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512', headers={'kid': 'test-1'})
+        id_token_jwt = jwt.encode(id_token_claims, config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS256', headers={'kid': 'identity-service-tests-1'})
 
         # When
         response = requests.post(
             url= config.TOKEN_URL,
-            data= {                
+            data= {
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
                 'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
                 'subject_token': id_token_jwt,
                 'client_assertion': client_assertion_jwt
-            }            
+            }
         )
         sleep(2)
 
@@ -1361,173 +1360,6 @@ class TestOauthEndpoints:
         # Then
         assert expected_status_code == response.status_code
         assert expected_error == response_dict['error']
-        assert expected_error_description == response_dict['error_description']     
+        assert expected_error_description == response_dict['error_description']
         assert 'message_id' in response_dict
 
-
-    @pytest.mark.apm_1701
-    @pytest.mark.happy_path
-    @pytest.mark.asyncio
-    @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
-        # Scenario 1: one product with valid scope
-        (
-            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
-            []
-        ),
-        # Scenario 2: one product with valid scope, one product with invalid scope
-        (
-            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
-            ['urn:nhsd:apim:app:level3:ambulance-analytics']
-        ),
-        # Scenario 3: multiple products with valid scopes
-        (
-            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
-            ['urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics']
-        ),
-        # Scenario 4: one product with multiple valid scopes
-        (
-            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service', 'urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics'],
-            []
-        ),
-        # Scenario 5: multiple products with multiple valid scopes
-        (
-            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service', 'urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics'],
-            ['urn:nhsd:apim:user-nhs-id:aal3:example-1', 'urn:nhsd:apim:user-nhs-id:aal3:example-2']
-        ),
-        # Scenario 6: one product with multiple scopes (valid and invalid)
-        (
-            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
-            []
-        ),
-        # Scenario 7: multiple products with multiple scopes (valid and invalid)
-        (
-            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
-            ['urn:nhsd:apim:user-nhs-id:aal3:example-1', 'urn:nhsd:apim:app:level3:example-2']
-        ),
-        # Scenario 8: one product with valid scope with trailing and leading spaces
-        (
-            [' urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service '],
-            []
-        ),
-    ])
-    async def test_user_restricted_scope_combination(
-        self,
-        product_1_scopes,
-        product_2_scopes,
-        test_app_and_product,
-        helper
-    ):
-        test_product, test_product2, test_app = test_app_and_product
-
-        await test_product.update_scopes(product_1_scopes)
-        await test_product2.update_scopes(product_2_scopes)
-
-        callback_url = await test_app.get_callback_url()
-
-        oauth = OauthHelper(test_app.client_id, test_app.client_secret, callback_url)
-
-        assert helper.check_endpoint(
-            verb="POST",
-            endpoint="token",
-            expected_status_code=200,
-            expected_response=[
-                "access_token",
-                "expires_in",
-                "refresh_count",
-                "refresh_token",
-                "refresh_token_expires_in",
-                "token_type",
-            ],
-            data={
-                "client_id": test_app.get_client_id(),
-                "client_secret": test_app.get_client_secret(),
-                "redirect_uri": callback_url,
-                "grant_type": "authorization_code",
-                "code": await oauth.get_authenticated_with_simulated_auth(),
-            },
-        )
-
-    @pytest.mark.apm_1701
-    @pytest.mark.errors
-    @pytest.mark.asyncio
-    @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
-        # Scenario 1: multiple products with no scopes
-        (
-            [],
-            []
-        ),
-        # Scenario 2: one product with invalid scope, one product with no scope
-        (
-            ['urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service'],
-            []
-        ),
-        # Scenario 3: multiple products with invalid scopes
-        (
-            ['urn:nhsd:apim:app:level3:personal-demographics-service'],
-            ['urn:nhsd:apim:app:level3:ambulance-analytics']
-        ),
-        # Scenario 4: one product with multiple invalid scopes
-        (
-            ['urn:nhsd:apim:app:level3:personal-demographics-service', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
-            []
-        ),
-        # Scenario 5: multiple products with multiple invalid scopes
-        (
-            ['urn:nhsd:apim:app:level3:personal-demographics-service', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
-            ['urn:nhsd:apim:app:level3:example-1', 'urn:nhsd:apim:app:level3:example-2']
-        ),
-        # Scenario 6: one product with invalid scope (wrong formation)
-        (
-            ['ThisDoesNotExist'],
-            []
-        ),
-        # Scenario 7: one product with invalid scope (special caracters)
-        (
-            ['#£$?!&%*.;@~_-'],
-            []
-        ),
-        # Scenario 8: one product with invalid scope (empty string)
-        (
-            [""],
-            []
-        ),
-        # Scenario 8: one product with invalid scope (None object)
-        (
-            [None],
-            []
-        ),
-        # Scenario 9: one product with invalid scope, one product with no scope
-        (
-            ['urn:nhsd:apim:user:aal3personal-demographics-service'],
-            []
-        ),
-    ])
-    async def test_error_user_restricted_scope_combination(
-        self,
-        product_1_scopes,
-        product_2_scopes,
-        test_app_and_product,
-        helper
-    ):
-        test_product, test_product2, test_app = test_app_and_product
-
-        await test_product.update_scopes(product_1_scopes)
-        await test_product2.update_scopes(product_2_scopes)
-
-        callback_url = await test_app.get_callback_url()
-
-        assert helper.check_endpoint(
-            verb="GET",
-            endpoint="authorize",
-            expected_status_code=401,
-            expected_response={
-                "error": "unauthorized_client",
-                "error_description": "you have tried to requests authorization but your application is not configured to use this authorization grant type"
-            },
-            params={
-                "client_id": test_app.get_client_id(),
-                "redirect_uri": callback_url,
-                "response_type": "code",
-                "state": random.getrandbits(32)
-            },
-        )

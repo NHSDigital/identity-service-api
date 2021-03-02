@@ -1,10 +1,10 @@
 import pytest
-from api_tests.config_files import config
 from time import sleep
+from api_tests.scripts.config import HELLO_WORLD_API_URL
 
 
 @pytest.mark.asyncio
-class TestOauthTokenSuite:
+class TestOauthTokens:
     """ A test suite to confirm Oauth tokens error responses are as expected"""
 
     @pytest.mark.apm_801
@@ -13,7 +13,7 @@ class TestOauthTokenSuite:
     def test_access_token(self, helper):
         assert helper.check_endpoint(
             verb='GET',
-            endpoint='hello_world',
+            endpoint=HELLO_WORLD_API_URL,
             expected_status_code=200,
             expected_response={"message": "hello user!"},
             headers={
@@ -54,7 +54,7 @@ class TestOauthTokenSuite:
     async def test_invalid_access_token(self, token: str, helper):
         assert helper.check_endpoint(
             verb='POST',
-            endpoint='hello_world',
+            endpoint=HELLO_WORLD_API_URL,
             expected_status_code=404,
             expected_response="""
             <!DOCTYPE html>
@@ -76,7 +76,7 @@ class TestOauthTokenSuite:
     def test_missing_access_token(self, helper):
         assert helper.check_endpoint(
             verb='POST',
-            endpoint='hello_world',
+            endpoint=HELLO_WORLD_API_URL,
             expected_status_code=404,
             expected_response="""
             <!DOCTYPE html>
@@ -104,7 +104,7 @@ class TestOauthTokenSuite:
         # Check token still works after access token has expired
         assert helper.check_endpoint(
             verb='GET',
-            endpoint='hello_world',
+            endpoint=HELLO_WORLD_API_URL,
             expected_status_code=401,
             expected_response={
                 'fault': {
@@ -166,8 +166,8 @@ class TestOauthTokenSuite:
             grant_type="refresh_token",
             refresh_token=self.oauth.refresh_token,
             data={
-                'client_id': config.CLIENT_ID,
-                'client_secret': config.CLIENT_SECRET,
+                'client_id': self.oauth.client_id,
+                'client_secret': self.oauth.client_secret,
                 'grant_type': 'refresh_token',
                 'refresh_token': self.oauth.refresh_token,
                 '_refresh_tokens_validity_ms': 0

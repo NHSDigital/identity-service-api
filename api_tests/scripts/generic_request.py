@@ -2,7 +2,6 @@ import requests
 from json import loads, JSONDecodeError
 from urllib import parse
 from re import sub
-from api_tests.config_files import config
 from urllib.parse import urlparse, urlencode
 from typing import Optional
 from typing import Union
@@ -14,21 +13,15 @@ class GenericRequest:
 
     def __init__(self):
         self.session = requests.Session()
-        self.endpoints = config.ENDPOINTS
 
-    def get_response(self, verb: str, endpoint: str, **kwargs) -> requests.Response:
+    def get_response(self, verb: str, url: str, **kwargs) -> requests.Response:
         """Verify the arguments and then send a request and return the response"""
-        try:
-            url = self.endpoints[endpoint]
-        except KeyError:
-            if self.is_url(endpoint):
-                url = endpoint
-            else:
-                raise Exception("Endpoint not found")
+        if not self.is_url(url):
+            raise RuntimeError("Endpoint not found")
 
         # Verify http verb is valid
         if verb.lower() not in {'post', 'get', 'put', 'patch'}:
-            raise Exception(f"Verb: {verb} is invalid")
+            raise RuntimeError(f"Verb: {verb} is invalid")
 
         func = (((self.get,  # else
                   self.patch)[verb.lower() == 'patch'],
@@ -37,6 +30,42 @@ class GenericRequest:
 
         # Get response
         return func(url, **kwargs)
+
+    @staticmethod
+    def check_response(resp, expected_status_code, expected_response, headers=None, redirects=None):
+        if isinstance(expected_response, list):
+            resp['body'] = list(resp['body'].keys())
+
+        message = f"\n{'*' * 10}\n" \
+                  f"REQUEST: {resp}\n" \
+                  f"EXPECTED STATUS CODE: {expected_status_code}\n" \
+                  f"ACTUAL STATUS CODE: {resp['status_code']}\n" \
+                  f"EXPECTED RESPONSE: {expected_response}\n" \
+                  f"ACTUAL RESPONSE: {resp['body']}\n"
+
+        assert resp['status_code'] == expected_status_code, message
+        assert resp['body'] == expected_response, message
+
+        if headers:
+            assert resp['headers'] == headers, message
+        if redirects:
+            assert resp['history'] == redirects, message
+        return True
+
+    @staticmethod
+    async def send_request_and_check_output(expected_status_code, expected_response, function, *args, **kwargs):
+        resp = await function(*args, **kwargs)
+
+        if isinstance(expected_response, list):
+            resp['body'] = list(resp['body'].keys())
+
+        assert resp['status_code'] == expected_status_code and resp['body'] == expected_response, \
+            f"\nREQUEST: {resp}\n" \
+            f"EXPECTED STATUS CODE: {expected_status_code}\n" \
+            f"ACTUAL STATUS CODE: {resp['status_code']}\n" \
+            f"EXPECTED RESPONSE: {expected_response}\n" \
+            f"ACTUAL RESPONSE: {resp['body']}\n"
+        return True
 
     @staticmethod
     def is_url(url: str) -> bool:
@@ -56,6 +85,13 @@ class GenericRequest:
     @staticmethod
     def check_params(params, expected_params):
         return all(params.get(key) and params[key] == value for key, value in expected_params.items())
+
+    def verify_params_exist_in_url(self, params: list, url: str) -> bool:
+        _params = self.get_params_from_url(url)
+        for param in params:
+            if not _params[param]:
+                return False
+        return True
 
     @staticmethod
     def _verify_status_code(status_code: Union[int, str]) -> None:
