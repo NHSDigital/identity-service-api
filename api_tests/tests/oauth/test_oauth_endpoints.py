@@ -748,6 +748,7 @@ class TestOauthEndpoints:
 
     @pytest.mark.happy_path
     @pytest.mark.token_exchange
+    @pytest.mark.debug
     @pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_happy_path(self):
