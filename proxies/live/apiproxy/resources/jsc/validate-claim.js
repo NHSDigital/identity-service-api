@@ -1,5 +1,7 @@
-id_token = context.getVariable('request.formparam.subject_token');
-print(id_token);
+jwks = context.getVariable('jwks');
+kid = context.getVariable('jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.header.kid');
+print(jwks);
+print(kid);
 
 
 // if (context.getVariable('identity_service.simulated_idp') == 'true') {
