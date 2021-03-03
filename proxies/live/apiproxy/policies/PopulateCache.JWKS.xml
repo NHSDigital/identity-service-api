@@ -4,4 +4,7 @@
   <CacheKey>
     <KeyFragment>jwks</KeyFragment>
   </CacheKey>
+  <ExpirySettings>
+    <TimeoutInSeconds>300</TimeoutInSeconds>
+  </ExpirySettings>
 </PopulateCache>
