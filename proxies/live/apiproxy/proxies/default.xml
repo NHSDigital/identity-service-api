@@ -487,9 +487,9 @@
               <Name>RaiseFault.VerifyAccessLevel</Name>
               <Condition>(apigee.user_restricted_scopes = "")</Condition>
           </Step>
-            <Step>
-                <Name>OAuthV2.TokenExchangeGenerateAccessToken</Name>
-            </Step>
+          <Step>
+              <Name>OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes</Name>
+          </Step>
         </Request>        
         <Response>
             <Step>
