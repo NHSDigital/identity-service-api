@@ -485,7 +485,7 @@
                 <Name>AssignMessage.TokenExchangeGenerateTokenResponse</Name>
             </Step>
         </Response>
-        <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.subject_token_type Equals "urn:ietf:params:oauth:token-type:id_token") and (apim.feature_toggles.enable-token-exchange != true))</Condition>
+        <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.subject_token_type Equals "urn:ietf:params:oauth:token-type:id_token") and (apim.feature_toggles.enable-token-exchange = true))</Condition>
     </Flow>
       <Flow name="Flow.PostTokenAuthorizationCode">
         <Description>OAuth Token Endpoint - Authorization Code Flow</Description>
