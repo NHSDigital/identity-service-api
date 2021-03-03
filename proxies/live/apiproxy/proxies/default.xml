@@ -452,7 +452,7 @@
                 <Name>LookupCache.JWKS</Name>
             </Step>
             <Step>
-                <Name>Javascript.ValidateClaim<Name>
+                <Name>Javascript.ValidateClaim</Name>
             </Step>
             <Step>
                 <Name>ServiceCallout.GetJWKS</Name>
