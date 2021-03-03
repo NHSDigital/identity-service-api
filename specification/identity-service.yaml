@@ -8,6 +8,8 @@ info:
     
     You can:
     * Get authorization code
+
+    
     * Exchange authorization code for access token
 
     You cannot currently use this API to:
