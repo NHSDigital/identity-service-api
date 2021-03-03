@@ -1,6 +1,7 @@
-jwks = context.getVariable('jwks');
+jwksString = context.getVariable('jwks');
+jwksObj = JSON.parse(jwksString)
 kid = context.getVariable('jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.header.kid');
-print(jwks);
+print(jwksObj.keys[0].kid);
 print(kid);
 
 

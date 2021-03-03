@@ -453,6 +453,7 @@
             </Step>
             <Step>
                 <Name>Javascript.ValidateClaim</Name>
+                <Condition>jwks != null</Condition>   
             </Step>
             <Step>
                 <Name>ServiceCallout.GetJWKS</Name>
