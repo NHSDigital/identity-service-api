@@ -453,7 +453,7 @@
             </Step>
             <Step>
                 <Name>Javascript.ValidateClaim</Name>
-                <Condition>jwks != null Or token_updated == false</Condition>   
+                <Condition>jwks != null</Condition>   
             </Step>
             <Step>
                 <Name>ServiceCallout.GetJWKS</Name>
