@@ -7,9 +7,6 @@ import jwt
 from uuid import uuid4
 from time import time, sleep
 import json
-from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
-from api_test_utils.apigee_api_products import ApigeeApiProducts
-
 
 @pytest.mark.asyncio
 class TestOauthEndpoints:
