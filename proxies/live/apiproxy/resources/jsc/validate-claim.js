@@ -1,25 +1,14 @@
 jwksString = context.getVariable('jwks');
 jwksObj = JSON.parse(jwksString)
 kid = context.getVariable('jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.header.kid');
+id_token_kid=jwksObj.keys[0].kid;
+
 print(jwksObj.keys[0].kid);
 print(kid);
 
+token_updated='true';
+if (kid != id_token_kid) {
+  token_updated='false'
+}
 
-// if (context.getVariable('identity_service.simulated_idp') == 'true') {
-//   state = context.getVariable('request.queryparam.state') || "";
-// } else {
-//   state = context.getVariable('request.queryparam.state');
-// }
-// redirect_uri = context.getVariable('request.queryparam.redirect_uri');
-// response_type = context.getVariable('request.queryparam.response_type');
-// scope = context.getVariable('apigee.user_restricted_scopes');
-
-// var cacheEntry = {
-//   client_id: client_id,
-//   redirect_uri: redirect_uri,
-//   state: state,
-//   response_type: response_type,
-//   scope: scope
-// };
-
-// context.setVariable('cacheEntry', JSON.stringify(cacheEntry));
+context.setVariable('token_updated', token_updated);
