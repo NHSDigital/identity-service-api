@@ -1,5 +1,7 @@
 from os import environ
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 def get_env_file(variable_name: str) -> str:
     """Returns a environment variable as path"""
