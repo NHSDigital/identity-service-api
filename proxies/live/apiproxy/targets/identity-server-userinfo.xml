@@ -1,4 +1,4 @@
-<TargetEndpoint name="identity-server-userinfo">
+<TargetEndpoint name="identity-server-DEV">
   <DefaultFaultRule>
     <Step>
       <Name>AssignMessage.CatchallErrorMessage</Name>
