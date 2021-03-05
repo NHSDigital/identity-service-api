@@ -7,7 +7,8 @@
         "refresh_token": "{oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuth.refresh_token}",
         "refresh_token_expires_in": "{oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuth.refresh_token_expires_in}",
         "refresh_count": "{oauthv2accesstoken.OAuthV2.GenerateAccessTokenSimulatedAuth.refresh_count}",
-        "token_type": "Bearer"
+        "token_type": "Bearer",
+        "selected_role_id": "555254240100"
       }
     </Payload>
   </Set>
