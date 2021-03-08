@@ -17,5 +17,6 @@
     <Attribute name="id_token-acr" ref="jwt.DecodeJWT.FromGeneratedIdTokenSimulatedAuth.claim.acr" display="true"/>
     <Attribute name="id_token-amr" ref="jwt.DecodeJWT.FromGeneratedIdTokenSimulatedAuth.claim.amr" display="true"/>
     <Attribute name="_first_issued" ref="system.timestamp" display="false"/>
+    <Attribute name="selected_role_id" display="false">555254242102</Attribute>
   </Attributes>
 </OAuthV2>
