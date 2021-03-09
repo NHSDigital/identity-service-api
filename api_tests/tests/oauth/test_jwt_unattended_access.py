@@ -1,4 +1,4 @@
-from api_tests.scripts.config import TOKEN_URL
+from api_tests.scripts.config import OAUTH_URL
 import pytest
 from uuid import uuid4
 from time import time
@@ -44,7 +44,7 @@ class TestJwtUnattendedAccess:
                     "sub": 'INVALID',
                     "iss": 'INVALID',
                     "jti": str(uuid4()),
-                    "aud": TOKEN_URL,
+                    "aud": f"{OAUTH_URL}/token",
                     "exp": int(time()) + 10,
                 }
             },
@@ -60,7 +60,7 @@ class TestJwtUnattendedAccess:
                     "sub": 'INVALID',
                     "iss": "/replace_me",
                     "jti": str(uuid4()),
-                    "aud": TOKEN_URL,
+                    "aud": f"{OAUTH_URL}/token",
                     "exp": int(time()) + 10,
                 }
             },
@@ -76,7 +76,7 @@ class TestJwtUnattendedAccess:
                     "sub": "/replace_me",
                     "iss": 'INVALID',
                     "jti": str(uuid4()),
-                    "aud": TOKEN_URL,
+                    "aud": f"{OAUTH_URL}/token",
                     "exp": int(time()) + 10,
                 }
             },
@@ -91,7 +91,7 @@ class TestJwtUnattendedAccess:
                 'claims': {
                     "iss": "/replace_me",
                     "jti": str(uuid4()),
-                    "aud": TOKEN_URL,
+                    "aud": f"{OAUTH_URL}/token",
                     "exp": int(time()) + 10,
                 }
             },
@@ -106,7 +106,7 @@ class TestJwtUnattendedAccess:
                 'claims': {
                     "sub": "/replace_me",
                     "jti": str(uuid4()),
-                    "aud": TOKEN_URL,
+                    "aud": f"{OAUTH_URL}/token",
                     "exp": int(time()) + 10,
                 }
             },
@@ -122,7 +122,7 @@ class TestJwtUnattendedAccess:
                     "sub": "/replace_me",
                     "iss": "/replace_me",
                     "jti": 1234567890,
-                    "aud": TOKEN_URL,
+                    "aud": f"{OAUTH_URL}/token",
                     "exp": int(time()) + 10,
                 }
             },
@@ -137,7 +137,7 @@ class TestJwtUnattendedAccess:
                 'claims': {
                     "sub": "/replace_me",
                     "iss": "/replace_me",
-                    "aud": TOKEN_URL,
+                    "aud": f"{OAUTH_URL}/token",
                     "exp": int(time()) + 10,
                 }
             },
@@ -153,7 +153,7 @@ class TestJwtUnattendedAccess:
                     "sub": "/replace_me",
                     "iss": "/replace_me",
                     "jti": str(uuid4()),
-                    "aud": TOKEN_URL + 'INVALID',
+                    "aud": f"{OAUTH_URL}/token" + 'INVALID',
                     "exp": int(time()) + 10,
                 }
             },
@@ -184,7 +184,7 @@ class TestJwtUnattendedAccess:
                     "sub": "/replace_me",
                     "iss": "/replace_me",
                     "jti": str(uuid4()),
-                    "aud": TOKEN_URL,
+                    "aud": f"{OAUTH_URL}/token",
                     "exp": 'INVALID',
                 }
             },
@@ -200,7 +200,7 @@ class TestJwtUnattendedAccess:
                     "sub": "/replace_me",
                     "iss": "/replace_me",
                     "jti": str(uuid4()),
-                    "aud": TOKEN_URL,
+                    "aud": f"{OAUTH_URL}/token",
                 }
             },
             {'error': 'invalid_request', 'error_description': 'Missing exp claim in JWT'},
@@ -215,7 +215,7 @@ class TestJwtUnattendedAccess:
                     "sub": "/replace_me",
                     "iss": "/replace_me",
                     "jti": str(uuid4()),
-                    "aud": TOKEN_URL,
+                    "aud": f"{OAUTH_URL}/token",
                     "exp": int(time()) - 10,
                 }
             },
@@ -231,7 +231,7 @@ class TestJwtUnattendedAccess:
                     "sub": "/replace_me",
                     "iss": "/replace_me",
                     "jti": str(uuid4()),
-                    "aud": TOKEN_URL,
+                    "aud": f"{OAUTH_URL}/token",
                     "exp": int(time()) + 330,  # this includes the +30 seconds grace
                 }
             },
@@ -256,7 +256,7 @@ class TestJwtUnattendedAccess:
             "sub": self.oauth.client_id,
             "iss": self.oauth.client_id,
             "jti": '6cd46139-af51-4f78-b850-74fcdf70c75b',
-            "aud": TOKEN_URL,
+            "aud": f"{OAUTH_URL}/token",
             "exp": int(time()) + 10,
         },
             kid="test-1",

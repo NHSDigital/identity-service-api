@@ -748,7 +748,6 @@ class TestOauthEndpoints:
 
     @pytest.mark.happy_path
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_happy_path(self):
         # Given
@@ -756,7 +755,7 @@ class TestOauthEndpoints:
         expected_expires_in = '599'
         expected_token_type = 'Bearer'
         expected_issued_token_type = 'urn:ietf:params:oauth:token-type:access_token'
-        
+
         id_token_claims = {
             'at_hash': 'tf_-lqpq36lwO7WmSBIJ6Q',
             'sub': '787807429511',
@@ -781,7 +780,7 @@ class TestOauthEndpoints:
             "sub": self.oauth.client_id,
             "iss": self.oauth.client_id,
             "jti": str(uuid4()),
-            "aud": config.TOKEN_URL,
+            "aud": f"{config.OAUTH_URL}/token",
             "exp": int(time()) + 5,
         }
 
@@ -790,8 +789,8 @@ class TestOauthEndpoints:
 
         # When
         response = requests.post(
-            url=config.TOKEN_URL,
-            data= {
+            url=f"{config.OAUTH_URL}/token",
+            data={
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
                 'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
@@ -821,8 +820,8 @@ class TestOauthEndpoints:
         expected_error_description = "Missing or invalid client_assertion_type - must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
         # When
         response = requests.post(
-            url= config.TOKEN_URL,
-            data= {
+            url=f"{config.OAUTH_URL}/token",
+            data={
                 'client_assertion_type': 'Invalid',
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token'
@@ -849,7 +848,7 @@ class TestOauthEndpoints:
         expected_error_description = "missing or invalid subject_token_type - must be 'urn:ietf:params:oauth:token-type:id_token'"
         # When
         response = requests.post(
-            url= config.TOKEN_URL,
+            url= f"{config.OAUTH_URL}/token",
             data= {
                 'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
                 'subject_token_type': 'Invalid',
@@ -880,7 +879,7 @@ class TestOauthEndpoints:
             "sub": self.oauth.client_id,
             "iss": self.oauth.client_id,
             "jti": str(uuid4()),
-            "aud": config.TOKEN_URL,
+            "aud": f"{config.OAUTH_URL}/token",
             "exp": int(time()) + 5,
         }
 
@@ -888,7 +887,7 @@ class TestOauthEndpoints:
 
         # When
         response = requests.post(
-            url= config.TOKEN_URL,
+            url= f"{config.OAUTH_URL}/token",
             data= {
                 'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
@@ -921,7 +920,7 @@ class TestOauthEndpoints:
             "sub": self.oauth.client_id,
             "iss": self.oauth.client_id,
             "jti": str(uuid4()),
-            "aud": config.TOKEN_URL,
+            "aud": f"{config.OAUTH_URL}/token",
             "exp": int(time()) + 5,
         }
 
@@ -929,7 +928,7 @@ class TestOauthEndpoints:
 
         # When
         response = requests.post(
-            url= config.TOKEN_URL,
+            url= f"{config.OAUTH_URL}/token",
             data= {
                 'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
@@ -959,7 +958,7 @@ class TestOauthEndpoints:
         client_assertion_claims = {
             "sub": '',
             "jti": str(uuid4()),
-            "aud": config.TOKEN_URL,
+            "aud": f"{config.OAUTH_URL}/token",
             "exp": int(time()) + 5,
         }
 
@@ -967,7 +966,7 @@ class TestOauthEndpoints:
 
         # When
         response = requests.post(
-            url= config.TOKEN_URL,
+            url= f"{config.OAUTH_URL}/token",
             data= {
                 'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
@@ -999,7 +998,7 @@ class TestOauthEndpoints:
             "sub": self.oauth.client_id,
             "iss": self.oauth.client_id,
             "jti": '',
-            "aud": config.TOKEN_URL,
+            "aud": f"{config.OAUTH_URL}/token",
             "exp": int(time()) + 5,
         }
 
@@ -1007,7 +1006,7 @@ class TestOauthEndpoints:
 
         # When
         response = requests.post(
-            url= config.TOKEN_URL,
+            url= f"{config.OAUTH_URL}/token",
             data= {
                 'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
@@ -1039,14 +1038,14 @@ class TestOauthEndpoints:
             "sub": self.oauth.client_id,
             "iss": self.oauth.client_id,
             "jti": str(uuid4()),
-            "aud": config.TOKEN_URL,
+            "aud": f"{config.OAUTH_URL}/token",
         }
 
         client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512', headers={'kid': 'test-1'})
 
         # When
         response = requests.post(
-            url= config.TOKEN_URL,
+            url= f"{config.OAUTH_URL}/token",
             data= {
                 'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
@@ -1078,7 +1077,7 @@ class TestOauthEndpoints:
             "sub": self.oauth.client_id,
             "iss": self.oauth.client_id,
             "jti": str(uuid4()),
-            "aud": config.TOKEN_URL,
+            "aud": f"{config.OAUTH_URL}/token",
             "exp": int(time()) + 50000,
         }
 
@@ -1086,7 +1085,7 @@ class TestOauthEndpoints:
 
         # When
         response = requests.post(
-            url= config.TOKEN_URL,
+            url= f"{config.OAUTH_URL}/token",
             data= {
                 'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
@@ -1138,7 +1137,7 @@ class TestOauthEndpoints:
             "sub": self.oauth.client_id,
             "iss": self.oauth.client_id,
             "jti": str(uuid4()),
-            "aud": config.TOKEN_URL,
+            "aud": f"{config.OAUTH_URL}/token",
             "exp": int(time()) + 5,
         }
 
@@ -1147,7 +1146,7 @@ class TestOauthEndpoints:
 
         # When
         response = requests.post(
-            url=config.TOKEN_URL,
+            url=f"{config.OAUTH_URL}/token",
             data= {
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
@@ -1159,7 +1158,7 @@ class TestOauthEndpoints:
         sleep(2)
 
         response = requests.post(
-            url=config.TOKEN_URL,
+            url=f"{config.OAUTH_URL}/token",
             data= {
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
@@ -1212,7 +1211,7 @@ class TestOauthEndpoints:
             "sub": self.oauth.client_id,
             "iss": self.oauth.client_id,
             "jti": str(uuid4()),
-            "aud": config.TOKEN_URL,
+            "aud": f"{config.OAUTH_URL}/token",
             "exp": int(time()) + 5,
         }
 
@@ -1221,7 +1220,7 @@ class TestOauthEndpoints:
 
         # When
         response = requests.post(
-            url= config.TOKEN_URL,
+            url= f"{config.OAUTH_URL}/token",
             data= {
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
@@ -1273,7 +1272,7 @@ class TestOauthEndpoints:
             "sub": self.oauth.client_id,
             "iss": self.oauth.client_id,
             "jti": str(uuid4()),
-            "aud": config.TOKEN_URL,
+            "aud": f"{config.OAUTH_URL}/token",
             "exp": int(time()) + 5,
         }
 
@@ -1282,7 +1281,7 @@ class TestOauthEndpoints:
 
         # When
         response = requests.post(
-            url= config.TOKEN_URL,
+            url= f"{config.OAUTH_URL}/token",
             data= {
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
@@ -1335,7 +1334,7 @@ class TestOauthEndpoints:
             "sub": self.oauth.client_id,
             "iss": self.oauth.client_id,
             "jti": str(uuid4()),
-            "aud": config.TOKEN_URL,
+            "aud": f"{config.OAUTH_URL}/token",
             "exp": int(time()) + 5,
         }
 
@@ -1344,7 +1343,7 @@ class TestOauthEndpoints:
 
         # When
         response = requests.post(
-            url= config.TOKEN_URL,
+            url= f"{config.OAUTH_URL}/token",
             data= {
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',

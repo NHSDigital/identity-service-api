@@ -257,7 +257,7 @@ class TestProductScopes:
 
         assert helper.check_endpoint(
             verb="POST",
-            endpoint=config.TOKEN_URL,
+            endpoint=config.OAUTH_URL,
             expected_status_code=200,
             expected_response=[
                 "access_token",
