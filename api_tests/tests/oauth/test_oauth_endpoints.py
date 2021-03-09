@@ -748,7 +748,6 @@ class TestOauthEndpoints:
 
     @pytest.mark.happy_path
     @pytest.mark.token_exchange
-    @pytest.mark.usefixtures('get_token')
     def test_token_exchange_happy_path(self):
         # Given
         expected_status_code = 200
@@ -771,9 +770,9 @@ class TestOauthEndpoints:
             'azp': '969567331415.apps.national',
             'auth_time': 1610559802,
             'realm': '/NHSIdentity/Healthcare',
-            'exp': int(time()) + 600,
+            'exp': int(time()) + 6000,
             'tokenType': 'JWTToken',
-            'iat': int(time()) - 10
+            'iat': int(time()) - 100
         }
 
         client_assertion_claims = {
@@ -784,9 +783,10 @@ class TestOauthEndpoints:
             "exp": int(time()) + 5,
         }
 
-        id_token_jwt = jwt.encode(id_token_claims, config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS256', headers={'kid': 'identity-service-tests-1'})
-        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH, algorithm='RS512', headers={'kid': 'test-1'})
-
+        id_token_jwt = jwt.encode(id_token_claims, config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH,
+                                  algorithm='RS256', headers={'kid': 'identity-service-tests-1'})
+        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH,
+                                          algorithm='RS512', headers={'kid': 'test-1'})
         # When
         response = requests.post(
             url=f"{config.OAUTH_URL}/token",
@@ -798,7 +798,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }
         )
-        sleep(2)
+
 
         # Then
         response_dict = json.loads(response.text)
@@ -811,7 +811,6 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_invalid_client_assertion_type(self):
         # Given
@@ -827,7 +826,7 @@ class TestOauthEndpoints:
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token'
             }
         )
-        sleep(2)
+
 
         response_dict = json.loads(response.text)
 
@@ -839,7 +838,6 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_invalid_subject_token_type(self):
         # Given
@@ -855,7 +853,7 @@ class TestOauthEndpoints:
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange'
             }
         )
-        sleep(2)
+
 
         response_dict = json.loads(response.text)
 
@@ -867,7 +865,6 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_claims_assertion_invalid_kid(self):
         # Given
@@ -896,7 +893,7 @@ class TestOauthEndpoints:
             }
         )
 
-        sleep(2)
+
 
         response_dict = json.loads(response.text)
 
@@ -908,7 +905,6 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_claims_assertion_invalid_typ_header(self):
         # Given
@@ -936,7 +932,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }
         )
-        sleep(2)
+
         response_dict = json.loads(response.text)
 
         # Then
@@ -947,7 +943,6 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_claims_assertion_invalid_iss_claim(self):
         # Given
@@ -974,7 +969,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }
         )
-        sleep(2)
+
 
         response_dict = json.loads(response.text)
 
@@ -986,7 +981,6 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_claims_assertion_missing_jti_claim(self):
         # Given
@@ -1014,7 +1008,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }
         )
-        sleep(2)
+
 
         response_dict = json.loads(response.text)
 
@@ -1026,7 +1020,6 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_claims_assertion_missing_exp_claim(self):
         # Given
@@ -1053,7 +1046,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }
         )
-        sleep(2)
+
 
         response_dict = json.loads(response.text)
 
@@ -1065,7 +1058,6 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_claims_assertion_invalid_exp_claim(self):
         # Given
@@ -1093,7 +1085,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }
         )
-        sleep(2)
+
 
         response_dict = json.loads(response.text)
 
@@ -1105,7 +1097,6 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_claims_assertion_invalid_jti_claim(self):
         # Given
@@ -1155,7 +1146,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }
         )
-        sleep(2)
+
 
         response = requests.post(
             url=f"{config.OAUTH_URL}/token",
@@ -1180,7 +1171,6 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_subject_token_missing_iss_or_sub_claim(self):
         # Given
@@ -1229,7 +1219,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }
         )
-        sleep(2)
+
 
         response_dict = json.loads(response.text)
 
@@ -1241,7 +1231,6 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_subject_token_missing_aud_claim(self):
         # Given
@@ -1290,7 +1279,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }
         )
-        sleep(2)
+
 
         response_dict = json.loads(response.text)
 
@@ -1302,7 +1291,6 @@ class TestOauthEndpoints:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason='feature turned off')
     @pytest.mark.usefixtures('get_token')
     def test_token_exchange_subject_token_missing_exp_claim(self):
         # Given
@@ -1352,7 +1340,7 @@ class TestOauthEndpoints:
                 'client_assertion': client_assertion_jwt
             }
         )
-        sleep(2)
+
 
         response_dict = json.loads(response.text)
 
