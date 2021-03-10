@@ -459,7 +459,7 @@ class TestProductScopes:
         }
 
         client_assertion_jwt = self.oauth.create_jwt(kid="test-1", client_id=test_app.client_id)
-        id_token_jwt = self.oauth.get_id_token_jwt(kid="identity-service-tests-1", claims=id_token_claims)
+        id_token_jwt = self.oauth.create_id_token_jwt(kid="identity-service-tests-1", claims=id_token_claims)
 
         # When
         resp = await self.oauth.get_token_response(
