@@ -21,7 +21,7 @@ steps:
       export JWT_PRIVATE_KEY_ABSOLUTE_PATH="$(Pipeline.Workspace)/secrets/$(JWT_TESTING_PRIVATE_KEY)"
       export APIGEE_API_TOKEN="$(secret.AccessToken)"
 
-          pytest -v --junitxml=test-report.xml
+      pytest -v --junitxml=test-report.xml
     workingDirectory: $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests
     displayName: Run integration tests
 
