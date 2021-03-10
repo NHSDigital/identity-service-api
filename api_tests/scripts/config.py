@@ -8,7 +8,7 @@ OAUTH_URL = f"{OAUTH_BASE_URI}/{OAUTH_PROXY}"
 ENVIRONMENT = urlparse(OAUTH_BASE_URI).hostname.split('.')[0]
 SERVICE_NAME = environ.get(
     "SERVICE_NAME",
-    (F'identity-service-{ENVIRONMENT}', OAUTH_PROXY.replace('oauth2', 'identity-service'))["pr" in OAUTH_PROXY]
+    (f'identity-service-{ENVIRONMENT}', OAUTH_PROXY.replace('oauth2', 'identity-service'))["pr" in OAUTH_PROXY]
 )
 
 # Test API (Hello World)
