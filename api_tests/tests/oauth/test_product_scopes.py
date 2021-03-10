@@ -458,23 +458,13 @@ class TestProductScopes:
             'iat': int(time()) - 100
         }
 
-        client_assertion_claims = {
-            "sub": test_app.get_client_id(),
-            "iss": test_app.get_client_id(),
-            "jti": str(uuid4()),
-            "aud": f"{config.OAUTH_URL}/token",
-            "exp": int(time()) + 5,
-        }
-
-        id_token_jwt = jwt.encode(id_token_claims, config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH,
-                                  algorithm='RS256', headers={'kid': 'identity-service-tests-1'})
-        client_assertion_jwt = jwt.encode(client_assertion_claims, config.JWT_PRIVATE_KEY_ABSOLUTE_PATH,
-                                          algorithm='RS512', headers={'kid': 'test-1'})
+        client_assertion_jwt = self.oauth.create_jwt(kid="test-1", client_id=test_app.client_id)
+        id_token_jwt = self.oauth.get_id_token_jwt(kid="identity-service-tests-1", claims=id_token_claims)
 
         # When
-        response = requests.post(
-            url=f"{config.OAUTH_URL}/token",
-            data= {
+        resp = await self.oauth.get_token_response(
+            grant_type="token_exchange",
+            data={
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
                 'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
@@ -483,10 +473,7 @@ class TestProductScopes:
             }
         )
 
-        response_dict = json.loads(response.text)
-
         # Then
-        assert expected_status_code == response.status_code
-        assert expected_error == response_dict['error']
-        assert expected_error_description == response_dict['error_description']
-        assert 'message_id' in response_dict
+        assert expected_status_code == resp['status_code']
+        assert expected_error == resp['body']['error']
+        assert expected_error_description == resp['body']['error_description']
