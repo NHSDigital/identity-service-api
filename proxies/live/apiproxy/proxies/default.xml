@@ -457,15 +457,15 @@
             </Step>
             <Step>
                 <Name>ServiceCallout.GetJWKS</Name>
-                <Condition>jwks = null Or token_updated == false</Condition>
+                <Condition>jwks = null Or jwks_updated = false</Condition>
             </Step>
             <Step>
                 <Name>PopulateCache.JWKS</Name>
-                <Condition>jwks = null Or token_updated == false</Condition>
+                <Condition>jwks = null Or jwks_updated = false</Condition>
             </Step>
             <Step>
                 <Name>AssignMessage.JWKS</Name>
-                <Condition>jwks = null Or token_updated == false</Condition>
+                <Condition>jwks = null Or jwks_updated = false</Condition>
             </Step>
             <Step>
                 <Name>VerifyJWT.SubjectToken</Name>
@@ -570,15 +570,15 @@
                 </Step>
                 <Step>
                   <Name>ServiceCallout.GetJWKS</Name>
-                  <Condition>jwks = null Or token_updated == false</Condition>
+                  <Condition>jwks = null Or jwks_updated = false</Condition>
                 </Step>
                 <Step>
                   <Name>PopulateCache.JWKS</Name>
-                  <Condition>jwks = null Or token_updated == false</Condition>
+                  <Condition>jwks = null Or jwks_updated = false</Condition>
                 </Step>
                 <Step>
                   <Name>AssignMessage.JWKS</Name>
-                  <Condition>jwks = null Or token_updated == false</Condition>
+                  <Condition>jwks = null Or jwks_updated = false</Condition>
                 </Step>
                 <Step>
                   <Name>VerifyJWT.FromExternalIdToken</Name>
