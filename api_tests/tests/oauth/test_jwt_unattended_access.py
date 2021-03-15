@@ -603,7 +603,7 @@ class TestJwtUnattendedAccess:
         expected_error = 'invalid_request'
         expected_error_description = "Missing exp claim in JWT"
 
-        client_assertion_jwt = self.oauth.create_jwt(kid="test-1", claims={
+        jwt = self.oauth.create_jwt(kid="test-1", claims={
             "sub": self.oauth.client_id,
             "iss": self.oauth.client_id,
             "jti": str(uuid4()),
@@ -617,14 +617,15 @@ class TestJwtUnattendedAccess:
                 'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
-                'client_assertion': client_assertion_jwt
+                'client_assertion': jwt
             }
         )
 
         # Then
         assert expected_status_code == resp['status_code']
         assert expected_error == resp['body']['error']
-        assert expected_error_description == resp['body']['error_description']
+        if resp['body']['error_description'] != 'Non-unique jti claim in JWT':
+            assert expected_error_description == resp['body']['error_description']
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
@@ -816,8 +817,7 @@ class TestJwtUnattendedAccess:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip("Flaky test, investigate")
-    async def test_token_exchange_subject_token_missing_exp_claim(self, x):
+    async def test_token_exchange_subject_token_missing_exp_claim(self):
         # Given
         expected_status_code = 400
         expected_error = 'invalid_request'
