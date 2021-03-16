@@ -112,7 +112,7 @@ async def _product_with_full_access():
     return product
 
 
-@pytest.yield_fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def setup_session(request):
     """This fixture is automatically called once at the start of pytest execution.
     The default app created here should be modified by your tests.
