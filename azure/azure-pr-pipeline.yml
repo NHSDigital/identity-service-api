@@ -37,8 +37,8 @@ extends:
     ping: false
     jinja_templates:
       IDENTITY_TARGET_SERVER: identity-server-DEV
-      VARIABLES_KVM: identity-service-variables
-      ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+      VARIABLES_KVM: identity-service-variables-pr-158
+      ENCRYPTED_VARIABLES_KVM: identity-service-internal-dev-DEV-variables-encrypted
       NUM_RANDOM_LONG_INTS_FOR_STATE: 4
     secret_file_ids:
       - ptl/app-credentials/jwt_testing/non-prod/JWT_TESTING_PRIVATE_KEY
