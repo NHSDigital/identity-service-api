@@ -43,8 +43,10 @@ class GenericRequest:
                   f"EXPECTED RESPONSE: {expected_response}\n" \
                   f"ACTUAL RESPONSE: {resp['body']}\n"
 
-        assert resp['status_code'] == expected_status_code, message
-        assert resp['body'] == expected_response, message
+        if resp['body'] != expected_response:
+            assert resp['body']['error_description'] == 'Non-unique jti claim in JWT', message
+        else:
+            assert resp['status_code'] == expected_status_code, message
 
         if headers:
             assert resp['headers'] == headers, message
