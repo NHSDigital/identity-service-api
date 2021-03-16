@@ -6,4 +6,4 @@ services:
     build: .
     container_name: test_env
     env_file:
-        docker.env
+        .env

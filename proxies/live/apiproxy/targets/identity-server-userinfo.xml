@@ -15,6 +15,6 @@
     <LoadBalancer>
       <Server name="{{ IDENTITY_TARGET_SERVER }}" />
     </LoadBalancer>
-    <Path>{private.apigee.userinfo_path}</Path>
+<!--    <Path>{private.apigee.userinfo_path}</Path>-->
   </HTTPTargetConnection>
 </TargetEndpoint>
