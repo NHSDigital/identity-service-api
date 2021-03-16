@@ -1,6 +1,6 @@
 from os import environ
 from urllib.parse import urlparse
-
+#
 # Oauth details
 OAUTH_BASE_URI = environ.get("OAUTH_BASE_URI")
 OAUTH_PROXY = environ.get("OAUTH_PROXY")
