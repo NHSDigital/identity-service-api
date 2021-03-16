@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<LookupCache async="false" continueOnError="false" enabled="true" name="LookupCache.AuthCode">
+    <DisplayName>LookupCache.AuthCode</DisplayName>
+    <Properties/>
+    <CacheKey>
+        <Prefix/>
+        <KeyFragment ref="request.formparam.code"/>
+    </CacheKey>
+    <Scope>Exclusive</Scope>
+</LookupCache>

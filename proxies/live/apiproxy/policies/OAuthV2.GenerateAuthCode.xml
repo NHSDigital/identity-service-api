@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <OAuthV2 async="false" continueOnError="false" enabled="true" name="OAuthV2.GenerateAuthCode">
     <Operation>GenerateAuthorizationCode</Operation>
     <ClientId>original_client_id</ClientId>
@@ -5,8 +6,8 @@
     <ResponseType>original_response_type</ResponseType>
     <State>original_state</State>
     <Scope>original_scope</Scope>
-    <ExternalAuthorization>true</ExternalAuthorization>
-    <ExternalAuthorizationCode>request.queryparam.code</ExternalAuthorizationCode>
+    <ExternalAuthorization>false</ExternalAuthorization>
+    <!--<ExternalAuthorizationCode>request.queryparam.code</ExternalAuthorizationCode>-->
     <StoreToken>true</StoreToken>
-    <GenerateResponse enabled="false"/>
+    <GenerateResponse enabled="true"/>
 </OAuthV2>
