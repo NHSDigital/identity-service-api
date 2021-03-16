@@ -20,6 +20,8 @@ APIGEE_ENVIRONMENTS:
   name: sandbox
 - display_name: Integration Testing
   name: int
+- display_name: Development
+  name: dev
 - approval_type: manual
   display_name: Production
   name: prod
