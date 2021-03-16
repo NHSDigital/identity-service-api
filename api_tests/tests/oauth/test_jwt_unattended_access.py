@@ -621,22 +621,6 @@ class TestJwtUnattendedAccess:
             }
         )
 
-        # Temp fix
-        if resp['body']['error_description'] == 'Non-unique jti claim in JWT':
-            client_assertion_jwt = self.oauth.create_jwt(kid="test-1")
-            id_token_jwt = self.oauth.create_id_token_jwt(kid="identity-service-tests-1", claims=id_token_claims)
-
-            resp = await self.oauth.get_token_response(
-                grant_type="token_exchange",
-                data={
-                    'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
-                    'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
-                    'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-                    'subject_token': id_token_jwt,
-                    'client_assertion': client_assertion_jwt
-                }
-            )
-
         # Then
         assert expected_status_code == resp['status_code']
         assert expected_error == resp['body']['error']
@@ -825,22 +809,6 @@ class TestJwtUnattendedAccess:
             }
         )
 
-        # Temp fix
-        if resp['body']['error_description'] == 'Non-unique jti claim in JWT':
-            client_assertion_jwt = self.oauth.create_jwt(kid="test-1")
-            id_token_jwt = self.oauth.create_id_token_jwt(kid="identity-service-tests-1", claims=id_token_claims)
-
-            resp = await self.oauth.get_token_response(
-                grant_type="token_exchange",
-                data={
-                    'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
-                    'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
-                    'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-                    'subject_token': id_token_jwt,
-                    'client_assertion': client_assertion_jwt
-                }
-            )
-
         # Then
         assert expected_status_code == resp['status_code']
         assert expected_error == resp['body']['error']
@@ -889,22 +857,6 @@ class TestJwtUnattendedAccess:
                 'client_assertion': client_assertion_jwt
             }
         )
-
-        # Temp fix
-        if resp['body']['error_description'] == 'Non-unique jti claim in JWT':
-            client_assertion_jwt = self.oauth.create_jwt(kid="test-1")
-            id_token_jwt = self.oauth.create_id_token_jwt(kid="identity-service-tests-1", claims=id_token_claims)
-
-            resp = await self.oauth.get_token_response(
-                grant_type="token_exchange",
-                data={
-                    'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
-                    'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
-                    'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-                    'subject_token': id_token_jwt,
-                    'client_assertion': client_assertion_jwt
-                }
-            )
 
         # Then
         assert expected_status_code == resp['status_code']
