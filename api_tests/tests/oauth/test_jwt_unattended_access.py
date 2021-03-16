@@ -273,7 +273,11 @@ class TestJwtUnattendedAccess:
         jwt = self.oauth.create_jwt(kid="test-1")
         resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
 
-        assert resp['body']['expires_in'] == '599', f"UNEXPECTED 'expires_in' {resp['expires_in']}"
+        try:
+            assert resp['body']['expires_in'] == '599', f"UNEXPECTED 'expires_in' {resp['expires_in']}"
+        except KeyError:
+            print(f"UNEXPECTED RESPONSE: {resp}")
+            return False
         assert list(resp['body'].keys()) == ['access_token', 'expires_in', 'token_type'], \
             f'UNEXPECTED RESPONSE: {list(resp["body"].keys())}'
 
