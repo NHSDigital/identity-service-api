@@ -607,7 +607,7 @@ class TestJwtUnattendedAccess:
         expected_error = 'invalid_request'
         expected_error_description = "Missing exp claim in JWT"
 
-        id_token_claims = self.oauth.create_jwt(kid="test-1", claims={
+        client_assertion_jwt = self.oauth.create_jwt(kid="test-1", claims={
             "sub": self.oauth.client_id,
             "iss": self.oauth.client_id,
             "jti": str(uuid4()),
@@ -621,7 +621,7 @@ class TestJwtUnattendedAccess:
                 'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
                 'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
                 'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
-                'client_assertion': id_token_claims
+                'client_assertion': client_assertion_jwt
             }
         )
 
