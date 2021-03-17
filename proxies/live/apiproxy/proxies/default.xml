@@ -551,6 +551,10 @@
                 <Step>
                   <Name>Javascript.ValidateIDTokenClaims</Name>
                 </Step>
+                <Step>
+                  <Name>RaiseFault.JWTClaimsInvalid</Name>
+                  <Condition>claims_validation.is_valid == false</Condition>
+                </Step>
                 <!-- Using pattern from https://community.apigee.com/questions/34110/how-can-i-store-the-results-of-the-servicecallout.html
                     Steps are:
                     1. LookupCache.JWKS: Attempt to get JWKS from cache, store in flow variable `jwks`
