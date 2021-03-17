@@ -7,7 +7,6 @@
     <State>original_state</State>
     <Scope>original_scope</Scope>
     <ExternalAuthorization>false</ExternalAuthorization>
-    <!--<ExternalAuthorizationCode>request.queryparam.code</ExternalAuthorizationCode>-->
     <StoreToken>true</StoreToken>
     <GenerateResponse enabled="true"/>
 </OAuthV2>
