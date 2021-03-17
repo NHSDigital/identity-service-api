@@ -543,6 +543,12 @@
                     <Name>ServiceCallout.PostToken</Name>
                 </Step>
                 <Step>
+                  <Name>DecodeJWT.FromExternalIdToken</Name>
+                </Step>
+                <Step>
+                  <Name>Javascript.ValidateIDTokenClaims</Name>
+                </Step>
+                <Step>
                     <Name>ExtractVariables.AccessToken</Name>
                 </Step>
                 <!-- Using pattern from https://community.apigee.com/questions/34110/how-can-i-store-the-results-of-the-servicecallout.html
