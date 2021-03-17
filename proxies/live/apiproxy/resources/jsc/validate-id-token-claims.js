@@ -10,7 +10,7 @@ validation = {
             };
             
             
-if(aud_claim == client_id)
+if(aud_claim != client_id)
     {
         message =   
         {
