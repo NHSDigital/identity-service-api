@@ -10,5 +10,5 @@
     <ExpirySettings>
         <TimeoutInSec>3600</TimeoutInSec>
     </ExpirySettings>
-    <Source>{request.queryparam.code}</Source>
+    <Source>request.queryparam.code</Source>
 </PopulateCache>

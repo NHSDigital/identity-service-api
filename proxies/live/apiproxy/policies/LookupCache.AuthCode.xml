@@ -7,4 +7,5 @@
         <KeyFragment ref="request.formparam.code"/>
     </CacheKey>
     <Scope>Exclusive</Scope>
+    <AssignTo>nhsid_auth_code</AssignTo>
 </LookupCache>

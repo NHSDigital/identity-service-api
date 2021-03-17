@@ -791,14 +791,14 @@
                 <Step>
                   <Name>Quota</Name>
                 </Step>
+            </Request>
+            <Response>
                 <Step>
-                  <Name>OAuthV2.GenerateAuthCode</Name>
+                    <Name>OAuthV2.GenerateAuthCode</Name>
                 </Step>
                 <Step>
                     <Name>PopulateCache.AuthCode</Name>
                 </Step>
-            </Request>
-            <Response>
               <!-- Re-create the redirect so scope query param isn't included -->
               <Step>
                 <Name>AssignMessage.AuthCodeRedirect</Name>
