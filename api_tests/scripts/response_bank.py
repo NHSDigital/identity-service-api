@@ -168,6 +168,25 @@ BANK = {
                     "person_roleid": "555254241101",
                     "role_code": "S8000:G8000:R8003",
                     "role_name": "\"Clinical\":\"Clinical Provision\":\"Health Professional Access Role\""
+                },
+                {
+                    "activities": [
+                        "Perform Pharmacy Activities",
+                        "Verify Prescription",
+                        "Manage Pharmacy Activities",
+                        "View Patient Medication"
+                    ],
+                    "activity_codes": [
+                        "B0570",
+                        "B0068",
+                        "B0572",
+                        "B0401"
+                    ],
+                    "org_code": "RBA",
+                    "person_orgid": "555254239107",
+                    "person_roleid": "093895563513",
+                    "role_code": "S8000:G8000:R8003",
+                    "role_name": "\"Clinical\":\"Clinical Provision\":\"Health Professional Access Role\""
                 }
             ],
             "sub": "910000000001"
