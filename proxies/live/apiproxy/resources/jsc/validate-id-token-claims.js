@@ -20,8 +20,8 @@ if(aud_claim != client_id)
     {
         message =   
         {
-          error: "AudClaim Invalid",
-          error_description: "Aud claim does not match",
+          error: "invalid_request",
+          error_description: "Invalid aud claim in JWT",
           message_id: message_id
         }
         validation.is_valid = false;
@@ -32,8 +32,8 @@ else if(iss_claim.toLowerCase() != base_url.toLowerCase())
     {
         message =   
         {
-          error: "IssClaim Invalid",
-          error_description: "Iss claim does not match",
+          error: "invalid_request",
+          error_description: "Invalid iss claim in JWT",
           message_id: message_id
         }
         validation.is_valid = false;
