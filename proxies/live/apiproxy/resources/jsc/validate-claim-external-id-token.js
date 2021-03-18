@@ -2,12 +2,12 @@ jwksString = context.getVariable('jwks');
 jwksObj = JSON.parse(jwksString);
 kid = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.decoded.header.kid');
 
-jwks_updated = false;
+jwksUpdated = false;
 
 for (var i = 0; i < jwksObj.keys.length; i++) {
   if (kid == jwksObj.keys[i].kid) {
-      jwks_updated = true;
+      jwksUpdated = true;
   }
 }
 
-context.setVariable('jwks_updated', jwks_updated);
+context.setVariable('jwksUpdated', jwksUpdated);
