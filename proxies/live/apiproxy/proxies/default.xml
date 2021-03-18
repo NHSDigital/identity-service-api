@@ -452,16 +452,20 @@
                 <Name>LookupCache.JWKS</Name>
             </Step>
             <Step>
+                <Name>Javascript.ValidateClaim</Name>
+                <Condition>jwks != null</Condition>   
+            </Step>
+            <Step>
                 <Name>ServiceCallout.GetJWKS</Name>
-                <Condition>jwks = null</Condition>
+                <Condition>jwks = null Or jwksUpdated = false</Condition>
             </Step>
             <Step>
                 <Name>PopulateCache.JWKS</Name>
-                <Condition>jwks = null</Condition>
+                <Condition>jwks = null Or jwksUpdated = false</Condition>
             </Step>
             <Step>
                 <Name>AssignMessage.JWKS</Name>
-                <Condition>jwks = null</Condition>
+                <Condition>jwks = null Or jwksUpdated = false</Condition>
             </Step>
             <Step>
                 <Name>VerifyJWT.SubjectToken</Name>
@@ -555,6 +559,9 @@
                   <Name>RaiseFault.JWTClaimsInvalid</Name>
                   <Condition>claims_validation.is_valid == false</Condition>
                 </Step>
+                <Step>
+                    <Name>DecodeJWT.FromExternalIdToken</Name>
+                </Step>
                 <!-- Using pattern from https://community.apigee.com/questions/34110/how-can-i-store-the-results-of-the-servicecallout.html
                     Steps are:
                     1. LookupCache.JWKS: Attempt to get JWKS from cache, store in flow variable `jwks`
@@ -568,16 +575,20 @@
                   <Name>LookupCache.JWKS</Name>
                 </Step>
                 <Step>
+                    <Name>JavaScript.ValidateClaimFromExternalIdToken</Name>
+                    <Condition>jwks != null</Condition>
+                </Step>
+                <Step>
                   <Name>ServiceCallout.GetJWKS</Name>
-                  <Condition>jwks = null</Condition>
+                  <Condition>jwks = null Or jwksUpdated = false</Condition>
                 </Step>
                 <Step>
                   <Name>PopulateCache.JWKS</Name>
-                  <Condition>jwks = null</Condition>
+                  <Condition>jwks = null Or jwksUpdated = false</Condition>
                 </Step>
                 <Step>
                   <Name>AssignMessage.JWKS</Name>
-                  <Condition>jwks = null</Condition>
+                  <Condition>jwks = null Or jwksUpdated = false</Condition>
                 </Step>
                 <Step>
                   <Name>VerifyJWT.FromExternalIdToken</Name>
