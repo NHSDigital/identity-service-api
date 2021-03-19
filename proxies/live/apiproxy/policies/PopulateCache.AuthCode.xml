@@ -8,7 +8,7 @@
     </CacheKey>
     <Scope>Exclusive</Scope>
     <ExpirySettings>
-        <TimeoutInSec>3600</TimeoutInSec>
+        <TimeoutInSec>300</TimeoutInSec>
     </ExpirySettings>
     <Source>request.queryparam.code</Source>
 </PopulateCache>
