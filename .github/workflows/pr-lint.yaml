@@ -9,7 +9,7 @@ jobs:
 
       - name: Grab ticket name
         if: contains(github.event.pull_request.head.ref, 'apm-') || contains(github.event.pull_request.head.ref, 'APM-') || contains(github.event.pull_request.head.ref, 'amb-') || contains(github.event.pull_request.head.ref, 'AMB-') || contains(github.event.pull_request.head.ref, 'apmspii-') || contains(github.event.pull_request.head.ref, 'APMSPII-')
-        run: echo ::set-env name=TICKET_NAME::$(echo ${{ github.event.pull_request.head.ref }} | tr '[:lower:]' '[:upper:]' | grep -i -o '^APM-[0-9]\+')
+        run: echo ::set-env name=TICKET_NAME::$(echo ${{ github.event.pull_request.head.ref }} | tr '[:lower:]' '[:upper:]' | grep -i -o '^APM-[0-9]\+ | grep -i -o '^APMSPII-[0-9]\+')
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: true
 
