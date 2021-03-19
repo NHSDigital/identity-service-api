@@ -5,7 +5,11 @@
     <FaultResponse>
         <Set>
             <Payload contentType="application/json">
-            {claims_validation.message}
+            {
+                "error": "{claims_validation.error}",
+                "error_description": "{claims_validation.error_description}",
+                "message_id": "{messageid}"
+            }
             </Payload>
             <StatusCode>400</StatusCode>
             <ReasonPhrase>Bad Request</ReasonPhrase>
