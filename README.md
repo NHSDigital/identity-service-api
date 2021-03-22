@@ -155,7 +155,6 @@ Successful deployment of the API Proxy requires:
 ### Simulated Authentication
 
 Instead of relying on an external Identity Provider to authorize the user, the Identity Service
-can perform its own, simulated, authorization.
+can perform its own, simulated, authorization test change.
 
 See the [setup instructions](./docs/simulated_idp.md).
-
