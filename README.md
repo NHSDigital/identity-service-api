@@ -158,3 +158,4 @@ Instead of relying on an external Identity Provider to authorize the user, the I
 can perform its own, simulated, authorization.
 
 See the [setup instructions](./docs/simulated_idp.md).
+
