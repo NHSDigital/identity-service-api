@@ -1,8 +1,9 @@
 <AssignMessage name="AssignMessage.RemoveExternalScope">
   <Remove>
+    <FormParams>
+      <QueryParams>
+        <QueryParam name="scope"/>
+      </QueryParams>
     <FormParams/>
-    <QueryParams>
-      <QueryParam name="scope"/>
-    </QueryParams>
   </Remove>
 </AssignMessage>
