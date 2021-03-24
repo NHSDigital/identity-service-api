@@ -547,7 +547,17 @@
                     <Name>ServiceCallout.PostToken</Name>
                 </Step>
                 <Step>
-                    <Name>ExtractVariables.AccessToken</Name>
+                  <Name>ExtractVariables.AccessToken</Name>
+                </Step>
+                <Step>
+                  <Name>DecodeJWT.FromExternalIdToken</Name>
+                </Step>
+                <Step>
+                  <Name>Javascript.ValidateIDTokenClaims</Name>
+                </Step>
+                <Step>
+                  <Name>RaiseFault.JWTClaimsInvalid</Name>
+                  <Condition>claims_validation.is_valid == false</Condition>
                 </Step>
                 <Step>
                     <Name>DecodeJWT.FromExternalIdToken</Name>
