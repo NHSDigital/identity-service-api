@@ -212,7 +212,7 @@
                 <Step>
                   <Name>RaiseFault.VerifyAccessLevel</Name>
                   <Condition>(apigee.user_restricted_scopes = "")</Condition>
-                </Step>                
+                </Step>
                 <Step>
                     <Name>AssignMessage.GenerateState</Name>
                 </Step>
@@ -306,7 +306,7 @@
           <Step>
             <Name>VerifyAPIKey.FromJWT</Name>
           </Step>
-          <Step> 
+          <Step>
             <Name>SpikeArrest</Name>
           </Step>
           <Step>
@@ -344,7 +344,7 @@
           <Step>
             <Name>RaiseFault.VerifyAccessLevel</Name>
             <Condition>(apigee.application_restricted_scopes = "")</Condition>
-          </Step>          
+          </Step>
           <Step>
             <Name>OAuthV2.ClientCredentialsGenerateAccessTokenFilteredScopes</Name>
           </Step>
@@ -494,7 +494,7 @@
           <Step>
               <Name>OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes</Name>
           </Step>
-        </Request>        
+        </Request>
         <Response>
             <Step>
                 <Name>AssignMessage.TokenExchangeGenerateTokenResponse</Name>
@@ -544,10 +544,23 @@
                     <Name>KeyValueMapOperations.GetSecureVariables</Name>
                 </Step>
                 <Step>
+                    <Name>LookupCache.AuthCode</Name>
+                </Step>
+                <Step>
                     <Name>ServiceCallout.PostToken</Name>
                 </Step>
                 <Step>
-                    <Name>ExtractVariables.AccessToken</Name>
+                  <Name>ExtractVariables.AccessToken</Name>
+                </Step>
+                <Step>
+                  <Name>DecodeJWT.FromExternalIdToken</Name>
+                </Step>
+                <Step>
+                  <Name>Javascript.ValidateIDTokenClaims</Name>
+                </Step>
+                <Step>
+                  <Name>RaiseFault.JWTClaimsInvalid</Name>
+                  <Condition>claims_validation.is_valid == false</Condition>
                 </Step>
                 <Step>
                     <Name>DecodeJWT.FromExternalIdToken</Name>
@@ -799,11 +812,14 @@
                 <Step>
                   <Name>Quota</Name>
                 </Step>
-                <Step>
-                  <Name>OAuthV2.GenerateAuthCode</Name>
-                </Step>
             </Request>
             <Response>
+                <Step>
+                    <Name>OAuthV2.GenerateAuthCode</Name>
+                </Step>
+                <Step>
+                    <Name>PopulateCache.AuthCode</Name>
+                </Step>
               <!-- Re-create the redirect so scope query param isn't included -->
               <Step>
                 <Name>AssignMessage.AuthCodeRedirect</Name>
