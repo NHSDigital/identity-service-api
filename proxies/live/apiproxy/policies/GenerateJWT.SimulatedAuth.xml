@@ -10,7 +10,7 @@
   </SecretKey>
   <AdditionalClaims>
     <Claim name='acr'>AAL3_ANY</Claim>
-    <Claim name='amr' array='true'>N3_SMARTCARD</Claim>
+    <Claim name='amr' array='true' ref="request.formparam.auth_method"/>
     <Claim name='selected_roleid'>555254242102</Claim>
   </AdditionalClaims>
 </GenerateJWT>
