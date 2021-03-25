@@ -38,9 +38,6 @@ extends:
       VARIABLES_KVM: identity-service-variables
       ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
       NUM_RANDOM_LONG_INTS_FOR_STATE: 4
-    secret_file_ids:
-      - ptl/app-credentials/jwt_testing/non-prod/JWT_TESTING_PRIVATE_KEY
-      - ptl/app-credentials/jwt_testing/non-prod/ID_TOKEN_TESTING_PRIVATE_KEY
     apigee_deployments:
       - environment: internal-dev
         post_deploy:
