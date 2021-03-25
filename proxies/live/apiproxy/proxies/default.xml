@@ -148,6 +148,9 @@
           <Step>
             <Name>KeyValueMapOperations.GetVariables</Name>
           </Step>
+          <Step>
+            <Name>AssignMessage.RemoveExternalScope</Name>
+          </Step>
         </Request>
         <Response/>
     </PreFlow>

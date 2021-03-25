@@ -477,3 +477,98 @@ class TestProductScopes:
         assert expected_status_code == resp['status_code']
         assert expected_error == resp['body']['error']
         assert expected_error_description == resp['body']['error_description']
+
+    @pytest.mark.parametrize('external_scope', [
+        # passing in external scopes via form params
+        'invavlid scope',
+        '$£$12vdg@@fd',
+        '   external  scope',
+        ['urn:nhsd:apim:user:aal3personal-demographics-service', 'urn:nhsd:apim:app:level3:example-2']
+    ])
+    async def test_client_credentials_flow_remove_external_scopes(self, test_app_and_product, external_scope):
+        product_scope = ['urn:nhsd:apim:app:level3:personal-demographics']
+        test_product, test_product2, test_app = test_app_and_product
+
+        await test_product.update_scopes(product_scope)
+        await test_product2.update_scopes(product_scope)
+
+        jwt = self.oauth.create_jwt(kid='test-1', client_id=test_app.client_id)
+
+        data = {
+            'scope': external_scope,
+            'grant_type': 'client_credentials',
+            'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+            'client_assertion': jwt,
+        }
+
+        resp = await self.oauth.get_token_response(grant_type="client_credentials", data=data)
+
+        assert list(resp['body'].keys()) == ['access_token', 'expires_in', 'token_type']
+        assert resp['status_code'] == 200
+
+    @pytest.mark.parametrize('external_scope', [
+        # passing in external scopes via form params
+        'invavlid scope',
+        '$£$12vdg@@fd',
+        '   external  scope',
+        ['urn:nhsd:apim:user:aal3personal-demographics-service', 'urn:nhsd:apim:app:level3:example-2']
+    ])    
+    async def test_token_exchange_remove_external_scopes(self, test_app_and_product, external_scope):
+        client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
+        id_token_jwt = self.oauth.create_id_token_jwt()
+
+        data = {
+            'scope': external_scope,
+            'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+            'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
+            'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+            'subject_token': id_token_jwt,
+            'client_assertion': client_assertion_jwt
+        }
+
+        resp = await self.oauth.get_token_response(
+            grant_type="token_exchange",
+            data=data
+        )
+
+        assert resp['status_code'] == 200
+
+    @pytest.mark.parametrize('external_scope', [
+        # passing in external scopes via form params
+        'invavlid scope',
+        '$£$12vdg@@fd',
+        '   external  scope',
+        ['urn:nhsd:apim:user:aal3personal-demographics-service', 'urn:nhsd:apim:app:level3:example-2']
+    ])    
+    async def test_authorization_code_flow_remove_external_scopes(self, test_app_and_product, helper, external_scope):
+        product_scope=['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service']
+        test_product, test_product2, test_app = test_app_and_product
+
+        await test_product.update_scopes(product_scope)
+        await test_product2.update_scopes(product_scope)
+
+        callback_url = await test_app.get_callback_url()
+
+        oauth = OauthHelper(test_app.client_id, test_app.client_secret, callback_url)
+
+        assert helper.check_endpoint(
+            verb="POST",
+            endpoint=f"{config.OAUTH_URL}/token",
+            expected_status_code=200,
+            expected_response=[
+                "access_token",
+                "expires_in",
+                "refresh_count",
+                "refresh_token",
+                "refresh_token_expires_in",
+                "token_type",
+            ],
+            data={
+                "scope": external_scope,
+                "client_id": test_app.get_client_id(),
+                "client_secret": test_app.get_client_secret(),
+                "redirect_uri": callback_url,
+                "grant_type": "authorization_code",
+                "code": await oauth.get_authenticated_with_simulated_auth(),
+            },
+        )
