@@ -479,7 +479,7 @@ class TestProductScopes:
         assert expected_error_description == resp['body']['error_description']
 
     @pytest.mark.parametrize('external_scope', [
-        # passing in external scopes via query params
+        # passing in external scopes via form params
         'invavlid scope',
         '$£$12vdg@@fd',
         '   external  scope',
@@ -507,7 +507,7 @@ class TestProductScopes:
         assert resp['status_code'] == 200
 
     @pytest.mark.parametrize('external_scope', [
-        # passing in external scopes via query params
+        # passing in external scopes via form params
         'invavlid scope',
         '$£$12vdg@@fd',
         '   external  scope',
@@ -534,7 +534,7 @@ class TestProductScopes:
         assert resp['status_code'] == 200
 
     @pytest.mark.parametrize('external_scope', [
-        # passing in external scopes via query params
+        # passing in external scopes via form params
         'invavlid scope',
         '$£$12vdg@@fd',
         '   external  scope',
@@ -572,4 +572,3 @@ class TestProductScopes:
                 "code": await oauth.get_authenticated_with_simulated_auth(),
             },
         )
-        
