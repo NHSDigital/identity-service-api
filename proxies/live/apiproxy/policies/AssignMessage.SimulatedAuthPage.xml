@@ -64,8 +64,12 @@
               See our <a href="https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/user-restricted-restful-apis-nhs-identity-combined-authentication-and-authorisation">documentation</a> for more information.
             </p>
             <input type="hidden" name="state" value="{request.queryparam.state}" />
-            <input type="radio" name="auth_method" id="smartcard" value="N3_SMARTCARD" />
-            <input type="radio" name="auth_method" id="fido2" value="FIDO2"/>
+            <p>
+              <input type="radio" name="auth_method" id="smartcard" value="N3_SMARTCARD" checked="true" />
+              <label for="smartcard">Smartcard</label>
+              <input type="radio" name="auth_method" id="fido2" value="FIDO2"/>
+              <label for="fido2">FIDO2</label>
+            </p>
             <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
             <p class="mt-5 mb-3 text-muted">NHS Digital</p>
           </form>
