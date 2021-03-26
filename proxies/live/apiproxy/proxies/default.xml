@@ -455,7 +455,7 @@
                 <Name>Javascript.SelectIdTokenIssuer</Name>
             </Step>
             <Step>
-                <Name>LookupCache.JWKS</Name>
+                <Name>LookupCache.TokenExchangeJWKS</Name>
             </Step>
             <Step>
                 <Name>Javascript.ValidateClaim</Name>
@@ -466,8 +466,12 @@
                 <Condition>jwks = null Or jwksUpdated = false</Condition>
             </Step>
             <Step>
-                <Name>PopulateCache.JWKS</Name>
-                <Condition>jwks = null Or jwksUpdated = false</Condition>
+                <Name>PopulateCache.nhsCis2JWKS</Name>
+                <Condition>(jwks = null Or jwksUpdated = false) and idTokenIssuer = 'nhsCis2'</Condition>
+            </Step>
+            <Step>
+                <Name>PopulateCache.nhsLoginJWKS</Name>
+                <Condition>(jwks = null Or jwksUpdated = false) and idTokenIssuer = 'nhsLogin'</Condition>
             </Step>
             <Step>
                 <Name>AssignMessage.JWKS</Name>

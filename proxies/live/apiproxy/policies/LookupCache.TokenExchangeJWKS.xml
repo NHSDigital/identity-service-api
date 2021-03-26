@@ -1,0 +1,8 @@
+<LookupCache name='LookupCache.TokenExchangeJWKS'>
+  <AssignTo>jwks</AssignTo>
+  <Scope>Application</Scope>
+  <CacheKey>
+    <Prefix>idTokenIssuer</Prefix>
+    <KeyFragment>jwks</KeyFragment>
+  </CacheKey>
+</LookupCache>

@@ -1,0 +1,11 @@
+<PopulateCache name="PopulateCache.nhsCis2JWKS">
+    <Source>jwks_callout_response.content</Source>
+    <Scope>Application</Scope>
+    <CacheKey>
+        <Prefix>nhsCis2</Prefix>
+        <KeyFragment>jwks</KeyFragment>
+    </CacheKey>
+    <ExpirySettings>
+        <TimeoutInSeconds>86400</TimeoutInSeconds>
+    </ExpirySettings>
+</PopulateCache>
