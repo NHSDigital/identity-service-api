@@ -2,7 +2,7 @@
   <AssignTo>jwks</AssignTo>
   <Scope>Application</Scope>
   <CacheKey>
-    <Prefix>idTokenIssuer</Prefix>
+    <KeyFragment ref="idTokenIssuer"/>
     <KeyFragment>jwks</KeyFragment>
   </CacheKey>
 </LookupCache>

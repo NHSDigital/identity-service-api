@@ -466,12 +466,8 @@
                 <Condition>jwks = null Or jwksUpdated = false</Condition>
             </Step>
             <Step>
-                <Name>PopulateCache.nhsCis2JWKS</Name>
-                <Condition>(jwks = null Or jwksUpdated = false) and idTokenIssuer = 'nhsCis2'</Condition>
-            </Step>
-            <Step>
-                <Name>PopulateCache.nhsLoginJWKS</Name>
-                <Condition>(jwks = null Or jwksUpdated = false) and idTokenIssuer = 'nhsLogin'</Condition>
+                <Name>PopulateCache.TokenExchangeJWKS</Name>
+                <Condition>jwks = null Or jwksUpdated = false</Condition>
             </Step>
             <Step>
                 <Name>AssignMessage.JWKS</Name>
