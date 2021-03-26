@@ -1,0 +1,9 @@
+<PopulateCache async="false" continueOnError="false" enabled="true" name="PopulateCache.SimulatedAuthCode">
+  <CacheKey>
+    <KeyFragment ref="authorization_code" />
+    <KeyFragment>simulated_auth_auth_method</KeyFragment>
+  </CacheKey>
+  <CacheResource>client-state</CacheResource>
+  <Scope>Exclusive</Scope>
+  <Source>request.formparam.auth_method</Source>
+</PopulateCache>

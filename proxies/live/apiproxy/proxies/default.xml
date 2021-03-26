@@ -456,7 +456,7 @@
             </Step>
             <Step>
                 <Name>Javascript.ValidateClaim</Name>
-                <Condition>jwks != null</Condition>   
+                <Condition>jwks != null</Condition>
             </Step>
             <Step>
                 <Name>ServiceCallout.GetJWKS</Name>
@@ -665,7 +665,13 @@
                   <Condition>request.formparam.code = null</Condition>
                 </Step>
                 <Step>
+                  <Name>LookupCache.AuthCode</Name>
+                </Step>
+                <Step>
                   <Name>LookupCache.SimulatedAuthCode</Name>
+                </Step>
+                <Step>
+                  <Name>LookupCache.SimulatedAuthAuthMethod</Name>
                 </Step>
                 <!-- Next 3 verify that the request is within the set rate limits -->
                 <Step>
@@ -853,6 +859,9 @@
             </Step>
             <Step>
               <Name>PopulateCache.SimulatedAuthCode</Name>
+            </Step>
+            <Step>
+              <Name>PopulateCache.SimulatedAuthAuthMethod</Name>
             </Step>
             <Step>
               <Name>AssignMessage.RedirectToApigeeCallback</Name>
