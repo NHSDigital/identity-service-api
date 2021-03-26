@@ -452,8 +452,8 @@
                 <Condition>(jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.aud Is null) or (jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.aud Equals "")</Condition>
             </Step>
             <Step>
-                <Name>Javascript.SelectIdTokenIssuer<Name>
-            <Step>
+                <Name>Javascript.SelectIdTokenIssuer</Name>
+            </Step>
             <Step>
                 <Name>LookupCache.JWKS</Name>
             </Step>
