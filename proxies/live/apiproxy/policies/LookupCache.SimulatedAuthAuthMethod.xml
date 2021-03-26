@@ -1,4 +1,4 @@
-<LookupCache async="false" continueOnError="false" enabled="true" name="LookupCache.SimulatedAuthCode">
+<LookupCache async="false" continueOnError="false" enabled="true" name="LookupCache.SimulatedAuthAuthMethod">
   <CacheKey>
     <KeyFragment ref="nhsid_auth_code"/>
     <KeyFragment>simulated_auth_auth_method</KeyFragment>
