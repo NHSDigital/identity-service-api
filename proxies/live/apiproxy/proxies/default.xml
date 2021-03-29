@@ -462,7 +462,7 @@
                 <Condition>jwks != null</Condition>   
             </Step>
             <Step>
-                <Name>ServiceCallout.GetJWKS</Name>
+                <Name>ServiceCallout.TokenExchangeGetJWKS</Name>
                 <Condition>jwks = null Or jwksUpdated = false</Condition>
             </Step>
             <Step>
