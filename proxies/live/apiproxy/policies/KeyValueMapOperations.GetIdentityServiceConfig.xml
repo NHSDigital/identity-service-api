@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<KeyValueMapOperations async="false" continueOnError="false" enabled="true" name="KeyValueMapOperations.GetIdentityServiceConfig" mapIdentifier="secret-squirrel">
+    <ExpiryTimeInSecs>5</ExpiryTimeInSecs>
+    <Get assignTo="apim.identity-service-config">
+        <Key>
+            <Parameter>identity_service_config</Parameter>
+        </Key>
+    </Get>
+</KeyValueMapOperations>
