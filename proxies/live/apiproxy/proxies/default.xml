@@ -148,12 +148,6 @@
           <Step>
             <Name>AssignMessage.RemoveExternalScope</Name>
           </Step>
-          <Step>
-              <Name>KeyValueMapOperations.GetIdentityServiceConfig</Name>
-          </Step>
-          <Step>
-              <Name>Javascript.UnpackVars</Name>
-          </Step>
         </Request>
         <Response/>
     </PreFlow>
@@ -459,7 +453,7 @@
             </Step>
             <Step>
                 <Name>Javascript.ValidateClaim</Name>
-                <Condition>jwks != null</Condition>
+                <Condition>jwks != null</Condition>   
             </Step>
             <Step>
                 <Name>ServiceCallout.GetJWKS</Name>
