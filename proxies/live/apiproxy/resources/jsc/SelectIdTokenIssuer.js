@@ -1,3 +1,4 @@
+var identityServiceConfigVars = context.getVariable('identity-service-config')
 var issuer = context.getVariable('jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.iss');
 var nhsCis2 = new RegExp("(NHSIdentity)");
 var nhsLogin = new RegExp("(signin.nhs.uk)");
@@ -6,13 +7,11 @@ var matchNhsLogin = nhsLogin.exec(issuer);
 var idTokenIssuer = ''
 
 if (matchNhsCis2) {
-    print('this is nhs id');
     idTokenIssuer = 'nhsCis2'; 
-    jwksPath = '/mock-nhsid-jwks/identity-service/nhs-cis2-jwks'
+    jwksPath = identityServiceConfigVars.cis2.jwks_path
 } else if (matchNhsLogin) {
-    print('this is nhs login');
     idTokenIssuer = 'nhsLogin';
-    jwksPath = '/mock-nhsid-jwks/identity-service/nhs-login-jwks'
+    jwksPath = identityServiceConfigVars.nhs-login.jwks_path
 
 } else {
     print('error');
