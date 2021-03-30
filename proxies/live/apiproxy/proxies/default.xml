@@ -145,12 +145,18 @@
     </DefaultFaultRule>
     <PreFlow name="PreFlow">
         <Request>
-          <Step>
+        <Step>
+            <Name>KeyValueMapOperations.GetIdentityServiceConfig</Name>
+        </Step>
+        <Step>
+            <Name>Javascript.UnpackVars</Name>
+        </Step>
+        <Step>
             <Name>KeyValueMapOperations.GetVariables</Name>
-          </Step>
-          <Step>
+        </Step>
+        <Step>
             <Name>AssignMessage.RemoveExternalScope</Name>
-          </Step>
+        </Step>
         </Request>
         <Response/>
     </PreFlow>
