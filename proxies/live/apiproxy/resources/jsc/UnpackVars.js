@@ -10,7 +10,6 @@ function set_variables(location, vars) {
             continue;
         variable = location + '.' + key;
         value = vars[key];
-        print(value);
         if (typeof value === 'object' && value !== null) {
             set_variables(variable, value);
         }
