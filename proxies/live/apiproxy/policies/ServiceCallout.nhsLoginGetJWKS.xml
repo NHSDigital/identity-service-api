@@ -4,7 +4,7 @@
   <Timeout>55000</Timeout>
   <HTTPTargetConnection>
     <LoadBalancer>
-      <Server name="nhs-login"/>
+      <Server name="{{ IDENTITY_PROVIDER_NHS_LOGIN }}"/>
     </LoadBalancer>
     <SSLInfo>
       <Enabled>true</Enabled>
