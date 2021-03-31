@@ -5,14 +5,13 @@ var matchNhsCis2 = nhsCis2.exec(issuer);
 var matchNhsLogin = nhsLogin.exec(issuer);
 var idTokenIssuer = ''
 
+
 if (matchNhsCis2) {
-    print('this is nhs id');
     idTokenIssuer = 'nhsCis2'; 
-    jwksPath = '/mock-nhsid-jwks/identity-service/nhs-cis2-jwks'
+    jwksPath = context.getVariable('identity-service-config.cis2.jwks_path');
 } else if (matchNhsLogin) {
-    print('this is nhs login');
     idTokenIssuer = 'nhsLogin';
-    jwksPath = '/mock-nhsid-jwks/identity-service/nhs-login-jwks'
+    jwksPath = context.getVariable('identity-service-config.nhs_login.jwks_path');
 
 } else {
     print('error');

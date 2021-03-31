@@ -468,8 +468,12 @@
                 <Condition>jwks != null</Condition>   
             </Step>
             <Step>
-                <Name>ServiceCallout.TokenExchangeGetJWKS</Name>
-                <Condition>jwks = null Or jwksUpdated = false</Condition>
+                <Name>ServiceCallout.cis2GetJWKS</Name>
+                <Condition>jwks = null Or jwksUpdated = false and idTokenIssuer  Equals "nhsCis2"</Condition>
+            </Step>
+            <Step>
+                <Name>ServiceCallout.nhsLoginGetJWKS</Name>
+                <Condition>jwks = null Or jwksUpdated = false and idTokenIssuer  Equals "nhsLogin"</Condition>
             </Step>
             <Step>
                 <Name>PopulateCache.TokenExchangeJWKS</Name>

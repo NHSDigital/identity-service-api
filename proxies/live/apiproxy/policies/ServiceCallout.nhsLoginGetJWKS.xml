@@ -1,10 +1,10 @@
-<ServiceCallout async="false" continueOnError="false" enabled="true" name="ServiceCallout.TokenExchangeGetJWKS">
+<ServiceCallout async="false" continueOnError="false" enabled="true" name="ServiceCallout.nhsLoginGetJWKS">
   <Response>jwks_callout_response</Response>
   <!-- This is the default (55 seconds). Including it to make explicit. -->
   <Timeout>55000</Timeout>
   <HTTPTargetConnection>
     <LoadBalancer>
-      <Server name="{{ IDENTITY_TARGET_SERVER }}"/>
+      <Server name="nhs-login"/>
     </LoadBalancer>
     <SSLInfo>
       <Enabled>true</Enabled>
