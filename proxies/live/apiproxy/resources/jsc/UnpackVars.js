@@ -19,5 +19,5 @@ function set_variables(location, vars) {
     }
 }
 
-var identityServiceConfig =  JSON.parse(context.getVariable("apim.identity-service-config"));
+var identityServiceConfig =  JSON.parse(context.getVariable("private.config_raw"));
 set_variables("identity-service-config", identityServiceConfig)
