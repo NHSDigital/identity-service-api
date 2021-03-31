@@ -54,8 +54,7 @@ extends:
         stage_name: internal_dev_int
         service_base_path: ${{ variables.service_base_path }}-int
         jinja_templates:
-          IDENTITY_PROVIDER_CIS2: identity-server-int
-          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
+          IDENTITY_PROVIDER_CIS2: cis2-int
           VARIABLES_KVM: identity-service-internal-dev-int-variables
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
           NUM_RANDOM_LONG_INTS_FOR_STATE: 4
