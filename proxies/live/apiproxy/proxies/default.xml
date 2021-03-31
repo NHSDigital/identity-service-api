@@ -468,7 +468,11 @@
                 <Condition>jwks != null</Condition>   
             </Step>
             <Step>
-                <Name>ServiceCallout.TokenExchangeGetJWKS</Name>
+                <Name>ServiceCallout.cis2GetJWKS</Name>
+                <Condition>jwks = null Or jwksUpdated = false</Condition>
+            </Step>
+            <Step>
+                <Name>ServiceCallout.nhsLoginGetJWKS</Name>
                 <Condition>jwks = null Or jwksUpdated = false</Condition>
             </Step>
             <Step>
