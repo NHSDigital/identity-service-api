@@ -446,19 +446,19 @@
                 <Name>DecodeJWT.FromSubjectTokenFormParam</Name>
             </Step>
             <Step>
+                <Name>Javascript.SelectIdTokenIssuer</Name>
+            </Step>
+            <Step>
                 <Name>RaiseFault.MissingExpClaim</Name>
                 <Condition>(jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.exp Equals "")</Condition>
             </Step>
             <Step>
                 <Name>RaiseFault.MissingOrInvalidIssClaim</Name>
-                <Condition>(jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.iss Is null) or (jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.iss Equals "") or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss NotEquals jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.sub)</Condition>
+                <Condition>(InvalidIdTokenIssuer = true) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss NotEquals jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.sub)</Condition>
             </Step>
             <Step>
                 <Name>RaiseFault.MissingAudClaim</Name>
                 <Condition>(jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.aud Is null) or (jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.aud Equals "")</Condition>
-            </Step>
-            <Step>
-                <Name>Javascript.SelectIdTokenIssuer</Name>
             </Step>
             <Step>
                 <Name>LookupCache.TokenExchangeJWKS</Name>
