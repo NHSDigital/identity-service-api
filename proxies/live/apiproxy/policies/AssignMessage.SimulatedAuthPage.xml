@@ -51,6 +51,9 @@
               border-top-left-radius: 0;
               border-top-right-radius: 0;
             }
+            .form-signin label {
+              margin: 5px;
+            }
           </style>
           <title>Simulated Login Page</title>
         </head>
@@ -64,6 +67,18 @@
               See our <a href="https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/user-restricted-restful-apis-nhs-identity-combined-authentication-and-authorisation">documentation</a> for more information.
             </p>
             <input type="hidden" name="state" value="{request.queryparam.state}" />
+            <div>
+              <input type="radio" name="auth_method" id="smartcard" value="N3_SMARTCARD" checked="true"/>
+              <label for="smartcard">Smartcard</label>
+            </div>
+            <div>
+              <input type="radio" name="auth_method" id="fido2" value="FIDO2"/>
+              <label for="fido2">Windows Hello for Business</label>
+            </div>
+            <div>
+              <input type="radio" name="auth_method" id="ios" value="IOS"/>
+              <label for="ios">iOS NHS Identity Application</label>
+            </div>
             <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
             <p class="mt-5 mb-3 text-muted">NHS Digital</p>
           </form>
