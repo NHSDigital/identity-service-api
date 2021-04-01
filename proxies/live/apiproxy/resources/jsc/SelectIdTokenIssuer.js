@@ -1,8 +1,9 @@
 var issuer = context.getVariable('jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.iss');
-var idTokenIssuer = ''
-var InvalidIdTokenIssuer = false
+var idTokenIssuer = '';
+var InvalidIdTokenIssuer = false;
+var jwksPath = '';
 
-if(issuer = null || issuer == '' ) {
+if(issuer === null || issuer === '' ) {
     InvalidIdTokenIssuer = true;
 } else if (issuer.includes('NHSIdentity')) {
     idTokenIssuer = 'nhsCis2'; 

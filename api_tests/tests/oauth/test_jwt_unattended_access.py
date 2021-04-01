@@ -1090,3 +1090,58 @@ class TestJwtUnattendedAccess:
         assert expected_status_code == resp['status_code']
         assert expected_error == resp['body']['error']
         assert expected_error_description == resp['body']['error_description']
+
+    @pytest.mark.errors
+    @pytest.mark.token_exchange
+    async def test_token_exchange_subject_token_nhs_login_invalid_iss_claim(self):
+        # Given
+        expected_status_code = 400
+        expected_error = 'invalid_request'
+        expected_error_description = "Missing or non-matching iss/sub claims in JWT"
+
+        id_token_claims = {
+            'aud': 'tf_-APIM-1',
+            'id_status': 'verified',
+            'token_use': 'id',
+            'auth_time': 1616600683,
+            'iss': 'invalidIss',
+            'vot': 'P9.Cp.Cd',
+            'exp': int(time()) + 600,
+            'iat': int(time()) - 10,
+            'vtm' : 'https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk',
+            'jti': 'b68ddb28-e440-443d-8725-dfe0da330118'
+        }
+        id_token_headers = {
+            "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",
+            "aud": "APIM-1",
+            "kid": "nhs-login",
+            "iss": "InvalidIss",
+            "typ": "JWT",
+            "exp": 1616604574,
+            "iat": 1616600974,
+            "alg": "RS512",
+            "jti": "b68ddb28-e440-443d-8725-dfe0da330118"
+        }
+        
+        with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
+            contents = f.read()
+
+        client_assertion_jwt = self.oauth.create_jwt(kid="test-1")
+        id_token_jwt = self.oauth.create_id_token_jwt(algorithm='RS512',claims=id_token_claims, headers = id_token_headers, signing_key=contents)
+
+        # When
+        resp = await self.oauth.get_token_response(
+            grant_type="token_exchange",
+            data={
+                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+                'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
+                'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+                'subject_token': id_token_jwt,
+                'client_assertion': client_assertion_jwt
+            }
+        )
+
+        # Then
+        assert expected_status_code == resp['status_code']
+        assert expected_error == resp['body']['error']
+        assert expected_error_description == resp['body']['error_description']
