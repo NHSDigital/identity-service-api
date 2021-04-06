@@ -478,6 +478,114 @@ class TestProductScopes:
         assert expected_error == resp['body']['error']
         assert expected_error_description == resp['body']['error_description']
 
+    @pytest.mark.token_exchange
+    @pytest.mark.errors
+    @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
+        # Scenario 1: one product with valid scope
+        (
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
+            []
+        ),
+        # Scenario 2: one product with valid scope, one product with invalid scope
+        (
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
+            ['urn:nhsd:apim:app:level3:ambulance-analytics']
+        ),
+        # Scenario 3: multiple products with valid scopes
+        (
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
+            ['urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics']
+        ),
+        # Scenario 4: one product with multiple valid scopes
+        (
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service',
+             'urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics'],
+            []
+        ),
+        # Scenario 5: multiple products with multiple valid scopes
+        (
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service',
+             'urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics'],
+            ['urn:nhsd:apim:user-nhs-id:aal3:example-1', 'urn:nhsd:apim:user-nhs-id:aal3:example-2']
+        ),
+        # Scenario 6: one product with multiple scopes (valid and invalid)
+        (
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service',
+             'urn:nhsd:apim:app:level3:ambulance-analytics'],
+            []
+        ),
+        # Scenario 7: multiple products with multiple scopes (valid and invalid)
+        (
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service',
+             'urn:nhsd:apim:app:level3:ambulance-analytics'],
+            ['urn:nhsd:apim:user-nhs-id:aal3:example-1', 'urn:nhsd:apim:app:level3:example-2']
+        ),
+        # Scenario 8: one product with valid scope with trailing and leading spaces
+        (
+            [' urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service '],
+            []
+        ),
+    ])
+    async def test_token_exchange_user_restricted_scope_combination(
+        self,
+        product_1_scopes,
+        product_2_scopes,
+        test_app_and_product,
+        helper
+    ):
+        expected_status_code = 200
+        expected_expires_in = '599'
+        expected_token_type = 'Bearer'
+        expected_issued_token_type = 'urn:ietf:params:oauth:token-type:access_token'
+
+        test_product, test_product2, test_app = test_app_and_product
+
+        await test_product.update_scopes(product_1_scopes)
+        await test_product2.update_scopes(product_2_scopes)
+
+        id_token_claims = {
+            'at_hash': 'tf_-lqpq36lwO7WmSBIJ6Q',
+            'sub': '787807429511',
+            'auditTrackingId': '91f694e6-3749-42fd-90b0-c3134b0d98f6-1546391',
+            'amr': ['N3_SMARTCARD'],
+            'iss': 'https://am.nhsint.ptl.nhsd-esa.net:443'
+                   '/openam/oauth2/realms/root/realms/NHSIdentity/realms/Healthcare',
+            'tokenName': 'id_token',
+            'aud': '969567331415.apps.national',
+            'c_hash': 'bc7zzGkClC3MEiFQ3YhPKg',
+            'acr': 'AAL3_ANY',
+            'org.forgerock.openidconnect.ops': '-I45NjmMDdMa-aNF2sr9hC7qEGQ',
+            's_hash': 'LPJNul-wow4m6Dsqxbning',
+            'azp': '969567331415.apps.national',
+            'auth_time': 1610559802,
+            'realm': '/NHSIdentity/Healthcare',
+            'exp': int(time()) + 6000,
+            'tokenType': 'JWTToken',
+            'iat': int(time()) - 100
+        }
+
+        client_assertion_jwt = self.oauth.create_jwt(kid="test-1", client_id=test_app.client_id)
+        id_token_jwt = self.oauth.create_id_token_jwt(kid="identity-service-tests-1", claims=id_token_claims)
+
+        # When
+        resp = await self.oauth.get_token_response(
+            grant_type="token_exchange",
+            data={
+                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+                'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
+                'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+                'subject_token': id_token_jwt,
+                'client_assertion': client_assertion_jwt
+            }
+        )
+
+        # Then
+        assert expected_status_code == resp['status_code'], resp['body']
+        assert 'access_token' in resp['body']
+        assert expected_expires_in == resp['body']['expires_in']
+        assert expected_token_type == resp['body']['token_type']
+        assert expected_issued_token_type == resp['body']['issued_token_type']
+
     @pytest.mark.parametrize('external_scope', [
         # passing in external scopes via form params
         'invavlid scope',
