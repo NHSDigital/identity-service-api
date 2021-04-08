@@ -4,7 +4,7 @@
   <!-- 10 minutes: -->
   <ExpiresIn ref="identity-service-config.cis2.access_token_expiry_ms">600000</ExpiresIn>
   <!-- 10 hours: -->
-  <RefreshTokenExpiresIn ref="apigee.refresh_token_expiry_ms">36000000</RefreshTokenExpiresIn>
+  <RefreshTokenExpiresIn ref="identity-service-config.cis2.refresh_token_expiry_ms">36000000</RefreshTokenExpiresIn>
   <Code>request.formparam.code</Code>
   <SupportedGrantTypes>
       <GrantType>authorization_code</GrantType>

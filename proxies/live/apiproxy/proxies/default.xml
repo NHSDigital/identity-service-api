@@ -796,7 +796,7 @@
               </Step>
               <Step>
                 <Name>RaiseFault.TokenRefreshTimelimitExceeded</Name>
-                <Condition>private.apigee.access_token_age_ms > apigee.refresh_tokens_validity_ms</Condition>
+                <Condition>private.apigee.access_token_age_ms > identity-service-config.cis2.refresh_tokens_validity_ms</Condition>
               </Step>
             </Request>
             <Response>
@@ -811,7 +811,7 @@
             <Request>
                 <Step>
                   <Name>RaiseFault.Unauthorized</Name>
-                  <Condition>request.queryparam.client_id NotEquals private.apigee.client_id</Condition>
+                  <Condition>request.queryparam.client_id NotEquals identity-service-config.cis2.client_id</Condition>
                 </Step>
                 <Step>
                   <Name>LookupCache.OriginalClientInfo</Name>
@@ -856,7 +856,7 @@
             and we need to illustrate that what they are doing will break the authentication. -->
             <Step>
               <Name>RaiseFault.Unauthorized</Name>
-              <Condition>(request.queryparam.client_id NotEquals private.apigee.client_id) or (request.queryparam.redirect_uri NotEquals private.apigee.redirect_uri)</Condition>
+              <Condition>(request.queryparam.client_id NotEquals identity-service-config.cis2.client_id) or (request.queryparam.redirect_uri NotEquals identity-service-config.cis2.redirect_uri)</Condition>
             </Step>
             <Step>
               <Name>AssignMessage.SimulatedAuthPage</Name>

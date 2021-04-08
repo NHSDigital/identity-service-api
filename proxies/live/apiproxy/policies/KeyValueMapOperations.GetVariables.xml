@@ -15,12 +15,12 @@
       <Parameter>authorize_endpoint</Parameter>
     </Key>
   </Get>
-  <Get assignTo="private.apigee.client_id" index="1">
+  <Get assignTo="identity-service-config.cis2.client_id" index="1">
     <Key>
       <Parameter>client_id</Parameter>
     </Key>
   </Get>
-  <Get assignTo="private.apigee.redirect_uri" index="1">
+  <Get assignTo="identity-service-config.cis2.redirect_uri" index="1">
     <Key>
       <Parameter>redirect_uri</Parameter>
     </Key>
