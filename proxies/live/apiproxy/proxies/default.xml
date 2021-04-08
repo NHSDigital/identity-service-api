@@ -218,10 +218,10 @@
                 <!-- <Step>
                   <Name>JavaScript.FilterUserRestrictedScopes</Name>
                 </Step> -->
-                <Step>
+                <!-- <Step>
                   <Name>RaiseFault.VerifyAccessLevel</Name>
                   <Condition>(apigee.user_restricted_scopes = "")</Condition>
-                </Step>
+                </Step> -->
                 <Step>
                     <Name>AssignMessage.GenerateState</Name>
                 </Step>
@@ -631,6 +631,10 @@
                     <Name>JavaScript.FilterUserRestrictedScopes</Name>
                 </Step>
                 <Step>
+                  <Name>RaiseFault.VerifyAccessLevel</Name>
+                  <Condition>(apigee.user_restricted_scopes = "")</Condition>
+                </Step>
+                <Step>
                     <Name>OAuthV2.GenerateAccessToken</Name>
                 </Step>
             </Request>
@@ -725,6 +729,10 @@
                 </Step>
                 <Step>
                     <Name>JavaScript.FilterUserRestrictedScopesSimulatedAuth</Name>
+                </Step>
+                <Step>
+                  <Name>RaiseFault.VerifyAccessLevel</Name>
+                  <Condition>(apigee.user_restricted_scopes = "")</Condition>
                 </Step>
                 <Step>
                   <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>
