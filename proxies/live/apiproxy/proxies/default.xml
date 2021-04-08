@@ -908,6 +908,9 @@
               <Name>OAuthV2.VerifyAccessToken</Name>
             </Step>
             <Step>
+              <Name>Javascript.SelectIdTokenIssuer</Name>
+            </Step>
+            <Step>
               <Name>SpikeArrest</Name>
             </Step>
             <Step>
@@ -918,7 +921,7 @@
             </Step>
           </Request>
           <Response/>
-          <Condition>(identity_service.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
+          <Condition>(identity_service.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET") and (idTokenIssuer Equals "nhsCis2")</Condition>
         </Flow>
         <Flow name="Flow.OptionsCors">
             <Description/>
