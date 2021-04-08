@@ -215,9 +215,9 @@
                 <Step>
                   <Name>OAuthV2.GenerateAccessTokenDummy</Name>
                 </Step>
-                <Step>
+                <!-- <Step>
                   <Name>JavaScript.FilterUserRestrictedScopes</Name>
-                </Step>
+                </Step> -->
                 <Step>
                   <Name>RaiseFault.VerifyAccessLevel</Name>
                   <Condition>(apigee.user_restricted_scopes = "")</Condition>
@@ -628,6 +628,9 @@
                   <Condition>(apigee.can_override_refresh_token != null) and (apigee.can_override_refresh_token = true)</Condition>
                 </Step>
                 <Step>
+                    <Name>JavaScript.FilterUserRestrictedScopes</Name>
+                </Step>
+                <Step>
                     <Name>OAuthV2.GenerateAccessToken</Name>
                 </Step>
             </Request>
@@ -719,6 +722,9 @@
                 </Step>
                 <Step>
                   <Name>DecodeJWT.FromGeneratedIdTokenSimulatedAuth</Name>
+                </Step>
+                <Step>
+                    <Name>JavaScript.FilterUserRestrictedScopesSimulatedAuth</Name>
                 </Step>
                 <Step>
                   <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>

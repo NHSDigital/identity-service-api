@@ -1,4 +1,4 @@
-var id_token_acr = context.getVariable('jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.acr');
+var id_token_acr = context.getVariable('jwt.DecodeJWT.FromGeneratedIdTokenSimulatedAuth.decoded.claim.acr');
 var api_product_scopes = String(context.getVariable('oauthv2accesstoken.OAuthV2.GenerateAccessTokenDummy.scope'));
 id_token_acr = ':' + id_token_acr.slice(0, 4).toLowerCase() + ':';
 
