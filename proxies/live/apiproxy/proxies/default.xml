@@ -151,9 +151,10 @@
         <Step>
             <Name>Javascript.UnpackVars</Name>
         </Step>
+        <!--
         <Step>
             <Name>KeyValueMapOperations.GetVariables</Name>
-        </Step>
+        </Step> -->
         <Step>
             <Name>AssignMessage.RemoveExternalScope</Name>
         </Step>
@@ -639,7 +640,7 @@
                     <Name>AssignMessage.SetCorsHeaders</Name>
                 </Step>
             </Response>
-            <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "authorization_code")</Condition>
+            <Condition>(identity-service-config.cis2.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "authorization_code")</Condition>
       </Flow>
       <Flow name="Flow.PostTokenAuthorizationCodeSimulatedAuth">
         <Description>OAuth Token Endpoint - Authorization Code Flow - SIMULATED AUTH</Description>
@@ -732,7 +733,7 @@
                     <Name>AssignMessage.SetCorsHeaders</Name>
                 </Step>
             </Response>
-            <Condition>(identity_service.simulated_idp Is "true") and (proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "authorization_code")</Condition>
+            <Condition>(identity-service-config.cis2.simulated_idp Is "true") and (proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "authorization_code")</Condition>
           </Flow>
           <Flow name="Flow.PostRefreshToken">
             <Description>OAuth Refresh Token Endpoint</Description>
@@ -862,7 +863,7 @@
               <Name>AssignMessage.SimulatedAuthPage</Name>
             </Step>
           </Request>
-          <Condition>(identity_service.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/simulated_auth") and (request.verb Equals "GET")</Condition>
+          <Condition>(identity-service-config.cis2.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/simulated_auth") and (request.verb Equals "GET")</Condition>
         </Flow>
         <Flow name="Flow.SimulatedUserAuthPost">
           <Description>Provide a simulated user authorization interaction - Process login</Description>
@@ -880,7 +881,7 @@
               <Name>AssignMessage.RedirectToApigeeCallback</Name>
             </Step>
           </Request>
-          <Condition>(identity_service.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/simulated_auth") and (request.verb Equals "POST")</Condition>
+          <Condition>(identity-service-config.cis2.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/simulated_auth") and (request.verb Equals "POST")</Condition>
         </Flow>
         <Flow name="Flow.GetUserInfo">
           <Description/>
@@ -899,7 +900,7 @@
             </Step>
           </Request>
           <Response/>
-          <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
+          <Condition>(identity-service-config.cis2.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
         </Flow>
         <Flow name="Flow.GetUserInfoSimulatedAuth">
           <Description/>
@@ -918,7 +919,7 @@
             </Step>
           </Request>
           <Response/>
-          <Condition>(identity_service.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
+          <Condition>(identity-service-config.cis2.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
         </Flow>
         <Flow name="Flow.OptionsCors">
             <Description/>
@@ -998,7 +999,7 @@
         <Condition>(proxy.pathsuffix MatchesPath "/_ping") and ((request.verb = "GET") or (request.verb = "HEAD"))</Condition>
     </RouteRule>
     <RouteRule name="userinfoRoute">
-      <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
+      <Condition>(identity-service-config.cis2.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
       <TargetEndpoint>identity-server-userinfo</TargetEndpoint>
     </RouteRule>
     <RouteRule name="loopbackRoute"/>
