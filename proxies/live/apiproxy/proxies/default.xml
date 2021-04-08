@@ -895,6 +895,13 @@
               <Name>Quota</Name>
             </Step>
             <Step>
+              <Name>Javascript.CheckApigeeAccessTokenAttributes</Name>
+            </Step>
+            <Step>
+              <Name>RaiseFault.Unauthorized</Name>
+              <Condition>idTokenIssuer Equals "nhsLogin" or InvalidIdTokenIssuer Equals "true"</Condition>
+            </Step>
+            <Step>
               <Name>AssignMessage.SetAuthorizationHeader</Name>
             </Step>
           </Request>
@@ -908,17 +915,17 @@
               <Name>OAuthV2.VerifyAccessToken</Name>
             </Step>
             <Step>
+              <Name>SpikeArrest</Name>
+            </Step>
+            <Step>
+              <Name>Quota</Name>
+            </Step>
+            <Step>
               <Name>Javascript.CheckApigeeAccessTokenAttributes</Name>
             </Step>
             <Step>
               <Name>RaiseFault.Unauthorized</Name>
               <Condition>idTokenIssuer Equals "nhsLogin" or InvalidIdTokenIssuer Equals "true"</Condition>
-            </Step>
-            <Step>
-              <Name>SpikeArrest</Name>
-            </Step>
-            <Step>
-              <Name>Quota</Name>
             </Step>
             <Step>
               <Name>AssignMessage.GenerateUserinfoResponseSimulatedAuth</Name>

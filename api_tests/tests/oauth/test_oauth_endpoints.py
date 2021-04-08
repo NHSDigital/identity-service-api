@@ -1,7 +1,8 @@
-from api_tests.scripts.config import OAUTH_URL
+from api_tests.scripts.config import OAUTH_URL, ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH
 from api_tests.scripts.response_bank import BANK
 import pytest
 import random
+from time import time
 
 
 @pytest.mark.asyncio
@@ -740,3 +741,89 @@ class TestOauthEndpoints:
             endpoint="userinfo",
             headers={'Authorization': f'Bearer {self.oauth.access_token}'}
         )
+
+    
+    @pytest.mark.happy_path
+    async def test_userinfo_cis2_exchanged_token(self):
+        # Given
+        expected_status_code = 200
+        expected_response = BANK['test_userinfo']['response']
+
+        # When
+        id_token_jwt = self.oauth.create_id_token_jwt()
+        client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
+        resp = await self.oauth.get_token_response(
+            grant_type="token_exchange",
+            _jwt=client_assertion_jwt,
+            id_token_jwt=id_token_jwt
+        )
+        token = resp['body']['access_token']
+        resp = await self.oauth.hit_oauth_endpoint(method='GET', endpoint='userinfo', headers={'Authorization': f'Bearer {token}'})
+
+        # Then
+        assert expected_status_code == resp['status_code']
+        assert expected_response == resp['body']
+
+    
+    async def test_userinfo_nhs_login_exchanged_token(self):
+        # Given
+        expected_status_code = 401
+
+        # When
+        id_token_claims = {
+            'aud': 'tf_-APIM-1',
+            'id_status': 'verified',
+            'token_use': 'id',
+            'auth_time': 1616600683,
+            'iss': 'https://auth.sandpit.signin.nhs.uk',
+            'vot': 'P9.Cp.Cd',
+            'exp': int(time()) + 600,
+            'iat': int(time()) - 10,
+            'vtm' : 'https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk',
+            'jti': 'b68ddb28-e440-443d-8725-dfe0da330118'
+        }
+        id_token_headers = {
+            "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",
+            "aud": "APIM-1",
+            "kid": "nhs-login",
+            "iss": "https://auth.sandpit.signin.nhs.uk",
+            "typ": "JWT",
+            "exp": 1616604574,
+            "iat": 1616600974,
+            "alg": "RS512",
+            "jti": "b68ddb28-e440-443d-8725-dfe0da330118"
+        }
+        
+        with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
+            contents = f.read()
+
+        client_assertion_jwt = self.oauth.create_jwt(kid="test-1")
+        id_token_jwt = self.oauth.create_id_token_jwt(algorithm='RS512',claims=id_token_claims, headers = id_token_headers, signing_key=contents)
+        resp = await self.oauth.get_token_response(
+            grant_type="token_exchange",
+            _jwt=client_assertion_jwt,
+            id_token_jwt=id_token_jwt
+        )
+        token = resp['body']['access_token']
+
+        # When
+        resp = await self.oauth.hit_oauth_endpoint(method='GET', endpoint='userinfo', headers={'Authorization': f'Bearer {token}'})
+
+        # Then
+        assert expected_status_code == resp['status_code']
+
+    
+    async def test_userinfo_client_credentials_token(self):
+        # Given
+        expected_status_code = 401
+
+        jwt = self.oauth.create_jwt(kid="test-1")
+        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
+        token = resp['body']['access_token']
+
+        # When
+        resp = await self.oauth.hit_oauth_endpoint(method='GET', endpoint='userinfo', headers={'Authorization': f'Bearer {token}'})
+        print(resp)
+
+        # Then
+        assert expected_status_code == resp['status_code']
