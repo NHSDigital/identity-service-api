@@ -1,5 +1,7 @@
 from os import environ
 from urllib.parse import urlparse
+from dotenv import load_dotenv
+load_dotenv()
 
 # Oauth details
 OAUTH_BASE_URI = environ.get("OAUTH_BASE_URI")
