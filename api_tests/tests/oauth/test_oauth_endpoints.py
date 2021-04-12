@@ -754,7 +754,7 @@ class TestOauthEndpoints:
 
     async def test_userinfo_nhs_login_exchanged_token(self):
         # Given
-        expected_status_code = 401
+        expected_status_code = 404
         expected_error = 'invalid_request'
         expected_error_description = 'Not Found'
 
@@ -813,7 +813,7 @@ class TestOauthEndpoints:
 
     async def test_userinfo_client_credentials_token(self):
         # Given
-        expected_status_code = 401
+        expected_status_code = 404
         expected_error = 'invalid_request'
         expected_error_description = 'Not Found'
         
