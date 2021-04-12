@@ -5,139 +5,145 @@
         <FaultRule name="allow_raisefaults">
             <!-- Fault rule to prevent the DefaultFaultRule from executing when
         RaiseFault is used in a flow -->
-            <Step>
-                <Name>AssignMessage.CatchallErrorMessage</Name>
-                <Condition>(fault.name NotEquals "RaiseFault")</Condition>
-            </Step>
-            <Condition>(fault.name Equals "RaiseFault")</Condition>
-        </FaultRule>
-        <FaultRule name="not_subscribed">
-            <Condition>(fault.name Equals "InvalidApiKeyForGivenResource")</Condition>
-            <Step>
-                <Name>AssignMessage.InvalidApiKeyForGivenResource</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="company_status_not_active">
-            <Condition>(fault.name Equals "CompanyStatusNotActive")</Condition>
-            <Step>
-                <Name>AssignMessage.CompanyStatusNotActive</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="developer_status_not_active">
-            <Condition>(fault.name Equals "DeveloperStatusNotActive")</Condition>
-            <Step>
-                <Name>AssignMessage.DeveloperStatusNotActive</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="invalid_client_app_not_approved">
-            <Condition>(fault.name Equals "invalid_client-app_not_approved")</Condition>
-            <Step>
-                <Name>AssignMessage.InvalidClientAppNotApproved</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="verify_api_key">
-            <Condition>(fault.name Equals "InvalidApiKey") and !(proxy.pathsuffix MatchesPath "/token")</Condition>
-            <Step>
-                <Name>AssignMessage.InvalidApiKey</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="invalid_auth_code_sim">
-            <Condition>(oauthV2.OAuthV2.GenerateAccessTokenSimulatedAuth.fault.cause Equals "Invalid Authorization Code")</Condition>
-            <Step>
-                <Name>AssignMessage.InvalidAuthorizationCode</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="invalid_auth_code">
-            <Condition>(oauthV2.OAuthV2.GenerateAccessToken.fault.cause Equals "Invalid Authorization Code")</Condition>
-            <Step>
-                <Name>AssignMessage.InvalidAuthorizationCode</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="verify_api_key_and_secret">
-            <Condition>(fault.name Equals "InvalidApiKey") and (proxy.pathsuffix MatchesPath "/token")</Condition>
-            <Step>
-                <Name>AssignMessage.InvalidApiKeyOrSecret</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="missing_api_key">
-            <Condition>(fault.name Equals "FailedToResolveAPIKey")</Condition>
-            <Step>
-                <Name>AssignMessage.MissingApiKey</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="jwt_algorithm">
-            <Condition>(JWT.failed Equals true) And (fault.name Equals "AlgorithmMismatch")</Condition>
-            <Step>
-                <Name>AssignMessage.UnsupportedJWTAlgorithmError</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="expired_jwt">
-            <Condition>(JWT.failed Equals true) And (fault.name Equals "TokenExpired")</Condition>
-            <Step>
-                <Name>AssignMessage.ExpiredJWTError</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="failed_decoding_jwt">
-            <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToDecode")</Condition>
-            <Step>
-                <!-- DecodeJWT will throw this error where the JWT's *header* is invalid -->
-                <Name>AssignMessage.FailedToDecodeJWTError</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="jtw_missing_alg">
-            <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToDecode") And (jwt.DecodeJWT.FromClientAssertionFormParam.error Matches "Invalid JWS header: Missing JSON object member with key *alg*")</Condition>
-            <Step>
-                <Name>AssignMessage.MissingAlgHeader</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="missing_client_assertion">
-            <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToResolveVariable")</Condition>
-            <Step>
-                <Name>AssignMessage.MissingClientAssertion</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="cc_verify_api_key">
-            <Condition>(oauthV2.VerifyAPIKey.FromJWT.failed Equals true)</Condition>
-            <Step>
-                <Name>AssignMessage.ClientCredentialsInvalidSubject</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="cc_invalid_aud_claim">
-            <Condition>(JWT.failed Equals true) and (error.message Equals "Invalid Claim: policy(VerifyJWT.ClientCredentials) claim(aud)")</Condition>
-            <Step>
-                <Name>AssignMessage.AudClaimInvalid</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="cc_no_matching_pub_key">
-            <Condition>(JWT.failed Equals true) and (fault.name Equals "NoMatchingPublicKey")</Condition>
-            <Step>
-                <Name>AssignMessage.NoMatchingPublicKey</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="refresh_token_expired">
-            <Condition>oauthV2.OAuthV2.GenerateRefreshToken.fault.cause Equals "Refresh Token expired"</Condition>
-            <Step>
-                <Name>AssignMessage.ExpiredRefreshToken</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="invalid_refresh_token">
-            <Condition>oauthV2.OAuthV2.GenerateRefreshToken.fault.cause Equals "Invalid Refresh Token"</Condition>
-            <Step>
-                <Name>AssignMessage.InvalidRefreshToken</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="public_key_misconfigured">
-            <Condition>(servicecallout.ServiceCallout.ClientCredentialsGrantGetJWKS.failed Equals true)</Condition>
-            <Step>
-                <Name>AssignMessage.PublicKeyMisconfigured</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="state_does_not_exist_in_cache">
-            <Condition>extractvariables.ExtractVariables.ReadCacheJson.failed</Condition>
-            <Step>
-                <Name>AssignMessage.CacheKeyError</Name>
-            </Step>
-        </FaultRule>
+        <Step>
+          <Name>AssignMessage.CatchallErrorMessage</Name>
+          <Condition>(fault.name NotEquals "RaiseFault")</Condition>
+        </Step>
+        <Condition>(fault.name Equals "RaiseFault")</Condition>
+      </FaultRule>
+      <FaultRule name="not_subscribed">
+        <Condition>(fault.name Equals "InvalidApiKeyForGivenResource")</Condition>
+        <Step>
+          <Name>AssignMessage.InvalidApiKeyForGivenResource</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="company_status_not_active">
+        <Condition>(fault.name Equals "CompanyStatusNotActive")</Condition>
+        <Step>
+          <Name>AssignMessage.CompanyStatusNotActive</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="developer_status_not_active">
+        <Condition>(fault.name Equals "DeveloperStatusNotActive")</Condition>
+        <Step>
+          <Name>AssignMessage.DeveloperStatusNotActive</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="invalid_client_app_not_approved">
+        <Condition>(fault.name Equals "invalid_client-app_not_approved")</Condition>
+        <Step>
+          <Name>AssignMessage.InvalidClientAppNotApproved</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="verify_api_key">
+        <Condition>(fault.name Equals "InvalidApiKey") and !(proxy.pathsuffix MatchesPath "/token")</Condition>
+        <Step>
+          <Name>AssignMessage.InvalidApiKey</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="invalid_auth_code_sim">
+        <Condition>(oauthV2.OAuthV2.GenerateAccessTokenSimulatedAuth.fault.cause Equals "Invalid Authorization Code")</Condition>
+        <Step>
+            <Name>AssignMessage.InvalidAuthorizationCode</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="invalid_auth_code">
+          <Condition>(oauthV2.OAuthV2.GenerateAccessToken.fault.cause Equals "Invalid Authorization Code")</Condition>
+          <Step>
+              <Name>AssignMessage.InvalidAuthorizationCode</Name>
+          </Step>
+      </FaultRule>
+      <FaultRule name="verify_api_key_and_secret">
+        <Condition>(fault.name Equals "InvalidApiKey") and (proxy.pathsuffix MatchesPath "/token")</Condition>
+        <Step>
+          <Name>AssignMessage.InvalidApiKeyOrSecret</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="missing_api_key">
+        <Condition>(fault.name Equals "FailedToResolveAPIKey")</Condition>
+        <Step>
+          <Name>AssignMessage.MissingApiKey</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="jwt_algorithm">
+        <Condition>(JWT.failed Equals true) And (fault.name Equals "AlgorithmMismatch")</Condition>
+        <Step>
+          <Name>AssignMessage.UnsupportedJWTAlgorithmError</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="expired_jwt">
+        <Condition>(JWT.failed Equals true) And (fault.name Equals "TokenExpired")</Condition>
+        <Step>
+          <Name>AssignMessage.ExpiredJWTError</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="failed_decoding_jwt">
+        <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToDecode")</Condition>
+        <Step>
+          <!-- DecodeJWT will throw this error where the JWT's *header* is invalid -->
+          <Name>AssignMessage.FailedToDecodeJWTError</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="jtw_missing_alg">
+        <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToDecode") And (jwt.DecodeJWT.FromClientAssertionFormParam.error Matches "Invalid JWS header: Missing JSON object member with key *alg*")</Condition>
+        <Step>
+          <Name>AssignMessage.MissingAlgHeader</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="missing_client_assertion">
+        <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToResolveVariable")</Condition>
+        <Step>
+          <Name>AssignMessage.MissingClientAssertion</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="cc_verify_api_key">
+        <Condition>(oauthV2.VerifyAPIKey.FromJWT.failed Equals true)</Condition>
+        <Step>
+          <Name>AssignMessage.ClientCredentialsInvalidSubject</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="cc_invalid_aud_claim">
+        <Condition>(JWT.failed Equals true) and (error.message Equals "Invalid Claim: policy(VerifyJWT.ClientCredentials) claim(aud)")</Condition>
+        <Step>
+          <Name>AssignMessage.AudClaimInvalid</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="cc_no_matching_pub_key">
+        <Condition>(JWT.failed Equals true) and (fault.name Equals "NoMatchingPublicKey")</Condition>
+        <Step>
+          <Name>AssignMessage.NoMatchingPublicKey</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="refresh_token_expired">
+        <Condition>oauthV2.OAuthV2.GenerateRefreshToken.fault.cause Equals "Refresh Token expired"</Condition>
+        <Step>
+          <Name>AssignMessage.ExpiredRefreshToken</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="invalid_refresh_token">
+        <Condition>oauthV2.OAuthV2.GenerateRefreshToken.fault.cause Equals "Invalid Refresh Token"</Condition>
+        <Step>
+            <Name>AssignMessage.InvalidRefreshToken</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="public_key_misconfigured">
+        <Condition>(servicecallout.ServiceCallout.ClientCredentialsGrantGetJWKS.failed Equals true)</Condition>
+        <Step>
+          <Name>AssignMessage.PublicKeyMisconfigured</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="state_does_not_exist_in_cache">
+        <Condition>extractvariables.ExtractVariables.ReadCacheJson.failed</Condition>
+        <Step>
+          <Name>AssignMessage.CacheKeyError</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="ratelimit_exceeded">
+        <Condition>(ratelimit.SpikeArrest.failed Equals true) Or (ratelimit.Quota.failed Equals true)</Condition>
+        <Step>
+          <Name>AssignMessage.RatelimitExceeded</Name>
+        </Step>
+      </FaultRule>
     </FaultRules>
     <DefaultFaultRule>
         <Step>
@@ -640,7 +646,8 @@
                 <Step>
                     <Name>LookupCache.SimulatedAuthAuthMethod</Name>
                 </Step>
-                <!-- Next 3 verify that the request is within the set rate limits -->
+                <!-- Next 3 verify that the request is within the set rate limits
+                     If rate limit reached error message returned (in fault rule) -->
                 <Step>
                     <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
                 </Step>
