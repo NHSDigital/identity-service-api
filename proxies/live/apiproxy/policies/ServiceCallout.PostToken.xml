@@ -21,7 +21,7 @@
             <Enabled>true</Enabled>
         </SSLInfo>
         <LoadBalancer>
-            <Server name="identity-server-DEV"/>
+            <Server name="{{ IDENTITY_PROVIDER_CIS2 }}" />
         </LoadBalancer>
         <Path>{private.apigee.access_token_path}</Path>
     </HTTPTargetConnection>
