@@ -595,14 +595,6 @@
             </Response>
             <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "authorization_code")</Condition>
         </Flow>
-        <Flow name="test">
-            <Request>
-                <Step>
-                    <Name>OAuthV2.VerifyAccessToken</Name>
-                </Step>
-            </Request>
-            <Condition>(proxy.pathsuffix MatchesPath "/test")</Condition>
-        </Flow>
         <Flow name="Flow.PostTokenAuthorizationCodeSimulatedAuth">
             <Description>OAuth Token Endpoint - Authorization Code Flow - SIMULATED AUTH</Description>
             <Request>
