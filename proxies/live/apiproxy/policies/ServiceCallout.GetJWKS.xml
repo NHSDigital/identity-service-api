@@ -9,6 +9,7 @@
     <SSLInfo>
       <Enabled>true</Enabled>
     </SSLInfo>
-    <Path>{identity-service-config.cis2.jwks_path}</Path>
+    <Path>{private.apigee.jwks_path}</Path>
+    <!--<Path>{identity-service-config.cis2.jwks_path}</Path>-->
 </HTTPTargetConnection>
 </ServiceCallout>
