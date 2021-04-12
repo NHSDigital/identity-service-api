@@ -917,7 +917,6 @@ class TestJwtUnattendedAccess:
                 'client_assertion': client_assertion_jwt
             }
         )
-        print(resp)
 
     #     # Then
         assert expected_status_code == resp['status_code'], resp['body']
