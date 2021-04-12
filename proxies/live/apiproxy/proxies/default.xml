@@ -137,6 +137,12 @@
           <Name>AssignMessage.CacheKeyError</Name>
         </Step>
       </FaultRule>
+      <FaultRule name="ratelimit_exceeded">
+        <Condition>(ratelimit.SpikeArrest.failed Equals true) Or (ratelimit.Quota.failed Equals true)</Condition>
+        <Step>
+          <Name>AssignMessage.RatelimitExceeded</Name>
+        </Step>
+      </FaultRule>
     </FaultRules>
     <DefaultFaultRule>
       <Step>
@@ -145,9 +151,18 @@
     </DefaultFaultRule>
     <PreFlow name="PreFlow">
         <Request>
-          <Step>
+        <Step>
+            <Name>KeyValueMapOperations.GetIdentityServiceConfig</Name>
+        </Step>
+        <Step>
+            <Name>Javascript.UnpackVars</Name>
+        </Step>
+        <Step>
             <Name>KeyValueMapOperations.GetVariables</Name>
-          </Step>
+        </Step>
+        <Step>
+            <Name>AssignMessage.RemoveExternalScope</Name>
+        </Step>
         </Request>
         <Response/>
     </PreFlow>
@@ -212,7 +227,7 @@
                 <Step>
                   <Name>RaiseFault.VerifyAccessLevel</Name>
                   <Condition>(apigee.user_restricted_scopes = "")</Condition>
-                </Step>                
+                </Step>
                 <Step>
                     <Name>AssignMessage.GenerateState</Name>
                 </Step>
@@ -306,7 +321,7 @@
           <Step>
             <Name>VerifyAPIKey.FromJWT</Name>
           </Step>
-          <Step> 
+          <Step>
             <Name>SpikeArrest</Name>
           </Step>
           <Step>
@@ -344,7 +359,7 @@
           <Step>
             <Name>RaiseFault.VerifyAccessLevel</Name>
             <Condition>(apigee.application_restricted_scopes = "")</Condition>
-          </Step>          
+          </Step>
           <Step>
             <Name>OAuthV2.ClientCredentialsGenerateAccessTokenFilteredScopes</Name>
           </Step>
@@ -437,30 +452,37 @@
                 <Name>DecodeJWT.FromSubjectTokenFormParam</Name>
             </Step>
             <Step>
+                <Name>Javascript.SelectIdTokenIssuer</Name>
+            </Step>
+            <Step>
                 <Name>RaiseFault.MissingExpClaim</Name>
                 <Condition>(jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.exp Equals "")</Condition>
             </Step>
             <Step>
                 <Name>RaiseFault.MissingOrInvalidIssClaim</Name>
-                <Condition>(jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.iss Is null) or (jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.iss Equals "") or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss NotEquals jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.sub)</Condition>
+                <Condition>(InvalidIdTokenIssuer = true) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss NotEquals jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.sub)</Condition>
             </Step>
             <Step>
                 <Name>RaiseFault.MissingAudClaim</Name>
                 <Condition>(jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.aud Is null) or (jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.aud Equals "")</Condition>
             </Step>
             <Step>
-                <Name>LookupCache.JWKS</Name>
+                <Name>LookupCache.TokenExchangeJWKS</Name>
             </Step>
             <Step>
                 <Name>Javascript.ValidateClaim</Name>
-                <Condition>jwks != null</Condition>   
+                <Condition>jwks != null</Condition>
             </Step>
             <Step>
-                <Name>ServiceCallout.GetJWKS</Name>
-                <Condition>jwks = null Or jwksUpdated = false</Condition>
+                <Name>ServiceCallout.cis2GetJWKS</Name>
+                <Condition>jwks = null Or jwksUpdated = false and idTokenIssuer  Equals "nhsCis2"</Condition>
             </Step>
             <Step>
-                <Name>PopulateCache.JWKS</Name>
+                <Name>ServiceCallout.nhsLoginGetJWKS</Name>
+                <Condition>jwks = null Or jwksUpdated = false and idTokenIssuer  Equals "nhsLogin"</Condition>
+            </Step>
+            <Step>
+                <Name>PopulateCache.TokenExchangeJWKS</Name>
                 <Condition>jwks = null Or jwksUpdated = false</Condition>
             </Step>
             <Step>
@@ -494,7 +516,7 @@
           <Step>
               <Name>OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes</Name>
           </Step>
-        </Request>        
+        </Request>
         <Response>
             <Step>
                 <Name>AssignMessage.TokenExchangeGenerateTokenResponse</Name>
@@ -544,10 +566,23 @@
                     <Name>KeyValueMapOperations.GetSecureVariables</Name>
                 </Step>
                 <Step>
+                    <Name>LookupCache.AuthCode</Name>
+                </Step>
+                <Step>
                     <Name>ServiceCallout.PostToken</Name>
                 </Step>
                 <Step>
-                    <Name>ExtractVariables.AccessToken</Name>
+                  <Name>ExtractVariables.AccessToken</Name>
+                </Step>
+                <Step>
+                  <Name>DecodeJWT.FromExternalIdToken</Name>
+                </Step>
+                <Step>
+                  <Name>Javascript.ValidateIDTokenClaims</Name>
+                </Step>
+                <Step>
+                  <Name>RaiseFault.JWTClaimsInvalid</Name>
+                  <Condition>claims_validation.is_valid == false</Condition>
                 </Step>
                 <Step>
                     <Name>DecodeJWT.FromExternalIdToken</Name>
@@ -649,9 +684,16 @@
                   <Condition>request.formparam.code = null</Condition>
                 </Step>
                 <Step>
+                  <Name>LookupCache.AuthCode</Name>
+                </Step>
+                <Step>
                   <Name>LookupCache.SimulatedAuthCode</Name>
                 </Step>
-                <!-- Next 3 verify that the request is within the set rate limits -->
+                <Step>
+                  <Name>LookupCache.SimulatedAuthAuthMethod</Name>
+                </Step>
+                <!-- Next 3 verify that the request is within the set rate limits
+                     If rate limit reached error message returned (in fault rule) -->
                 <Step>
                   <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
                 </Step>
@@ -799,11 +841,14 @@
                 <Step>
                   <Name>Quota</Name>
                 </Step>
-                <Step>
-                  <Name>OAuthV2.GenerateAuthCode</Name>
-                </Step>
             </Request>
             <Response>
+                <Step>
+                    <Name>OAuthV2.GenerateAuthCode</Name>
+                </Step>
+                <Step>
+                    <Name>PopulateCache.AuthCode</Name>
+                </Step>
               <!-- Re-create the redirect so scope query param isn't included -->
               <Step>
                 <Name>AssignMessage.AuthCodeRedirect</Name>
@@ -834,6 +879,9 @@
             </Step>
             <Step>
               <Name>PopulateCache.SimulatedAuthCode</Name>
+            </Step>
+            <Step>
+              <Name>PopulateCache.SimulatedAuthAuthMethod</Name>
             </Step>
             <Step>
               <Name>AssignMessage.RedirectToApigeeCallback</Name>

@@ -34,13 +34,11 @@ extends:
     product_description: ${{ variables.product_description }}
     enable_monitoring: true
     jinja_templates:
-      IDENTITY_TARGET_SERVER: identity-server
+      IDENTITY_PROVIDER_CIS2: cis2
+      IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
       VARIABLES_KVM: identity-service-variables
       ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
       NUM_RANDOM_LONG_INTS_FOR_STATE: 4
-    secret_file_ids:
-      - ptl/app-credentials/jwt_testing/non-prod/JWT_TESTING_PRIVATE_KEY
-      - ptl/app-credentials/jwt_testing/non-prod/ID_TOKEN_TESTING_PRIVATE_KEY
     apigee_deployments:
       - environment: internal-dev
         post_deploy:
@@ -63,7 +61,8 @@ extends:
         fully_qualified_service_name: identity-service-int-no-smartcard
         service_base_path: oauth2-no-smartcard
         jinja_templates:
-          IDENTITY_TARGET_SERVER: identity-server-no-smartcard
+          IDENTITY_PROVIDER_CIS2: cis2-no-smartcard
+          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
           VARIABLES_KVM: identity-service-variables-no-smartcard
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted-no-smartcard
           NUM_RANDOM_LONG_INTS_FOR_STATE: 4
