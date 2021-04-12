@@ -898,7 +898,7 @@
               <Name>Javascript.CheckApigeeAccessTokenAttributes</Name>
             </Step>
             <Step>
-              <Name>RaiseFault.Unauthorized</Name>
+              <Name>RaiseFault.NotFound</Name>
               <Condition>idTokenIssuer Equals "nhsLogin" or InvalidIdTokenIssuer Equals "true"</Condition>
             </Step>
             <Step>
