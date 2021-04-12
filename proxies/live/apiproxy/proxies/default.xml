@@ -137,6 +137,12 @@
           <Name>AssignMessage.CacheKeyError</Name>
         </Step>
       </FaultRule>
+      <FaultRule name="ratelimit_exceeded">
+        <Condition>(ratelimit.SpikeArrest.failed) Or (ratelimit.Quota.failed)</Condition>
+        <Step>
+          <Name>AssignMessage.RatelimitExceeded</Name>
+        </Step>
+      </FaultRule>
     </FaultRules>
     <DefaultFaultRule>
       <Step>
