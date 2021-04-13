@@ -114,7 +114,7 @@ class TestProductScopes:
         jwt = self.oauth.create_jwt(kid='test-1', client_id=test_app.client_id)
         resp = await self.oauth.get_token_response(grant_type="client_credentials", _jwt=jwt)
 
-        assert list(resp['body'].keys()) == ['access_token', 'expires_in', 'token_type']
+        assert list(resp['body'].keys()) == ['access_token', 'expires_in', 'token_type', 'issued_at']
         assert resp['status_code'] == 200
 
     @pytest.mark.apm_1701
@@ -611,7 +611,7 @@ class TestProductScopes:
 
         resp = await self.oauth.get_token_response(grant_type="client_credentials", data=data)
 
-        assert list(resp['body'].keys()) == ['access_token', 'expires_in', 'token_type']
+        assert list(resp['body'].keys()) == ['access_token', 'expires_in', 'token_type', 'issued_at']
         assert resp['status_code'] == 200
 
     @pytest.mark.parametrize('external_scope', [
