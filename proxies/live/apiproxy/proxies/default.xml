@@ -902,6 +902,13 @@
               <Name>Quota</Name>
             </Step>
             <Step>
+              <Name>Javascript.CheckApigeeAccessTokenAttributes</Name>
+            </Step>
+            <Step>
+              <Name>RaiseFault.NotFound</Name>
+              <Condition>idTokenIssuer Equals "nhsLogin" or InvalidIdTokenIssuer Equals "true"</Condition>
+            </Step>
+            <Step>
               <Name>AssignMessage.SetAuthorizationHeader</Name>
             </Step>
           </Request>
@@ -921,7 +928,15 @@
               <Name>Quota</Name>
             </Step>
             <Step>
+              <Name>Javascript.CheckApigeeAccessTokenAttributes</Name>
+            </Step>
+            <Step>
+              <Name>RaiseFault.NotFound</Name>
+              <Condition>idTokenIssuer Equals "nhsLogin" or InvalidIdTokenIssuer Equals "true"</Condition>
+            </Step>
+            <Step>
               <Name>AssignMessage.GenerateUserinfoResponseSimulatedAuth</Name>
+              <Condition>idTokenIssuer Equals "nhsCis2"</Condition>
             </Step>
           </Request>
           <Response/>
