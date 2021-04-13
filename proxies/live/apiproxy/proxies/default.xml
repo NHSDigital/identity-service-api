@@ -854,6 +854,9 @@
                     <Name>OAuthV2.GenerateAuthCode</Name>
                 </Step>
                 <Step>
+                    <Name>PopulateCache.AuthCode</Name>
+                </Step>
+                <Step>
                     <Name>PopulateCache.ExternalIdToken</Name>
                 </Step>
                 <!-- Re-create the redirect so scope query param isn't included -->
