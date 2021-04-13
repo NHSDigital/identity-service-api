@@ -907,7 +907,7 @@
                     <Name>AssignMessage.AuthCodeRedirect</Name>
                 </Step>
             </Response>
-            <Condition>(identity_service.simulated_idp Equals "true") (proxy.pathsuffix MatchesPath "/callback") and (request.verb = "GET")</Condition>
+            <Condition>(identity_service.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/callback") and (request.verb = "GET")</Condition>
         </Flow>
         <Flow name="Flow.SimulatedUserAuth">
             <Description>Provide a simulated user authorization interaction - Display login dialogue</Description>
