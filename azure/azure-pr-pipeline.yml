@@ -36,7 +36,7 @@ extends:
     product_description: ${{ variables.product_description }}
     ping: false
     jinja_templates:
-      IDENTITY_PROVIDER_CIS2: cis2
+      IDENTITY_PROVIDER_CIS2: identity-server-DEV
       IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
       VARIABLES_KVM: identity-service-variables
       ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
