@@ -864,7 +864,7 @@
                     <Name>AssignMessage.AuthCodeRedirect</Name>
                 </Step>
             </Response>
-            <Condition>(identity_service.simulated_idp IsNot "true") (proxy.pathsuffix MatchesPath "/callback") and (request.verb = "GET")</Condition>
+            <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/callback") and (request.verb = "GET")</Condition>
         </Flow>
         <Flow name="Flow.GetSimulatedCallback">
             <Description>Flow to catch the Code response</Description>
