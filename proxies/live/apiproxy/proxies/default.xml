@@ -137,6 +137,12 @@
           <Name>AssignMessage.CacheKeyError</Name>
         </Step>
       </FaultRule>
+      <FaultRule name="ratelimit_exceeded">
+        <Condition>(ratelimit.SpikeArrest.failed Equals true) Or (ratelimit.Quota.failed Equals true)</Condition>
+        <Step>
+          <Name>AssignMessage.RatelimitExceeded</Name>
+        </Step>
+      </FaultRule>
     </FaultRules>
     <DefaultFaultRule>
       <Step>
@@ -686,7 +692,8 @@
                 <Step>
                   <Name>LookupCache.SimulatedAuthAuthMethod</Name>
                 </Step>
-                <!-- Next 3 verify that the request is within the set rate limits -->
+                <!-- Next 3 verify that the request is within the set rate limits
+                     If rate limit reached error message returned (in fault rule) -->
                 <Step>
                   <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
                 </Step>

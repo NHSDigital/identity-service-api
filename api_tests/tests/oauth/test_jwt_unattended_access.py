@@ -278,7 +278,7 @@ class TestJwtUnattendedAccess:
         except KeyError:
             print(f"UNEXPECTED RESPONSE: {resp}")
             return False
-        assert list(resp['body'].keys()) == ['access_token', 'expires_in', 'token_type'], \
+        assert list(resp['body'].keys()) == ['access_token', 'expires_in', 'token_type', 'issued_at'], \
             f'UNEXPECTED RESPONSE: {list(resp["body"].keys())}'
 
     @pytest.mark.apm_1521

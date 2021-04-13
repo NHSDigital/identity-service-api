@@ -45,7 +45,7 @@ Navigate to the /api_tests folder and run the commands:
 ```shell
 $ pip install virtualenv
 $ virtualenv test_env
-$ ./test_env/scripts/activate
+$ source ./test_env/bin/activate
 (test_env) $ pip install -r requirements.txt
 ```
 
