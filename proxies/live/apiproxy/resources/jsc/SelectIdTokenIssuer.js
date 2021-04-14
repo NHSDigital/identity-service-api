@@ -3,8 +3,9 @@ var InvalidIdTokenIssuer = false;
 var jwksPath = '';
 var idTokenIssuer = '';
 
-var index = authorize_endpoint.indexOf('/authorize')
-var base_url = authorize_endpoint.slice(0, index)
+var index = authorize_endpoint.indexOf('/authorize');
+var authorize_endpoint = context.getVariable("private.apigee.authorize_endpoint");
+var base_url = authorize_endpoint.slice(0, index);
 
 if(issuer === null || issuer === '' ) {
     InvalidIdTokenIssuer = true;
@@ -20,4 +21,4 @@ if(issuer === null || issuer === '' ) {
 
 context.setVariable('idTokenIssuer', idTokenIssuer);
 context.setVariable('jwksPath', jwksPath);
-context.setVariable('InvalidIdTokenIssuer', InvalidIdTokenIssuer)
+context.setVariable('InvalidIdTokenIssuer', InvalidIdTokenIssuer);
