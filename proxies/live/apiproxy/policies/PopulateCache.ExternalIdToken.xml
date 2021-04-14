@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<PopulateCache async="false" continueOnError="false" enabled="true" name="PopulateCache.AuthCode">
-    <DisplayName>PopulateCache.AuthCode</DisplayName>
-    <Properties/>
+<PopulateCache async="false" continueOnError="false" enabled="true" name="PopulateCache.ExternalIdToken">
+    <DisplayName>PopulateCache.ExternalIdToken</DisplayName>
     <CacheKey>
-        <Prefix/>
         <KeyFragment ref="oauthv2authcode.OAuthV2.GenerateAuthCode.code"/>
     </CacheKey>
     <Scope>Exclusive</Scope>
     <ExpirySettings>
         <TimeoutInSec>300</TimeoutInSec>
     </ExpirySettings>
-    <Source>request.queryparam.code</Source>
+    <Source>externalIdToken</Source>
 </PopulateCache>
