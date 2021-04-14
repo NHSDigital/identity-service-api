@@ -137,6 +137,12 @@
           <Name>AssignMessage.CacheKeyError</Name>
         </Step>
       </FaultRule>
+      <FaultRule name="ratelimit_exceeded">
+        <Condition>(ratelimit.SpikeArrest.failed Equals true) Or (ratelimit.Quota.failed Equals true)</Condition>
+        <Step>
+          <Name>AssignMessage.RatelimitExceeded</Name>
+        </Step>
+      </FaultRule>
     </FaultRules>
     <DefaultFaultRule>
       <Step>
@@ -683,7 +689,8 @@
                 <Step>
                   <Name>LookupCache.SimulatedAuthAuthMethod</Name>
                 </Step>
-                <!-- Next 3 verify that the request is within the set rate limits -->
+                <!-- Next 3 verify that the request is within the set rate limits
+                     If rate limit reached error message returned (in fault rule) -->
                 <Step>
                   <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
                 </Step>
@@ -892,6 +899,13 @@
               <Name>Quota</Name>
             </Step>
             <Step>
+              <Name>Javascript.CheckApigeeAccessTokenAttributes</Name>
+            </Step>
+            <Step>
+              <Name>RaiseFault.NotFound</Name>
+              <Condition>idTokenIssuer Equals "nhsLogin" or InvalidIdTokenIssuer Equals "true"</Condition>
+            </Step>
+            <Step>
               <Name>AssignMessage.SetAuthorizationHeader</Name>
             </Step>
           </Request>
@@ -911,7 +925,15 @@
               <Name>Quota</Name>
             </Step>
             <Step>
+              <Name>Javascript.CheckApigeeAccessTokenAttributes</Name>
+            </Step>
+            <Step>
+              <Name>RaiseFault.NotFound</Name>
+              <Condition>idTokenIssuer Equals "nhsLogin" or InvalidIdTokenIssuer Equals "true"</Condition>
+            </Step>
+            <Step>
               <Name>AssignMessage.GenerateUserinfoResponseSimulatedAuth</Name>
+              <Condition>idTokenIssuer Equals "nhsCis2"</Condition>
             </Step>
           </Request>
           <Response/>
