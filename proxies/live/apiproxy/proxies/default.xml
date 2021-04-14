@@ -1056,7 +1056,7 @@
     </PostClientFlow>
     <HTTPProxyConnection>
         <!-- Cannot be parameterised / dynamic as it's part of callback URI registered with the identity provider -->
-        <BasePath>{{ SERVICE_BASE_PATH }}</BasePath>
+        <BasePath>oauth-pr-514</BasePath>
         <Properties/>
         <VirtualHost>secure</VirtualHost>
     </HTTPProxyConnection>
