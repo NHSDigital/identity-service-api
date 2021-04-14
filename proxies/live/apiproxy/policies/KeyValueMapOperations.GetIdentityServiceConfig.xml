@@ -2,7 +2,7 @@
 <KeyValueMapOperations async="false" continueOnError="false" enabled="true" name="KeyValueMapOperations.GetIdentityServiceConfig" mapIdentifier="secret-squirrel" encrypted="true">
     <Get assignTo="private.config_raw">
         <Key>
-            <Parameter>identity_service_config_dev_test</Parameter>
+            <Parameter>identity_service_config</Parameter>
         </Key>
     </Get>
 </KeyValueMapOperations>

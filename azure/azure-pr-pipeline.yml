@@ -38,7 +38,7 @@ extends:
     jinja_templates:
       IDENTITY_PROVIDER_CIS2: cis2
       IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
-      VARIABLES_KVM: identity-service-variables
+      VARIABLES_KVM: identity-service-internal-dev-DEV-variables
       ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
       NUM_RANDOM_LONG_INTS_FOR_STATE: 4
     apigee_deployments:
