@@ -1,7 +1,10 @@
 var issuer = context.getVariable('jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.iss');
-var idTokenIssuer = '';
 var InvalidIdTokenIssuer = false;
 var jwksPath = '';
+var idTokenIssuer = '';
+
+var index = authorize_endpoint.indexOf('/authorize')
+var base_url = authorize_endpoint.slice(0, index)
 
 if(issuer === null || issuer === '' ) {
     InvalidIdTokenIssuer = true;
