@@ -893,8 +893,8 @@
                 </Step>
             </Request>
             <Response>
-                <Step>
-                    <Name>OAuthV2.GenerateSimulatedAuthCode</Name>
+                <Step>OAuthV2.GenerateSimulatedAuthCode
+                    <Name></Name>
                 </Step>
                 <!-- Re-create the redirect so scope query param isn't included -->
                 <Step>
