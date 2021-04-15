@@ -223,13 +223,6 @@
                     <Name>OAuthV2.GenerateAccessTokenDummy</Name>
                 </Step>
                 <Step>
-                    <Name>JavaScript.FilterUserRestrictedScopes</Name>
-                </Step>
-                <Step>
-                    <Name>RaiseFault.VerifyAccessLevel</Name>
-                    <Condition>(apigee.user_restricted_scopes = "")</Condition>
-                </Step>
-                <Step>
                     <Name>AssignMessage.GenerateState</Name>
                 </Step>
                 <Step>
