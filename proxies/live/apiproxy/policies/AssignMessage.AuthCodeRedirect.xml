@@ -1,8 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.AuthCodeRedirect">
     <Set>
         <StatusCode>302</StatusCode>
         <Headers>
-            <Header name="Location">{oauthv2authcode.OAuthV2.GenerateAuthCode.redirect_uri}?code={oauthv2authcode.OAuthV2.GenerateAuthCode.code}&amp;state={original_state}</Header>
+            <Header name="Location">{oauthv2authcode.OAuthV2.GenerateSimulatedAuthCode.redirect_uri}?code={oauthv2authcode.OAuthV2.GenerateSimulatedAuthCode.code}&amp;state={original_state}</Header>
         </Headers>
     </Set>
     <AssignTo createNew="true" transport="http" type="response"/>
