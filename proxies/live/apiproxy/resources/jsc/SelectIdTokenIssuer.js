@@ -3,16 +3,14 @@ var InvalidIdTokenIssuer = false;
 var jwksPath = '';
 var idTokenIssuer = '';
 
-var index = authorize_endpoint.indexOf('/authorize');
-var authorize_endpoint = context.getVariable("private.apigee.authorize_endpoint");
-var base_url = authorize_endpoint.slice(0, index);
+var nhsLoginIssuer = context.getVariable('identity-service-config.nhs-login.issuer');
 
 if(issuer === null || issuer === '' ) {
     InvalidIdTokenIssuer = true;
 } else if (issuer.includes('NHSIdentity')) {
     idTokenIssuer = 'nhsCis2'; 
     jwksPath = context.getVariable('identity-service-config.cis2.jwks_path');
-} else if (issuer.includes('signin.nhs.uk') || issuer.includes('login.nhs.uk')) {
+} else if (issuer = nhsLoginIssuer) {
     idTokenIssuer = 'nhsLogin';
     jwksPath = context.getVariable('identity-service-config.nhs_login.jwks_path');
 } else {
