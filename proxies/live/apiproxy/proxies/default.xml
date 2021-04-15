@@ -677,22 +677,6 @@
                     <Condition>(apigee.can_override_refresh_token != null) and (apigee.can_override_refresh_token = true)</Condition>
                 </Step>
                 <Step>
-                    <Name>AssignMessage.DummySecretKey</Name>
-                </Step>
-                <Step>
-                    <Name>GenerateJWT.SimulatedAuth</Name>
-                </Step>
-                <Step>
-                    <Name>DecodeJWT.FromGeneratedIdTokenSimulatedAuth</Name>
-                </Step>
-                <Step>
-                    <Name>JavaScript.FilterUserRestrictedScopesSimulatedAuth</Name>
-                </Step>
-                <Step>
-                  <Name>RaiseFault.VerifyAccessLevel</Name>
-                  <Condition>(apigee.user_restricted_scopes = "")</Condition>
-                </Step>
-                <Step>
                   <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>
                 </Step>
             </Request>
@@ -901,6 +885,22 @@
                 </Step>
                 <Step>
                     <Name>Quota</Name>
+                </Step>
+                <Step>
+                    <Name>AssignMessage.DummySecretKey</Name>
+                </Step>
+                <Step>
+                    <Name>GenerateJWT.SimulatedAuth</Name>
+                </Step>
+                <Step>
+                    <Name>DecodeJWT.FromGeneratedIdTokenSimulatedAuth</Name>
+                </Step>
+                <Step>
+                    <Name>JavaScript.FilterUserRestrictedScopesSimulatedAuth</Name>
+                </Step>
+                <Step>
+                  <Name>RaiseFault.VerifyAccessLevel</Name>
+                  <Condition>(apigee.user_restricted_scopes = "")</Condition>
                 </Step>
             </Request>
             <Response>

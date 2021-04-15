@@ -5,7 +5,7 @@
     <RedirectUri>original_redirect_uri</RedirectUri>
     <ResponseType>original_response_type</ResponseType>
     <State>original_state</State>
-    <Scope>original_scope</Scope>
+    <Scope>apigee.user_restricted_scopes</Scope>
     <ExternalAuthorization>false</ExternalAuthorization>
     <StoreToken>true</StoreToken>
     <GenerateResponse enabled="true"/>
