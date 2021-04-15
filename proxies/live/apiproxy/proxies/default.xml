@@ -638,9 +638,6 @@
                     <Condition>request.formparam.code = null</Condition>
                 </Step>
                 <Step>
-                    <Name>LookupCache.AuthCode</Name>
-                </Step>
-                <Step>
                     <Name>LookupCache.SimulatedAuthCode</Name>
                 </Step>
                 <Step>
@@ -897,7 +894,7 @@
             </Request>
             <Response>
                 <Step>
-                    <Name>OAuthV2.GenerateAuthCode</Name>
+                    <Name>OAuthV2.GenerateSimulatedAuthCode</Name>
                 </Step>
                 <!-- Re-create the redirect so scope query param isn't included -->
                 <Step>
