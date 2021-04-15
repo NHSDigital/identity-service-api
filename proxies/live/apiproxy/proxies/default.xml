@@ -898,7 +898,7 @@
                 </Step>
                 <!-- Re-create the redirect so scope query param isn't included -->
                 <Step>
-                    <Name>AssignMessage.AuthCodeRedirect</Name>
+                    <Name>AssignMessage.SimulatedAuthCodeRedirect</Name>
                 </Step>
             </Response>
             <Condition>(identity_service.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/callback") and (request.verb = "GET")</Condition>
