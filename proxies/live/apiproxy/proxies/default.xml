@@ -456,6 +456,10 @@
                     <Name>Javascript.SelectIdTokenIssuer</Name>
                 </Step>
                 <Step>
+                    <Name>RaiseFault.InvalidRequest</Name>
+                    <Condition>isError = true</Condition>
+                </Step>
+                <!-- <Step>
                     <Name>RaiseFault.MissingExpClaim</Name>
                     <Condition>(jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.exp Equals "")</Condition>
                 </Step>
@@ -469,7 +473,7 @@
                 </Step>
                 <Step>
                     <Name>LookupCache.TokenExchangeJWKS</Name>
-                </Step>
+                </Step> -->
                 <Step>
                     <Name>Javascript.ValidateClaim</Name>
                     <Condition>jwks != null</Condition>
