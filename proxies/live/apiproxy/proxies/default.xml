@@ -571,6 +571,9 @@
                     <Name>LookupCache.ExternalIdToken</Name>
                 </Step>
                 <Step>
+                    <Name>LookupCache.ExternalAccessToken</Name>
+                </Step>
+                <Step>
                     <Name>DecodeJWT.FromExternalIdToken</Name>
                 </Step>
                 <!-- Next 3 steps allow optional REDUCTION of access_token_expiry and refresh_token_expiry  KVM values
@@ -637,9 +640,6 @@
                 <Step>
                     <Name>RaiseFault.MissingAuthorizationCode</Name>
                     <Condition>request.formparam.code = null</Condition>
-                </Step>
-                <Step>
-                    <Name>LookupCache.AuthCode</Name>
                 </Step>
                 <Step>
                     <Name>LookupCache.SimulatedAuthCode</Name>
@@ -857,6 +857,9 @@
                 <Step>
                     <Name>PopulateCache.ExternalIdToken</Name>
                 </Step>
+                <Step>
+                    <Name>PopulateCache.ExternalAccessToken</Name>
+                </Step>
                 <!-- Re-create the redirect so scope query param isn't included -->
                 <Step>
                     <Name>AssignMessage.AuthCodeRedirect</Name>
@@ -895,11 +898,11 @@
             </Request>
             <Response>
                 <Step>
-                    <Name>OAuthV2.GenerateAuthCode</Name>
+                    <Name>OAuthV2.GenerateSimulatedAuthCode</Name>
                 </Step>
                 <!-- Re-create the redirect so scope query param isn't included -->
                 <Step>
-                    <Name>AssignMessage.AuthCodeRedirect</Name>
+                    <Name>AssignMessage.SimulatedAuthCodeRedirect</Name>
                 </Step>
             </Response>
             <Condition>(identity_service.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/callback") and (request.verb = "GET")</Condition>
