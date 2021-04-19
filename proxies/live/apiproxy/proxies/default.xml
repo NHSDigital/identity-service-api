@@ -453,7 +453,7 @@
                 <Name>Javascript.SelectIdTokenIssuer</Name>
             </Step>
             <Step>
-                <Name>RaiseFault.InvalidReques</Name>
+                <Name>RaiseFault.InvalidRequest</Name>
                 <Condition>isError = true</Condition>
             </Step>
             <!-- <Step>
