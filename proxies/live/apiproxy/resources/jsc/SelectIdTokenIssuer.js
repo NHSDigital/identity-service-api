@@ -3,7 +3,7 @@ var iss = context.getVariable('jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.c
 var aud = context.getVariable('jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.aud');
 
 var nhsLoginIssuer = context.getVariable('identity-service-config.nhs_login.issuer');
-var cis2Issuer = 'https://am.nhsint.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/NHSIdentity/realms/Healthcare';
+var cis2Issuer = 'https://am.nhsint.ptl.nhsd-esa.net:443/openam/oauth2/realms/root/realms/NHSIdentity/realms/Healthcare';
 
 
 var jwksPath = '';
