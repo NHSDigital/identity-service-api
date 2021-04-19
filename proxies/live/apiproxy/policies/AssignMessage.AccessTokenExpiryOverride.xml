@@ -1,7 +1,7 @@
 <AssignMessage name="AssignMessage.AccessTokenExpiryOverride">
   <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
   <AssignVariable>
-    <Name>apigee.access_token_expiry_ms</Name>
+    <Name>identity-service-config.cis2.access_token_expiry_ms</Name>
     <Ref>request.formparam._access_token_expiry_ms</Ref>
   </AssignVariable>
 </AssignMessage>

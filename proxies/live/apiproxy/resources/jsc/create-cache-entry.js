@@ -1,6 +1,6 @@
 client_id = context.getVariable('request.queryparam.client_id');
 // We will permit this for simulated_idp, but not for real authorization
-if (context.getVariable('identity_service.simulated_idp') == 'true') {
+if (context.getVariable('identity-service-config.cis2.simulated_idp') == 'true') {
   state = context.getVariable('request.queryparam.state') || "";
 } else {
   state = context.getVariable('request.queryparam.state');
