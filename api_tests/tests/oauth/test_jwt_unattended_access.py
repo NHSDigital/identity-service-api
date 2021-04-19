@@ -674,7 +674,7 @@ class TestJwtUnattendedAccess:
             'sub': '787807429511',
             'auditTrackingId': '91f694e6-3749-42fd-90b0-c3134b0d98f6-1546391',
             'amr': ['N3_SMARTCARD'],
-            'iss': 'https://am.nhsint.ptl.nhsd-esa.net:443/'
+            'iss': 'https://am.nhsint.auth-ptl.cis2.spineservices.nhs.uk:443/'
                    'openam/oauth2/realms/root/realms/NHSIdentity/realms/Healthcare',
             'tokenName': 'id_token',
             'aud': '969567331415.apps.national',
@@ -782,7 +782,7 @@ class TestJwtUnattendedAccess:
             'at_hash': 'tf_-lqpq36lwO7WmSBIJ6Q',
             'sub': '787807429511',
             'auditTrackingId': '91f694e6-3749-42fd-90b0-c3134b0d98f6-1546391',
-            'iss': 'https://am.nhsint.ptl.nhsd-esa.net:443'
+            'iss': 'https://am.nhsint.auth-ptl.cis2.spineservices.nhs.uk:443'
                    '/openam/oauth2/realms/root/realms/NHSIdentity/realms/Healthcare',
             'amr': ['N3_SMARTCARD'],
             'tokenName': 'id_token',
@@ -831,7 +831,7 @@ class TestJwtUnattendedAccess:
             'sub': '787807429511',
             'auditTrackingId': '91f694e6-3749-42fd-90b0-c3134b0d98f6-1546391',
             'amr': ['N3_SMARTCARD'],
-            'iss': 'https://am.nhsint.ptl.nhsd-esa.net:443'
+            'iss': 'https://am.nhsint.auth-ptl.cis2.spineservices.nhs.uk:443'
                    '/openam/oauth2/realms/root/realms/NHSIdentity/realms/Healthcare',
             'tokenName': 'id_token',
             'aud': '969567331415.apps.national',
