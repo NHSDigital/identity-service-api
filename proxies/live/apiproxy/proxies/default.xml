@@ -152,18 +152,15 @@
     </DefaultFaultRule>
     <PreFlow name="PreFlow">
         <Request>
-            <Step>
-                <Name>KeyValueMapOperations.GetIdentityServiceConfig</Name>
-            </Step>
-            <Step>
-                <Name>Javascript.UnpackVars</Name>
-            </Step>
-            <Step>
-                <Name>KeyValueMapOperations.GetVariables</Name>
-            </Step>
-            <Step>
-                <Name>AssignMessage.RemoveExternalScope</Name>
-            </Step>
+        <Step>
+            <Name>KeyValueMapOperations.GetIdentityServiceConfig</Name>
+        </Step>
+        <Step>
+            <Name>Javascript.UnpackVars</Name>
+        </Step>
+        <Step>
+            <Name>AssignMessage.RemoveExternalScope</Name>
+        </Step>
         </Request>
         <Response/>
     </PreFlow>
@@ -340,33 +337,186 @@
                 </Step>
                 <!-- Next step allows optional REDUCTION of access_token_expiry KVM values
                using _access_token_expiry_ms form param -->
-                <Step>
-                    <Name>AssignMessage.AccessTokenExpiryOverride</Name>
-                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
-                </Step>
-                <Step>
-                    <Name>OAuthV2.ClientCredentialsGenerateAccessToken</Name>
-                </Step>
-                <Step>
-                    <Name>JavaScript.FilterApplicationRestrictedScopes</Name>
-                </Step>
-                <Step>
-                    <Name>RaiseFault.VerifyAccessLevel</Name>
-                    <Condition>(apigee.application_restricted_scopes = "")</Condition>
-                </Step>
-                <Step>
-                    <Name>OAuthV2.ClientCredentialsGenerateAccessTokenFilteredScopes</Name>
-                </Step>
-            </Request>
-            <Response>
-                <Step>
-                    <Name>AssignMessage.ClientCredentialsGenerateTokenResponse</Name>
-                </Step>
-            </Response>
-            <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Equals "client_credentials") and ((request.formparam.subject_token_type NotEquals "urn:ietf:params:oauth:token-type:id_token")))</Condition>
-        </Flow>
-        <Flow name="Flow.PostTokenTokenExchange">
-            <Description>OAuth Token Endpoint - Token-Exchange</Description>
+          <Step>
+            <Name>AssignMessage.AccessTokenExpiryOverride</Name>
+            <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan identity-service-config.cis2.access_token_expiry_ms)</Condition>
+          </Step>
+          <Step>
+            <Name>OAuthV2.ClientCredentialsGenerateAccessToken</Name>
+          </Step>
+          <Step>
+            <Name>JavaScript.FilterApplicationRestrictedScopes</Name>
+          </Step>
+          <Step>
+            <Name>RaiseFault.VerifyAccessLevel</Name>
+            <Condition>(apigee.application_restricted_scopes = "")</Condition>
+          </Step>
+          <Step>
+            <Name>OAuthV2.ClientCredentialsGenerateAccessTokenFilteredScopes</Name>
+          </Step>
+        </Request>
+        <Response>
+          <Step>
+              <Name>AssignMessage.ClientCredentialsGenerateTokenResponse</Name>
+          </Step>
+      </Response>
+      <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Equals "client_credentials") and ((request.formparam.subject_token_type NotEquals "urn:ietf:params:oauth:token-type:id_token")))</Condition>
+      </Flow>
+      <Flow name="Flow.PostTokenTokenExchange">
+        <Description>OAuth Token Endpoint - Token-Exchange</Description>
+        <Request>
+            <Step>
+                <Name>RaiseFault.MissingOrInvalidClientAssertionType</Name>
+                <Condition>(request.formparam.client_assertion_type NotEquals "urn:ietf:params:oauth:client-assertion-type:jwt-bearer")</Condition>
+            </Step>
+            <Step>
+                <Name>RaiseFault.InvalidGrantType</Name>
+                <Condition>request.formparam.grant_type NotEquals "urn:ietf:params:oauth:grant-type:token-exchange"</Condition>
+            </Step>
+            <Step>
+                <Name>DecodeJWT.FromClientAssertionFormParam</Name>
+            </Step>
+            <Step>
+                <!-- The JWT Header may be valid, but the rest of the JWT may be malformed or missing.
+             This catches that eventuality: -->
+                <Name>RaiseFault.WarningDecodingJWT</Name>
+                <Condition>jwt.DecodeJWT.FromClientAssertionFormParam.warning != null</Condition>
+            </Step>
+            <Step>
+                <Name>RaiseFault.MissingKidHeader</Name>
+                <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Is null) Or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Equals "")</Condition>
+            </Step>
+            <Step>
+                <Name>RaiseFault.MissingOrInvalidTypHeader</Name>
+                <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.typ Is null) Or (Not(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.typ EqualsCaseInsensitive "jwt"))</Condition>
+            </Step>
+            <Step>
+                <Name>RaiseFault.MissingOrInvalidIssClaim</Name>
+                <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss Equals "") or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss NotEquals jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.sub)</Condition>
+            </Step>
+            <Step>
+                <Name>RaiseFault.MissingJtiClaim</Name>
+                <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti Equals "")</Condition>
+            </Step>
+            <Step>
+                <Name>RaiseFault.MissingExpClaim</Name>
+                <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Equals "")</Condition>
+            </Step>
+            <Step>
+                <!-- We advise to limit expiry time to now + 5 minutes. Allowing an extra 10 seconds to mitigate edge cases: -->
+                <Name>RaiseFault.ExpClaimTooLong</Name>
+                <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.seconds_remaining GreaterThan 310)</Condition>
+            </Step>
+            <Step>
+                <Name>LookupCache.JTIClaim</Name>
+            </Step>
+            <Step>
+                <Name>RaiseFault.JTIValueExistsInCache</Name>
+                <Condition>JTICachedValue = jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti</Condition>
+            </Step>
+            <Step>
+                <Name>PopulateCache.JTIClaim</Name>
+            </Step>
+            <Step>
+                <Name>VerifyAPIKey.FromJWT</Name>
+            </Step>
+            <Step>
+                <Name>SpikeArrest</Name>
+            </Step>
+            <Step>
+                <Name>Quota</Name>
+            </Step>
+            <Step>
+                <Name>Javascript.SetServiceCalloutUrl</Name>
+            </Step>
+            <Step>
+                <Name>ServiceCallout.ClientCredentialsGrantGetJWKS</Name>
+            </Step>
+            <Step>
+                <Name>VerifyJWT.ClientCredentials</Name>
+            </Step>
+            <Step>
+                <!-- Needed because OAuthV2 'GenerateAccessToken' has to have the Client ID and Client Secret in a specific place -->
+                <Name>AssignMessage.SetClientCredentials</Name>
+            </Step>
+            <Step>
+                <Name>DecodeJWT.FromSubjectTokenFormParam</Name>
+            </Step>
+            <Step>
+                <Name>Javascript.SelectIdTokenIssuer</Name>
+            </Step>
+            <Step>
+                <Name>RaiseFault.MissingExpClaim</Name>
+                <Condition>(jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.exp Equals "")</Condition>
+            </Step>
+            <Step>
+                <Name>RaiseFault.MissingOrInvalidIssClaim</Name>
+                <Condition>(InvalidIdTokenIssuer = true) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss NotEquals jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.sub)</Condition>
+            </Step>
+            <Step>
+                <Name>RaiseFault.MissingAudClaim</Name>
+                <Condition>(jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.aud Is null) or (jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.aud Equals "")</Condition>
+            </Step>
+            <Step>
+                <Name>LookupCache.TokenExchangeJWKS</Name>
+            </Step>
+            <Step>
+                <Name>Javascript.ValidateClaim</Name>
+                <Condition>jwks != null</Condition>
+            </Step>
+            <Step>
+                <Name>ServiceCallout.cis2GetJWKS</Name>
+                <Condition>jwks = null Or jwksUpdated = false and idTokenIssuer  Equals "nhsCis2"</Condition>
+            </Step>
+            <Step>
+                <Name>ServiceCallout.nhsLoginGetJWKS</Name>
+                <Condition>jwks = null Or jwksUpdated = false and idTokenIssuer  Equals "nhsLogin"</Condition>
+            </Step>
+            <Step>
+                <Name>PopulateCache.TokenExchangeJWKS</Name>
+                <Condition>jwks = null Or jwksUpdated = false</Condition>
+            </Step>
+            <Step>
+                <Name>AssignMessage.JWKS</Name>
+                <Condition>jwks = null Or jwksUpdated = false</Condition>
+            </Step>
+            <Step>
+                <Name>VerifyJWT.SubjectToken</Name>
+            </Step>
+            <!-- Next step allows optional REDUCTION of access_token_expiry KVM values
+            using _access_token_expiry_ms form param -->
+            <Step>
+                <Name>AssignMessage.AccessTokenExpiryOverride</Name>
+                <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan identity-service-config.cis2.access_token_expiry_ms)</Condition>
+            </Step>
+            <!-- grant type needs changing from Token Exchange because apigee doesn't support it !-->
+            <Step>
+                <Name>AssignMessage.ChangeGrantTypeToClientCrentials</Name>
+            </Step>
+            <!-- An access token is generated to fetch all the scopes for filtering -->
+            <Step>
+              <Name>OAuthV2.TokenExchangeGenerateAccessToken</Name>
+          </Step>
+          <Step>
+              <Name>JavaScript.FilterUserRestrictedScopes</Name>
+          </Step>
+          <Step>
+              <Name>RaiseFault.VerifyAccessLevel</Name>
+              <Condition>(apigee.user_restricted_scopes = "")</Condition>
+          </Step>
+          <Step>
+              <Name>OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes</Name>
+          </Step>
+        </Request>
+        <Response>
+            <Step>
+                <Name>AssignMessage.TokenExchangeGenerateTokenResponse</Name>
+            </Step>
+        </Response>
+        <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.subject_token_type Equals "urn:ietf:params:oauth:token-type:id_token") and (apim.feature_toggles.enable-token-exchange = true))</Condition>
+    </Flow>
+      <Flow name="Flow.PostTokenAuthorizationCode">
+        <Description>OAuth Token Endpoint - Authorization Code Flow</Description>
             <Request>
                 <Step>
                     <Name>RaiseFault.MissingOrInvalidClientAssertionType</Name>
@@ -560,13 +710,16 @@
                     <Name>LookupCache.ExternalIdToken</Name>
                 </Step>
                 <Step>
+                    <Name>LookupCache.ExternalAccessToken</Name>
+                </Step>
+                <Step>
                     <Name>DecodeJWT.FromExternalIdToken</Name>
                 </Step>
                 <!-- Next 3 steps allow optional REDUCTION of access_token_expiry and refresh_token_expiry  KVM values
                 using _access_token_expiry_ms/_refresh_token_expiry_ms (respectively) form params -->
                 <Step>
-                    <Name>AssignMessage.AccessTokenExpiryOverride</Name>
-                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
+                  <Name>AssignMessage.AccessTokenExpiryOverride</Name>
+                  <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan identity-service-config.cis2.access_token_expiry_ms)</Condition>
                 </Step>
                 <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
                 <Step>
@@ -596,10 +749,10 @@
                     <Name>AssignMessage.SetCorsHeaders</Name>
                 </Step>
             </Response>
-            <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "authorization_code")</Condition>
-        </Flow>
-        <Flow name="Flow.PostTokenAuthorizationCodeSimulatedAuth">
-            <Description>OAuth Token Endpoint - Authorization Code Flow - SIMULATED AUTH</Description>
+            <Condition>(identity-service-config.cis2.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "authorization_code")</Condition>
+      </Flow>
+      <Flow name="Flow.PostTokenAuthorizationCodeSimulatedAuth">
+        <Description>OAuth Token Endpoint - Authorization Code Flow - SIMULATED AUTH</Description>
             <Request>
                 <!-- In the documentation we specify that the Client ID and Client Secret must be sent as form params
                 However Apigee interactive documenttion ("Try it now") feature sends them as HTTP Basic Auth, so
@@ -635,9 +788,6 @@
                     <Condition>request.formparam.code = null</Condition>
                 </Step>
                 <Step>
-                    <Name>LookupCache.AuthCode</Name>
-                </Step>
-                <Step>
                     <Name>LookupCache.SimulatedAuthCode</Name>
                 </Step>
                 <Step>
@@ -657,8 +807,8 @@
                 <!-- Next 3 steps allow optional REDUCTION of access_token_expiry and refresh_token_expiry  KVM values
                 using _access_token_expiry_ms/_refresh_token_expiry_ms (respectively) form params -->
                 <Step>
-                    <Name>AssignMessage.AccessTokenExpiryOverride</Name>
-                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
+                  <Name>AssignMessage.AccessTokenExpiryOverride</Name>
+                  <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan identity-service-config.cis2.access_token_expiry_ms)</Condition>
                 </Step>
                 <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
                 <Step>
@@ -681,9 +831,9 @@
                     <Name>AssignMessage.SetCorsHeaders</Name>
                 </Step>
             </Response>
-            <Condition>(identity_service.simulated_idp Is "true") and (proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "authorization_code")</Condition>
-        </Flow>
-        <Flow name="Flow.PostRefreshToken">
+            <Condition>(identity-service-config.cis2.simulated_idp Is "true") and (proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "authorization_code")</Condition>
+          </Flow>
+          <Flow name="Flow.PostRefreshToken">
             <Description>OAuth Refresh Token Endpoint</Description>
             <Request>
                 <!-- Verify the Client Application using both client_id and client_secret form params -->
@@ -705,48 +855,48 @@
                 </Step>
                 <!-- Next 5 steps allow optional REDUCTION of access_token_expiry, refresh_token_expiry, and refresh_token_validity KVM values
               using _access_token_expiry_ms/_refresh_token_expiry_ms/_refresh_tokens_validity_ms (respectively) form params -->
-                <Step>
-                    <Name>AssignMessage.AccessTokenExpiryOverride</Name>
-                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
-                </Step>
-                <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
-                <Step>
-                    <Name>JavaScript.CalculateRefreshTokenOverride</Name>
-                    <Condition>request.formparam._refresh_token_expiry_ms != null</Condition>
-                </Step>
-                <Step>
-                    <Name>AssignMessage.RefreshTokenExpiryOverride</Name>
-                    <Condition>(apigee.can_override_refresh_token != null) and (apigee.can_override_refresh_token = true)</Condition>
-                </Step>
-                <!-- Using JavaScript to evaluate the requested validity override time, due to apigee conditional failing to evaluate properly -->
-                <Step>
-                    <Name>JavaScript.CalculateRefreshTokenValidityOverride</Name>
-                    <Condition>request.formparam._refresh_tokens_validity_ms != null</Condition>
-                </Step>
-                <Step>
-                    <Name>AssignMessage.RefreshTokensValidityOverride</Name>
-                    <Condition>(apigee.can_override_refresh_token_validity != null) and (apigee.can_override_refresh_token_validity = true)</Condition>
-                </Step>
-                <!-- Next 3 verify that the request is within the set rate limits -->
-                <Step>
-                    <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
-                </Step>
-                <Step>
-                    <Name>SpikeArrest</Name>
-                </Step>
-                <Step>
-                    <Name>Quota</Name>
-                </Step>
-                <Step>
-                    <Name>OAuthV2.GenerateRefreshToken</Name>
-                </Step>
-                <Step>
-                    <Name>JavaScript.CalculateAccessTokenAge</Name>
-                </Step>
-                <Step>
-                    <Name>RaiseFault.TokenRefreshTimelimitExceeded</Name>
-                    <Condition>private.apigee.access_token_age_ms > apigee.refresh_tokens_validity_ms</Condition>
-                </Step>
+              <Step>
+                <Name>AssignMessage.AccessTokenExpiryOverride</Name>
+                <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan  identity-service-config.cis2.access_token_expiry_ms)</Condition>
+              </Step>
+              <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
+              <Step>
+                <Name>JavaScript.CalculateRefreshTokenOverride</Name>
+                <Condition>request.formparam._refresh_token_expiry_ms != null</Condition>
+              </Step>
+              <Step>
+                <Name>AssignMessage.RefreshTokenExpiryOverride</Name>
+                <Condition>(apigee.can_override_refresh_token != null) and (apigee.can_override_refresh_token = true)</Condition>
+              </Step>
+              <!-- Using JavaScript to evaluate the requested validity override time, due to apigee conditional failing to evaluate properly -->
+              <Step>
+                <Name>JavaScript.CalculateRefreshTokenValidityOverride</Name>
+                <Condition>request.formparam._refresh_tokens_validity_ms != null</Condition>
+              </Step>
+              <Step>
+                <Name>AssignMessage.RefreshTokensValidityOverride</Name>
+                <Condition>(apigee.can_override_refresh_token_validity != null) and (apigee.can_override_refresh_token_validity = true)</Condition>
+              </Step>
+              <!-- Next 3 verify that the request is within the set rate limits -->
+              <Step>
+                <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
+              </Step>
+              <Step>
+                <Name>SpikeArrest</Name>
+              </Step>
+              <Step>
+                <Name>Quota</Name>
+              </Step>
+              <Step>
+                <Name>OAuthV2.GenerateRefreshToken</Name>
+              </Step>
+              <Step>
+                <Name>JavaScript.CalculateAccessTokenAge</Name>
+              </Step>
+              <Step>
+                <Name>RaiseFault.TokenRefreshTimelimitExceeded</Name>
+                <Condition>private.apigee.access_token_age_ms > identity-service-config.cis2.refresh_tokens_validity_ms</Condition>
+              </Step>
             </Request>
             <Response>
                 <Step>
@@ -759,8 +909,8 @@
             <Description>Flow to catch the Code response</Description>
             <Request>
                 <Step>
-                    <Name>RaiseFault.Unauthorized</Name>
-                    <Condition>request.queryparam.client_id NotEquals private.apigee.client_id</Condition>
+                  <Name>RaiseFault.Unauthorized</Name>
+                  <Condition>request.queryparam.client_id NotEquals identity-service-config.cis2.client_id</Condition>                    
                 </Step>
                 <Step>
                     <Name>LookupCache.OriginalClientInfo</Name>
@@ -851,19 +1001,22 @@
                 <Step>
                     <Name>PopulateCache.ExternalIdToken</Name>
                 </Step>
+                <Step>
+                    <Name>PopulateCache.ExternalAccessToken</Name>
+                </Step>
                 <!-- Re-create the redirect so scope query param isn't included -->
                 <Step>
                     <Name>AssignMessage.AuthCodeRedirect</Name>
                 </Step>
             </Response>
-            <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/callback") and (request.verb = "GET")</Condition>
+            <Condition>(identity-service-config.cis2.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/callback") and (request.verb = "GET")</Condition>
         </Flow>
         <Flow name="Flow.GetSimulatedCallback">
             <Description>Flow to catch the Code response</Description>
             <Request>
                 <Step>
                     <Name>RaiseFault.Unauthorized</Name>
-                    <Condition>request.queryparam.client_id NotEquals private.apigee.client_id</Condition>
+                    <Condition>request.queryparam.client_id NotEquals identity-service-config.cis2.client_id</Condition>
                 </Step>
                 <Step>
                     <Name>LookupCache.OriginalClientInfo</Name>
@@ -905,47 +1058,47 @@
             </Request>
             <Response>
                 <Step>
-                    <Name>OAuthV2.GenerateAuthCode</Name>
+                    <Name>OAuthV2.GenerateSimulatedAuthCode</Name>
                 </Step>
                 <!-- Re-create the redirect so scope query param isn't included -->
                 <Step>
-                    <Name>AssignMessage.AuthCodeRedirect</Name>
+                    <Name>AssignMessage.SimulatedAuthCodeRedirect</Name>
                 </Step>
-            </Response>
-            <Condition>(identity_service.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/callback") and (request.verb = "GET")</Condition>
+            </Response>             
+            <Condition>(identity-service-config.cis2.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/callback") and (request.verb = "GET")</Condition>
         </Flow>
         <Flow name="Flow.SimulatedUserAuth">
             <Description>Provide a simulated user authorization interaction - Display login dialogue</Description>
             <Request>
                 <!-- Check the redirect_uri and client_id. Although we generate the redirect to this URL, an app developer might get creative somehow
             and we need to illustrate that what they are doing will break the authentication. -->
-                <Step>
-                    <Name>RaiseFault.Unauthorized</Name>
-                    <Condition>(request.queryparam.client_id NotEquals private.apigee.client_id) or (request.queryparam.redirect_uri NotEquals private.apigee.redirect_uri)</Condition>
-                </Step>
-                <Step>
-                    <Name>AssignMessage.SimulatedAuthPage</Name>
-                </Step>
-            </Request>
-            <Condition>(identity_service.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/simulated_auth") and (request.verb Equals "GET")</Condition>
+            <Step>
+              <Name>RaiseFault.Unauthorized</Name>
+              <Condition>(request.queryparam.client_id NotEquals identity-service-config.cis2.client_id) or (request.queryparam.redirect_uri NotEquals identity-service-config.cis2.redirect_uri)</Condition>
+            </Step>
+            <Step>
+              <Name>AssignMessage.SimulatedAuthPage</Name>
+            </Step>
+          </Request>
+          <Condition>(identity-service-config.cis2.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/simulated_auth") and (request.verb Equals "GET")</Condition>
         </Flow>
         <Flow name="Flow.SimulatedUserAuthPost">
-            <Description>Provide a simulated user authorization interaction - Process login</Description>
-            <Request>
-                <Step>
-                    <Name>AssignMessage.GenerateSimulatedAuthCode</Name>
-                </Step>
-                <Step>
-                    <Name>PopulateCache.SimulatedAuthCode</Name>
-                </Step>
-                <Step>
-                    <Name>PopulateCache.SimulatedAuthAuthMethod</Name>
-                </Step>
-                <Step>
-                    <Name>AssignMessage.RedirectToApigeeCallback</Name>
-                </Step>
-            </Request>
-            <Condition>(identity_service.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/simulated_auth") and (request.verb Equals "POST")</Condition>
+          <Description>Provide a simulated user authorization interaction - Process login</Description>
+          <Request>
+            <Step>
+              <Name>AssignMessage.GenerateSimulatedAuthCode</Name>
+            </Step>
+            <Step>
+              <Name>PopulateCache.SimulatedAuthCode</Name>
+            </Step>
+            <Step>
+              <Name>PopulateCache.SimulatedAuthAuthMethod</Name>
+            </Step>
+            <Step>
+              <Name>AssignMessage.RedirectToApigeeCallback</Name>
+            </Step>
+          </Request>
+          <Condition>(identity-service-config.cis2.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/simulated_auth") and (request.verb Equals "POST")</Condition>
         </Flow>
         <Flow name="Flow.GetUserInfo">
           <Description/>
@@ -971,7 +1124,7 @@
             </Step>
           </Request>
           <Response/>
-          <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
+          <Condition>(identity-service-config.cis2.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
         </Flow>
         <Flow name="Flow.GetUserInfoSimulatedAuth">
           <Description/>
@@ -998,7 +1151,7 @@
             </Step>
           </Request>
           <Response/>
-          <Condition>(identity_service.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
+          <Condition>(identity-service-config.cis2.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
         </Flow>
         <Flow name="Flow.OptionsCors">
             <Description/>
@@ -1079,8 +1232,8 @@
         <Condition>(proxy.pathsuffix MatchesPath "/_ping") and ((request.verb = "GET") or (request.verb = "HEAD"))</Condition>
     </RouteRule>
     <RouteRule name="userinfoRoute">
-        <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
-        <TargetEndpoint>identity-server-userinfo</TargetEndpoint>
+      <Condition>(identity-service-config.cis2.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
+      <TargetEndpoint>identity-server-userinfo</TargetEndpoint>
     </RouteRule>
     <RouteRule name="loopbackRoute"/>
 </ProxyEndpoint>

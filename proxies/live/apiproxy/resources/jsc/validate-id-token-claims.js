@@ -1,8 +1,8 @@
 var aud_claim = context.getVariable("jwt.DecodeJWT.FromExternalIdToken.decoded.claim.aud");
 var iss_claim = context.getVariable("jwt.DecodeJWT.FromExternalIdToken.decoded.claim.iss");
-var authorize_endpoint = context.getVariable("private.apigee.authorize_endpoint");
+var authorize_endpoint = context.getVariable("identity-service-config.cis2.authorize_endpoint");
 
-var client_id = context.getVariable("private.apigee.client_id");
+var client_id = context.getVariable("identity-service-config.cis2.client_id");
 
 aud_claim = JSON.parse(aud_claim);
             

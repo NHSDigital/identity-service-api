@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PopulateCache async="false" continueOnError="false" enabled="true" name="PopulateCache.ExternalAccessToken">
+    <DisplayName>PopulateCache.ExternalAccessToken</DisplayName>
+    <CacheKey>
+        <Prefix>accessToken</Prefix>
+        <KeyFragment ref="oauthv2authcode.OAuthV2.GenerateAuthCode.code"/>
+    </CacheKey>
+    <Scope>Exclusive</Scope>
+    <ExpirySettings>
+        <TimeoutInSec>300</TimeoutInSec>
+    </ExpirySettings>
+    <Source>externalAccessToken </Source>
+</PopulateCache>
