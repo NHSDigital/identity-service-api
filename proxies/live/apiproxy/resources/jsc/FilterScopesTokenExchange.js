@@ -5,7 +5,7 @@ if (idTokenIssuer == "nhsCis2") {
     id_token_acr = ':' + id_token_acr.slice(0, 4).toLowerCase() + ':';   
 }
 else {
-    id_token_acr = ':' + id_token_acr.slice(0, 2).toLowerCase() + ':'; 
+    id_token_acr = ':' + id_token_acr.slice(0, 2) + ':'; 
 }
 
 
