@@ -6,4 +6,4 @@ pyjwt
 cryptography
 python-dotenv
 pytest-rerunfailures
-https://github.com/NHSDigital/apim-test-utils/releases/download/v1.0.86-alpha/api_test_utils-1.0.86a0-py3-none-any.whl
+https://github.com/NHSDigital/apim-test-utils/releases/download/v1.1.2-alpha/api_test_utils-1.1.2a0-py3-none-any.whl
