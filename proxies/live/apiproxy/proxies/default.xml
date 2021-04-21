@@ -774,6 +774,12 @@
                 <Step>
                     <Name>LookupCache.SimulatedAuthAuthMethod</Name>
                 </Step>
+                 <Step>
+                    <Name>LookupCache.GeneratedIdToken</Name>
+                </Step>
+                <Step>
+                    <Name>DecodeJWT.FromGeneratedIdTokenSimulatedAuth</Name>
+                </Step>
                 <!-- Next 3 verify that the request is within the set rate limits
                      If rate limit reached error message returned (in fault rule) -->
                 <Step>
@@ -1037,6 +1043,9 @@
             <Response>
                 <Step>
                     <Name>OAuthV2.GenerateSimulatedAuthCode</Name>
+                </Step>
+                <Step>
+                    <Name>PopulateCache.GeneratedIdToken</Name>
                 </Step>
                 <!-- Re-create the redirect so scope query param isn't included -->
                 <Step>

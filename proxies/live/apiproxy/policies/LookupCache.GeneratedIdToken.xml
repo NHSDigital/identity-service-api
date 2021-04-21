@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<LookupCache async="false" continueOnError="false" enabled="true" name="LookupCache.GeneratedIdToken">
+    <DisplayName>LookupCache.GeneratedIdToken</DisplayName>
+    <CacheKey>
+        <KeyFragment ref="request.formparam.code"/>
+    </CacheKey>
+    <Scope>Exclusive</Scope>
+    <AssignTo>jwt.GenerateJWT.SimulatedAuth.generated_jwt</AssignTo>
+</LookupCache>
