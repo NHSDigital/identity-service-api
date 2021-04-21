@@ -1223,8 +1223,7 @@
     </PostClientFlow>
     <HTTPProxyConnection>
         <!-- Cannot be parameterised / dynamic as it's part of callback URI registered with the identity provider -->
-        <!-- <BasePath>{{ SERVICE_BASE_PATH }}</BasePath> -->
-        <BasePath>oauth2-pr-154</BasePath>
+        <BasePath>{{ SERVICE_BASE_PATH }}</BasePath>
         <Properties/>
         <VirtualHost>secure</VirtualHost>
     </HTTPProxyConnection>
