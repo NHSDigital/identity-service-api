@@ -490,7 +490,7 @@
               <Name>OAuthV2.TokenExchangeGenerateAccessToken</Name>
           </Step>
           <Step>
-              <Name>JavaScript.FilterUserRestrictedScopes</Name>
+              <Name>JavaScript.FilterScopesTokenExchange</Name>
           </Step>
           <Step>
               <Name>RaiseFault.VerifyAccessLevel</Name>
@@ -926,9 +926,6 @@
                 <Step>
                     <Name>RaiseFault.JWTClaimsInvalid</Name>
                     <Condition>claims_validation.is_valid == false</Condition>
-                </Step>
-                <Step>
-                    <Name>DecodeJWT.FromExternalIdToken</Name>
                 </Step>
                 <!-- Using pattern from https://community.apigee.com/questions/34110/how-can-i-store-the-results-of-the-servicecallout.html
                     Steps are:

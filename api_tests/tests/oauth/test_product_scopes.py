@@ -344,27 +344,66 @@ class TestProductScopes:
     ):
         test_product, test_product2, test_app = test_app_and_product
 
+        # Given
+        expected_status_code = 401
+        expected_error = 'unauthorized_client'
+        expected_error_description = 'you have tried to requests authorization but your application is not configured to use this authorization grant type'
+
+        # When
         await test_product.update_scopes(product_1_scopes)
         await test_product2.update_scopes(product_2_scopes)
 
         callback_url = await test_app.get_callback_url()
 
-        assert helper.check_endpoint(
-            verb="GET",
-            endpoint=f"{config.OAUTH_BASE_URI}/{config.OAUTH_PROXY}/authorize",
-            expected_status_code=401,
-            expected_response={
-                "error": "unauthorized_client",
-                "error_description": "you have tried to requests authorization but "
-                                     "your application is not configured to use this authorization grant type"
-            },
+        response = await self.oauth.hit_oauth_endpoint(
+            method="GET",
+            endpoint="authorize",
             params={
                 "client_id": test_app.get_client_id(),
                 "redirect_uri": callback_url,
                 "response_type": "code",
-                "state": random.getrandbits(32)
+                "state": "1234567890",
             },
+            allow_redirects=False,
         )
+
+        state = helper.get_param_from_url(
+            url=response["headers"]["Location"], param="state"
+        )
+
+        # Make simulated auth request to authenticate
+        response = await self.oauth.hit_oauth_endpoint(
+            method="POST",
+            endpoint="simulated_auth",
+            params={
+                "response_type": "code",
+                "client_id": test_app.get_client_id(),
+                "redirect_uri": callback_url,
+                "scope": "openid",
+                "state": state,
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data={"state": state},
+            allow_redirects=False,
+        )
+
+        # # Make initial callback request
+        auth_code = helper.get_param_from_url(
+            url=response["headers"]["Location"], param="code"
+        )
+
+        response = await self.oauth.hit_oauth_endpoint(
+            method="GET",
+            endpoint="callback",
+            params={"code": auth_code, "client_id": "some-client-id", "state": state},
+            allow_redirects=False,
+        )
+
+        # Then
+        assert expected_status_code == response['status_code']
+        assert expected_error == response['body']['error']
+        assert expected_error_description == response['body']['error_description']
+
 
     @pytest.mark.token_exchange
     @pytest.mark.errors
