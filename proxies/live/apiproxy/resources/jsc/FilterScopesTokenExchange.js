@@ -1,5 +1,6 @@
 var id_token_acr = context.getVariable('jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.acr');
 var api_product_scopes = String(context.getVariable('original_scope'));
+var idTokenIssuer = context.getVariable('idTokenIssuer');
 if (idTokenIssuer == "nhsCis2") {
     id_token_acr = ':' + id_token_acr.slice(0, 4).toLowerCase() + ':';   
 }
