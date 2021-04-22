@@ -6,7 +6,6 @@ info:
     ## Overview
     Use this API to access the OAuth capabilities of the Identity Service
     
-    
     You can:
     * Get authorization code
     * Exchange authorization code for access token
