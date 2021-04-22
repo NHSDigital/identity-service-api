@@ -560,31 +560,86 @@ class TestOauthEndpoints:
                 },
             ),
             # condition 11: authorization code is invalid
-            (
-                {
-                    "headers": {"Content-Type": "application/x-www-form-urlencoded"},
-                    "data": {
-                        "client_id": "/replace_me",
-                        "client_secret": "/replace_me",
-                        "redirect_uri": "/replace_me",
-                        "grant_type": "authorization_code",
-                        "code": "invalid",
-                    },
-                },
-                {
-                    "status_code": 400,
-                    "body": {
-                        "error": "invalid_grant",
-                        "error_description": "authorization_code is invalid",
-                    },
-                },
-            ),
+            # (
+            #     {
+            #         "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+            #         "data": {
+            #             "client_id": "/replace_me",
+            #             "client_secret": "/replace_me",
+            #             "redirect_uri": "/replace_me",
+            #             "grant_type": "authorization_code",
+            #             "code": "invalid",
+            #         },
+            #     },
+            #     {
+            #         "status_code": 400,
+            #         "body": {
+            #             "error": "invalid_grant",
+            #             "error_description": "authorization_code is invalid",
+            #         },
+            #     },
+            # ),
         ],
     )
     async def test_token_error_conditions(
         self, request_data: dict, expected_response: dict, helper
     ):
         self._update_secrets(request_data)
+
+        # response = await self.oauth.hit_oauth_endpoint(
+        #     method="GET",
+        #     endpoint="authorize",
+        #     params={
+        #         "client_id": request_data["data"]["client_id"],
+        #         "redirect_uri": request_data["data"]["redirect_uri"],
+        #         "response_type": "code",
+        #         "state": "1234567890",
+        #     },
+        #     allow_redirects=False,
+        # )
+
+        # state = helper.get_param_from_url(
+        #     url=response["headers"]["Location"], param="state"
+        # )
+
+        # # Make simulated auth request to authenticate
+        # response = await self.oauth.hit_oauth_endpoint(
+        #     method="POST",
+        #     endpoint="simulated_auth",
+        #     params={
+        #         "response_type": "code",
+        #         "client_id": request_data["data"]["client_id"],
+        #         "redirect_uri": request_data["data"]["redirect_uri"],
+        #         "scope": "openid",
+        #         "state": state,
+        #     },
+        #     headers={"Content-Type": "application/x-www-form-urlencoded"},
+        #     data={"state": state},
+        #     allow_redirects=False,
+        # )
+
+        # # # Make initial callback request
+        # auth_code = helper.get_param_from_url(
+        #     url=response["headers"]["Location"], param="code"
+        # )
+
+        # response = await self.oauth.hit_oauth_endpoint(
+        #     method="GET",
+        #     endpoint="callback",
+        #     params={"code": auth_code, "client_id": "some-client-id", "state": state},
+        #     allow_redirects=False,
+        # )
+
+        # response = await self.oauth.hit_oauth_endpoint(
+        #     method="POST",
+        #     endpoint="token",
+        #     allow_redirects=False,
+        #     **request_data
+        # )
+
+        # assert expected_response["status_code"] == response['status_code']
+        # assert expected_response["body"] == response['body']
+
         assert await helper.send_request_and_check_output(
             expected_status_code=expected_response["status_code"],
             expected_response=expected_response["body"],

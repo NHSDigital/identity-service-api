@@ -565,7 +565,7 @@ class TestProductScopes:
             []
         ),
     ])
-    async def test_token_exchange_user_restricted_scope_combination(
+    async def test_cis2_token_exchange_user_restricted_scope_combination(
         self,
         product_1_scopes,
         product_2_scopes,
@@ -719,3 +719,113 @@ class TestProductScopes:
                 "code": await oauth.get_authenticated_with_simulated_auth(),
             },
         )
+
+    @pytest.mark.token_exchange
+    @pytest.mark.errors
+    @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
+        # Scenario 1: one product with valid scope
+        (
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service'],
+            []
+        ),
+        # Scenario 2: one product with valid scope, one product with invalid scope
+        (
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service'],
+            ['urn:nhsd:apim:app:level3:ambulance-analytics']
+        ),
+        # Scenario 3: multiple products with valid scopes
+        (
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service'],
+            ['urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics']
+        ),
+        # Scenario 4: one product with multiple valid scopes
+        (
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
+             'urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics'],
+            []
+        ),
+        # Scenario 5: multiple products with multiple valid scopes
+        (
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
+             'urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics'],
+            ['urn:nhsd:apim:user-nhs-login:P9:example-1', 'urn:nhsd:apim:user-nhs-login:P9:example-2']
+        ),
+        # Scenario 6: one product with multiple scopes (valid and invalid)
+        (
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
+             'urn:nhsd:apim:app:level3:ambulance-analytics'],
+            []
+        ),
+        # Scenario 7: multiple products with multiple scopes (valid and invalid)
+        (
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
+             'urn:nhsd:apim:app:level3:ambulance-analytics'],
+            ['urn:nhsd:apim:user-nhs-login:P9:example-1', 'urn:nhsd:apim:app:level3:example-2']
+        ),
+        # Scenario 8: one product with valid scope with trailing and leading spaces
+        (
+            [' urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service '],
+            []
+        ),
+    ])
+    async def test_nhs_login_token_exchange_user_restricted_scope_combination(
+        self,
+        product_1_scopes,
+        product_2_scopes,
+        test_app_and_product,
+        helper
+    ):
+        expected_status_code = 200
+        expected_expires_in = '599'
+        expected_token_type = 'Bearer'
+        expected_issued_token_type = 'urn:ietf:params:oauth:token-type:access_token'
+
+        test_product, test_product2, test_app = test_app_and_product
+
+        await test_product.update_scopes(product_1_scopes)
+        await test_product2.update_scopes(product_2_scopes)
+
+        id_token_claims = {
+            "sub": "8dc9fc1d-c3cb-48e1-ba62-b1532539ab6d",
+            "birthdate": "1939-09-26",
+            "nhs_number": "9482807146",
+            "iss": "https://auth.aos.signin.nhs.uk",
+            "nonce": "randomnonce",
+            "vtm": "https://auth.aos.signin.nhs.uk/trustmark/auth.aos.signin.nhs.uk",
+            "aud": "java_test_client",
+            "id_status": "verified",
+            "token_use": "id",
+            "surname": "CARTHY",
+            "auth_time": 1617272144,
+            "vot": "P9.Cp.Cd",
+            "identity_proofing_level": "P9",
+            "exp": int(time()) + 6000,
+            "iat": int(time()) - 100,
+            "family_name": "CARTHY",
+            "jti": "b6d6a28e-b0bb-44e3-974f-bb245c0b688a"
+        }
+
+        with open(config.ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
+            contents = f.read()
+
+        client_assertion_jwt = self.oauth.create_jwt(kid="test-1", client_id=test_app.client_id)
+        id_token_jwt = self.oauth.create_id_token_jwt(algorithm='RS512', claims=id_token_claims, signing_key=contents)
+
+        # When
+        resp = await self.oauth.get_token_response(
+            grant_type="token_exchange",
+            data={
+                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+                'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
+                'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+                'subject_token': id_token_jwt,
+                'client_assertion': client_assertion_jwt
+            }
+        )
+
+        # Then
+        assert expected_status_code == resp['status_code'], resp['body']
+        assert 'access_token' in resp['body']
+        assert expected_expires_in == resp['body']['expires_in']
+        assert expected_token_type == resp['body']['token_type']
+        assert expected_issued_token_type == resp['body']['issued_token_type']
