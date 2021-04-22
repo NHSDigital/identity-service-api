@@ -789,7 +789,7 @@ class TestProductScopes:
             "sub": "8dc9fc1d-c3cb-48e1-ba62-b1532539ab6d",
             "birthdate": "1939-09-26",
             "nhs_number": "9482807146",
-            "iss": "https://auth.aos.signin.nhs.uk",
+            "iss": "https://internal-dev.api.service.nhs.uk",
             "nonce": "randomnonce",
             "vtm": "https://auth.aos.signin.nhs.uk/trustmark/auth.aos.signin.nhs.uk",
             "aud": "java_test_client",
@@ -809,7 +809,7 @@ class TestProductScopes:
             contents = f.read()
 
         client_assertion_jwt = self.oauth.create_jwt(kid="test-1", client_id=test_app.client_id)
-        id_token_jwt = self.oauth.create_id_token_jwt(algorithm='RS512', claims=id_token_claims, signing_key=contents)
+        id_token_jwt = self.oauth.create_id_token_jwt(kid="nhs-login", algorithm='RS512', claims=id_token_claims, signing_key=contents)
 
         # When
         resp = await self.oauth.get_token_response(
