@@ -7,9 +7,8 @@ if (api_product_scopes == 'null') {
 }
 
 var scopes_list = api_product_scopes.split(" ");
-var regex = new RegExp(id_token_acr);
 var filtered_user_restricted_scopes = scopes_list.filter(scope => {
-    if (regex.test(scope)) {
+    if (api_product_scopes.includes(id_token_acr)) {
         return scope;
     }
 });

@@ -711,13 +711,6 @@
                     <Name>AssignMessage.RefreshTokenExpiryOverride</Name>
                     <Condition>(apigee.can_override_refresh_token != null) and (apigee.can_override_refresh_token = true)</Condition>
                 </Step>
-                <!-- <Step>
-                    <Name>JavaScript.FilterUserRestrictedScopes</Name>
-                </Step>
-                <Step>
-                  <Name>RaiseFault.VerifyAccessLevel</Name>
-                  <Condition>(apigee.user_restricted_scopes = "")</Condition>
-                </Step> -->
                 <Step>
                     <Name>OAuthV2.GenerateAccessToken</Name>
                 </Step>
