@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <LookupCache async="false" continueOnError="false" enabled="true" name="LookupCache.SimulatedAuthAuthMethod">
     <CacheKey>
-        <KeyFragment ref="request.formparam.code"/>
+        <KeyFragment ref="request.queryparam.code"/>
         <KeyFragment>simulated_auth_auth_method</KeyFragment>
     </CacheKey>
     <CacheResource>client-state</CacheResource>

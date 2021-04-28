@@ -764,9 +764,6 @@
                 <Step>
                     <Name>LookupCache.SimulatedAuthCode</Name>
                 </Step>
-                <Step>
-                    <Name>LookupCache.SimulatedAuthAuthMethod</Name>
-                </Step>
                  <Step>
                     <Name>LookupCache.GeneratedIdToken</Name>
                 </Step>
@@ -894,7 +891,7 @@
             <Request>
                 <Step>
                   <Name>RaiseFault.Unauthorized</Name>
-                  <Condition>request.queryparam.client_id NotEquals identity-service-config.cis2.client_id</Condition>                    
+                  <Condition>request.queryparam.client_id NotEquals identity-service-config.cis2.client_id</Condition>
                 </Step>
                 <Step>
                     <Name>LookupCache.OriginalClientInfo</Name>
@@ -1024,6 +1021,9 @@
                     <Name>AssignMessage.DummySecretKey</Name>
                 </Step>
                 <Step>
+                  <Name>LookupCache.SimulatedAuthAuthMethod</Name>
+                </Step>
+                <Step>
                     <Name>GenerateJWT.SimulatedAuth</Name>
                 </Step>
                 <Step>
@@ -1048,7 +1048,7 @@
                 <Step>
                     <Name>AssignMessage.SimulatedAuthCodeRedirect</Name>
                 </Step>
-            </Response>             
+            </Response>
             <Condition>(identity-service-config.cis2.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/callback") and (request.verb = "GET")</Condition>
         </Flow>
         <Flow name="Flow.SimulatedUserAuth">
