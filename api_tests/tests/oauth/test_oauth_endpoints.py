@@ -585,6 +585,7 @@ class TestOauthEndpoints:
         self, request_data: dict, expected_response: dict, helper
     ):
         self._update_secrets(request_data)
+
         assert await helper.send_request_and_check_output(
             expected_status_code=expected_response["status_code"],
             expected_response=expected_response["body"],
@@ -770,6 +771,7 @@ class TestOauthEndpoints:
             "iat": int(time()) - 10,
             "vtm": "https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk",
             "jti": "b68ddb28-e440-443d-8725-dfe0da330118",
+            "identity_proofing_level": "P9"
         }
         id_token_headers = {
             "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",

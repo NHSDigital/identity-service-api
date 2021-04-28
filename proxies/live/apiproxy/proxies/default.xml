@@ -220,13 +220,6 @@
                     <Name>OAuthV2.GenerateAccessTokenDummy</Name>
                 </Step>
                 <Step>
-                    <Name>JavaScript.FilterUserRestrictedScopes</Name>
-                </Step>
-                <Step>
-                    <Name>RaiseFault.VerifyAccessLevel</Name>
-                    <Condition>(apigee.user_restricted_scopes = "")</Condition>
-                </Step>
-                <Step>
                     <Name>AssignMessage.GenerateState</Name>
                 </Step>
                 <Step>
@@ -497,7 +490,7 @@
               <Name>OAuthV2.TokenExchangeGenerateAccessToken</Name>
           </Step>
           <Step>
-              <Name>JavaScript.FilterUserRestrictedScopes</Name>
+              <Name>JavaScript.FilterScopesTokenExchange</Name>
           </Step>
           <Step>
               <Name>RaiseFault.VerifyAccessLevel</Name>
@@ -774,6 +767,16 @@
                 <Step>
                     <Name>LookupCache.SimulatedAuthAuthMethod</Name>
                 </Step>
+                 <Step>
+                    <Name>LookupCache.GeneratedIdToken</Name>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.InvalidAuthorizationCode</Name>
+                    <Condition>jwt.GenerateJWT.SimulatedAuth.generated_jwt = null</Condition>
+                </Step>
+                <Step>
+                    <Name>DecodeJWT.FromGeneratedIdTokenSimulatedAuth</Name>
+                </Step>
                 <!-- Next 3 verify that the request is within the set rate limits
                      If rate limit reached error message returned (in fault rule) -->
                 <Step>
@@ -801,16 +804,7 @@
                     <Condition>(apigee.can_override_refresh_token != null) and (apigee.can_override_refresh_token = true)</Condition>
                 </Step>
                 <Step>
-                    <Name>AssignMessage.DummySecretKey</Name>
-                </Step>
-                <Step>
-                    <Name>GenerateJWT.SimulatedAuth</Name>
-                </Step>
-                <Step>
-                    <Name>DecodeJWT.FromGeneratedIdTokenSimulatedAuth</Name>
-                </Step>
-                <Step>
-                    <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>
+                  <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>
                 </Step>
             </Request>
             <Response>
@@ -936,9 +930,6 @@
                     <Name>RaiseFault.JWTClaimsInvalid</Name>
                     <Condition>claims_validation.is_valid == false</Condition>
                 </Step>
-                <Step>
-                    <Name>DecodeJWT.FromExternalIdToken</Name>
-                </Step>
                 <!-- Using pattern from https://community.apigee.com/questions/34110/how-can-i-store-the-results-of-the-servicecallout.html
                     Steps are:
                     1. LookupCache.JWKS: Attempt to get JWKS from cache, store in flow variable `jwks`
@@ -975,6 +966,13 @@
                 </Step>
                 <Step>
                     <Name>Quota</Name>
+                </Step>
+                <Step>
+                    <Name>JavaScript.FilterUserRestrictedScopes</Name>
+                </Step>
+                <Step>
+                  <Name>RaiseFault.VerifyAccessLevel</Name>
+                  <Condition>(apigee.user_restricted_scopes = "")</Condition>
                 </Step>
             </Request>
             <Response>
@@ -1022,10 +1020,29 @@
                 <Step>
                     <Name>Quota</Name>
                 </Step>
+                <Step>
+                    <Name>AssignMessage.DummySecretKey</Name>
+                </Step>
+                <Step>
+                    <Name>GenerateJWT.SimulatedAuth</Name>
+                </Step>
+                <Step>
+                    <Name>DecodeJWT.FromGeneratedIdTokenSimulatedAuth</Name>
+                </Step>
+                <Step>
+                    <Name>JavaScript.FilterUserRestrictedScopesSimulatedAuth</Name>
+                </Step>
+                <Step>
+                  <Name>RaiseFault.VerifyAccessLevel</Name>
+                  <Condition>(apigee.user_restricted_scopes = "")</Condition>
+                </Step>
             </Request>
             <Response>
                 <Step>
                     <Name>OAuthV2.GenerateSimulatedAuthCode</Name>
+                </Step>
+                <Step>
+                    <Name>PopulateCache.GeneratedIdToken</Name>
                 </Step>
                 <!-- Re-create the redirect so scope query param isn't included -->
                 <Step>
