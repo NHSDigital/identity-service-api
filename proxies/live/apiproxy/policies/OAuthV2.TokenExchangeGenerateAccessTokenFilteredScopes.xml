@@ -13,6 +13,7 @@
     <GrantType>request.formparam.grant_type</GrantType>
     <GenerateResponse enabled="false"/>
     <Attributes>
+        <Attribute name="id_token-subject" ref="jwt.VerifyJWT.SubjectToken.claim.subject" display="true"/>
         <Attribute name="id_token" display="true" ref="request.formparam.subject_token"/>
         <Attribute name="id_token-issuer" ref="jwt.VerifyJWT.SubjectToken.claim.issuer" display="true"/>
         <Attribute name="grant_type" display="true">urn:ietf:params:oauth:grant-type:token-exchange</Attribute>
