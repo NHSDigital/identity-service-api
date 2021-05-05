@@ -493,6 +493,10 @@
               <Name>JavaScript.FilterScopesTokenExchange</Name>
           </Step>
           <Step>
+              <Name>RaiseFault.MissingScopeClaim</Name>
+              <Condition>isError = true</Condition>
+          </Step>
+          <Step>
               <Name>RaiseFault.VerifyAccessLevel</Name>
               <Condition>(apigee.user_restricted_scopes = "")</Condition>
           </Step>
