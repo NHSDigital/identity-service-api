@@ -1,43 +1,38 @@
 [project]
 python = "^3.8"
 
-
 [tool.poetry]
-name = "apim-definitions"
+name = "auth-service"
 version = "0.0.1-alpha"
-description = "Template API Definitions"
-
-license = "MIT"
-
-authors = [
-    #TODO add authors
-]
-
+description = ""
+authors = []
 readme = 'README.md'
-
-repository = "https://github.com/NHSDigital/template-api"
+license = "MIT"
+repository = "https://github.com/NHSDigital/identity-service-api"
 homepage = ""
-
-keywords = ["healthcare", "uk", "nhs"] #TODO add additional keywords
-
+keywords = ["healthcare", "uk", "nhs"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
+
+
+[tool.poetry.dev-dependencies]
 pyyaml = "^5.2"
 docopt = "^0.6.2"
 jsonpath-rw = "^1.4.0"
 semver = "^2.9.0"
 gitpython = "^3.0.5"
-
-
-[tool.poetry.dev-dependencies]
 flake8 = "^3.7.9"
 black = "^19.10b0"
 pip-licenses = "^2.0.1"
 jinja2 = "^2.11.1"
-pytest = "^5.4.2"
 bandit = "^1.6.2"
 autopep8 = "^1.5.4"
-
+requests = "^2.25.0"
+pytest = "^6.1.2"
+pytest-xdist = "^2.1.0"
+pytest-sugar = "^0.9.4"
+api-test-utils = {url = "https://github.com/NHSDigital/apim-test-utils/releases/download/v1.0.86-alpha/api_test_utils-1.0.86a0-py3-none-any.whl"}
+python-dotenv = "^0.17.1"
 
 [tool.poetry.scripts]

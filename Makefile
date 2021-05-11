@@ -46,7 +46,8 @@ sandbox: update-examples
 build-proxy:
 	scripts/build_proxy.sh
 
+_dist_include="pytest.ini poetry.lock poetry.toml pyproject.toml Makefile build/. api_tests"
+
 release: clean publish build-proxy
 	mkdir -p dist
-	cp -r build/. dist
-	cp -r api_tests dist
+	for f in $(_dist_include); do cp -r $$f dist; done
