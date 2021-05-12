@@ -313,6 +313,9 @@
                     <Name>VerifyAPIKey.FromJWT</Name>
                 </Step>
                 <Step>
+                    <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJWT</Name>
+                </Step>
+                <Step>
                     <Name>SpikeArrest</Name>
                 </Step>
                 <Step>
@@ -419,6 +422,9 @@
             </Step>
             <Step>
                 <Name>VerifyAPIKey.FromJWT</Name>
+            </Step>
+            <Step>
+                <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJWT</Name>
             </Step>
             <Step>
                 <Name>SpikeArrest</Name>
