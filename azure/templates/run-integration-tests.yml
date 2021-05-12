@@ -3,13 +3,21 @@ parameters:
     type: string
 
 steps:
+
+  - task: s3-cache-action@1
+    inputs:
+      key: 'poetry | ./poetry.lock'
+      location: '.venv'
+      debug: true
+      workingDirectory: $(SERVICE_DIR)
+    name: poetryCache
+    displayName: cache python dependencies
+
   - bash: |
-      pip install virtualenv
-      virtualenv test_env
-      source ./test_env/bin/activate
-      pip install -r requirements.txt
-    workingDirectory: $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests
-    displayName: Setup integration tests
+      make install-python
+    workingDirectory: $(SERVICE_DIR)
+    condition: ne(variables['poetryCache.cacheRestored'], 'true')
+    displayName: poetry install
     
   - template: "azure/components/aws-assume-role.yml@common"
     parameters:
@@ -36,12 +44,12 @@ steps:
       export JWT_PRIVATE_KEY_ABSOLUTE_PATH="$(Pipeline.Workspace)/secrets/$(JWT_TESTING_PRIVATE_KEY)"
       export APIGEE_API_TOKEN="$(secret.AccessToken)"
       pytest -v --junitxml=test-report.xml --reruns 2 --reruns-delay 1
-    workingDirectory: $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests
+    workingDirectory: $(SERVICE_DIR)/api_tests
     displayName: Run integration tests
 
   - task: PublishTestResults@2
     displayName: 'Publish integration test results'
     condition: always()
     inputs:
-      testResultsFiles: '$(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests/test-report.xml'
+      testResultsFiles: '$(SERVICE_DIR)/api_tests/test-report.xml'
       failTaskOnFailedTests: true
