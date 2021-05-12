@@ -1,14 +1,10 @@
+from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
 from api_tests.scripts import config
 import pytest
-from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
 from api_test_utils.apigee_api_products import ApigeeApiProducts
 from api_test_utils.oauth_helper import OauthHelper
-import random
-import requests
-import jwt
-from uuid import uuid4
+from api_test_utils.apigee_api_trace import ApigeeApiTraceDebug
 from time import time, sleep
-import json
 
 
 @pytest.mark.asyncio
@@ -56,66 +52,86 @@ class TestProductScopes:
 
     @pytest.mark.apm_1701
     @pytest.mark.happy_path
-    @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
+    @pytest.mark.parametrize('product_1_scopes, product_2_scopes, expected_filtered_scopes', [
         # Scenario 1: one product with valid scope
         (
             ['urn:nhsd:apim:app:level3:personal-demographics'],
-            []
+            [],
+            ['urn:nhsd:apim:app:level3:personal-demographics']
         ),
         # Scenario 2: one product with valid scope, one product with invalid scope
         (
             ['urn:nhsd:apim:app:level3:personal-demographics-service'],
-            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service']
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
+            ['urn:nhsd:apim:app:level3:personal-demographics-service']
         ),
         # Scenario 3: multiple products with valid scopes
         (
             ['urn:nhsd:apim:app:level3:personal-demographics-service'],
-            ['urn:nhsd:apim:app:level3:ambulance-analytics']
+            ['urn:nhsd:apim:app:level3:ambulance-analytics'],
+            ['urn:nhsd:apim:app:level3:personal-demographics-service','urn:nhsd:apim:app:level3:ambulance-analytics']
         ),
         # Scenario 4: one product with multiple valid scopes
         (
             ['urn:nhsd:apim:app:level3:personal-demographics', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
-            []
+            [],
+            ['urn:nhsd:apim:app:level3:personal-demographics', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
         ),
         # Scenario 5: multiple products with multiple valid scopes
         (
             ['urn:nhsd:apim:app:level3:personal-demographics', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
-            ['urn:nhsd:apim:app:level3:example-1', 'urn:nhsd:apim:app:level3:example-2']
+            ['urn:nhsd:apim:app:level3:example-1', 'urn:nhsd:apim:app:level3:example-2'],
+            ['urn:nhsd:apim:app:level3:personal-demographics',
+             'urn:nhsd:apim:app:level3:ambulance-analytics',
+             'urn:nhsd:apim:app:level3:example-1',
+             'urn:nhsd:apim:app:level3:example-2']
         ),
         # Scenario 6: one product with multiple scopes (valid and invalid)
         (
             ['urn:nhsd:apim:app:level3:ambulance-analytics',
-            'urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
-            []
+             'urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
+            [],
+            ['urn:nhsd:apim:app:level3:ambulance-analytics']
         ),
         # Scenario 7: multiple products with multiple scopes (valid and invalid)
         (
             ['urn:nhsd:apim:app:level3:ambulance-analytics',
-            'urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
-            ['urn:nhsd:apim:app:level3:example-1', 'urn:nhsd:apim:user-nhs-id:aal3:example-2']
+             'urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
+            ['urn:nhsd:apim:app:level3:example-1', 'urn:nhsd:apim:user-nhs-id:aal3:example-2'],
+            ['urn:nhsd:apim:app:level3:ambulance-analytics',
+             'urn:nhsd:apim:app:level3:example-1']
         ),
         # Scenario 8: one product with valid scope with trailing and leading spaces
         (
             [' urn:nhsd:apim:app:level3:ambulance-analytics '],
-            []
+            [],
+            ['urn:nhsd:apim:app:level3:ambulance-analytics']
         ),
     ])
     async def test_valid_application_restricted_scope_combination(
         self,
         product_1_scopes,
         product_2_scopes,
+        expected_filtered_scopes,
         test_app_and_product,
     ):
         test_product, test_product2, test_app = test_app_and_product
+        apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME)
 
         await test_product.update_scopes(product_1_scopes)
         await test_product2.update_scopes(product_2_scopes)
 
         jwt = self.oauth.create_jwt(kid='test-1', client_id=test_app.client_id)
+        await apigee_trace.start_trace()
         resp = await self.oauth.get_token_response(grant_type="client_credentials", _jwt=jwt)
+
+        application_scope = await apigee_trace.get_apigee_variable_from_trace(name='apigee.application_restricted_scopes')
+        assert application_scope is not None, 'variable apigee.user_restricted_scopes not found in the trace'
+        application_scope = application_scope.split(" ")
 
         assert list(resp['body'].keys()) == ['access_token', 'expires_in', 'token_type', 'issued_at']
         assert resp['status_code'] == 200
+        assert application_scope.sort() == expected_filtered_scopes.sort()
 
     @pytest.mark.apm_1701
     @pytest.mark.errors
@@ -125,7 +141,7 @@ class TestProductScopes:
             [],
             []
         ),
-        # Scenario 2: one product with invalid scope, one product with no scope
+        # Scenario 2: one product with test_user_restricted_scope_combinationinvalid scope, one product with no scope
         (
             ['urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service'],
             []
@@ -198,56 +214,65 @@ class TestProductScopes:
 
     @pytest.mark.apm_1701
     @pytest.mark.happy_path
-    @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
+    @pytest.mark.parametrize('product_1_scopes, product_2_scopes, expected_filtered_scopes', [
         # Scenario 1: one product with valid scope
         (
             ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
-            []
+            [],
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service']
         ),
         # Scenario 2: one product with valid scope, one product with invalid scope
         (
             ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
-            ['urn:nhsd:apim:app:level3:ambulance-analytics']
+            ['urn:nhsd:apim:app:level3:ambulance-analytics'],
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service']
         ),
         # Scenario 3: multiple products with valid scopes
         (
             ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
-            ['urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics']
+            ['urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics'],
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service', 'urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics']
         ),
         # Scenario 4: one product with multiple valid scopes
         (
             ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service',
              'urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics'],
-            []
+            [],
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service','urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics']
         ),
         # Scenario 5: multiple products with multiple valid scopes
         (
             ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service',
              'urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics'],
-            ['urn:nhsd:apim:user-nhs-id:aal3:example-1', 'urn:nhsd:apim:user-nhs-id:aal3:example-2']
+            ['urn:nhsd:apim:user-nhs-id:aal3:example-1', 'urn:nhsd:apim:user-nhs-id:aal3:example-2'],
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service', 'urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics', 'urn:nhsd:apim:user-nhs-id:aal3:example-1', 'urn:nhsd:apim:user-nhs-id:aal3:example-2']
         ),
         # Scenario 6: one product with multiple scopes (valid and invalid)
         (
             ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service',
              'urn:nhsd:apim:app:level3:ambulance-analytics'],
-            []
+            [],
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service']
         ),
         # Scenario 7: multiple products with multiple scopes (valid and invalid)
         (
             ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service',
              'urn:nhsd:apim:app:level3:ambulance-analytics'],
-            ['urn:nhsd:apim:user-nhs-id:aal3:example-1', 'urn:nhsd:apim:app:level3:example-2']
+            ['urn:nhsd:apim:user-nhs-id:aal3:example-1', 'urn:nhsd:apim:app:level3:example-2'],
+            ['urn:nhsd:apim:user-nhs-id:aal3:example-1', 'urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service']
         ),
         # Scenario 8: one product with valid scope with trailing and leading spaces
         (
             [' urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service '],
-            []
+            [],
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service']
         ),
     ])
     async def test_user_restricted_scope_combination(
         self,
         product_1_scopes,
         product_2_scopes,
+        expected_filtered_scopes,
         test_app_and_product,
         helper
     ):
@@ -255,10 +280,13 @@ class TestProductScopes:
 
         await test_product.update_scopes(product_1_scopes)
         await test_product2.update_scopes(product_2_scopes)
+        apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME)
 
         callback_url = await test_app.get_callback_url()
-
         oauth = OauthHelper(test_app.client_id, test_app.client_secret, callback_url)
+
+        apigee_trace.add_trace_filter(header_name="Auto-Test-Header", header_value="flow-callback")
+        await apigee_trace.start_trace()
 
         assert helper.check_endpoint(
             verb="POST",
@@ -280,6 +308,11 @@ class TestProductScopes:
                 "code": await oauth.get_authenticated_with_simulated_auth(),
             },
         )
+
+        user_restricted_scopes = await apigee_trace.get_apigee_variable_from_trace(name='apigee.user_restricted_scopes')
+        assert user_restricted_scopes is not None, 'variable apigee.user_restricted_scopes not found in the trace'
+        user_restricted_scopes = user_restricted_scopes.split(" ")
+        assert expected_filtered_scopes.sort() == user_restricted_scopes.sort()
 
     @pytest.mark.apm_1701
     @pytest.mark.errors
@@ -404,7 +437,6 @@ class TestProductScopes:
         assert expected_error == response['body']['error']
         assert expected_error_description == response['body']['error_description']
 
-
     @pytest.mark.token_exchange
     @pytest.mark.errors
     @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
@@ -519,56 +551,70 @@ class TestProductScopes:
 
     @pytest.mark.token_exchange
     @pytest.mark.errors
-    @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
+    @pytest.mark.parametrize('product_1_scopes, product_2_scopes, expected_filtered_scopes', [
         # Scenario 1: one product with valid scope
         (
             ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
-            []
+            [],
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service']
         ),
         # Scenario 2: one product with valid scope, one product with invalid scope
         (
             ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
-            ['urn:nhsd:apim:app:level3:ambulance-analytics']
+            ['urn:nhsd:apim:app:level3:ambulance-analytics'],
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service']
         ),
         # Scenario 3: multiple products with valid scopes
         (
             ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
-            ['urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics']
+            ['urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics'],
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service',
+             'urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics']
         ),
         # Scenario 4: one product with multiple valid scopes
         (
             ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service',
              'urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics'],
-            []
+            [],
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service',
+             'urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics']
         ),
         # Scenario 5: multiple products with multiple valid scopes
         (
             ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service',
              'urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics'],
-            ['urn:nhsd:apim:user-nhs-id:aal3:example-1', 'urn:nhsd:apim:user-nhs-id:aal3:example-2']
+            ['urn:nhsd:apim:user-nhs-id:aal3:example-1', 'urn:nhsd:apim:user-nhs-id:aal3:example-2'],
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service',
+             'urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics',
+             'urn:nhsd:apim:user-nhs-id:aal3:example-1', 'urn:nhsd:apim:user-nhs-id:aal3:example-2']
         ),
         # Scenario 6: one product with multiple scopes (valid and invalid)
         (
             ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service',
              'urn:nhsd:apim:app:level3:ambulance-analytics'],
-            []
+            [],
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service']
         ),
         # Scenario 7: multiple products with multiple scopes (valid and invalid)
         (
             ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service',
              'urn:nhsd:apim:app:level3:ambulance-analytics'],
-            ['urn:nhsd:apim:user-nhs-id:aal3:example-1', 'urn:nhsd:apim:app:level3:example-2']
+            ['urn:nhsd:apim:user-nhs-id:aal3:example-1', 'urn:nhsd:apim:app:level3:example-2'],
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service',
+             'urn:nhsd:apim:user-nhs-id:aal3:example-1']
         ),
         # Scenario 8: one product with valid scope with trailing and leading spaces
         (
             [' urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service '],
-            []
+            [],
+            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service']
         ),
     ])
     async def test_cis2_token_exchange_user_restricted_scope_combination(
         self,
         product_1_scopes,
         product_2_scopes,
+        expected_filtered_scopes,
         test_app_and_product,
         helper
     ):
@@ -581,6 +627,7 @@ class TestProductScopes:
 
         await test_product.update_scopes(product_1_scopes)
         await test_product2.update_scopes(product_2_scopes)
+        apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME)
 
         id_token_claims = {
             'at_hash': 'tf_-lqpq36lwO7WmSBIJ6Q',
@@ -605,6 +652,7 @@ class TestProductScopes:
 
         client_assertion_jwt = self.oauth.create_jwt(kid="test-1", client_id=test_app.client_id)
         id_token_jwt = self.oauth.create_id_token_jwt(kid="identity-service-tests-1", claims=id_token_claims)
+        await apigee_trace.start_trace()
 
         # When
         resp = await self.oauth.get_token_response(
@@ -618,12 +666,17 @@ class TestProductScopes:
             }
         )
 
+        filtered_scopes = await apigee_trace.get_apigee_variable_from_trace(name='apigee.user_restricted_scopes')
+        assert filtered_scopes is not None, 'variable apigee.user_restricted_scopes not found in the trace'
+        filtered_scopes = filtered_scopes.split(" ")
+
         # Then
         assert expected_status_code == resp['status_code'], resp['body']
         assert 'access_token' in resp['body']
         assert expected_expires_in == resp['body']['expires_in']
         assert expected_token_type == resp['body']['token_type']
         assert expected_issued_token_type == resp['body']['issued_token_type']
+        assert expected_filtered_scopes.sort() == filtered_scopes.sort()
 
     @pytest.mark.parametrize('external_scope', [
         # passing in external scopes via form params
@@ -659,7 +712,7 @@ class TestProductScopes:
         '$£$12vdg@@fd',
         '   external  scope',
         ['urn:nhsd:apim:user:aal3personal-demographics-service', 'urn:nhsd:apim:app:level3:example-2']
-    ])    
+    ])
     async def test_token_exchange_remove_external_scopes(self, test_app_and_product, external_scope):
         client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
         id_token_jwt = self.oauth.create_id_token_jwt()
@@ -686,7 +739,7 @@ class TestProductScopes:
         '$£$12vdg@@fd',
         '   external  scope',
         ['urn:nhsd:apim:user:aal3personal-demographics-service', 'urn:nhsd:apim:app:level3:example-2']
-    ])    
+    ])
     async def test_authorization_code_flow_remove_external_scopes(self, test_app_and_product, helper, external_scope):
         product_scope=['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service']
         test_product, test_product2, test_app = test_app_and_product
@@ -722,56 +775,72 @@ class TestProductScopes:
 
     @pytest.mark.token_exchange
     @pytest.mark.errors
-    @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
+    @pytest.mark.parametrize('product_1_scopes, product_2_scopes, expected_filtered_scopes', [
         # Scenario 1: one product with valid scope
         (
             ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service'],
-            []
+            [],
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service']
+
         ),
         # Scenario 2: one product with valid scope, one product with invalid scope
         (
             ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service'],
-            ['urn:nhsd:apim:app:level3:ambulance-analytics']
+            ['urn:nhsd:apim:app:level3:ambulance-analytics'],
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service']
         ),
         # Scenario 3: multiple products with valid scopes
         (
             ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service'],
-            ['urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics']
+            ['urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics'],
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service,'
+             'urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics']
         ),
         # Scenario 4: one product with multiple valid scopes
         (
             ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
              'urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics'],
-            []
+            [],
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
+             'urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics']
         ),
         # Scenario 5: multiple products with multiple valid scopes
         (
             ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
              'urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics'],
-            ['urn:nhsd:apim:user-nhs-login:P9:example-1', 'urn:nhsd:apim:user-nhs-login:P9:example-2']
+            ['urn:nhsd:apim:user-nhs-login:P9:example-1', 'urn:nhsd:apim:user-nhs-login:P9:example-2'],
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
+             'urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics',
+             'urn:nhsd:apim:user-nhs-login:P9:example-1',
+             'urn:nhsd:apim:user-nhs-login:P9:example-2']
         ),
         # Scenario 6: one product with multiple scopes (valid and invalid)
         (
             ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
              'urn:nhsd:apim:app:level3:ambulance-analytics'],
-            []
+            [],
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service']
         ),
         # Scenario 7: multiple products with multiple scopes (valid and invalid)
         (
             ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
              'urn:nhsd:apim:app:level3:ambulance-analytics'],
-            ['urn:nhsd:apim:user-nhs-login:P9:example-1', 'urn:nhsd:apim:app:level3:example-2']
+            ['urn:nhsd:apim:user-nhs-login:P9:example-1', 'urn:nhsd:apim:app:level3:example-2'],
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
+             'urn:nhsd:apim:user-nhs-login:P9:example-1']
         ),
         # Scenario 8: one product with valid scope with trailing and leading spaces
         (
             [' urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service '],
-            []
+            [],
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service']
         ),
     ])
     async def test_nhs_login_token_exchange_user_restricted_scope_combination(
         self,
         product_1_scopes,
         product_2_scopes,
+        expected_filtered_scopes,
         test_app_and_product,
         helper
     ):
@@ -784,6 +853,7 @@ class TestProductScopes:
 
         await test_product.update_scopes(product_1_scopes)
         await test_product2.update_scopes(product_2_scopes)
+        apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME)
 
         id_token_claims = {
             "sub": "8dc9fc1d-c3cb-48e1-ba62-b1532539ab6d",
@@ -810,6 +880,7 @@ class TestProductScopes:
 
         client_assertion_jwt = self.oauth.create_jwt(kid="test-1", client_id=test_app.client_id)
         id_token_jwt = self.oauth.create_id_token_jwt(kid="nhs-login", algorithm='RS512', claims=id_token_claims, signing_key=contents)
+        await apigee_trace.start_trace()
 
         # When
         resp = await self.oauth.get_token_response(
@@ -822,6 +893,9 @@ class TestProductScopes:
                 'client_assertion': client_assertion_jwt
             }
         )
+        filtered_scopes = await apigee_trace.get_apigee_variable_from_trace(name='apigee.user_restricted_scopes')
+        assert filtered_scopes is not None, 'variable apigee.user_restricted_scopes not found in the trace'
+        filtered_scopes = filtered_scopes.split(" ")
 
         # Then
         assert expected_status_code == resp['status_code'], resp['body']
@@ -829,6 +903,7 @@ class TestProductScopes:
         assert expected_expires_in == resp['body']['expires_in']
         assert expected_token_type == resp['body']['token_type']
         assert expected_issued_token_type == resp['body']['issued_token_type']
+        assert expected_filtered_scopes.sort() == filtered_scopes.sort()
 
     @pytest.mark.token_exchange
     @pytest.mark.errors
