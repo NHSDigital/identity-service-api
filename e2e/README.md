@@ -40,15 +40,6 @@ for setup and instructions for Windows, Linux or Mac users
 $ make setup
 ```
 
-### Install locally
-Navigate to the /api_tests folder and run the commands:
-```shell
-$ pip install virtualenv
-$ virtualenv test_env
-$ source ./test_env/bin/activate
-(test_env) $ pip install -r requirements.txt
-```
-
 ### Environment Variables
 Before you can start creating and running tests you need to configure all the required environment variables.
 See list of required variables below

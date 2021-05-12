@@ -1,8 +1,8 @@
-from api_tests.scripts.config import (
+from e2e.scripts.config import (
     OAUTH_URL,
     ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
 )
-from api_tests.scripts.response_bank import BANK
+from e2e.scripts.response_bank import BANK
 import pytest
 import random
 from time import time

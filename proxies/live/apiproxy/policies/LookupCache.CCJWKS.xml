@@ -1,0 +1,8 @@
+<LookupCache name='LookupCache.CCJWKS'>
+  <AssignTo>ccjwks</AssignTo>
+  <Scope>Application</Scope>
+  <CacheKey>
+    <KeyFragment ref="verifyapikey.VerifyAPIKey.FromJWT.client_id"/>
+    <KeyFragment>ccjwks-scope</KeyFragment>
+  </CacheKey>
+</LookupCache>

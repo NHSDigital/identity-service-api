@@ -40,13 +40,11 @@ deploy-spec: update-examples
 format:
 	poetry run black **/*.py
 
-sandbox: update-examples
-	cd sandbox && npm run start
-
 build-proxy:
 	scripts/build_proxy.sh
 
+_dist_include="pytest.ini poetry.lock poetry.toml pyproject.toml Makefile build/. e2e"
+
 release: clean publish build-proxy
 	mkdir -p dist
-	cp -r build/. dist
-	cp -r api_tests dist
+	for f in $(_dist_include); do cp -r $$f dist; done
