@@ -1,13 +1,11 @@
 var aud_claim = context.getVariable("jwt.DecodeJWT.FromExternalIdToken.decoded.claim.aud");
 var iss_claim = context.getVariable("jwt.DecodeJWT.FromExternalIdToken.decoded.claim.iss");
-var authorize_endpoint = context.getVariable("identity-service-config.cis2.authorize_endpoint");
 
 var client_id = context.getVariable("identity-service-config.cis2.client_id");
 
 aud_claim = JSON.parse(aud_claim);
             
-var index = authorize_endpoint.indexOf('/authorize')
-var base_url = authorize_endpoint.slice(0, index)
+var base_url = context.getVariable("identity-service-config.cis2.issuer");
 
 
 if(aud_claim != client_id)
