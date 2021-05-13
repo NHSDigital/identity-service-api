@@ -1,0 +1,7 @@
+<AssignMessage name='AssignMessage.CCJWKS'>
+  <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
+  <AssignVariable>
+    <Name>ccjwks</Name>
+    <Ref>ccjwks_callout_response.content</Ref>
+  </AssignVariable>
+</AssignMessage>
