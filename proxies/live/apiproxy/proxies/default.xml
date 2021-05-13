@@ -568,6 +568,10 @@
                     <Name>LookupCache.ExternalAccessToken</Name>
                 </Step>
                 <Step>
+                    <Name>RaiseFault.InvalidAuthorizationCode</Name>
+                    <Condition>externalIdToken = null</Condition>
+                </Step>
+                <Step>
                     <Name>DecodeJWT.FromExternalIdToken</Name>
                 </Step>
                 <!-- Next 3 steps allow optional REDUCTION of access_token_expiry and refresh_token_expiry  KVM values
