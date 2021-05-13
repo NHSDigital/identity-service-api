@@ -8,12 +8,16 @@
 APIGEE_ENVIRONMENTS:
 - display_name: Internal Development
   name: internal-dev
+  rate_limit: 6000
 - display_name: Internal Development Sandbox
   name: internal-dev-sandbox
+  rate_limit: 6000
 - display_name: Internal QA
   name: internal-qa
+  rate_limit: 6000
 - display_name: Internal QA Sandbox
   name: internal-qa-sandbox
+  rate_limit: 6000
 - display_name: Reference
   name: ref
   rate_limit: 300000
