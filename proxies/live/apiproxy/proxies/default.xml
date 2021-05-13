@@ -700,11 +700,13 @@
                 <Step>
                     <Name>KeyValueMapOperations.GetSecureVariables</Name>
                 </Step>
-                <!-- <Step>
+                <Step>
                     <Name>ServiceCallout.PostToken</Name>
-                </Step> -->
+                    <Condition>(identity-service-config.cis2.simulated_idp NotEquals "true"</Condition>
+                </Step>
                 <Step>
                     <Name>ServiceCallout.SimulatedToken</Name>
+                    <Condition>(identity-service-config.cis2.simulated_idp Equals "true"</Condition>
                 </Step>
                 <Step>
                     <Name>ExtractVariables.AccessToken</Name>

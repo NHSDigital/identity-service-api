@@ -1,9 +1,0 @@
-<LookupCache async="false" continueOnError="false" enabled="true" name="LookupCache.SimulatedAuthCode">
-  <CacheKey>
-    <KeyFragment ref="request.formparam.code"/>
-    <KeyFragment>simulated_auth_code</KeyFragment>
-  </CacheKey>
-  <CacheResource>client-state</CacheResource>
-  <Scope>Exclusive</Scope>
-  <AssignTo>authorization_code</AssignTo>
-</LookupCache>
