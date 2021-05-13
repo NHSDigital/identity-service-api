@@ -1,5 +1,5 @@
 from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
-from api_tests.scripts import config
+from e2e.scripts import config
 import pytest
 from api_test_utils.apigee_api_products import ApigeeApiProducts
 from api_test_utils.oauth_helper import OauthHelper
