@@ -335,7 +335,19 @@
                     <Name>Javascript.SetServiceCalloutUrl</Name>
                 </Step>
                 <Step>
-                    <Name>ServiceCallout.ClientCredentialsGrantGetJWKS</Name>
+                  <Name>LookupCache.CCJWKS</Name>
+                </Step>
+                <Step>
+                  <Name>ServiceCallout.ClientCredentialsGrantGetJWKS</Name>
+                  <Condition>ccjwks = null</Condition>
+                </Step>
+                <Step>
+                  <Name>PopulateCache.CCJWKS</Name>
+                  <Condition>ccjwks = null</Condition>
+                </Step>
+                <Step>
+                  <Name>AssignMessage.CCJWKS</Name>
+                  <Condition>ccjwks = null</Condition>
                 </Step>
                 <!-- Not sure this is necessary
           <Step>
@@ -446,7 +458,19 @@
                 <Name>Javascript.SetServiceCalloutUrl</Name>
             </Step>
             <Step>
-                <Name>ServiceCallout.ClientCredentialsGrantGetJWKS</Name>
+              <Name>LookupCache.CCJWKS</Name>
+            </Step>
+            <Step>
+              <Name>ServiceCallout.ClientCredentialsGrantGetJWKS</Name>
+              <Condition>ccjwks = null</Condition>
+            </Step>
+            <Step>
+              <Name>PopulateCache.CCJWKS</Name>
+              <Condition>ccjwks = null</Condition>
+            </Step>
+            <Step>
+              <Name>AssignMessage.CCJWKS</Name>
+              <Condition>ccjwks = null</Condition>
             </Step>
             <Step>
                 <Name>VerifyJWT.ClientCredentials</Name>
@@ -474,19 +498,19 @@
             </Step>
             <Step>
                 <Name>ServiceCallout.cis2GetJWKS</Name>
-                <Condition>jwks = null Or jwksUpdated = false and idTokenIssuer  Equals "nhsCis2"</Condition>
+                <Condition>jwks = null Or jwks_kid_found = false and idTokenIssuer Equals "nhsCis2"</Condition>
             </Step>
             <Step>
                 <Name>ServiceCallout.nhsLoginGetJWKS</Name>
-                <Condition>jwks = null Or jwksUpdated = false and idTokenIssuer  Equals "nhsLogin"</Condition>
+                <Condition>jwks = null Or jwks_kid_found = false and idTokenIssuer Equals "nhsLogin"</Condition>
             </Step>
             <Step>
                 <Name>PopulateCache.TokenExchangeJWKS</Name>
-                <Condition>jwks = null Or jwksUpdated = false</Condition>
+                <Condition>jwks = null Or jwks_kid_found = false</Condition>
             </Step>
             <Step>
                 <Name>AssignMessage.JWKS</Name>
-                <Condition>jwks = null Or jwksUpdated = false</Condition>
+                <Condition>jwks = null Or jwks_kid_found = false</Condition>
             </Step>
             <Step>
                 <Name>VerifyJWT.SubjectToken</Name>
@@ -739,15 +763,15 @@
                 </Step>
                 <Step>
                     <Name>ServiceCallout.GetJWKS</Name>
-                    <Condition>jwks = null Or jwksUpdated = false</Condition>
+                    <Condition>jwks = null Or jwks_kid_found = false</Condition>
                 </Step>
                 <Step>
                     <Name>PopulateCache.JWKS</Name>
-                    <Condition>jwks = null Or jwksUpdated = false</Condition>
+                    <Condition>jwks = null Or jwks_kid_found = false</Condition>
                 </Step>
                 <Step>
                     <Name>AssignMessage.JWKS</Name>
-                    <Condition>jwks = null Or jwksUpdated = false</Condition>
+                    <Condition>jwks = null Or jwks_kid_found = false</Condition>
                 </Step>
                 <Step>
                     <Name>VerifyJWT.FromExternalIdToken</Name>

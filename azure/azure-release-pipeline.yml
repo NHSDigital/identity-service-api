@@ -44,7 +44,7 @@ extends:
         post_deploy:
           - template: ./templates/run-integration-tests.yml
             parameters:
-              service_name: ${{ variables.service_name }}
+              test_type: e2e
       - environment: internal-dev-sandbox
       - environment: internal-qa
         depends_on:
