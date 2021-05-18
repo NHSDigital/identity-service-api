@@ -394,6 +394,19 @@ class TestJwtUnattendedAccess:
         assert resp['status_code'] == 400
         assert resp['body'] == {'error': 'invalid_request', 'error_description': 'Malformed JWT in client_assertion'}
 
+    async def test_no_jwks_resource_url_set(self, test_product, test_app):
+        await test_app.add_api_product([test_product.name])
+
+        jwt = self.oauth.create_jwt(kid='test-1', client_id=test_app.client_id)
+        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
+
+        assert resp['status_code'] == 403
+        assert resp['body'] == {
+                'error': 'public_key error',
+                'error_description': "You need to register a public key to use this authentication method"
+                                     " - please contact support to configure"
+            }
+
     async def test_invalid_jwks_resource_url(self, test_product, test_app):
         await test_app.add_api_product([test_product.name])
         await test_app.set_custom_attributes(attributes={"jwks-resource-url": "http://invalid_url"})
@@ -404,8 +417,7 @@ class TestJwtUnattendedAccess:
         assert resp['status_code'] == 403
         assert resp['body'] == {
                 'error': 'public_key error',
-                'error_description': 'You need to register a public key to use this '
-                                     'authentication method - please contact support to configure'
+                'error_description': "the JWKS endpoint can't be reached"
             }
 
     @pytest.mark.happy_path
@@ -899,7 +911,7 @@ class TestJwtUnattendedAccess:
             "alg": "RS512",
             "jti": "b68ddb28-e440-443d-8725-dfe0da330118"
         }
-        
+
         with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
             contents = f.read()
 
@@ -956,7 +968,7 @@ class TestJwtUnattendedAccess:
             "alg": "RS512",
             "jti": "b68ddb28-e440-443d-8725-dfe0da330118"
         }
-        
+
         with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
             contents = f.read()
 
@@ -1012,7 +1024,7 @@ class TestJwtUnattendedAccess:
             "alg": "RS512",
             "jti": "b68ddb28-e440-443d-8725-dfe0da330118"
         }
-        
+
         with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
             contents = f.read()
 
@@ -1067,7 +1079,7 @@ class TestJwtUnattendedAccess:
             "alg": "RS512",
             "jti": "b68ddb28-e440-443d-8725-dfe0da330118"
         }
-        
+
         with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
             contents = f.read()
 
@@ -1122,7 +1134,7 @@ class TestJwtUnattendedAccess:
             "alg": "RS512",
             "jti": "b68ddb28-e440-443d-8725-dfe0da330118"
         }
-        
+
         with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
             contents = f.read()
 
