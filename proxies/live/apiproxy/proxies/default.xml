@@ -131,15 +131,6 @@
         <Step>
             <Name>AssignMessage.FailedToRetrieveJWKS</Name>
         </Step>
-        <!--
-             Comment out for now:
-             TODO: 
-             * Check that jwks resource url has been set for cc
-             * add fault rule for other callouts 
-         -->
-        <!-- <Step>
-          <Name>AssignMessage.PublicKeyMisconfigured</Name>
-        </Step> -->
       </FaultRule>
       <FaultRule name="state_does_not_exist_in_cache">
         <Condition>extractvariables.ExtractVariables.ReadCacheJson.failed</Condition>
