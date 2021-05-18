@@ -179,16 +179,6 @@
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/_ping") and ((request.verb = "GET") or (request.verb = "HEAD"))</Condition>
         </Flow>
-        <Flow name="simulated_token">
-            <Description/>
-            <Request/>
-            <Response>
-                <Step>
-                    <Name>AssignMessage.SimulatedTokenPayload</Name>
-                </Step>
-            </Response>
-            <Condition>(proxy.pathsuffix MatchesPath "/simulated_token") and (request.verb = "POST")</Condition>
-        </Flow>
         <Flow name="Flow.GetAuthorization">
             <Description>OAuth Authorization Endpoint</Description>
             <Request>
@@ -726,11 +716,6 @@
                 </Step>
                 <Step>
                     <Name>ServiceCallout.PostToken</Name>
-                    <Condition>(identity-service-config.cis2.simulated_idp NotEquals "true"</Condition>
-                </Step>
-                <Step>
-                    <Name>ServiceCallout.SimulatedToken</Name>
-                    <Condition>(identity-service-config.cis2.simulated_idp Equals "true"</Condition>
                 </Step>
                 <Step>
                     <Name>ExtractVariables.AccessToken</Name>
