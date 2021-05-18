@@ -5,7 +5,7 @@
       <Payload contentType="application/json">
         {
           "error": "public_key error",
-          "error_description": "the JWKS endpoint can't be reached",
+          "error_description": "The JWKS endpoint, for your client_assertion can't be reached",
           "message_id": "{messageid}"
         }
       </Payload>
