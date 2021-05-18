@@ -419,7 +419,7 @@ class TestJwtUnattendedAccess:
         assert resp['status_code'] == 403
         assert resp['body'] == {
                 'error': 'public_key error',
-                'error_description': "the JWKS endpoint can't be reached"
+                'error_description': "The JWKS endpoint, for your client_assertion can't be reached"
             }
 
     @pytest.mark.happy_path
@@ -1165,7 +1165,7 @@ class TestJwtUnattendedAccess:
         # Given
         expected_status_code = 403
         expected_error = 'public_key error'
-        expected_error_description = "the JWKS endpoint can't be reached"
+        expected_error_description = "The JWKS endpoint, for your client_assertion can't be reached"
 
         id_token_jwt = self.oauth.create_id_token_jwt()
 
