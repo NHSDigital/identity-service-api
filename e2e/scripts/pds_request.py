@@ -1,4 +1,4 @@
-from api_tests.scripts.generic_request import GenericRequest
+from e2e.scripts.generic_request import GenericRequest
 from json import loads, JSONDecodeError
 from uuid import uuid4
 from requests import Response

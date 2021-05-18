@@ -1,7 +1,7 @@
-from api_tests.scripts.generic_request import GenericRequest
-from api_tests.scripts import config
-from api_tests.scripts.apigee_api import ApigeeDebugApi
-from api_tests.scripts.pds_request import PdsRequest
+from e2e.scripts.generic_request import GenericRequest
+from e2e.scripts import config
+from e2e.scripts.apigee_api import ApigeeDebugApi
+from e2e.scripts.pds_request import PdsRequest
 from requests import Response
 from typing import Union
 

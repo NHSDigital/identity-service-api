@@ -1,9 +1,0 @@
-requests
-pytest
-pytest-xdist
-pytest-sugar
-pyjwt
-cryptography
-python-dotenv
-pytest-rerunfailures
-https://github.com/NHSDigital/apim-test-utils/releases/download/v1.1.6-alpha/api_test_utils-1.1.6a0-py3-none-any.whl

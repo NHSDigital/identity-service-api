@@ -1,4 +1,4 @@
-from api_tests.scripts.config import OAUTH_URL, ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH
+from e2e.scripts.config import OAUTH_URL, ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH
 import pytest
 from uuid import uuid4
 from time import time
@@ -273,11 +273,9 @@ class TestJwtUnattendedAccess:
         jwt = self.oauth.create_jwt(kid="test-1")
         resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
 
-        try:
-            assert resp['body']['expires_in'] == '599', f"UNEXPECTED 'expires_in' {resp['expires_in']}"
-        except KeyError:
-            print(f"UNEXPECTED RESPONSE: {resp}")
-            return False
+        assert resp['status_code'] == 200
+        assert resp['body'].get('expires_in') == '599', f"UNEXPECTED 'expires_in' {resp.get('expires_in')} {resp['body']}"
+
         assert list(resp['body'].keys()) == ['access_token', 'expires_in', 'token_type', 'issued_at'], \
             f'UNEXPECTED RESPONSE: {list(resp["body"].keys())}'
 
@@ -396,8 +394,9 @@ class TestJwtUnattendedAccess:
         assert resp['status_code'] == 400
         assert resp['body'] == {'error': 'invalid_request', 'error_description': 'Malformed JWT in client_assertion'}
 
-    async def test_invalid_jwks_resource_url(self, test_app):
-        test_app.set_custom_attributes(attributes={"jwks_resource_url": "http://invalid_url"})
+    async def test_invalid_jwks_resource_url(self, test_product, test_app):
+        await test_app.add_api_product([test_product.name])
+        await test_app.set_custom_attributes(attributes={"jwks-resource-url": "http://invalid_url"})
 
         jwt = self.oauth.create_jwt(kid='test-1', client_id=test_app.client_id)
         resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
