@@ -452,6 +452,10 @@
                 <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJWT</Name>
             </Step>
             <Step>
+                <Name>RaiseFault.PublicKeyMisconfigured</Name>
+                <Condition>verifyapikey.VerifyAPIKey.FromJWT.jwks-resource-url = null</Condition>
+            </Step>
+            <Step>
                 <Name>SpikeArrest</Name>
             </Step>
             <Step>
