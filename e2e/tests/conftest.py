@@ -68,10 +68,10 @@ def helper():
 
 
 def _set_default_rate_limit(product: ApigeeApiProducts):
-    await product.update_ratelimits(quota=60000,
-                                    quota_interval="1",
-                                    quota_time_unit="minute",
-                                    rate_limit="1000ps")
+    product.update_ratelimits(quota=60000,
+                              quota_interval="1",
+                              quota_time_unit="minute",
+                              rate_limit="1000ps")
 
 
 @pytest.fixture()
@@ -102,7 +102,7 @@ async def _product_with_full_access():
     product = ApigeeApiProducts()
     await product.create_new_product()
     _set_default_rate_limit(product)
-    await product.update_scopes([
+    product.update_scopes([
         "personal-demographics-service:USER-RESTRICTED",
         "urn:nhsd:apim:app:level3:",
         "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
