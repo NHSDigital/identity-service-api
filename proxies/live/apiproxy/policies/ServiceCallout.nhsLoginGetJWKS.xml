@@ -1,7 +1,7 @@
 <ServiceCallout async="false" continueOnError="false" enabled="true" name="ServiceCallout.nhsLoginGetJWKS">
   <Response>jwks_callout_response</Response>
   <!-- This is the default (55 seconds). Including it to make explicit. -->
-  <!-- <Timeout>55000</Timeout>
+  <Timeout>55000</Timeout>
   <HTTPTargetConnection>
     <LoadBalancer>
       <Server name="{{ IDENTITY_PROVIDER_NHS_LOGIN }}"/>
@@ -10,20 +10,5 @@
       <Enabled>true</Enabled>
     </SSLInfo>
     <Path>{jwksPath}</Path>
-  </HTTPTargetConnection> -->
-  <Timeout>55000</Timeout>
-  <Request>
-    <Set>
-      <Verb>GET</Verb>
-      <Path>http://invalid_url</Path>
-    </Set>
-    <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
-  </Request>
-  <Response>ccjwks_callout_response</Response>
-  <HTTPTargetConnection>
-    <SSLInfo>
-      <Enabled>true</Enabled>
-    </SSLInfo>
-    <URL>https://this.will.get.set.via.js.policy</URL>
   </HTTPTargetConnection>
 </ServiceCallout>
