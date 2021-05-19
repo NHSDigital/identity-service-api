@@ -1,11 +1,11 @@
-<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.PublicKeyMisconfigured">
-    <DisplayName>Public Key Misconfigured</DisplayName>
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.FailedToRetrieveJWKS">
+    <DisplayName>Failed To Retrieve JWKS</DisplayName>
     <Set>
       <StatusCode>403</StatusCode>
       <Payload contentType="application/json">
         {
           "error": "public_key error",
-          "error_description": "You need to register a public key to use this authentication method - please contact support to configure",
+          "error_description": "The JWKS endpoint, for your client_assertion can't be reached",
           "message_id": "{messageid}"
         }
       </Payload>

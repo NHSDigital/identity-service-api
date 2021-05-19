@@ -10,5 +10,5 @@
       <Enabled>true</Enabled>
     </SSLInfo>
     <Path>{jwksPath}</Path>
-</HTTPTargetConnection>
+  </HTTPTargetConnection>
 </ServiceCallout>
