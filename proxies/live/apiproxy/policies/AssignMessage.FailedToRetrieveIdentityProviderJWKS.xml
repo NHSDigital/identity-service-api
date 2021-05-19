@@ -1,0 +1,15 @@
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.FailedToRetrieveIdentityProviderJWKS">
+  <DisplayName>Failed To Retrieve Identity Provider JWKS</DisplayName>
+  <Set>
+    <StatusCode>500</StatusCode>
+    <Payload contentType="application/json">
+      {
+        "error": "unknown_error",
+        "error_description": "An unknown error occurred processing this request. Contact us for assistance diagnosing this issue: https://digital.nhs.uk/developer/help-and-support quoting Message ID",
+        "message_id": "{messageid}"
+      }
+    </Payload>
+  </Set>
+  <AssignTo createNew="false" transport="https" type="response"/>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</AssignMessage>

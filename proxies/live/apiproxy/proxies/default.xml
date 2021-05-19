@@ -129,7 +129,13 @@
       <FaultRule name="public_key_misconfigured">
         <Condition>(servicecallout.ServiceCallout.ClientCredentialsGrantGetJWKS.failed Equals true)</Condition>
         <Step>
-          <Name>AssignMessage.PublicKeyMisconfigured</Name>
+            <Name>AssignMessage.FailedToRetrieveJWKS</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="failed_jwks_retrieval_identity_provider">
+        <Condition>(servicecallout.ServiceCallout.nhsLoginGetJWKS.failed Equals true) or (servicecallout.ServiceCallout.cis2GetJWKS.failed Equals true)</Condition>
+        <Step>
+            <Name>AssignMessage.FailedToRetrieveIdentityProviderJWKS</Name>
         </Step>
       </FaultRule>
       <FaultRule name="state_does_not_exist_in_cache">
@@ -316,9 +322,13 @@
                     <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJWT</Name>
                 </Step>
                 <Step>
-                    <Name>SpikeArrest</Name>
+                    <Name>RaiseFault.PublicKeyMisconfigured</Name>
+                    <Condition>verifyapikey.VerifyAPIKey.FromJWT.jwks-resource-url = null</Condition>
                 </Step>
                 <Step>
+                    <Name>SpikeArrest</Name>
+                </Step>
+                <Step>  
                     <Name>Quota</Name>
                 </Step>
                 <Step>
@@ -437,6 +447,10 @@
             </Step>
             <Step>
                 <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJWT</Name>
+            </Step>
+            <Step>
+                <Name>RaiseFault.PublicKeyMisconfigured</Name>
+                <Condition>verifyapikey.VerifyAPIKey.FromJWT.jwks-resource-url = null</Condition>
             </Step>
             <Step>
                 <Name>SpikeArrest</Name>
