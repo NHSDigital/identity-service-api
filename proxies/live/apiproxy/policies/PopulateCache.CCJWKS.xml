@@ -6,6 +6,6 @@
         <KeyFragment>ccjwks-scope</KeyFragment>
     </CacheKey>
     <ExpirySettings>
-        <TimeoutInSeconds>300</TimeoutInSeconds>
+        <TimeoutInSeconds>3600</TimeoutInSeconds>
     </ExpirySettings>
 </PopulateCache>
