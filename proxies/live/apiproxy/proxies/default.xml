@@ -159,6 +159,12 @@
     <PreFlow name="PreFlow">
         <Request>
         <Step>
+            <Name>SpikeArrest</Name>
+        </Step>
+        <Step>  
+            <Name>Quota</Name>
+        </Step>
+        <Step>
             <Name>KeyValueMapOperations.GetIdentityServiceConfig</Name>
         </Step>
         <Step>
