@@ -159,12 +159,6 @@
     <PreFlow name="PreFlow">
         <Request>
         <Step>
-            <Name>SpikeArrest</Name>
-        </Step>
-        <Step>  
-            <Name>Quota</Name>
-        </Step>
-        <Step>
             <Name>KeyValueMapOperations.GetIdentityServiceConfig</Name>
         </Step>
         <Step>
@@ -246,12 +240,12 @@
                 <Step>
                     <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyClientId</Name>
                 </Step>
-                <!-- <Step>
+                <Step>
                     <Name>SpikeArrest</Name>
                 </Step>
                 <Step>
                     <Name>Quota</Name>
-                </Step> -->
+                </Step>
             </Request>
             <Response>
                 <!-- Remove Authorization header if it has been specified -->
@@ -331,12 +325,12 @@
                     <Name>RaiseFault.PublicKeyMisconfigured</Name>
                     <Condition>verifyapikey.VerifyAPIKey.FromJWT.jwks-resource-url = null</Condition>
                 </Step>
-                <!-- <Step>
+                <Step>
                     <Name>SpikeArrest</Name>
                 </Step>
                 <Step>  
                     <Name>Quota</Name>
-                </Step> -->
+                </Step>
                 <Step>
                     <Name>Javascript.SetServiceCalloutUrl</Name>
                 </Step>
@@ -458,12 +452,12 @@
                 <Name>RaiseFault.PublicKeyMisconfigured</Name>
                 <Condition>verifyapikey.VerifyAPIKey.FromJWT.jwks-resource-url = null</Condition>
             </Step>
-            <!-- <Step>
+            <Step>
                 <Name>SpikeArrest</Name>
             </Step>
             <Step>
                 <Name>Quota</Name>
-            </Step> -->
+            </Step>
             <Step>
                 <Name>Javascript.SetServiceCalloutUrl</Name>
             </Step>
@@ -589,12 +583,12 @@
                 <Step>
                     <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
                 </Step>
-                <!-- <Step>
+                <Step>
                     <Name>SpikeArrest</Name>
                 </Step>
                 <Step>
                     <Name>Quota</Name>
-                </Step> -->
+                </Step>
                 <Step>
                     <Name>LookupCache.ExternalIdToken</Name>
                 </Step>
@@ -687,12 +681,12 @@
                 <Step>
                     <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
                 </Step>
-                <!-- <Step>
+                <Step>
                     <Name>SpikeArrest</Name>
                 </Step>
                 <Step>
                     <Name>Quota</Name>
-                </Step> -->
+                </Step>
                 <!-- Next 3 steps allow optional REDUCTION of access_token_expiry and refresh_token_expiry  KVM values
                 using _access_token_expiry_ms/_refresh_token_expiry_ms (respectively) form params -->
                 <Step>
@@ -770,12 +764,12 @@
               <Step>
                 <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
               </Step>
-              <!-- <Step>
+              <Step>
                 <Name>SpikeArrest</Name>
               </Step>
               <Step>
                 <Name>Quota</Name>
-              </Step> -->
+              </Step>
               <Step>
                 <Name>OAuthV2.GenerateRefreshToken</Name>
               </Step>
@@ -815,6 +809,12 @@
                 </Step>
                 <Step>
                     <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJSON</Name>
+                </Step>
+                <Step>
+                    <Name>SpikeArrest</Name>
+                </Step>
+                <Step>
+                    <Name>Quota</Name>
                 </Step>
                 <Step>
                     <Name>KeyValueMapOperations.GetSecureVariables</Name>
@@ -866,12 +866,6 @@
                 <Step>
                     <Name>VerifyJWT.FromExternalIdToken</Name>
                 </Step>
-                <!-- <Step>
-                    <Name>SpikeArrest</Name>
-                </Step>
-                <Step>
-                    <Name>Quota</Name>
-                </Step> -->
                 <Step>
                     <Name>JavaScript.FilterUserRestrictedScopes</Name>
                 </Step>
@@ -919,12 +913,12 @@
                 <Step>
                     <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJSON</Name>
                 </Step>
-                <!-- <Step>
+                <Step>
                     <Name>SpikeArrest</Name>
                 </Step>
                 <Step>
                     <Name>Quota</Name>
-                </Step> -->
+                </Step>
                 <Step>
                     <Name>AssignMessage.DummySecretKey</Name>
                 </Step>
@@ -998,12 +992,12 @@
             <Step>
               <Name>OAuthV2.VerifyAccessToken</Name>
             </Step>
-            <!-- <Step>
+            <Step>
               <Name>SpikeArrest</Name>
             </Step>
             <Step>
               <Name>Quota</Name>
-            </Step> -->
+            </Step>
             <Step>
               <Name>Javascript.CheckApigeeAccessTokenAttributes</Name>
             </Step>
@@ -1024,12 +1018,12 @@
             <Step>
               <Name>OAuthV2.VerifyAccessToken</Name>
             </Step>
-            <!-- <Step>
+            <Step>
               <Name>SpikeArrest</Name>
             </Step>
             <Step>
               <Name>Quota</Name>
-            </Step> -->
+            </Step>
             <Step>
               <Name>Javascript.CheckApigeeAccessTokenAttributes</Name>
             </Step>
