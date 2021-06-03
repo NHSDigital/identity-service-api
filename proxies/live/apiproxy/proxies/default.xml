@@ -328,7 +328,7 @@
                 <Step>
                     <Name>SpikeArrest</Name>
                 </Step>
-                <Step>  
+                <Step>
                     <Name>Quota</Name>
                 </Step>
                 <Step>
@@ -805,39 +805,6 @@
                 </Step>
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/callback") and (request.verb = "GET")</Condition>
-        </Flow>
-        <Flow name="Flow.SimulatedUserAuth">
-            <Description>Provide a simulated user authorization interaction - Display login dialogue</Description>
-            <Request>
-                <!-- Check the redirect_uri and client_id. Although we generate the redirect to this URL, an app developer might get creative somehow
-            and we need to illustrate that what they are doing will break the authentication. -->
-            <Step>
-              <Name>RaiseFault.Unauthorized</Name>
-              <Condition>(request.queryparam.client_id NotEquals identity-service-config.cis2.client_id) or (request.queryparam.redirect_uri NotEquals identity-service-config.cis2.redirect_uri)</Condition>
-            </Step>
-            <Step>
-              <Name>AssignMessage.SimulatedAuthPage</Name>
-            </Step>
-          </Request>
-          <Condition>(identity-service-config.cis2.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/simulated_auth") and (request.verb Equals "GET")</Condition>
-        </Flow>
-        <Flow name="Flow.SimulatedUserAuthPost">
-          <Description>Provide a simulated user authorization interaction - Process login</Description>
-          <Request>
-            <Step>
-              <Name>AssignMessage.GenerateSimulatedAuthCode</Name>
-            </Step>
-            <Step>
-              <Name>PopulateCache.SimulatedAuthCode</Name>
-            </Step>
-            <Step>
-              <Name>PopulateCache.SimulatedAuthAuthMethod</Name>
-            </Step>
-            <Step>
-              <Name>AssignMessage.RedirectToApigeeCallback</Name>
-            </Step>
-          </Request>
-          <Condition>(identity-service-config.cis2.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/simulated_auth") and (request.verb Equals "POST")</Condition>
         </Flow>
         <Flow name="Flow.GetUserInfo">
           <Description/>
