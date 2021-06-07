@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ServiceCallout async="false" continueOnError="false" enabled="true" name="ServiceCallout.PostTokenCis2">
+<ServiceCallout async="false" continueOnError="false" enabled="true" name="ServiceCallout.PostTokenNHSLogin">
   <Request>
     <Set>
       <Headers>
