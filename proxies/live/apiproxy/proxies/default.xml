@@ -258,8 +258,12 @@
                     <Condition>proxy.basepath Matches "oauth2-int-pr-*"</Condition>
                 </Step>
                 <Step>
-                    <Name>AssignMessage.SetAuthorizationRedirect</Name>
-                    <Condition>not(proxy.basepath Matches "oauth2-int-pr-*")</Condition>
+                    <Name>AssignMessage.SetAuthorizationRedirectCis2</Name>
+                    <Condition>not(proxy.basepath Matches "oauth2-int-pr-*") and (IDP != 'nhs-login')</Condition>
+                </Step>
+                <Step>
+                    <Name>AssignMessage.SetAuthorizationRedirectNHSLogin</Name>
+                    <Condition>not(proxy.basepath Matches "oauth2-int-pr-*") and (IDP = 'nhs-login')</Condition>
                 </Step>
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/authorize") and (request.verb = "GET")</Condition>

@@ -1,4 +1,4 @@
-<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.SetAuthorizationRedirect">
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.SetAuthorizationRedirectNHSLogin">
   <Set>
     <StatusCode>302</StatusCode>
     <Headers>
