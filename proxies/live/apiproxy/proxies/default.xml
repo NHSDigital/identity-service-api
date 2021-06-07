@@ -735,7 +735,12 @@
                     <Name>KeyValueMapOperations.GetSecureVariables</Name>
                 </Step>
                 <Step>
-                    <Name>ServiceCallout.PostToken</Name>
+                    <Name>ServiceCallout.PostTokenCis2</Name>
+                    <Condition>externalScope != 'nhs-login'</Condition>
+                </Step>
+                <Step>
+                    <Name>ServiceCallout.PostTokenNHSLogin</Name>
+                    <Condition>externalScope = 'nhs-login'</Condition>
                 </Step>
                 <Step>
                     <Name>ExtractVariables.AccessToken</Name>
