@@ -259,11 +259,11 @@
                 </Step>
                 <Step>
                     <Name>AssignMessage.SetAuthorizationRedirectCis2</Name>
-                    <Condition>not(proxy.basepath Matches "oauth2-int-pr-*") and (IDP != 'nhs-login')</Condition>
+                    <Condition>not(proxy.basepath Matches "oauth2-int-pr-*") and (request.queryparam.scope != "nhs-login")</Condition>
                 </Step>
                 <Step>
                     <Name>AssignMessage.SetAuthorizationRedirectNHSLogin</Name>
-                    <Condition>not(proxy.basepath Matches "oauth2-int-pr-*") and (IDP = 'nhs-login')</Condition>
+                    <Condition>not(proxy.basepath Matches "oauth2-int-pr-*") and (request.queryparam.scope = "nhs-login")</Condition>
                 </Step>
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/authorize") and (request.verb = "GET")</Condition>
@@ -740,11 +740,11 @@
                 </Step>
                 <Step>
                     <Name>ServiceCallout.PostTokenCis2</Name>
-                    <Condition>externalScope != 'nhs-login'</Condition>
+                    <Condition>idp != "nhs-login"</Condition>
                 </Step>
                 <Step>
                     <Name>ServiceCallout.PostTokenNHSLogin</Name>
-                    <Condition>externalScope = 'nhs-login'</Condition>
+                    <Condition>idp = "nhs-login"</Condition>
                 </Step>
                 <Step>
                     <Name>ExtractVariables.AccessToken</Name>
