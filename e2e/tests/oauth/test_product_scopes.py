@@ -1,3 +1,4 @@
+from e2e.scripts.config import MOCK_IDP_BASE_URL
 from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
 from e2e.scripts import config
 import pytest
@@ -406,6 +407,7 @@ class TestProductScopes:
 
         # Make simulated auth request to authenticate
         response = await self.oauth.hit_oauth_endpoint(
+            base_uri=MOCK_IDP_BASE_URL,
             method="POST",
             endpoint="simulated_auth",
             params={

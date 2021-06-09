@@ -1,6 +1,7 @@
 from e2e.scripts.config import (
     OAUTH_URL,
     ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
+    MOCK_IDP_BASE_URL
 )
 from e2e.scripts.response_bank import BANK
 import pytest
@@ -109,6 +110,7 @@ class TestOauthEndpoints:
 
         # Make simulated auth request to authenticate
         response = await self.oauth.hit_oauth_endpoint(
+            base_uri=MOCK_IDP_BASE_URL,
             method="POST",
             endpoint="simulated_auth",
             params={
@@ -818,7 +820,7 @@ class TestOauthEndpoints:
         expected_status_code = 404
         expected_error = 'invalid_request'
         expected_error_description = 'Not Found'
-        
+
         # When
         jwt = self.oauth.create_jwt(kid="test-1")
         resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
