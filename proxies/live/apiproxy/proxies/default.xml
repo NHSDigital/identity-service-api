@@ -164,9 +164,6 @@
         <Step>
             <Name>Javascript.UnpackVars</Name>
         </Step>
-        <Step>
-            <Name>AssignMessage.RemoveExternalScope</Name>
-        </Step>
         </Request>
         <Response/>
     </PreFlow>
