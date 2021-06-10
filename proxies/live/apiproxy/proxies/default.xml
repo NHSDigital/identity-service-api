@@ -783,6 +783,10 @@
                     <Condition>jwks = null Or jwks_kid_found = false</Condition>
                 </Step>
                 <Step>
+                    <Name>ServiceCallout.GetNHSLoginJWKS</Name>
+                    <Condition>(jwks = null Or jwks_kid_found = false) and idp = "nhs-login"</Condition>
+                </Step>
+                <Step>
                     <Name>PopulateCache.JWKS</Name>
                     <Condition>jwks = null Or jwks_kid_found = false</Condition>
                 </Step>
