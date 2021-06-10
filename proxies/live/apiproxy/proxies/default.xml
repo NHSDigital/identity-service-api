@@ -164,6 +164,12 @@
         <Step>
             <Name>Javascript.UnpackVars</Name>
         </Step>
+        <Step>
+            <Name>AssignMessage.ExtractExternalScope</Name>
+        </Step>
+        <Step>
+            <Name>AssignMessage.RemoveExternalScope</Name>
+        </Step>
         </Request>
         <Response/>
     </PreFlow>
@@ -256,11 +262,11 @@
                 </Step>
                 <Step>
                     <Name>AssignMessage.SetAuthorizationRedirectCis2</Name>
-                    <Condition>not(proxy.basepath Matches "oauth2-int-pr-*") and (request.queryparam.scope != "nhs-login")</Condition>
+                    <Condition>not(proxy.basepath Matches "oauth2-int-pr-*") and (idp != "nhs-login")</Condition>
                 </Step>
                 <Step>
                     <Name>AssignMessage.SetAuthorizationRedirectNHSLogin</Name>
-                    <Condition>not(proxy.basepath Matches "oauth2-int-pr-*") and (request.queryparam.scope = "nhs-login")</Condition>
+                    <Condition>not(proxy.basepath Matches "oauth2-int-pr-*") and (idp = "nhs-login")</Condition>
                 </Step>
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/authorize") and (request.verb = "GET")</Condition>

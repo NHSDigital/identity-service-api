@@ -23,6 +23,6 @@
     <LoadBalancer>
       <Server name="{{ IDENTITY_PROVIDER_CIS2 }}" />
     </LoadBalancer>
-    <Path>/mock-nhsid-jwks-pr-29/nhs_login_simulated_token</Path>
+    <Path>{identity-service-config.nhs_login.access_token_path}</Path>
   </HTTPTargetConnection>
 </ServiceCallout>
