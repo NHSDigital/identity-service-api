@@ -106,7 +106,9 @@ async def _product_with_full_access():
         "personal-demographics-service:USER-RESTRICTED",
         "urn:nhsd:apim:app:level3:",
         "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
-        "urn:nhsd:apim:user-nhs-login:P9:some-api"
+        "urn:nhsd:apim:user-nhs-login:P9:some-api",
+        "urn:nhsd:apim:user-nhs-login:P5:some-api",
+        "urn:nhsd:apim:user-nhs-login:P0:some-api"
     ])
 
     await product.update_paths(paths=["/", "/*"])

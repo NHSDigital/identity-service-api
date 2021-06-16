@@ -7,7 +7,7 @@ load_dotenv()
 OAUTH_BASE_URI = environ.get("OAUTH_BASE_URI")
 OAUTH_PROXY = environ.get("OAUTH_PROXY")
 OAUTH_URL = f"{OAUTH_BASE_URI}/{OAUTH_PROXY}"
-MOCK_IDP_BASE_URL = environ.get("MOCK_IDP_BASE_URI", "https://internal-dev.api.service.nhs.uk/mock-nhsid-jwks")
+MOCK_IDP_BASE_URL = environ.get("MOCK_IDP_BASE_URL", "https://internal-dev.api.service.nhs.uk/mock-nhsid-jwks")
 ENVIRONMENT = urlparse(OAUTH_BASE_URI).hostname.split('.')[0]
 SERVICE_NAME = environ.get(
     "SERVICE_NAME",
