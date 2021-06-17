@@ -872,9 +872,9 @@
             <Step>
               <Name>Quota</Name>
             </Step>
-            <Step>
+            <!-- <Step>
               <Name>AssignMessage.GenerateUserinfoResponseSimulatedAuth</Name>
-            </Step>
+            </Step> -->
           </Request>
           <Response/>
           <Condition>(identity_service.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
