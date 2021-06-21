@@ -1,8 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ProxyEndpoint name="default">
     <Description/>
     <FaultRules>
-      <FaultRule name="allow_raisefaults">
-        <!-- Fault rule to prevent the DefaultFaultRule from executing when
+        <FaultRule name="allow_raisefaults">
+            <!-- Fault rule to prevent the DefaultFaultRule from executing when
         RaiseFault is used in a flow -->
         <Step>
           <Name>AssignMessage.CatchallErrorMessage</Name>
@@ -128,7 +129,13 @@
       <FaultRule name="public_key_misconfigured">
         <Condition>(servicecallout.ServiceCallout.ClientCredentialsGrantGetJWKS.failed Equals true)</Condition>
         <Step>
-          <Name>AssignMessage.PublicKeyMisconfigured</Name>
+            <Name>AssignMessage.FailedToRetrieveJWKS</Name>
+        </Step>
+      </FaultRule>
+      <FaultRule name="failed_jwks_retrieval_identity_provider">
+        <Condition>(servicecallout.ServiceCallout.nhsLoginGetJWKS.failed Equals true) or (servicecallout.ServiceCallout.cis2GetJWKS.failed Equals true)</Condition>
+        <Step>
+            <Name>AssignMessage.FailedToRetrieveIdentityProviderJWKS</Name>
         </Step>
       </FaultRule>
       <FaultRule name="state_does_not_exist_in_cache">
@@ -137,34 +144,46 @@
           <Name>AssignMessage.CacheKeyError</Name>
         </Step>
       </FaultRule>
+      <FaultRule name="ratelimit_exceeded">
+        <Condition>(ratelimit.SpikeArrest.failed Equals true) Or (ratelimit.Quota.failed Equals true)</Condition>
+        <Step>
+          <Name>AssignMessage.RatelimitExceeded</Name>
+        </Step>
+      </FaultRule>
     </FaultRules>
     <DefaultFaultRule>
-      <Step>
-        <Name>AssignMessage.CatchallErrorMessage</Name>
-      </Step>
+        <Step>
+            <Name>AssignMessage.CatchallErrorMessage</Name>
+        </Step>
     </DefaultFaultRule>
     <PreFlow name="PreFlow">
         <Request>
-          <Step>
-            <Name>KeyValueMapOperations.GetVariables</Name>
-          </Step>
+        <Step>
+            <Name>KeyValueMapOperations.GetIdentityServiceConfig</Name>
+        </Step>
+        <Step>
+            <Name>Javascript.UnpackVars</Name>
+        </Step>
+        <Step>
+            <Name>AssignMessage.RemoveExternalScope</Name>
+        </Step>
         </Request>
         <Response/>
     </PreFlow>
     <PostFlow name="PostFlow">
-      <Request/>
-      <Response/>
+        <Request/>
+        <Response/>
     </PostFlow>
     <Flows>
         <Flow name="AddPayloadToPing">
-            <Description />
-            <Request />
-              <Response>
+            <Description/>
+            <Request/>
+            <Response>
                 <Step>
-                  <Name>AssignMessage.AddPayloadToPing</Name>
+                    <Name>AssignMessage.AddPayloadToPing</Name>
                 </Step>
-              </Response>
-              <Condition>(proxy.pathsuffix MatchesPath "/_ping") and ((request.verb = "GET") or (request.verb = "HEAD"))</Condition>
+            </Response>
+            <Condition>(proxy.pathsuffix MatchesPath "/_ping") and ((request.verb = "GET") or (request.verb = "HEAD"))</Condition>
         </Flow>
         <Flow name="Flow.GetAuthorization">
             <Description>OAuth Authorization Endpoint</Description>
@@ -175,8 +194,8 @@
                 </Step>
                 <!-- Verify the client has sent a valid redirect uri -->
                 <Step>
-                  <Name>RaiseFault.MissingRedirectUri</Name>
-                  <Condition>request.queryparam.redirect_uri = null</Condition>
+                    <Name>RaiseFault.MissingRedirectUri</Name>
+                    <Condition>request.queryparam.redirect_uri = null</Condition>
                 </Step>
                 <Step>
                     <Name>RaiseFault.VerifyRedirectUriQueryParam</Name>
@@ -184,8 +203,8 @@
                 </Step>
                 <!-- Verify the client has sent a state value-->
                 <Step>
-                  <Name>RaiseFault.MissingState</Name>
-                  <Condition>request.queryparam.state = null</Condition>
+                    <Name>RaiseFault.MissingState</Name>
+                    <Condition>request.queryparam.state = null</Condition>
                 </Step>
                 <!-- Verify the client has sent a valid response type -->
                 <Step>
@@ -198,21 +217,14 @@
                 </Step>
                 <!-- introducte dummy token policy to get scopes, filter and save them into the cache -->
                 <Step>
-                  <Name>AssignMessage.SetDummyGrantType</Name>
+                    <Name>AssignMessage.SetDummyGrantType</Name>
                 </Step>
                 <Step>
-                  <Name>BasicAuthentication.EncodeClientCredentials</Name>
+                    <Name>BasicAuthentication.EncodeClientCredentials</Name>
                 </Step>
                 <Step>
-                  <Name>OAuthV2.GenerateAccessTokenDummy</Name>
+                    <Name>OAuthV2.GenerateAccessTokenDummy</Name>
                 </Step>
-                <Step>
-                  <Name>JavaScript.FilterUserRestrictedScopes</Name>
-                </Step>
-                <Step>
-                  <Name>RaiseFault.VerifyAccessLevel</Name>
-                  <Condition>(apigee.user_restricted_scopes = "")</Condition>
-                </Step>                
                 <Step>
                     <Name>AssignMessage.GenerateState</Name>
                 </Step>
@@ -236,104 +248,123 @@
                 </Step>
             </Request>
             <Response>
-              <!-- Remove Authorization header if it has been specified -->
-              <Step>
-                <Name>AssignMessage.RemoveAuthorizationHeader</Name>
-              </Step>
-              <!-- Determine which auth redirect to return if int PR proxy-->
-              <Step>
-                <Name>AssignMessage.SetAuthorizationPRRedirect</Name>
-                <Condition>proxy.basepath Matches "oauth2-int-pr-*"</Condition>
-              </Step>
-              <Step>
-                <Name>AssignMessage.SetAuthorizationRedirect</Name>
-                <Condition>not(proxy.basepath Matches "oauth2-int-pr-*")</Condition>
-              </Step>
+                <!-- Remove Authorization header if it has been specified -->
+                <Step>
+                    <Name>AssignMessage.RemoveAuthorizationHeader</Name>
+                </Step>
+                <!-- Determine which auth redirect to return if int PR proxy-->
+                <Step>
+                    <Name>AssignMessage.SetAuthorizationPRRedirect</Name>
+                    <Condition>proxy.basepath Matches "oauth2-int-pr-*"</Condition>
+                </Step>
+                <Step>
+                    <Name>AssignMessage.SetAuthorizationRedirect</Name>
+                    <Condition>not(proxy.basepath Matches "oauth2-int-pr-*")</Condition>
+                </Step>
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/authorize") and (request.verb = "GET")</Condition>
         </Flow>
-      <Flow name="Flow.PostTokenClientCredentials">
-        <Description>OAuth Token Endpoint - Client Credentials</Description>
-        <Request>
-          <Step>
-            <Name>RaiseFault.MissingOrInvalidClientAssertionType</Name>
-            <Condition>(request.formparam.client_assertion_type NotEquals "urn:ietf:params:oauth:client-assertion-type:jwt-bearer")</Condition>
-          </Step>
-          <Step>
-            <Name>DecodeJWT.FromClientAssertionFormParam</Name>
-          </Step>
-          <Step>
-            <!-- The JWT Header may be valid, but the rest of the JWT may be malformed or missing.
+        <Flow name="Flow.PostTokenClientCredentials">
+            <Description>OAuth Token Endpoint - Client Credentials</Description>
+            <Request>
+                <Step>
+                    <Name>RaiseFault.MissingOrInvalidClientAssertionType</Name>
+                    <Condition>(request.formparam.client_assertion_type NotEquals "urn:ietf:params:oauth:client-assertion-type:jwt-bearer")</Condition>
+                </Step>
+                <Step>
+                    <Name>DecodeJWT.FromClientAssertionFormParam</Name>
+                </Step>
+                <Step>
+                    <!-- The JWT Header may be valid, but the rest of the JWT may be malformed or missing.
               This catches that eventuality: -->
-              <Name>RaiseFault.WarningDecodingJWT</Name>
-              <Condition>jwt.DecodeJWT.FromClientAssertionFormParam.warning != null</Condition>
-            </Step>
-          <Step>
-            <Name>RaiseFault.MissingKidHeader</Name>
-            <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Is null) Or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Equals "")</Condition>
-          </Step>
-          <Step>
-            <Name>RaiseFault.MissingOrInvalidTypHeader</Name>
-            <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.typ Is null) Or (Not(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.typ EqualsCaseInsensitive "jwt"))</Condition>
-          </Step>
-          <Step>
-            <Name>RaiseFault.MissingOrInvalidIssClaim</Name>
-            <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss Equals "") or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss NotEquals jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.sub)</Condition>
-          </Step>
-          <Step>
-            <Name>RaiseFault.MissingJtiClaim</Name>
-            <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti Equals "")</Condition>
-          </Step>
-          <Step>
-            <Name>RaiseFault.MissingExpClaim</Name>
-            <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Equals "")</Condition>
-          </Step>
-          <Step>
-            <!-- We advise to limit expiry time to now + 5 minutes. Allowing an extra 10 seconds to mitigate edge cases: -->
-            <Name>RaiseFault.ExpClaimTooLong</Name>
-            <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.seconds_remaining GreaterThan 310)</Condition>
-          </Step>
-          <Step>
-            <Name>LookupCache.JTIClaim</Name>
-          </Step>
-          <Step>
-            <Name>RaiseFault.JTIValueExistsInCache</Name>
-            <Condition>JTICachedValue = jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti</Condition>
-          </Step>
-          <Step>
-            <Name>PopulateCache.JTIClaim</Name>
-          </Step>
-          <Step>
-            <Name>VerifyAPIKey.FromJWT</Name>
-          </Step>
-          <Step> 
-            <Name>SpikeArrest</Name>
-          </Step>
-          <Step>
-            <Name>Quota</Name>
-          </Step>
-          <Step>
-            <Name>Javascript.SetServiceCalloutUrl</Name>
-          </Step>
-          <Step>
-            <Name>ServiceCallout.ClientCredentialsGrantGetJWKS</Name>
-          </Step>
-          <!-- Not sure this is necessary
+                    <Name>RaiseFault.WarningDecodingJWT</Name>
+                    <Condition>jwt.DecodeJWT.FromClientAssertionFormParam.warning != null</Condition>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.MissingKidHeader</Name>
+                    <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Is null) Or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Equals "")</Condition>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.MissingOrInvalidTypHeader</Name>
+                    <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.typ Is null) Or (Not(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.typ EqualsCaseInsensitive "jwt"))</Condition>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.MissingOrInvalidIssClaim</Name>
+                    <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss Equals "") or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss NotEquals jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.sub)</Condition>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.MissingJtiClaim</Name>
+                    <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti Equals "")</Condition>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.MissingExpClaim</Name>
+                    <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Equals "")</Condition>
+                </Step>
+                <Step>
+                    <!-- We advise to limit expiry time to now + 5 minutes. Allowing an extra 10 seconds to mitigate edge cases: -->
+                    <Name>RaiseFault.ExpClaimTooLong</Name>
+                    <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.seconds_remaining GreaterThan 310)</Condition>
+                </Step>
+                <Step>
+                    <Name>LookupCache.JTIClaim</Name>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.JTIValueExistsInCache</Name>
+                    <Condition>JTICachedValue = jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti</Condition>
+                </Step>
+                <Step>
+                    <Name>PopulateCache.JTIClaim</Name>
+                </Step>
+                <Step>
+                    <Name>VerifyAPIKey.FromJWT</Name>
+                </Step>
+                <Step>
+                    <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJWT</Name>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.PublicKeyMisconfigured</Name>
+                    <Condition>verifyapikey.VerifyAPIKey.FromJWT.jwks-resource-url = null</Condition>
+                </Step>
+                <Step>
+                    <Name>SpikeArrest</Name>
+                </Step>
+                <Step>
+                    <Name>Quota</Name>
+                </Step>
+                <Step>
+                    <Name>Javascript.SetServiceCalloutUrl</Name>
+                </Step>
+                <Step>
+                  <Name>LookupCache.CCJWKS</Name>
+                </Step>
+                <Step>
+                  <Name>ServiceCallout.ClientCredentialsGrantGetJWKS</Name>
+                  <Condition>ccjwks = null</Condition>
+                </Step>
+                <Step>
+                  <Name>PopulateCache.CCJWKS</Name>
+                  <Condition>ccjwks = null</Condition>
+                </Step>
+                <Step>
+                  <Name>AssignMessage.CCJWKS</Name>
+                  <Condition>ccjwks = null</Condition>
+                </Step>
+                <!-- Not sure this is necessary
           <Step>
             <Name>ExtractVariables.ParseJWKS</Name>
           </Step> -->
-          <Step>
-            <Name>VerifyJWT.ClientCredentials</Name>
-          </Step>
-          <Step>
-            <!-- Needed because OAuthV2 'GenerateAccessToken' has to have the Client ID and Client Secret in a specific place -->
-            <Name>AssignMessage.SetClientCredentials</Name>
-          </Step>
-          <!-- Next step allows optional REDUCTION of access_token_expiry KVM values
+                <Step>
+                    <Name>VerifyJWT.ClientCredentials</Name>
+                </Step>
+                <Step>
+                    <!-- Needed because OAuthV2 'GenerateAccessToken' has to have the Client ID and Client Secret in a specific place -->
+                    <Name>AssignMessage.SetClientCredentials</Name>
+                </Step>
+                <!-- Next step allows optional REDUCTION of access_token_expiry KVM values
                using _access_token_expiry_ms form param -->
           <Step>
             <Name>AssignMessage.AccessTokenExpiryOverride</Name>
-            <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
+            <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan identity-service-config.cis2.access_token_expiry_ms)</Condition>
           </Step>
           <Step>
             <Name>OAuthV2.ClientCredentialsGenerateAccessToken</Name>
@@ -344,7 +375,7 @@
           <Step>
             <Name>RaiseFault.VerifyAccessLevel</Name>
             <Condition>(apigee.application_restricted_scopes = "")</Condition>
-          </Step>          
+          </Step>
           <Step>
             <Name>OAuthV2.ClientCredentialsGenerateAccessTokenFilteredScopes</Name>
           </Step>
@@ -415,6 +446,13 @@
                 <Name>VerifyAPIKey.FromJWT</Name>
             </Step>
             <Step>
+                <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJWT</Name>
+            </Step>
+            <Step>
+                <Name>RaiseFault.PublicKeyMisconfigured</Name>
+                <Condition>verifyapikey.VerifyAPIKey.FromJWT.jwks-resource-url = null</Condition>
+            </Step>
+            <Step>
                 <Name>SpikeArrest</Name>
             </Step>
             <Step>
@@ -424,7 +462,19 @@
                 <Name>Javascript.SetServiceCalloutUrl</Name>
             </Step>
             <Step>
-                <Name>ServiceCallout.ClientCredentialsGrantGetJWKS</Name>
+              <Name>LookupCache.CCJWKS</Name>
+            </Step>
+            <Step>
+              <Name>ServiceCallout.ClientCredentialsGrantGetJWKS</Name>
+              <Condition>ccjwks = null</Condition>
+            </Step>
+            <Step>
+              <Name>PopulateCache.CCJWKS</Name>
+              <Condition>ccjwks = null</Condition>
+            </Step>
+            <Step>
+              <Name>AssignMessage.CCJWKS</Name>
+              <Condition>ccjwks = null</Condition>
             </Step>
             <Step>
                 <Name>VerifyJWT.ClientCredentials</Name>
@@ -437,35 +487,34 @@
                 <Name>DecodeJWT.FromSubjectTokenFormParam</Name>
             </Step>
             <Step>
-                <Name>RaiseFault.MissingExpClaim</Name>
-                <Condition>(jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.exp Equals "")</Condition>
+                <Name>Javascript.SelectIdTokenIssuer</Name>
             </Step>
             <Step>
-                <Name>RaiseFault.MissingOrInvalidIssClaim</Name>
-                <Condition>(jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.iss Is null) or (jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.iss Equals "") or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss NotEquals jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.sub)</Condition>
+                <Name>RaiseFault.InvalidRequest</Name>
+                <Condition>isError = true</Condition>
             </Step>
             <Step>
-                <Name>RaiseFault.MissingAudClaim</Name>
-                <Condition>(jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.aud Is null) or (jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.aud Equals "")</Condition>
-            </Step>
-            <Step>
-                <Name>LookupCache.JWKS</Name>
+                <Name>LookupCache.TokenExchangeJWKS</Name>
             </Step>
             <Step>
                 <Name>Javascript.ValidateClaim</Name>
-                <Condition>jwks != null</Condition>   
+                <Condition>jwks != null</Condition>
             </Step>
             <Step>
-                <Name>ServiceCallout.GetJWKS</Name>
-                <Condition>jwks = null Or jwksUpdated = false</Condition>
+                <Name>ServiceCallout.cis2GetJWKS</Name>
+                <Condition>jwks = null Or jwks_kid_found = false and idTokenIssuer Equals "nhsCis2"</Condition>
             </Step>
             <Step>
-                <Name>PopulateCache.JWKS</Name>
-                <Condition>jwks = null Or jwksUpdated = false</Condition>
+                <Name>ServiceCallout.nhsLoginGetJWKS</Name>
+                <Condition>jwks = null Or jwks_kid_found = false and idTokenIssuer Equals "nhsLogin"</Condition>
+            </Step>
+            <Step>
+                <Name>PopulateCache.TokenExchangeJWKS</Name>
+                <Condition>jwks = null Or jwks_kid_found = false</Condition>
             </Step>
             <Step>
                 <Name>AssignMessage.JWKS</Name>
-                <Condition>jwks = null Or jwksUpdated = false</Condition>
+                <Condition>jwks = null Or jwks_kid_found = false</Condition>
             </Step>
             <Step>
                 <Name>VerifyJWT.SubjectToken</Name>
@@ -474,7 +523,7 @@
             using _access_token_expiry_ms form param -->
             <Step>
                 <Name>AssignMessage.AccessTokenExpiryOverride</Name>
-                <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
+                <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan identity-service-config.cis2.access_token_expiry_ms)</Condition>
             </Step>
             <!-- grant type needs changing from Token Exchange because apigee doesn't support it !-->
             <Step>
@@ -485,7 +534,7 @@
               <Name>OAuthV2.TokenExchangeGenerateAccessToken</Name>
           </Step>
           <Step>
-              <Name>JavaScript.FilterUserRestrictedScopes</Name>
+              <Name>JavaScript.FilterScopesTokenExchange</Name>
           </Step>
           <Step>
               <Name>RaiseFault.VerifyAccessLevel</Name>
@@ -494,7 +543,7 @@
           <Step>
               <Name>OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes</Name>
           </Step>
-        </Request>        
+        </Request>
         <Response>
             <Step>
                 <Name>AssignMessage.TokenExchangeGenerateTokenResponse</Name>
@@ -502,34 +551,34 @@
         </Response>
         <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.subject_token_type Equals "urn:ietf:params:oauth:token-type:id_token") and (apim.feature_toggles.enable-token-exchange = true))</Condition>
     </Flow>
-      <Flow name="Flow.PostTokenAuthorizationCode">
-        <Description>OAuth Token Endpoint - Authorization Code Flow</Description>
+        <Flow name="Flow.PostTokenAuthorizationCode">
+            <Description>OAuth Token Endpoint - Authorization Code Flow</Description>
             <Request>
                 <!-- Verify the Client Application using both client_id and client_secret form params -->
                 <Step>
-                  <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
+                    <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
                 </Step>
                 <Step>
-                  <Name>RaiseFault.MissingClientSecret</Name>
-                  <Condition>request.formparam.client_secret = null</Condition>
+                    <Name>RaiseFault.MissingClientSecret</Name>
+                    <Condition>request.formparam.client_secret = null</Condition>
                 </Step>
                 <Step>
-                  <Name>RaiseFault.InvalidClientSecret</Name>
-                  <Condition>request.formparam.client_secret != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.client_secret</Condition>
+                    <Name>RaiseFault.InvalidClientSecret</Name>
+                    <Condition>request.formparam.client_secret != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.client_secret</Condition>
                 </Step>
                 <!-- Verify the client has sent a valid redirect uri -->
                 <Step>
-                  <Name>RaiseFault.MissingRedirectUri</Name>
-                  <Condition>request.formparam.redirect_uri = null</Condition>
+                    <Name>RaiseFault.MissingRedirectUri</Name>
+                    <Condition>request.formparam.redirect_uri = null</Condition>
                 </Step>
                 <Step>
-                  <Name>RaiseFault.VerifyRedirectUriFormParam</Name>
-                  <Condition>request.formparam.redirect_uri != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.redirection_uris</Condition>
+                    <Name>RaiseFault.VerifyRedirectUriFormParam</Name>
+                    <Condition>request.formparam.redirect_uri != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.redirection_uris</Condition>
                 </Step>
                 <!-- Verify the client has sent a valid authorization code -->
                 <Step>
-                  <Name>RaiseFault.MissingAuthorizationCode</Name>
-                  <Condition>request.formparam.code = null</Condition>
+                    <Name>RaiseFault.MissingAuthorizationCode</Name>
+                    <Condition>request.formparam.code = null</Condition>
                 </Step>
                 <Step>
                     <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
@@ -541,62 +590,32 @@
                     <Name>Quota</Name>
                 </Step>
                 <Step>
-                    <Name>KeyValueMapOperations.GetSecureVariables</Name>
+                    <Name>LookupCache.ExternalIdToken</Name>
                 </Step>
                 <Step>
-                    <Name>ServiceCallout.PostToken</Name>
+                    <Name>LookupCache.ExternalAccessToken</Name>
                 </Step>
                 <Step>
-                    <Name>ExtractVariables.AccessToken</Name>
+                    <Name>RaiseFault.InvalidAuthorizationCode</Name>
+                    <Condition>externalIdToken = null</Condition>
                 </Step>
                 <Step>
                     <Name>DecodeJWT.FromExternalIdToken</Name>
-                </Step>
-                <!-- Using pattern from https://community.apigee.com/questions/34110/how-can-i-store-the-results-of-the-servicecallout.html
-                    Steps are:
-                    1. LookupCache.JWKS: Attempt to get JWKS from cache, store in flow variable `jwks`
-                    2. If this fails (`jwks` is null)
-                    2a. ServiceCallout.GetJWKS: Retrieve JWKS from IdP
-                    2b. PopulateCache.JWKS: Store in cache
-                    2c. AssignMessage.JWKS: Assign the JWKS from the service callout to `jwks` flow variable
-                    3. VerifyJWT.FromExternalIdToken: Verify the JWT using the `jwks` flow variable
-                -->
-                <Step>
-                  <Name>LookupCache.JWKS</Name>
-                </Step>
-                <Step>
-                    <Name>JavaScript.ValidateClaimFromExternalIdToken</Name>
-                    <Condition>jwks != null</Condition>
-                </Step>
-                <Step>
-                  <Name>ServiceCallout.GetJWKS</Name>
-                  <Condition>jwks = null Or jwksUpdated = false</Condition>
-                </Step>
-                <Step>
-                  <Name>PopulateCache.JWKS</Name>
-                  <Condition>jwks = null Or jwksUpdated = false</Condition>
-                </Step>
-                <Step>
-                  <Name>AssignMessage.JWKS</Name>
-                  <Condition>jwks = null Or jwksUpdated = false</Condition>
-                </Step>
-                <Step>
-                  <Name>VerifyJWT.FromExternalIdToken</Name>
                 </Step>
                 <!-- Next 3 steps allow optional REDUCTION of access_token_expiry and refresh_token_expiry  KVM values
                 using _access_token_expiry_ms/_refresh_token_expiry_ms (respectively) form params -->
                 <Step>
                   <Name>AssignMessage.AccessTokenExpiryOverride</Name>
-                  <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
+                  <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan identity-service-config.cis2.access_token_expiry_ms)</Condition>
                 </Step>
                 <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
                 <Step>
-                  <Name>JavaScript.CalculateRefreshTokenOverride</Name>
-                  <Condition>request.formparam._refresh_token_expiry_ms != null</Condition>
+                    <Name>JavaScript.CalculateRefreshTokenOverride</Name>
+                    <Condition>request.formparam._refresh_token_expiry_ms != null</Condition>
                 </Step>
                 <Step>
-                  <Name>AssignMessage.RefreshTokenExpiryOverride</Name>
-                  <Condition>(apigee.can_override_refresh_token != null) and (apigee.can_override_refresh_token = true)</Condition>
+                    <Name>AssignMessage.RefreshTokenExpiryOverride</Name>
+                    <Condition>(apigee.can_override_refresh_token != null) and (apigee.can_override_refresh_token = true)</Condition>
                 </Step>
                 <Step>
                     <Name>OAuthV2.GenerateAccessToken</Name>
@@ -610,120 +629,33 @@
                     <Name>AssignMessage.SetCorsHeaders</Name>
                 </Step>
             </Response>
-            <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "authorization_code")</Condition>
+            <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "authorization_code")</Condition>
       </Flow>
-      <Flow name="Flow.PostTokenAuthorizationCodeSimulatedAuth">
-        <Description>OAuth Token Endpoint - Authorization Code Flow - SIMULATED AUTH</Description>
-            <Request>
-                <!-- In the documentation we specify that the Client ID and Client Secret must be sent as form params
-                However Apigee interactive documenttion ("Try it now") feature sends them as HTTP Basic Auth, so
-                we will allow this, but ONLY when in 'simulated_idp' mode and when they haven't been sent in the form params -->
-                <Step>
-                  <Name>BasicAuthentication.DecodeClientIdAndSecret</Name>
-                  <Condition>(request.header.Authorization IsNot null) and ((request.formparam.client_id Is null) or (request.formparam.client_secret Is null))</Condition>
-                </Step>
-                <!-- First two steps verify the Client Application using both client_id and client_secret form params -->
-                <Step>
-                  <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
-                </Step>
-                <Step>
-                  <Name>RaiseFault.MissingClientSecret</Name>
-                  <Condition>request.formparam.client_secret = null</Condition>
-                </Step>
-                <Step>
-                  <Name>RaiseFault.InvalidClientSecret</Name>
-                  <Condition>request.formparam.client_secret != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.client_secret</Condition>
-                </Step>
-                <!-- Verify the client has sent a valid redirect uri -->
-                <Step>
-                  <Name>RaiseFault.MissingRedirectUri</Name>
-                  <Condition>request.formparam.redirect_uri = null</Condition>
-                </Step>
-                <Step>
-                  <Name>RaiseFault.VerifyRedirectUriFormParam</Name>
-                  <Condition>request.formparam.redirect_uri != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.redirection_uris</Condition>
-                </Step>
-                <!-- Verify the client has sent a authorization code -->
-                <Step>
-                  <Name>RaiseFault.MissingAuthorizationCode</Name>
-                  <Condition>request.formparam.code = null</Condition>
-                </Step>
-                <Step>
-                  <Name>LookupCache.SimulatedAuthCode</Name>
-                </Step>
-                <!-- Next 3 verify that the request is within the set rate limits -->
-                <Step>
-                  <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
-                </Step>
-                <Step>
-                  <Name>SpikeArrest</Name>
-                </Step>
-                <Step>
-                  <Name>Quota</Name>
-                </Step>
-                <!-- Next 3 steps allow optional REDUCTION of access_token_expiry and refresh_token_expiry  KVM values
-                using _access_token_expiry_ms/_refresh_token_expiry_ms (respectively) form params -->
-                <Step>
-                  <Name>AssignMessage.AccessTokenExpiryOverride</Name>
-                  <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
-                </Step>
-                <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
-                <Step>
-                  <Name>JavaScript.CalculateRefreshTokenOverride</Name>
-                  <Condition>request.formparam._refresh_token_expiry_ms != null</Condition>
-                </Step>
-                <Step>
-                  <Name>AssignMessage.RefreshTokenExpiryOverride</Name>
-                  <Condition>(apigee.can_override_refresh_token != null) and (apigee.can_override_refresh_token = true)</Condition>
-                </Step>
-                <Step>
-                  <Name>AssignMessage.DummySecretKey</Name>
-                </Step>
-                <Step>
-                  <Name>GenerateJWT.SimulatedAuth</Name>
-                </Step>
-                <Step>
-                  <Name>DecodeJWT.FromGeneratedIdTokenSimulatedAuth</Name>
-                </Step>
-                <Step>
-                  <Name>OAuthV2.GenerateAccessTokenSimulatedAuth</Name>
-                </Step>
-            </Request>
-            <Response>
-                <Step>
-                    <Name>AssignMessage.GenerateTokenResponseSimulatedAuth</Name>
-                </Step>
-                <Step>
-                    <Name>AssignMessage.SetCorsHeaders</Name>
-                </Step>
-            </Response>
-            <Condition>(identity_service.simulated_idp Is "true") and (proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "authorization_code")</Condition>
-          </Flow>
           <Flow name="Flow.PostRefreshToken">
             <Description>OAuth Refresh Token Endpoint</Description>
             <Request>
-              <!-- Verify the Client Application using both client_id and client_secret form params -->
-              <Step>
-                <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
-              </Step>
-              <Step>
-                <Name>RaiseFault.MissingClientSecret</Name>
-                <Condition>request.formparam.client_secret = null</Condition>
-              </Step>
-              <Step>
-                <Name>RaiseFault.InvalidClientSecret</Name>
-                <Condition>request.formparam.client_secret != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.client_secret</Condition>
-              </Step>
-              <!-- Verify the refresh token is present in the request -->
-              <Step>
-                <Name>RaiseFault.MissingRefreshToken</Name>
-                <Condition>request.formparam.refresh_token = null</Condition>
-              </Step>
-              <!-- Next 5 steps allow optional REDUCTION of access_token_expiry, refresh_token_expiry, and refresh_token_validity KVM values
+                <!-- Verify the Client Application using both client_id and client_secret form params -->
+                <Step>
+                    <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.MissingClientSecret</Name>
+                    <Condition>request.formparam.client_secret = null</Condition>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.InvalidClientSecret</Name>
+                    <Condition>request.formparam.client_secret != verifyapikey.VerifyAPIKey.FromClientSecretFormParam.client_secret</Condition>
+                </Step>
+                <!-- Verify the refresh token is present in the request -->
+                <Step>
+                    <Name>RaiseFault.MissingRefreshToken</Name>
+                    <Condition>request.formparam.refresh_token = null</Condition>
+                </Step>
+                <!-- Next 5 steps allow optional REDUCTION of access_token_expiry, refresh_token_expiry, and refresh_token_validity KVM values
               using _access_token_expiry_ms/_refresh_token_expiry_ms/_refresh_tokens_validity_ms (respectively) form params -->
               <Step>
                 <Name>AssignMessage.AccessTokenExpiryOverride</Name>
-                <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
+                <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan  identity-service-config.cis2.access_token_expiry_ms)</Condition>
               </Step>
               <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
               <Step>
@@ -761,12 +693,12 @@
               </Step>
               <Step>
                 <Name>RaiseFault.TokenRefreshTimelimitExceeded</Name>
-                <Condition>private.apigee.access_token_age_ms > apigee.refresh_tokens_validity_ms</Condition>
+                <Condition>private.apigee.access_token_age_ms > identity-service-config.cis2.refresh_tokens_validity_ms</Condition>
               </Step>
             </Request>
             <Response>
                 <Step>
-                  <Name>AssignMessage.GenerateRefreshTokenResponse</Name>
+                    <Name>AssignMessage.GenerateRefreshTokenResponse</Name>
                 </Step>
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST") and (request.formparam.grant_type = "refresh_token")</Condition>
@@ -776,70 +708,103 @@
             <Request>
                 <Step>
                   <Name>RaiseFault.Unauthorized</Name>
-                  <Condition>request.queryparam.client_id NotEquals private.apigee.client_id</Condition>
+                  <Condition>request.queryparam.client_id NotEquals identity-service-config.cis2.client_id</Condition>
                 </Step>
                 <Step>
-                  <Name>LookupCache.OriginalClientInfo</Name>
+                    <Name>LookupCache.OriginalClientInfo</Name>
                 </Step>
                 <Step>
-                  <Name>ExtractVariables.ReadCacheJson</Name>
+                    <Name>ExtractVariables.ReadCacheJson</Name>
                 </Step>
                 <Step>
-                  <Name>InvalidateCache.OriginalClientInfo</Name>
+                    <Name>InvalidateCache.OriginalClientInfo</Name>
                 </Step>
                 <Step>
-                  <Name>VerifyAPIKey.FromJSON</Name>
+                    <Name>VerifyAPIKey.FromJSON</Name>
                 </Step>
                 <Step>
-                  <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJSON</Name>
+                    <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJSON</Name>
                 </Step>
                 <Step>
-                  <Name>SpikeArrest</Name>
+                    <Name>SpikeArrest</Name>
                 </Step>
                 <Step>
-                  <Name>Quota</Name>
+                    <Name>Quota</Name>
                 </Step>
                 <Step>
-                  <Name>OAuthV2.GenerateAuthCode</Name>
+                    <Name>KeyValueMapOperations.GetSecureVariables</Name>
+                </Step>
+                <Step>
+                    <Name>ServiceCallout.PostToken</Name>
+                </Step>
+                <Step>
+                    <Name>ExtractVariables.AccessToken</Name>
+                </Step>
+                <Step>
+                    <Name>DecodeJWT.FromExternalIdToken</Name>
+                </Step>
+                <Step>
+                    <Name>Javascript.ValidateIDTokenClaims</Name>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.JWTClaimsInvalid</Name>
+                    <Condition>claims_validation.is_valid == false</Condition>
+                </Step>
+                <!-- Using pattern from https://community.apigee.com/questions/34110/how-can-i-store-the-results-of-the-servicecallout.html
+                    Steps are:
+                    1. LookupCache.JWKS: Attempt to get JWKS from cache, store in flow variable `jwks`
+                    2. If this fails (`jwks` is null)
+                    2a. ServiceCallout.GetJWKS: Retrieve JWKS from IdP
+                    2b. PopulateCache.JWKS: Store in cache
+                    2c. AssignMessage.JWKS: Assign the JWKS from the service callout to `jwks` flow variable
+                    3. VerifyJWT.FromExternalIdToken: Verify the JWT using the `jwks` flow variable
+                -->
+                <Step>
+                    <Name>LookupCache.JWKS</Name>
+                </Step>
+                <Step>
+                    <Name>JavaScript.ValidateClaimFromExternalIdToken</Name>
+                    <Condition>jwks != null</Condition>
+                </Step>
+                <Step>
+                    <Name>ServiceCallout.GetJWKS</Name>
+                    <Condition>jwks = null Or jwks_kid_found = false</Condition>
+                </Step>
+                <Step>
+                    <Name>PopulateCache.JWKS</Name>
+                    <Condition>jwks = null Or jwks_kid_found = false</Condition>
+                </Step>
+                <Step>
+                    <Name>AssignMessage.JWKS</Name>
+                    <Condition>jwks = null Or jwks_kid_found = false</Condition>
+                </Step>
+                <Step>
+                    <Name>VerifyJWT.FromExternalIdToken</Name>
+                </Step>
+                <Step>
+                    <Name>JavaScript.FilterUserRestrictedScopes</Name>
+                </Step>
+                <Step>
+                  <Name>RaiseFault.VerifyAccessLevel</Name>
+                  <Condition>(apigee.user_restricted_scopes = "")</Condition>
                 </Step>
             </Request>
             <Response>
-              <!-- Re-create the redirect so scope query param isn't included -->
-              <Step>
-                <Name>AssignMessage.AuthCodeRedirect</Name>
-              </Step>
+                <Step>
+                    <Name>OAuthV2.GenerateAuthCode</Name>
+                </Step>
+                <Step>
+                    <Name>PopulateCache.ExternalIdToken</Name>
+                </Step>
+                <Step>
+                    <Name>PopulateCache.ExternalAccessToken</Name>
+                </Step>
+                <!-- Re-create the redirect so scope query param isn't included -->
+                <Step>
+                    <Name>AssignMessage.AuthCodeRedirect</Name>
+                </Step>
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/callback") and (request.verb = "GET")</Condition>
-        </Flow>
-        <Flow name="Flow.SimulatedUserAuth">
-          <Description>Provide a simulated user authorization interaction - Display login dialogue</Description>
-          <Request>
-            <!-- Check the redirect_uri and client_id. Although we generate the redirect to this URL, an app developer might get creative somehow
-            and we need to illustrate that what they are doing will break the authentication. -->
-            <Step>
-              <Name>RaiseFault.Unauthorized</Name>
-              <Condition>(request.queryparam.client_id NotEquals private.apigee.client_id) or (request.queryparam.redirect_uri NotEquals private.apigee.redirect_uri)</Condition>
-            </Step>
-            <Step>
-              <Name>AssignMessage.SimulatedAuthPage</Name>
-            </Step>
-          </Request>
-          <Condition>(identity_service.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/simulated_auth") and (request.verb Equals "GET")</Condition>
-        </Flow>
-        <Flow name="Flow.SimulatedUserAuthPost">
-          <Description>Provide a simulated user authorization interaction - Process login</Description>
-          <Request>
-            <Step>
-              <Name>AssignMessage.GenerateSimulatedAuthCode</Name>
-            </Step>
-            <Step>
-              <Name>PopulateCache.SimulatedAuthCode</Name>
-            </Step>
-            <Step>
-              <Name>AssignMessage.RedirectToApigeeCallback</Name>
-            </Step>
-          </Request>
-          <Condition>(identity_service.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/simulated_auth") and (request.verb Equals "POST")</Condition>
         </Flow>
         <Flow name="Flow.GetUserInfo">
           <Description/>
@@ -854,11 +819,18 @@
               <Name>Quota</Name>
             </Step>
             <Step>
+              <Name>Javascript.CheckApigeeAccessTokenAttributes</Name>
+            </Step>
+            <Step>
+              <Name>RaiseFault.NotFound</Name>
+              <Condition>idTokenIssuer Equals "nhsLogin" or InvalidIdTokenIssuer Equals "true"</Condition>
+            </Step>
+            <Step>
               <Name>AssignMessage.SetAuthorizationHeader</Name>
             </Step>
           </Request>
           <Response/>
-          <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
+          <Condition>(identity-service-config.cis2.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
         </Flow>
         <Flow name="Flow.OptionsCors">
             <Description/>
@@ -871,44 +843,44 @@
             <Condition>request.verb == "OPTIONS" AND request.header.origin != null AND request.header.Access-Control-Request-Method != null</Condition>
         </Flow>
         <Flow name="Flow.PostTokenInvalidSubjectTokenType">
-          <Request>
-              <Step>
-                  <Name>RaiseFault.InvalidSubjectTokenType</Name>
-              </Step>
-          </Request>
-          <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Is "urn:ietf:params:oauth:grant-type:token-exchange") and (request.formparam.subject_token_type NotEquals "urn:ietf:params:oauth:token-type:id_token")</Condition>
-      </Flow>
+            <Request>
+                <Step>
+                    <Name>RaiseFault.InvalidSubjectTokenType</Name>
+                </Step>
+            </Request>
+            <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Is "urn:ietf:params:oauth:grant-type:token-exchange") and (request.formparam.subject_token_type NotEquals "urn:ietf:params:oauth:token-type:id_token")</Condition>
+        </Flow>
         <Flow name="Flow.PostTokenInvalidGrantType">
-          <Request>
-            <Step>
-              <Name>RaiseFault.UnsupportedGrantType</Name>
-            </Step>
-          </Request>
-          <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type IsNot null)</Condition>
+            <Request>
+                <Step>
+                    <Name>RaiseFault.UnsupportedGrantType</Name>
+                </Step>
+            </Request>
+            <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type IsNot null)</Condition>
         </Flow>
         <Flow name="Flow.PostTokenMissingGrantType">
-          <Request>
-            <Step>
-              <Name>RaiseFault.MissingGrantType</Name>
-            </Step>
-          </Request>
-          <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Is null)</Condition>
+            <Request>
+                <Step>
+                    <Name>RaiseFault.MissingGrantType</Name>
+                </Step>
+            </Request>
+            <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Is null)</Condition>
         </Flow>
         <Flow name="Flow.GetAuthorizeUnsupportedHTTPMethod">
-          <Request>
-            <Step>
-              <Name>RaiseFault.UnsupportedAuthorizeHTTPMethod</Name>
-            </Step>
-          </Request>
-          <Condition>(proxy.pathsuffix MatchesPath "/authorize") and (request.verb NotEquals "GET")</Condition>
+            <Request>
+                <Step>
+                    <Name>RaiseFault.UnsupportedAuthorizeHTTPMethod</Name>
+                </Step>
+            </Request>
+            <Condition>(proxy.pathsuffix MatchesPath "/authorize") and (request.verb NotEquals "GET")</Condition>
         </Flow>
         <Flow name="Flow.PostTokenUnsupportedHTTPMethod">
-          <Request>
-            <Step>
-              <Name>RaiseFault.UnsupportedTokenHTTPMethod</Name>
-            </Step>
-          </Request>
-          <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb NotEquals "POST")</Condition>
+            <Request>
+                <Step>
+                    <Name>RaiseFault.UnsupportedTokenHTTPMethod</Name>
+                </Step>
+            </Request>
+            <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb NotEquals "POST")</Condition>
         </Flow>
         <Flow name="Flow.CatchAll">
             <Description/>
@@ -922,11 +894,11 @@
         </Flow>
     </Flows>
     <PostClientFlow name="PostClientFlow">
-      <Response>
-        <Step>
-          <Name>FlowCallout.LogToSplunk</Name>
-        </Step>
-      </Response>
+        <Response>
+            <Step>
+                <Name>FlowCallout.LogToSplunk</Name>
+            </Step>
+        </Response>
     </PostClientFlow>
     <HTTPProxyConnection>
         <!-- Cannot be parameterised / dynamic as it's part of callback URI registered with the identity provider -->

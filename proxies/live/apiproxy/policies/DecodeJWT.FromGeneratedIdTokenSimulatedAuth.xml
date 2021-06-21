@@ -1,3 +1,0 @@
-<DecodeJWT continueOnError="false" enabled="true" name="DecodeJWT.FromGeneratedIdTokenSimulatedAuth">
-  <Source>jwt.GenerateJWT.SimulatedAuth.generated_jwt</Source>
-</DecodeJWT>

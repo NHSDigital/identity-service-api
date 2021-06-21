@@ -1,0 +1,11 @@
+<PopulateCache name="PopulateCache.CCJWKS">
+    <Source>ccjwks_callout_response.content</Source>
+    <Scope>Application</Scope>
+    <CacheKey>
+        <KeyFragment ref="verifyapikey.VerifyAPIKey.FromJWT.client_id"/>
+        <KeyFragment>ccjwks-scope</KeyFragment>
+    </CacheKey>
+    <ExpirySettings>
+        <TimeoutInSeconds>3600</TimeoutInSeconds>
+    </ExpirySettings>
+</PopulateCache>

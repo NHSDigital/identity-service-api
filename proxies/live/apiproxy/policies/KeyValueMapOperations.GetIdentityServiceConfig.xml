@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<KeyValueMapOperations async="false" continueOnError="false" enabled="true" name="KeyValueMapOperations.GetIdentityServiceConfig" mapIdentifier="secret-squirrel" encrypted="true">
+    <Get assignTo="private.config_raw">
+        <Key>
+            <Parameter>{{VARIABLES_KVM}}</Parameter>
+        </Key>
+    </Get>
+</KeyValueMapOperations>

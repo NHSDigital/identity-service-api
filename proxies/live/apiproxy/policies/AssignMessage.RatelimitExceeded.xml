@@ -1,0 +1,15 @@
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.RatelimitExceeded">
+    <DisplayName>Ratelimit Exceeded</DisplayName>
+    <Set>
+      <StatusCode>429</StatusCode>
+      <Payload contentType="application/json">
+        {
+          "error": "ratelimit_exceeded",
+          "error_description": "The rate limit was exceeded",
+          "message_id": "{messageid}"
+        }
+      </Payload>
+    </Set>
+    <AssignTo createNew="false" transport="https" type="response"/>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</AssignMessage>

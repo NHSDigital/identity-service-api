@@ -1,33 +1,53 @@
 parameters:
-  - name: service_name
-    type: string
+  - name: test_type
 
 steps:
-  - bash: |
-      pip install virtualenv
-      virtualenv test_env
-      source ./test_env/bin/activate
-      pip install -r requirements.txt
-    workingDirectory: $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests
-    displayName: Setup integration tests
+
+  - task: s3-cache-action@1
+    inputs:
+      key: 'poetry | ./poetry.lock'
+      location: '.venv'
+      debug: true
+      workingDirectory: $(SERVICE_DIR)
+    name: poetryCache
+    displayName: cache python dependencies
 
   - bash: |
-      source ./test_env/bin/activate
+      make install-python
+    workingDirectory: $(SERVICE_DIR)
+    condition: ne(variables['poetryCache.cacheRestored'], 'true')
+    displayName: poetry install
+    
+  - template: "azure/components/aws-assume-role.yml@common"
+    parameters:
+      role: "auto-ops"
+      profile: "apm_ptl"
+
+  - template: "azure/components/get-aws-secrets-and-ssm-params.yml@common"
+    parameters:
+        secret_file_ids:
+          - ptl/app-credentials/jwt_testing/non-prod/JWT_TESTING_PRIVATE_KEY
+          - ptl/app-credentials/jwt_testing/non-prod/ID_TOKEN_TESTING_PRIVATE_KEY
+          - ptl/app-credentials/jwt_testing/non-prod/ID_TOKEN_NHS_LOGIN_PRIVATE_KEY
+        config_ids: []
+        secret_ids: []
+
+  - bash: |
 
       export OAUTH_BASE_URI="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk"
       export OAUTH_PROXY="$(SERVICE_BASE_PATH)"
       export SERVICE_NAME="$(FULLY_QUALIFIED_SERVICE_NAME)"
       export ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH="$(Pipeline.Workspace)/secrets/$(ID_TOKEN_TESTING_PRIVATE_KEY)"
+      export ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH="$(Pipeline.Workspace)/secrets/$(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY)"
       export JWT_PRIVATE_KEY_ABSOLUTE_PATH="$(Pipeline.Workspace)/secrets/$(JWT_TESTING_PRIVATE_KEY)"
       export APIGEE_API_TOKEN="$(secret.AccessToken)"
-
-      pytest -v --junitxml=test-report.xml --reruns 2 --reruns-delay 1
-    workingDirectory: $(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests
-    displayName: Run integration tests
+      make -C e2e ${{ parameters.test_type }}
+    workingDirectory: $(SERVICE_DIR)
+    displayName: run ${{ parameters.test_type }} tests
 
   - task: PublishTestResults@2
-    displayName: 'Publish integration test results'
-    condition: always()
+    displayName: publish ${{ parameters.test_type }} test results
     inputs:
-      testResultsFiles: '$(Pipeline.Workspace)/s/${{ parameters.service_name }}/$(SERVICE_ARTIFACT_NAME)/api_tests/test-report.xml'
+      testResultsFiles: |
+        $(SERVICE_DIR)/reports/${{ parameters.test_type }}.xml
       failTaskOnFailedTests: true
