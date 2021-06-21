@@ -13,7 +13,7 @@
       <Enabled>true</Enabled>
     </SSLInfo>
     <LoadBalancer>
-      <Server name="{{ IDENTITY_TARGET_SERVER }}" />
+      <Server name="{{ IDENTITY_PROVIDER_CIS2 }}" />
     </LoadBalancer>
     <Path>{private.apigee.userinfo_path}</Path>
     <!-- <URL>https://internal-dev.api.service.nhs.uk/mock-nhsid-jwks-pr-31/userinfo</URL> -->
