@@ -15,7 +15,7 @@
     <LoadBalancer>
       <Server name="{{ IDENTITY_TARGET_SERVER }}" />
     </LoadBalancer>
-    <!-- <Path>{private.apigee.userinfo_path}</Path> -->
-    <Path>https://internal-dev.api.service.nhs.uk/mock-nhsid-jwks-pr-31/userinfo</Path>
+    <Path>{private.apigee.userinfo_path}</Path>
+    <!-- <URL>https://internal-dev.api.service.nhs.uk/mock-nhsid-jwks-pr-31/userinfo</URL> -->
   </HTTPTargetConnection>
 </TargetEndpoint>

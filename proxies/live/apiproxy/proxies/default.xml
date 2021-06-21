@@ -860,25 +860,6 @@
           <Response/>
           <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
         </Flow>
-        <Flow name="Flow.GetUserInfoSimulatedAuth">
-          <Description/>
-          <Request>
-            <Step>
-              <Name>OAuthV2.VerifyAccessToken</Name>
-            </Step>
-            <Step>
-              <Name>SpikeArrest</Name>
-            </Step>
-            <Step>
-              <Name>Quota</Name>
-            </Step>
-            <!-- <Step>
-              <Name>AssignMessage.GenerateUserinfoResponseSimulatedAuth</Name>
-            </Step> -->
-          </Request>
-          <Response/>
-          <Condition>(identity_service.simulated_idp Equals "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
-        </Flow>
         <Flow name="Flow.OptionsCors">
             <Description/>
             <Request/>
@@ -957,7 +938,7 @@
         <Condition>(proxy.pathsuffix MatchesPath "/_ping") and ((request.verb = "GET") or (request.verb = "HEAD"))</Condition>
     </RouteRule>
     <RouteRule name="userinfoRoute">
-      <Condition>(identity_service.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
+      <Condition>(proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
       <TargetEndpoint>identity-server-userinfo</TargetEndpoint>
     </RouteRule>
     <RouteRule name="loopbackRoute"/>
