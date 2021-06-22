@@ -154,7 +154,7 @@ class TestOauthTokens:
         assert resp['status_code'] == 401
         assert resp['body'] == {
             "error": "invalid_grant",
-            "error_description": "access token refresh period has expired",
+            "error_description": "refresh token refresh period has expired",
         }
 
     @pytest.mark.apm_1010
@@ -177,7 +177,7 @@ class TestOauthTokens:
         assert resp['status_code'] == 401
         assert resp['body'] == {
             "error": "invalid_grant",
-            "error_description": "access token refresh period has expired"
+            "error_description": "refresh token refresh period has expired"
         }
 
     @pytest.mark.apm_1475

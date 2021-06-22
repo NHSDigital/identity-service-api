@@ -714,14 +714,14 @@
             <Description>Flow to catch the Code response</Description>
             <Request>
                 <Step>
-                  <Name>RaiseFault.Unauthorized</Name>
-                  <Condition>request.queryparam.client_id NotEquals identity-service-config.cis2.client_id</Condition>
-                </Step>
-                <Step>
                     <Name>LookupCache.OriginalClientInfo</Name>
                 </Step>
                 <Step>
                     <Name>ExtractVariables.ReadCacheJson</Name>
+                </Step>
+                <Step>
+                  <Name>RaiseFault.Unauthorized</Name>
+                  <Condition>(idp != "nhs-login") and (request.queryparam.client_id NotEquals identity-service-config.cis2.client_id)</Condition>
                 </Step>
                 <Step>
                     <Name>InvalidateCache.OriginalClientInfo</Name>
@@ -740,6 +740,10 @@
                 </Step>
                 <Step>
                     <Name>KeyValueMapOperations.GetSecureVariables</Name>
+                </Step>
+                <Step>
+                    <Name>GenerateJWT.NHSLoginClientAssertion</Name>
+                    <Condition>idp = "nhs-login"</Condition>
                 </Step>
                 <Step>
                     <Name>ServiceCallout.PostTokenCis2</Name>
