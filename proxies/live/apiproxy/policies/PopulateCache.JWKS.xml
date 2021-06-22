@@ -5,6 +5,6 @@
     <KeyFragment>jwks</KeyFragment>
   </CacheKey>
   <ExpirySettings>
-    <TimeoutInSeconds>60</TimeoutInSeconds>
+    <TimeoutInSeconds>86400</TimeoutInSeconds>
   </ExpirySettings>
 </PopulateCache>

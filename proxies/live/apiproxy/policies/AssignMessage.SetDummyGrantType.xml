@@ -1,0 +1,7 @@
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.SetDummyGrantType">
+    <Properties/>
+    <AssignVariable>
+        <Name>dummy_grant_type</Name>
+        <Value>client_credentials</Value>
+    </AssignVariable>
+</AssignMessage>

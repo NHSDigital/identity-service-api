@@ -4,6 +4,8 @@ dist/
 build/
 public/
 newman/
+**/venv
+**/*.key
 
 
 .#*
@@ -15,7 +17,7 @@ __pycache__/
 .idea/
 .vscode
 .pytest_cache/
-docker.env
+*.env
 
 .direnv
 .venv

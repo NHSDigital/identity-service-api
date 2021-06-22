@@ -1,9 +1,0 @@
-<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.RedirectToApigeeCallback">
-  <Set>
-      <StatusCode>302</StatusCode>
-      <Headers>
-          <Header name="Location">{private.apigee.redirect_uri}?code={authorization_code}&amp;state={request.formparam.state}&amp;client_id={private.apigee.client_id}</Header>
-      </Headers>
-  </Set>
-  <AssignTo createNew="true" transport="http" type="response"/>
-</AssignMessage>
