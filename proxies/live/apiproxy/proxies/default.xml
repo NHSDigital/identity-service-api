@@ -618,6 +618,9 @@
                     <Condition>(apigee.can_override_refresh_token != null) and (apigee.can_override_refresh_token = true)</Condition>
                 </Step>
                 <Step>
+                    <Name>JavaScript.SetLoggingFieldsInAccessToken</Name>
+                </Step>
+                <Step>
                     <Name>OAuthV2.GenerateAccessToken</Name>
                 </Step>
             </Request>
