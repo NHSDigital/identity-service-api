@@ -25,6 +25,9 @@
         <SSLInfo>
             <Enabled>true</Enabled>
         </SSLInfo>
-        <URL>{identity-service-config.nhs_login.token_endpoint}</URL>
+        <LoadBalancer>
+            <Server name="{{ IDENTITY_PROVIDER_NHS_LOGIN }}" />
+        </LoadBalancer>
+        <Path>{identity-service-config.nhs_login.access_token_path}</Path>
     </HTTPTargetConnection>
 </ServiceCallout>

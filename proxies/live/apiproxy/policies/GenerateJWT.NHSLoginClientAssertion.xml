@@ -8,7 +8,7 @@
     </PrivateKey>
     <Subject>{identity-service-config.nhs_login.client_id}</Subject>
     <Issuer>{identity-service-config.nhs_login.client_id}</Issuer>
-    <Audience>{identity-service-config.nhs_login.token_endpoint}</Audience>
+    <Audience>{identity-service-config.nhs_login.issuer}</Audience>
     <ExpiresIn>1h</ExpiresIn>
     <OutputVariable>client_assertion</OutputVariable>
 </GenerateJWT>
