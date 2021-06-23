@@ -830,7 +830,7 @@
             </Step>
           </Request>
           <Response/>
-          <Condition>(identity-service-config.cis2.simulated_idp IsNot "true") and (proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
+          <Condition>(proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
         </Flow>
         <Flow name="Flow.OptionsCors">
             <Description/>
