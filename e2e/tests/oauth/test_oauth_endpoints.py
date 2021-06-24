@@ -730,11 +730,10 @@ class TestOauthEndpoints:
             headers={"Authorization": f"Bearer {self.oauth.access_token}"},
         )
 
-    @pytest.mark.happy_path
+    @pytest.mark.errors
     async def test_userinfo_cis2_exchanged_token(self):
         # Given
-        expected_status_code = 200
-        expected_response = BANK["test_userinfo"]["response"]
+        expected_status_code = 404
 
         # When
         id_token_jwt = self.oauth.create_id_token_jwt()
@@ -753,7 +752,6 @@ class TestOauthEndpoints:
 
         # Then
         assert expected_status_code == resp["status_code"]
-        assert expected_response == resp["body"]
 
     async def test_userinfo_nhs_login_exchanged_token(self):
         # Given

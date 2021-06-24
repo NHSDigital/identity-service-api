@@ -823,7 +823,7 @@
             </Step>
             <Step>
               <Name>RaiseFault.NotFound</Name>
-              <Condition>idTokenIssuer Equals "nhsLogin" or InvalidIdTokenIssuer Equals "true"</Condition>
+              <Condition>idTokenIssuer Equals "nhsLogin" or InvalidIdTokenIssuer Equals "true" or accesstoken.external_access_token Equals null</Condition>
             </Step>
             <Step>
               <Name>AssignMessage.SetAuthorizationHeader</Name>
