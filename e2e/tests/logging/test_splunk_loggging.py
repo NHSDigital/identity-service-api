@@ -15,18 +15,8 @@ class TestSplunkLogging:
     async def test_access_token_fields_for_logging_when_using_authorization_code(self, helper):
         # Given
         apigee_trace = ApigeeApiTraceDebug(proxy=f"hello-world-{ENVIRONMENT}")
-        assert helper.check_endpoint(
-            verb='GET',
-            endpoint=HELLO_WORLD_API_URL,
-            expected_status_code=200,
-            expected_response={"message": "hello user!"},
-            headers={
-                'Authorization': f'Bearer {self.oauth.access_token}',
-                'NHSD-Session-URID': 'ROLD-ID',
-            }
-        )
+
         # When
-        print(self.oauth.access_token)
         await apigee_trace.start_trace()
         requests.get(f"{HELLO_WORLD_API_URL}", headers={"Authorization": f"Bearer {self.oauth.access_token}"})
 
@@ -34,8 +24,8 @@ class TestSplunkLogging:
         auth_type = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_type')
         auth_grant_type = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_grant_type')
 
-        assert auth_type == 'app'
-        assert auth_grant_type == 'client_credentials'
+        assert auth_type == 'user'
+        assert auth_grant_type == 'authorization_code'
 
     @pytest.mark.happy_path
     @pytest.mark.logging
@@ -69,7 +59,6 @@ class TestSplunkLogging:
 
     @pytest.mark.happy_path
     @pytest.mark.logging
-    @pytest.mark.debug
     async def test_access_token_fields_for_logging_when_using_token_exchange(self):
         # Given
         apigee_trace = ApigeeApiTraceDebug(proxy=f"hello-world-{ENVIRONMENT}")
