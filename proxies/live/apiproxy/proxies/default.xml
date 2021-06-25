@@ -788,7 +788,7 @@
                 </Step>
                 <Step>
                     <Name>ServiceCallout.GetJWKS</Name>
-                    <Condition>jwks = null Or jwks_kid_found = false</Condition>
+                    <Condition>(jwks = null Or jwks_kid_found = false)  and idp != "nhs-login"</Condition>
                 </Step>
                 <Step>
                     <Name>ServiceCallout.GetNHSLoginJWKS</Name>

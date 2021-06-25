@@ -4,11 +4,11 @@
     <Algorithm>RS512</Algorithm>
     <PrivateKey>
         <Value ref="private.jwt"/>
-        <Id>{identity-service-config.nhs_login.kid}</Id>
+        <Id ref= "identity-service-config.nhs_login.kid"/>
     </PrivateKey>
-    <Subject>{identity-service-config.nhs_login.client_id}</Subject>
-    <Issuer>{identity-service-config.nhs_login.client_id}</Issuer>
-    <Audience>{identity-service-config.nhs_login.audience}</Audience>
+    <Subject ref="identity-service-config.nhs_login.client_id"/>
+    <Issuer ref="identity-service-config.nhs_login.client_id"/>
+    <Audience ref="identity-service-config.nhs_login.audience"/>
     <ExpiresIn>1h</ExpiresIn>
     <OutputVariable>client_assertion</OutputVariable>
 </GenerateJWT>
