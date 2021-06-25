@@ -42,6 +42,12 @@ function getLevel(level) {
     if (level.includes(":p9:")) {
       return "p9";
     }
+    if (level.includes(":p5:")) {
+      return "p5";
+    }
+    if (level.includes(":p0:")) {
+      return "p0";
+    }
   }
   return "unknown";
 }
