@@ -1,0 +1,7 @@
+<AssignMessage name='AssignMessage.ExtractExternalScope'>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <AssignVariable>
+    <Name>idp</Name>
+    <Ref>request.queryparam.scope</Ref>
+  </AssignVariable>
+</AssignMessage>

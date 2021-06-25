@@ -165,6 +165,13 @@
             <Name>Javascript.UnpackVars</Name>
         </Step>
         <Step>
+            <Name>AssignMessage.setIDPvar</Name>
+        </Step>
+        <Step>
+            <Name>AssignMessage.ExtractExternalScope</Name>
+            <Condition>apim.feature_toggles.enable-nhs-login-combined-auth = true</Condition>
+        </Step>
+        <Step>
             <Name>AssignMessage.RemoveExternalScope</Name>
         </Step>
         </Request>
@@ -258,8 +265,12 @@
                     <Condition>proxy.basepath Matches "oauth2-int-pr-*"</Condition>
                 </Step>
                 <Step>
-                    <Name>AssignMessage.SetAuthorizationRedirect</Name>
-                    <Condition>not(proxy.basepath Matches "oauth2-int-pr-*")</Condition>
+                    <Name>AssignMessage.SetAuthorizationRedirectCis2</Name>
+                    <Condition>not(proxy.basepath Matches "oauth2-int-pr-*") and (idp != "nhs-login")</Condition>
+                </Step>
+                <Step>
+                    <Name>AssignMessage.SetAuthorizationRedirectNHSLogin</Name>
+                    <Condition>not(proxy.basepath Matches "oauth2-int-pr-*") and (idp = "nhs-login")</Condition>
                 </Step>
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/authorize") and (request.verb = "GET")</Condition>
@@ -707,14 +718,14 @@
             <Description>Flow to catch the Code response</Description>
             <Request>
                 <Step>
-                  <Name>RaiseFault.Unauthorized</Name>
-                  <Condition>request.queryparam.client_id NotEquals identity-service-config.cis2.client_id</Condition>
-                </Step>
-                <Step>
                     <Name>LookupCache.OriginalClientInfo</Name>
                 </Step>
                 <Step>
                     <Name>ExtractVariables.ReadCacheJson</Name>
+                </Step>
+                <Step>
+                  <Name>RaiseFault.Unauthorized</Name>
+                  <Condition>(idp != "nhs-login") and (request.queryparam.client_id NotEquals identity-service-config.cis2.client_id)</Condition>
                 </Step>
                 <Step>
                     <Name>InvalidateCache.OriginalClientInfo</Name>
@@ -735,7 +746,16 @@
                     <Name>KeyValueMapOperations.GetSecureVariables</Name>
                 </Step>
                 <Step>
-                    <Name>ServiceCallout.PostToken</Name>
+                    <Name>GenerateJWT.NHSLoginClientAssertion</Name>
+                    <Condition>idp = "nhs-login"</Condition>
+                </Step>
+                <Step>
+                    <Name>ServiceCallout.PostTokenCis2</Name>
+                    <Condition>idp != "nhs-login"</Condition>
+                </Step>
+                <Step>
+                    <Name>ServiceCallout.PostTokenNHSLogin</Name>
+                    <Condition>idp = "nhs-login"</Condition>
                 </Step>
                 <Step>
                     <Name>ExtractVariables.AccessToken</Name>
@@ -769,6 +789,10 @@
                 <Step>
                     <Name>ServiceCallout.GetJWKS</Name>
                     <Condition>jwks = null Or jwks_kid_found = false</Condition>
+                </Step>
+                <Step>
+                    <Name>ServiceCallout.GetNHSLoginJWKS</Name>
+                    <Condition>(jwks = null Or jwks_kid_found = false) and idp = "nhs-login"</Condition>
                 </Step>
                 <Step>
                     <Name>PopulateCache.JWKS</Name>

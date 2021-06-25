@@ -10,4 +10,9 @@
       <Parameter>client_secret</Parameter>
     </Key>
   </Get>
+  <Get assignTo="private.jwt" index="1">
+        <Key>
+            <Parameter>nhs_login_private_key</Parameter>
+        </Key>
+    </Get>
 </KeyValueMapOperations>
