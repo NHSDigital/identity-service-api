@@ -33,6 +33,7 @@ class TestSplunkLogging:
 
     @pytest.mark.happy_path
     @pytest.mark.logging
+    @pytest.mark.debug
     async def test_access_token_fields_for_logging_when_using_client_credentials(self):
         # Given
         apigee_trace = ApigeeApiTraceDebug(proxy=f"hello-world-{ENVIRONMENT}")
@@ -94,9 +95,8 @@ class TestSplunkLogging:
 
     @pytest.mark.happy_path
     @pytest.mark.logging
-    @pytest.mark.debug
-    # @pytest.mark.parametrize('scope', ['P9', 'P5', 'P0'])
-    async def test_access_token_fields_for_logging_when_using_token_exchange_nhs_login(self):
+    @pytest.mark.parametrize('scope', ['P9', 'P5', 'P0'])
+    async def test_access_token_fields_for_logging_when_using_token_exchange_nhs_login(self, scope):
         # Given
         apigee_trace = ApigeeApiTraceDebug(proxy=f"hello-world-{ENVIRONMENT}")
 
@@ -111,7 +111,7 @@ class TestSplunkLogging:
             "iat": int(time()) - 10,
             "vtm": "https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk",
             "jti": "b68ddb28-e440-443d-8725-dfe0da330118",
-            "identity_proofing_level": 'P5'
+            "identity_proofing_level": scope
         }
         id_token_headers = {
             "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",
@@ -155,4 +155,4 @@ class TestSplunkLogging:
         assert auth_type == 'user'
         assert auth_grant_type == 'token_exchange'
         assert auth_provider == 'nhs-login'
-        assert auth_level == 'p9'
+        assert auth_level == scope.lower()
