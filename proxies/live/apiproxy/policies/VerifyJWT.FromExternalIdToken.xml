@@ -4,7 +4,7 @@
     At the moment we are using the default configuration of RS256 for all our clients
     and we don’t intend to change this, if we were to we would obviously have to contact
     affected clients before doing so. Therefore I think it’s safe for you to always expect RS256. -->
-  <Algorithm>RS256</Algorithm>
+  <Algorithm>RS256,RS512</Algorithm>
   <PublicKey>
     <JWKS ref="jwks"/>
   </PublicKey>

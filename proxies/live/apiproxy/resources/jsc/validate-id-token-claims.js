@@ -1,11 +1,19 @@
+var idp = context.getVariable("idp");
 var aud_claim = context.getVariable("jwt.DecodeJWT.FromExternalIdToken.decoded.claim.aud");
 var iss_claim = context.getVariable("jwt.DecodeJWT.FromExternalIdToken.decoded.claim.iss");
 
-var client_id = context.getVariable("identity-service-config.cis2.client_id");
+if(idp == 'nhs-login'){
+    var client_id = context.getVariable("identity-service-config.nhs_login.client_id");
+    var base_url = context.getVariable("identity-service-config.nhs_login.issuer");
+}
+else{
+    var client_id = context.getVariable("identity-service-config.cis2.client_id");
+    var base_url = context.getVariable("identity-service-config.cis2.issuer");
+}
+
 
 aud_claim = JSON.parse(aud_claim);
             
-var base_url = context.getVariable("identity-service-config.cis2.issuer");
 
 
 if(aud_claim != client_id)

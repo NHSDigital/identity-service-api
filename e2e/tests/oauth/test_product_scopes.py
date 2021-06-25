@@ -269,7 +269,7 @@ class TestProductScopes:
             ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service']
         ),
     ])
-    async def test_user_restricted_scope_combination(
+    async def test_cis2_user_restricted_scope_combination(
         self,
         product_1_scopes,
         product_2_scopes,
@@ -369,7 +369,7 @@ class TestProductScopes:
             []
         ),
     ])
-    async def test_error_user_restricted_scope_combination(
+    async def test_cis2_error_user_restricted_scope_combination(
         self,
         product_1_scopes,
         product_2_scopes,
@@ -1020,3 +1020,264 @@ class TestProductScopes:
         assert expected_status_code == resp['status_code']
         assert expected_error == resp['body']['error']
         assert expected_error_description == resp['body']['error_description']
+
+
+    @pytest.mark.happy_path
+    @pytest.mark.parametrize('product_1_scopes, product_2_scopes, expected_filtered_scopes', [
+        # Scenario 1: one product with valid scope
+        (
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service'],
+            [],
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service']
+
+        ),
+        # Scenario 2: one product with valid scope, one product with invalid scope
+        (
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service'],
+            ['urn:nhsd:apim:app:level3:ambulance-analytics'],
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service']
+        ),
+        # Scenario 3: multiple products with valid scopes
+        (
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service'],
+            ['urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics'],
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service,'
+             'urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics']
+        ),
+        # Scenario 4: one product with multiple valid scopes
+        (
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
+             'urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics'],
+            [],
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
+             'urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics']
+        ),
+        # Scenario 5: multiple products with multiple valid scopes
+        (
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
+             'urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics'],
+            ['urn:nhsd:apim:user-nhs-login:P9:example-1', 'urn:nhsd:apim:user-nhs-login:P9:example-2'],
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
+             'urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics',
+             'urn:nhsd:apim:user-nhs-login:P9:example-1',
+             'urn:nhsd:apim:user-nhs-login:P9:example-2']
+        ),
+        # Scenario 6: one product with multiple scopes (valid and invalid)
+        (
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
+             'urn:nhsd:apim:app:level3:ambulance-analytics'],
+            [],
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service']
+        ),
+        # Scenario 7: multiple products with multiple scopes (valid and invalid)
+        (
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
+             'urn:nhsd:apim:app:level3:ambulance-analytics'],
+            ['urn:nhsd:apim:user-nhs-login:P9:example-1', 'urn:nhsd:apim:app:level3:example-2'],
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
+             'urn:nhsd:apim:user-nhs-login:P9:example-1']
+        ),
+        # Scenario 8: one product with valid scope with trailing and leading spaces
+        (
+            [' urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service '],
+            [],
+            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service']
+        ),
+    ])
+    async def test_nhs_login_user_restricted_scope_combination(
+        self,
+        product_1_scopes,
+        product_2_scopes,
+        expected_filtered_scopes,
+        test_app_and_product,
+        helper
+    ):
+        test_product, test_product2, test_app = test_app_and_product
+
+        await test_product.update_scopes(product_1_scopes)
+        await test_product2.update_scopes(product_2_scopes)
+        apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME)
+
+        callback_url = await test_app.get_callback_url()
+        oauth = OauthHelper(test_app.client_id, test_app.client_secret, callback_url)
+
+        response = await self.oauth.hit_oauth_endpoint(
+            method="GET",
+            endpoint="authorize",
+            params={
+                "client_id": test_app.client_id,
+                "redirect_uri": callback_url,
+                "response_type": "code",
+                "state": "1234567890",
+                "scope": "nhs-login"
+            },
+            allow_redirects=False,
+        )
+
+        state = helper.get_param_from_url(
+            url=response["headers"]["Location"], param="state"
+        )
+        # Make simulated auth request to authenticate
+        response = await self.oauth.hit_oauth_endpoint(
+            base_uri=MOCK_IDP_BASE_URL,
+            method="POST",
+            endpoint="nhs_login_simulated_auth",
+            params={
+                "response_type": "code",
+                "client_id": test_app.client_id,
+                "redirect_uri": callback_url,
+                "scope": "openid",
+                "state": state,
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data={
+                "state": state,
+                "auth_method": "P9"
+            },
+            allow_redirects=False,
+        )
+
+        # Make initial callback request
+        auth_code = helper.get_param_from_url(
+            url=response["headers"]["Location"], param="code"
+        )
+        
+        await apigee_trace.start_trace()
+
+        response = await self.oauth.hit_oauth_endpoint(
+            method="GET",
+            endpoint="callback",
+            params={"code": auth_code, "client_id": "some-client-id", "state": state},
+            allow_redirects=False,
+        )
+
+        user_restricted_scopes = await apigee_trace.get_apigee_variable_from_trace(name='apigee.user_restricted_scopes')
+        assert user_restricted_scopes is not None, 'variable apigee.user_restricted_scopes not found in the trace'
+        user_restricted_scopes = user_restricted_scopes.split(" ")
+        assert expected_filtered_scopes.sort() == user_restricted_scopes.sort()
+
+    @pytest.mark.errors
+    @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
+        # Scenario 1: multiple products with no scopes
+        (
+            [],
+            []
+        ),
+        # Scenario 2: one product with invalid scope, one product with no scope
+        (
+            ['urn:nhsd:apim:user-nhs-login:P0:personal-demographics-service'],
+            []
+        ),
+        # Scenario 3: multiple products with invalid scopes
+        (
+            ['urn:nhsd:apim:app:level3:personal-demographics-service'],
+            ['urn:nhsd:apim:app:level3:ambulance-analytics']
+        ),
+        # Scenario 4: one product with multiple invalid scopes
+        (
+            ['urn:nhsd:apim:app:level3:personal-demographics-service', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
+            []
+        ),
+        # Scenario 5: multiple products with multiple invalid scopes
+        (
+            ['urn:nhsd:apim:app:level3:personal-demographics-service', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
+            ['urn:nhsd:apim:app:level3:example-1', 'urn:nhsd:apim:app:level3:example-2']
+        ),
+        # Scenario 6: one product with invalid scope (wrong formation)
+        (
+            ['ThisDoesNotExist'],
+            []
+        ),
+        # Scenario 7: one product with invalid scope (special characters)
+        (
+            ['#£$?!&%*.;@~_-'],
+            []
+        ),
+        # Scenario 8: one product with invalid scope (empty string)
+        (
+            [""],
+            []
+        ),
+        # Scenario 8: one product with invalid scope (None object)
+        (
+            [None],
+            []
+        ),
+        # Scenario 9: one product with invalid scope, one product with no scope
+        (
+            ['urn:nhsd:apim:user-nhs-login:P0personal-demographics-service'],
+            []
+        ),
+    ])
+    async def test_nhs_login_user_restricted_error_scope_combination(
+        self,
+        product_1_scopes,
+        product_2_scopes,
+        test_app_and_product,
+        helper
+    ):
+        test_product, test_product2, test_app = test_app_and_product
+
+        expected_status_code = 401
+        expected_error = 'unauthorized_client'
+        expected_error_description = "you have tried to requests authorization but your " \
+                                     "application is not configured to use this authorization grant type"
+
+        await test_product.update_scopes(product_1_scopes)
+        await test_product2.update_scopes(product_2_scopes)
+
+        callback_url = await test_app.get_callback_url()
+        oauth = OauthHelper(test_app.client_id, test_app.client_secret, callback_url)
+
+        response = await self.oauth.hit_oauth_endpoint(
+            method="GET",
+            endpoint="authorize",
+            params={
+                "client_id": test_app.client_id,
+                "redirect_uri": callback_url,
+                "response_type": "code",
+                "state": "1234567890",
+                "scope": "nhs-login"
+            },
+            allow_redirects=False,
+        )
+
+        state = helper.get_param_from_url(
+            url=response["headers"]["Location"], param="state"
+        )
+        # Make simulated auth request to authenticate
+        response = await self.oauth.hit_oauth_endpoint(
+            base_uri=MOCK_IDP_BASE_URL,
+            method="POST",
+            endpoint="nhs_login_simulated_auth",
+            params={
+                "response_type": "code",
+                "client_id": test_app.client_id,
+                "redirect_uri": callback_url,
+                "scope": "openid",
+                "state": state,
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data={
+                "state": state,
+                "auth_method": "P9"
+            },
+            allow_redirects=False,
+        )
+
+        # Make initial callback request
+        auth_code = helper.get_param_from_url(
+            url=response["headers"]["Location"], param="code"
+        )
+
+        response = await self.oauth.hit_oauth_endpoint(
+            method="GET",
+            endpoint="callback",
+            params={"code": auth_code, "client_id": "some-client-id", "state": state},
+            allow_redirects=False,
+        )
+
+        assert expected_status_code == response['status_code']
+        assert expected_error == response['body']['error']
+        assert expected_error_description == response['body']['error_description']
+        
