@@ -1,0 +1,7 @@
+<AssignMessage name='AssignMessage.setIDPvar'>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <AssignVariable>
+    <Name>idp</Name>
+    <Value>null</Value>
+  </AssignVariable>
+</AssignMessage>
