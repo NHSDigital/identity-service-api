@@ -14,6 +14,7 @@ keywords = ["healthcare", "uk", "nhs"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
+pytest-rerunfailures = "^10.0"
 
 
 [tool.poetry.dev-dependencies]
