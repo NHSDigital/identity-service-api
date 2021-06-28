@@ -134,7 +134,7 @@ class TestSplunkLogging:
                 "iss": self.oauth.client_id,
                 "jti": str(uuid4()),
                 "aud": f"{OAUTH_URL}/token",
-                "exp": int(time()),  # this includes the +30 seconds grace
+                "exp": int(time()),
             }
         }
         jwt = self.oauth.create_jwt(**jwt_claims)
@@ -200,7 +200,7 @@ class TestSplunkLogging:
             "exp": int(time()) + 600,
             "iat": int(time()) - 10,
             "vtm": "https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk",
-            "jti": "b68ddb28-e440-443d-8725-dfe0da330118",
+            "jti": str(uuid4()),
             "identity_proofing_level": scope
         }
         id_token_headers = {
@@ -212,7 +212,7 @@ class TestSplunkLogging:
             "exp": 1616604574,
             "iat": 1616600974,
             "alg": "RS512",
-            "jti": "b68ddb28-e440-443d-8725-dfe0da330118",
+            "jti": str(uuid4()),
         }
 
         with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
