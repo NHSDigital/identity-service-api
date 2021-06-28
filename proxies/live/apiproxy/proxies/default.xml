@@ -388,6 +388,9 @@
             <Condition>(apigee.application_restricted_scopes = "")</Condition>
           </Step>
           <Step>
+              <Name>JavaScript.SetLoggingFieldsInAccessToken</Name>
+          </Step>
+          <Step>
             <Name>OAuthV2.ClientCredentialsGenerateAccessTokenFilteredScopes</Name>
           </Step>
         </Request>
@@ -552,6 +555,9 @@
               <Condition>(apigee.user_restricted_scopes = "")</Condition>
           </Step>
           <Step>
+              <Name>JavaScript.SetLoggingFieldsInAccessToken</Name>
+          </Step>
+          <Step>
               <Name>OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes</Name>
           </Step>
         </Request>
@@ -627,6 +633,9 @@
                 <Step>
                     <Name>AssignMessage.RefreshTokenExpiryOverride</Name>
                     <Condition>(apigee.can_override_refresh_token != null) and (apigee.can_override_refresh_token = true)</Condition>
+                </Step>
+                <Step>
+                    <Name>JavaScript.SetLoggingFieldsInAccessToken</Name>
                 </Step>
                 <Step>
                     <Name>OAuthV2.GenerateAccessToken</Name>

@@ -11,6 +11,7 @@ bandit
 autopep8
 requests
 pytest
+pytest-rerunfailures
 aiohttp
 pytest-asyncio
 coverage

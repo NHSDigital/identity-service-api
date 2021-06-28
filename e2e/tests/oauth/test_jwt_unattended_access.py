@@ -154,7 +154,7 @@ class TestJwtUnattendedAccess:
                     "iss": "/replace_me",
                     "jti": str(uuid4()),
                     "aud": f"{OAUTH_URL}/token" + 'INVALID',
-                    "exp": int(time()) + 10,
+                    "exp": int(time()) + 60,
                 }
             },
             {'error': 'invalid_request', 'error_description': 'Missing or invalid aud claim in JWT'},
@@ -169,7 +169,7 @@ class TestJwtUnattendedAccess:
                     "sub": "/replace_me",
                     "iss": "/replace_me",
                     "jti": str(uuid4()),
-                    "exp": int(time()) + 10,
+                    "exp": int(time()) + 60,
                 }
             },
             {'error': 'invalid_request', 'error_description': 'Missing or invalid aud claim in JWT'},
@@ -232,7 +232,7 @@ class TestJwtUnattendedAccess:
                     "iss": "/replace_me",
                     "jti": str(uuid4()),
                     "aud": f"{OAUTH_URL}/token",
-                    "exp": int(time()) + 330,  # this includes the +30 seconds grace
+                    "exp": int(time()) + 360,  # this includes the +30 seconds grace
                 }
             },
             {'error': 'invalid_request',

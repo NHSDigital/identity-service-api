@@ -17,5 +17,9 @@
         <Attribute name="id_token" display="true" ref="request.formparam.subject_token"/>
         <Attribute name="id_token-issuer" ref="jwt.VerifyJWT.SubjectToken.claim.issuer" display="true"/>
         <Attribute name="grant_type" display="true">urn:ietf:params:oauth:grant-type:token-exchange</Attribute>
+        <Attribute name="auth_type" display="true">user</Attribute>
+        <Attribute name="auth_grant_type" display="true">token_exchange</Attribute>
+        <Attribute name="auth_provider" ref="splunk.auth.provider" display="true"/>
+        <Attribute name="auth_level" ref="splunk.auth.level" display="true"/>
     </Attributes>
 </OAuthV2>
