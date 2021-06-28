@@ -154,7 +154,7 @@ class TestJwtUnattendedAccess:
                     "iss": "/replace_me",
                     "jti": str(uuid4()),
                     "aud": f"{OAUTH_URL}/token" + 'INVALID',
-                    "exp": int(time()) + 10,
+                    "exp": int(time()) + 60,
                 }
             },
             {'error': 'invalid_request', 'error_description': 'Missing or invalid aud claim in JWT'},
@@ -169,7 +169,7 @@ class TestJwtUnattendedAccess:
                     "sub": "/replace_me",
                     "iss": "/replace_me",
                     "jti": str(uuid4()),
-                    "exp": int(time()) + 10,
+                    "exp": int(time()) + 60,
                 }
             },
             {'error': 'invalid_request', 'error_description': 'Missing or invalid aud claim in JWT'},
@@ -232,7 +232,7 @@ class TestJwtUnattendedAccess:
                     "iss": "/replace_me",
                     "jti": str(uuid4()),
                     "aud": f"{OAUTH_URL}/token",
-                    "exp": int(time()) + 330,  # this includes the +30 seconds grace
+                    "exp": int(time()) + 360,  # this includes the +30 seconds grace
                 }
             },
             {'error': 'invalid_request',
@@ -242,6 +242,7 @@ class TestJwtUnattendedAccess:
     ])
     @pytest.mark.apm_1521
     @pytest.mark.errors
+    @pytest.mark.debug
     async def test_invalid_jwt_claims(self, jwt_claims, expected_response, expected_status_code, helper):
         self._update_secrets(jwt_claims)
         jwt = self.oauth.create_jwt(**jwt_claims)
