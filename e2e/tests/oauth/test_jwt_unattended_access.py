@@ -242,7 +242,6 @@ class TestJwtUnattendedAccess:
     ])
     @pytest.mark.apm_1521
     @pytest.mark.errors
-    @pytest.mark.debug
     async def test_invalid_jwt_claims(self, jwt_claims, expected_response, expected_status_code, helper):
         self._update_secrets(jwt_claims)
         jwt = self.oauth.create_jwt(**jwt_claims)

@@ -8,7 +8,6 @@ from e2e.scripts.config import OAUTH_URL, HELLO_WORLD_API_URL, ENVIRONMENT, ID_T
 
 
 @pytest.mark.asyncio
-@pytest.mark.debug
 class TestSplunkLogging:
     @pytest.mark.happy_path
     @pytest.mark.logging
