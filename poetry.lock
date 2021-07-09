@@ -34,7 +34,7 @@ pytest-asyncio = ">=0.14.0,<0.15.0"
 
 [package.source]
 type = "url"
-url = "https://github.com/NHSDigital/apim-test-utils/releases/download/v1.1.8-alpha/api_test_utils-1.1.8a0-py3-none-any.whl"
+url = "https://github.com/NHSDigital/apim-test-utils/releases/download/v1.1.12-alpha/api_test_utils-1.1.12a0-py3-none-any.whl"
 
 [[package]]
 name = "apipkg"
