@@ -19,7 +19,7 @@ speedups = ["aiodns", "brotlipy", "cchardet"]
 
 [[package]]
 name = "api-test-utils"
-version = "1.1.8a0"
+version = "1.1.12a0"
 description = ""
 category = "dev"
 optional = false
