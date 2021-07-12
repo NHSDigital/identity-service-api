@@ -235,4 +235,3 @@ def test_something(self):
     # This will check all the redirects the response had to take and makes sure they were as expected
     assert self.test.check_response_history()
 ```
-
