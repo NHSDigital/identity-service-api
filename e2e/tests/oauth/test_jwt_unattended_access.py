@@ -452,111 +452,165 @@ class TestJwtUnattendedAccess:
         assert list(resp['body'].keys()) == ['access_token', 'expires_in', 'token_type', 'issued_at'], \
             f'UNEXPECTED RESPONSE: {list(resp["body"].keys())}'
 
-    @pytest.mark.apm_1521
     @pytest.mark.errors
-    @pytest.mark.parametrize('form_data, expected_response', [
-        # Invalid formdata “client_assertion_type”
-        (
-            {
+    async def test_invalid_client_assertion_type(self, helper):
+
+        # Given
+        form_data = {
                 "client_assertion_type": "INVALID",
                 "grant_type": "client_credentials",
-            },
-            {
+            }
+        expected_response = {
                 'error': 'invalid_request',
                 'error_description': "Missing or invalid client_assertion_type - "
                                      "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
             }
+        expected_status_code = 400
 
-        ),
+        jwt = self.oauth.create_jwt(kid="test-1")
 
-        # Missing formdata “client_assertion_type”
-        (
-            {
+        # When
+        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt, data=form_data)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.errors
+    async def test_missing_client_assertion_type(self, helper):
+
+        # Given
+        form_data = {
                 "grant_type": "client_credentials",
-            },
-            {
+            }
+        expected_response = {
                 'error': 'invalid_request',
                 'error_description': "Missing or invalid client_assertion_type - "
                                      "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
             }
-        ),
+        expected_status_code = 400
 
-        # Invalid formdata “client_assertion”
-        (
-            {
+        jwt = self.oauth.create_jwt(kid="test-1")
+
+        # When
+        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt, data=form_data)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.errors
+    async def test_invalid_client_assertion(self, helper):
+
+        # Given
+        form_data = {
                 "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
                 "client_assertion": "INVALID",
                 "grant_type": "client_credentials",
-            },
-            {'error': 'invalid_request', 'error_description': 'Malformed JWT in client_assertion'}
-        ),
+            }
+        expected_response = {'error': 'invalid_request', 'error_description': 'Malformed JWT in client_assertion'}
+        expected_status_code = 400
 
-        # Missing formdata “client_assertion”
-        (
-            {
+        jwt = self.oauth.create_jwt(kid="test-1")
+
+        # When
+        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt, data=form_data)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.errors
+    async def test_missing_client_assertion(self, helper):
+
+        # Given
+        form_data = {
                 "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
                 "grant_type": "client_credentials",
-            },
-            {'error': 'invalid_request', 'error_description': 'Missing client_assertion'}
-        ),
+            }
+        expected_response = {'error': 'invalid_request', 'error_description': 'Missing client_assertion'}
+        expected_status_code = 400
 
-        # Invalid formdata “grant_type”
-        (
-            {
+        jwt = self.oauth.create_jwt(kid="test-1")
+
+        # When
+        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt, data=form_data)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.errors
+    async def test_invalid_grant_type(self, helper):
+
+        # Given
+        form_data = {
                 "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
                 "grant_type": "INVALID",
-            },
-            {'error': 'unsupported_grant_type', 'error_description': 'grant_type is invalid'}
-        ),
+            }
+        expected_response = {'error': 'unsupported_grant_type', 'error_description': 'grant_type is invalid'}
+        expected_status_code = 400
 
-        # Missing formdata "grant_type"
-        (
-            {
+        jwt = self.oauth.create_jwt(kid="test-1")
+
+        # When
+        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt, data=form_data)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.errors
+    async def test_missing_grant_type(self, helper):
+
+        # Given
+        form_data = {
                 "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-            },
-            {
+            }
+        expected_response = {
                 'error': 'invalid_request',
                 'error_description': 'grant_type is missing'
             }
-        )
+        expected_status_code = 400
 
-    ])
-    async def test_invalid_form_data(self, form_data, expected_response):
         jwt = self.oauth.create_jwt(kid="test-1")
+
+        # When
         resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt, data=form_data)
 
-        assert resp['status_code'] == 400
-        assert resp['body'] == expected_response
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
 
-    @pytest.mark.apm_1521
     @pytest.mark.errors
-    @pytest.mark.parametrize('jwt_details, expected_response, expected_status_code', [
-        # Invalid KID
-        (
-            {
-                'kid': 'INVALID',
-            },
-            {'error': 'invalid_request', 'error_description': "Invalid 'kid' header in JWT - no matching public key"},
-            401
-        ),
+    async def test_invalid_kid(self, helper):
 
-        # Missing KID Header
-        (
-            {
-                'kid': None,
+        # Given
+        jwt_headers = {
+                'kid': 'INVALID'
+            }
+        expected_response = {'error': 'invalid_request', 'error_description': "Invalid 'kid' header in JWT - no matching public key"}
+        expected_status_code = 401
 
-            },
-            {'error': 'invalid_request', 'error_description': "Missing 'kid' header in JWT"},
-            400
-        ),
+        jwt = self.oauth.create_jwt(**jwt_headers)
 
-    ])
-    async def test_invalid_jwt(self, jwt_details, expected_response, expected_status_code):
-        jwt = self.oauth.create_jwt(**jwt_details)
+        # When
         resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
 
-        assert resp['status_code'] == expected_status_code
-        assert resp['body'] == expected_response
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.errors
+    async def test_missing_kid(self, helper):
+
+        # Given
+        jwt_headers = {
+                'kid': None
+            }
+        expected_response = {'error': 'invalid_request', 'error_description': "Missing 'kid' header in JWT"}
+        expected_status_code = 400
+
+        jwt = self.oauth.create_jwt(**jwt_headers)
+
+        # When
+        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
 
     @pytest.mark.skip("Fails in the pipeline")
     async def test_manipulated_jwt_json(self):
