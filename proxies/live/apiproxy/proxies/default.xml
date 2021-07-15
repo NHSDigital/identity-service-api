@@ -178,7 +178,14 @@
         <Response/>
     </PreFlow>
     <PostFlow name="PostFlow">
-        <Request/>
+        <Request>
+            <Step>
+                <Name>AssignMessage.SetAccessTokenHashSecret</Name>
+            </Step>
+            <Step>
+                <Name>HMAC.HashAccessToken</Name>
+            </Step>
+        </Request>
         <Response/>
     </PostFlow>
     <Flows>
@@ -639,12 +646,6 @@
                 </Step>
                 <Step>
                     <Name>OAuthV2.GenerateAccessToken</Name>
-                </Step>
-                <Step>
-                    <Name>AssignMessage.SetAccessTokenHashSecret</Name>
-                </Step>
-                <Step>
-                    <Name>HMAC.HashAccessToken</Name>
                 </Step>
             </Request>
             <Response>
