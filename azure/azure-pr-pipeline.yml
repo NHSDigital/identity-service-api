@@ -35,8 +35,11 @@ extends:
     product_display_name: ${{ variables.product_display_name }}
     product_description: ${{ variables.product_description }}
     ping: false
+    secret_ids:
+      - ptl/app-credentials/identity-service/non-prod/ACCESS_TOKEN_SECRET
     jinja_templates:
       IDENTITY_PROVIDER_CIS2: cis2
+      ACCESS_TOKEN_SECRET: ${{ secret.ACCESS_TOKEN_SECRET }}
       IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
       VARIABLES_KVM: identity_service_config
       ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted

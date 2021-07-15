@@ -1,10 +1,10 @@
 import requests
 from json import loads, JSONDecodeError
-from urllib import parse
 from re import sub
-from urllib.parse import urlparse, urlencode
 from typing import Optional
 from typing import Union
+from urllib import parse
+from urllib.parse import urlparse, urlencode
 
 
 class GenericRequest:
@@ -210,6 +210,13 @@ class GenericRequest:
         """Check a given request is returning the expected values. Return the verification outcome"""
         response = self.get_response(verb, endpoint, **kwargs)
         return self._verify_response(response, expected_status_code, expected_response, **kwargs)
+
+    def send_request(
+            self,
+            verb: str,
+            endpoint: str,
+            **kwargs):
+        return self.get_response(verb, endpoint, **kwargs)
 
     def _verify_response(
         self,

@@ -12,6 +12,7 @@ class TestSplunkLogging:
     @pytest.mark.happy_path
     @pytest.mark.logging
     @pytest.mark.usefixtures('set_access_token')
+    @pytest.mark.debug1
     async def test_access_token_fields_for_logging_when_using_authorization_code_cis2(self, helper):
         # Given
         apigee_trace = ApigeeApiTraceDebug(proxy=f"hello-world-{ENVIRONMENT}")
@@ -34,7 +35,6 @@ class TestSplunkLogging:
     @pytest.mark.happy_path
     @pytest.mark.logging
     @pytest.mark.parametrize('scope', ['P9', 'P5', 'P0'])
-    @pytest.mark.debug
     async def test_access_token_fields_for_logging_when_using_authorization_code_nhs_login(self, scope, helper):
         # Given
         apigee_trace = ApigeeApiTraceDebug(proxy=f"hello-world-{ENVIRONMENT}")

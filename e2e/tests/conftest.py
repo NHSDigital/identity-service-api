@@ -4,6 +4,7 @@ from api_test_utils.oauth_helper import OauthHelper
 from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
 from api_test_utils.apigee_api_products import ApigeeApiProducts
 from e2e.scripts.generic_request import GenericRequest
+from e2e.scripts import config
 
 
 @pytest.fixture()
@@ -157,3 +158,46 @@ def setup_function(request):
     # Get the name of the current test and attach it the the test instance
     name = (request.node.name, request.node.originalname)[request.node.originalname is not None]
     setattr(request.cls, "name", name)
+
+
+@pytest.fixture()
+async def test_app_and_product():
+    apigee_product = ApigeeApiProducts()
+    apigee_product2 = ApigeeApiProducts()
+    await apigee_product.create_new_product()
+    await apigee_product.update_proxies([config.SERVICE_NAME])
+    await apigee_product2.create_new_product()
+    await apigee_product2.update_proxies([config.SERVICE_NAME])
+
+    apigee_app = ApigeeApiDeveloperApps()
+    await apigee_app.create_new_app()
+
+    # Set default JWT Testing resource url
+    await apigee_app.set_custom_attributes(
+        {
+            'jwks-resource-url': 'https://raw.githubusercontent.com/NHSDigital/'
+                                 'identity-service-jwks/main/jwks/internal-dev/'
+                                 '9baed6f4-1361-4a8e-8531-1f8426e3aba8.json'
+        }
+    )
+
+    await apigee_app.add_api_product(
+        api_products=[
+            apigee_product.name,
+            apigee_product2.name
+        ]
+    )
+
+    [await product.update_ratelimits(
+        quota=60000,
+        quota_interval="1",
+        quota_time_unit="minute",
+        rate_limit="1000ps"
+    ) for product in [apigee_product, apigee_product2]]
+
+    yield apigee_product, apigee_product2, apigee_app
+
+    await apigee_app.destroy_app()
+    await apigee_product.destroy_product()
+    await apigee_product2.destroy_product()
+

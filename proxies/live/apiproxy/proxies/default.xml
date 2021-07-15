@@ -929,6 +929,12 @@
     <PostClientFlow name="PostClientFlow">
         <Response>
             <Step>
+                <Name>HMAC.HashAccessToken</Name>
+            </Step>
+            <Step>
+                <Name>AssignMessage.SetAccessTokenHashSecret</Name>
+            </Step>
+            <Step>
                 <Name>FlowCallout.LogToSplunk</Name>
             </Step>
         </Response>
