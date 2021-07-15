@@ -23,5 +23,6 @@
         <Attribute name="auth_provider" ref="splunk.auth.provider" display="true"/>
         <Attribute name="auth_level" ref="splunk.auth.level" display="true"/>
         <Attribute name="_first_issued" ref="system.timestamp" display="false"/>
+        <Attribute name="issuer" display="true">https://{request.header.host}{proxy.basepath}</Attribute>
     </Attributes>
 </OAuthV2>

@@ -21,5 +21,6 @@
         <Attribute name="auth_grant_type" display="true">token_exchange</Attribute>
         <Attribute name="auth_provider" ref="splunk.auth.provider" display="true"/>
         <Attribute name="auth_level" ref="splunk.auth.level" display="true"/>
+        <Attribute name="issuer" display="true">https://{request.header.host}{proxy.basepath}</Attribute>
     </Attributes>
 </OAuthV2>
