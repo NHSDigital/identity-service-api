@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <HMAC name="HMAC.HashAccessToken">
     <DisplayName>HMAC.HashAccessToken</DisplayName>
-    <Algorithm>SHA-256</Algorithm>
+    <Algorithm>SHA-512</Algorithm>
     <Message ref="oauthv2accesstoken.OAuthV2.GenerateAccessToken.access_token"/>
     <SecretKey ref="access_token.hash_secret"/>
     <Output>auth.access_token_hash</Output>

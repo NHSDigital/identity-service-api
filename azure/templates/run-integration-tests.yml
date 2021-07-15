@@ -17,7 +17,7 @@ steps:
     workingDirectory: $(SERVICE_DIR)
     condition: ne(variables['poetryCache.cacheRestored'], 'true')
     displayName: poetry install
-    
+
   - template: "azure/components/aws-assume-role.yml@common"
     parameters:
       role: "auto-ops"
@@ -29,6 +29,7 @@ steps:
           - ptl/app-credentials/jwt_testing/non-prod/JWT_TESTING_PRIVATE_KEY
           - ptl/app-credentials/jwt_testing/non-prod/ID_TOKEN_TESTING_PRIVATE_KEY
           - ptl/app-credentials/jwt_testing/non-prod/ID_TOKEN_NHS_LOGIN_PRIVATE_KEY
+          - ptl/app-credentials/identity-service/non-prod/ACCESS_TOKEN_SECRET
         config_ids: []
         secret_ids: []
 
@@ -41,6 +42,9 @@ steps:
       export ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH="$(Pipeline.Workspace)/secrets/$(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY)"
       export JWT_PRIVATE_KEY_ABSOLUTE_PATH="$(Pipeline.Workspace)/secrets/$(JWT_TESTING_PRIVATE_KEY)"
       export APIGEE_API_TOKEN="$(secret.AccessToken)"
+      export ACCESS_TOKEN_SECRET="$(ACCESS_TOKEN_SECRET)"
+      echo "secret"
+      echo $ACCESS_TOKEN_SECRET
       make -C e2e ${{ parameters.test_type }}
     workingDirectory: $(SERVICE_DIR)
     displayName: run ${{ parameters.test_type }} tests
