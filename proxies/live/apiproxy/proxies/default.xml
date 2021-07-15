@@ -640,6 +640,12 @@
                 <Step>
                     <Name>OAuthV2.GenerateAccessToken</Name>
                 </Step>
+                <Step>
+                    <Name>AssignMessage.SetAccessTokenHashSecret</Name>
+                </Step>
+                <Step>
+                    <Name>HMAC.HashAccessToken</Name>
+                </Step>
             </Request>
             <Response>
                 <Step>
@@ -927,14 +933,6 @@
         </Flow>
     </Flows>
     <PostClientFlow name="PostClientFlow">
-        <Request>
-            <Step>
-                <Name>AssignMessage.SetAccessTokenHashSecret</Name>
-            </Step>
-            <Step>
-                <Name>HMAC.HashAccessToken</Name>
-            </Step>
-        </Request>
         <Response>
             <Step>
                 <Name>FlowCallout.LogToSplunk</Name>
