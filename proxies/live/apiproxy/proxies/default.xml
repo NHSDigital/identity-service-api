@@ -927,13 +927,15 @@
         </Flow>
     </Flows>
     <PostClientFlow name="PostClientFlow">
-        <Response>
-            <Step>
-                <Name>HMAC.HashAccessToken</Name>
-            </Step>
+        <Request>
             <Step>
                 <Name>AssignMessage.SetAccessTokenHashSecret</Name>
             </Step>
+            <Step>
+                <Name>HMAC.HashAccessToken</Name>
+            </Step>
+        </Request>
+        <Response>
             <Step>
                 <Name>FlowCallout.LogToSplunk</Name>
             </Step>
