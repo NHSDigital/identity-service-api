@@ -42,6 +42,7 @@ extends:
       IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
       VARIABLES_KVM: identity_service_config
       ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+      ACCESS_TOKEN_SECRET: secret1234test
       NUM_RANDOM_LONG_INTS_FOR_STATE: 4
     apigee_deployments:
       - environment: internal-dev
