@@ -43,8 +43,6 @@ steps:
       export JWT_PRIVATE_KEY_ABSOLUTE_PATH="$(Pipeline.Workspace)/secrets/$(JWT_TESTING_PRIVATE_KEY)"
       export APIGEE_API_TOKEN="$(secret.AccessToken)"
       export ACCESS_TOKEN_SECRET="$(ACCESS_TOKEN_SECRET)"
-      echo "secret"
-      echo $ACCESS_TOKEN_SECRET
       make -C e2e ${{ parameters.test_type }}
     workingDirectory: $(SERVICE_DIR)
     displayName: run ${{ parameters.test_type }} tests
