@@ -23,6 +23,7 @@ def calculate_hmac_sha512(content: str, key: str) -> str:
 class TestSplunkUserAuthLogging:
     @pytest.mark.happy_path
     @pytest.mark.logging
+    @pytest.mark.debug2
     async def test_populate_hashed_access_token_using_auth_code_cis2(self, test_app_and_product, helper):
         # Given
         p1, p2, test_app = test_app_and_product
