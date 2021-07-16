@@ -8,76 +8,7 @@ from api_test_utils.oauth_helper import OauthHelper
 from urllib.parse import urlparse, urlencode, parse_qsl
 from uuid import uuid4
 
-from e2e.scripts.config import OAUTH_URL, SERVICE_NAME, ACCESS_TOKEN_SECRET
-
-
-class Authentication:
-    def __init__(self, auth_base_url: str, client_id: str, client_secret: str, redirect_uri: str, simulated_auth_url):
-        self.__auth_base_url = auth_base_url
-        self.__client_id = client_id
-        self.__client_secret = client_secret
-        self.__redirect_uri = redirect_uri
-        self.__simulated_auth_url = simulated_auth_url
-
-    def authorization_code_cis2(self):
-        # Authorize
-        uri = self.__create_authorize_url(response_type="code", state=uuid4())
-        res = requests.get(uri, allow_redirects=False)
-        parsed_location_url = urlparse(res.headers['Location'])
-        queries = dict(parse_qsl(parsed_location_url.query))
-        queries['redirect_uri'] = f"{self.__auth_base_url}/callback"
-        state = queries['state']
-        client_id = queries["client_id"]
-        url = f"{self.__simulated_auth_url}/simulated_auth?{urlencode(queries)}"
-        requests.get(url)
-
-        queries = {"redirect_uri": self.__redirect_uri, "state": state, "client_id": self.__client_id,
-                   "scope": "openid", "response_type": "code"}
-        url = f"{self.__simulated_auth_url}/simulated_auth?{urlencode(queries)}"
-        res = requests.post(url, data={"state": state}, allow_redirects=False)
-        redirect_uri = self.__change_pr_redirect(res.headers["Location"], "callback")
-        res = requests.get(redirect_uri, allow_redirects=False)
-        parsed = urlparse(res.headers["Location"])
-        code = dict(parse_qsl(parsed.query))["code"]
-
-        data = {
-            "client_id": self.__client_id,
-            "client_secret": self.__client_secret,
-            "grant_type": "authorization_code",
-            "redirect_uri": self.__redirect_uri,
-            "code": code,
-            "access_token_expiry_ms": 5000
-        }
-        res = requests.post(f"{self.__auth_base_url}/token", data=data)
-
-        print(res.status_code)
-        print(res.json())
-
-    def __create_authorize_url(self, response_type, state):
-        return f"{self.__auth_base_url}/authorize?" \
-               f"response_type={response_type}&" \
-               f"client_id={self.__client_id}" \
-               f"&redirect_uri={self.__redirect_uri}" \
-               f"&state={state}"
-
-    def __create_callback_url(self, queries):
-        queries['redirect_uri'] = f"{self.__auth_base_url}/callback"
-        return f"{self.__auth_base_url}/callback?{urlencode(queries)}"
-
-    def __change_pr_redirect(self, location, path):
-        parsed_location_url = urlparse(location)
-        queries = dict(parse_qsl(parsed_location_url.query))
-        return f"{self.__auth_base_url}/{path}?{urlencode(queries)}"
-
-
-def auth():
-    auth = Authentication(auth_base_url="https://internal-dev.api.service.nhs.uk/oauth2-pr-233",
-                          client_id="Too5BdPayTQACdw1AJK1rD4nKUD0Ag7J",
-                          client_secret="wi7sCuFSgQg34ZWO",
-                          redirect_uri="https://nhsd-apim-testing-internal-dev.herokuapp.com/callback",
-                          simulated_auth_url="https://internal-dev.api.service.nhs.uk/mock-nhsid-jwks")
-
-    auth.authorization_code_cis2()
+from e2e.scripts.config import OAUTH_URL, SERVICE_NAME, ACCESS_TOKEN_SECRET, MOCK_IDP_BASE_URL
 
 
 def calculate_hmac_sha512(content: str, key: str) -> str:
@@ -92,7 +23,6 @@ def calculate_hmac_sha512(content: str, key: str) -> str:
 class TestSplunkUserAuthLogging:
     @pytest.mark.happy_path
     @pytest.mark.logging
-    @pytest.mark.debug2
     async def test_populate_hashed_access_token_using_auth_code_cis2(self, test_app_and_product, helper):
         # Given
         p1, p2, test_app = test_app_and_product
@@ -118,6 +48,88 @@ class TestSplunkUserAuthLogging:
             },
         )
         access_token = res.json()["access_token"]
+
+        # Then
+        expected_access_token_hashed = calculate_hmac_sha512(access_token, ACCESS_TOKEN_SECRET).decode('utf-8')
+        actual_access_token_hashed = await apigee_trace.get_apigee_variable_from_trace(name='auth.access_token_hash')
+        assert expected_access_token_hashed == actual_access_token_hashed
+
+    @pytest.mark.happy_path
+    @pytest.mark.logging
+    async def test_populate_hashed_access_token_using_auth_code_nhs_login(self, test_app_and_product, helper):
+        # Given
+        # Make authorize request to retrieve state2
+        response = await self.oauth.hit_oauth_endpoint(
+            method="GET",
+            endpoint="authorize",
+            params={
+                "client_id": self.oauth.client_id,
+                "redirect_uri": self.oauth.redirect_uri,
+                "response_type": "code",
+                "state": "1234567890",
+                "scope": "nhs-login"
+            },
+            allow_redirects=False,
+        )
+
+        state = helper.get_param_from_url(
+            url=response["headers"]["Location"], param="state"
+        )
+        # Make simulated auth request to authenticate
+        response = await self.oauth.hit_oauth_endpoint(
+            base_uri=MOCK_IDP_BASE_URL,
+            method="POST",
+            endpoint="nhs_login_simulated_auth",
+            params={
+                "response_type": "code",
+                "client_id": self.oauth.client_id,
+                "redirect_uri": self.oauth.redirect_uri,
+                "scope": "openid",
+                "state": state,
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data={
+                "state": state,
+                "auth_method": "P9"
+            },
+            allow_redirects=False,
+        )
+
+        # Make initial callback request
+        auth_code = helper.get_param_from_url(
+            url=response["headers"]["Location"], param="code"
+        )
+
+        response = await self.oauth.hit_oauth_endpoint(
+            method="GET",
+            endpoint="callback",
+            params={"code": auth_code, "client_id": "some-client-id", "state": state},
+            allow_redirects=False,
+        )
+
+        auth_code = helper.get_param_from_url(
+            url=response["headers"]["Location"], param="code"
+        )
+
+        apigee_trace = ApigeeApiTraceDebug(proxy=SERVICE_NAME)
+
+        # When
+        await apigee_trace.start_trace()
+        response = await self.oauth.hit_oauth_endpoint(
+            method="POST",
+            endpoint="token",
+            data={
+                "grant_type": "authorization_code",
+                "state": state,
+                "code": auth_code,
+                "redirect_uri": self.oauth.redirect_uri,
+                "client_id": self.oauth.client_id,
+                "client_secret": self.oauth.client_secret
+            },
+            allow_redirects=False,
+        )
+
+        access_token = response['body']['access_token']
 
         # Then
         expected_access_token_hashed = calculate_hmac_sha512(access_token, ACCESS_TOKEN_SECRET).decode('utf-8')
