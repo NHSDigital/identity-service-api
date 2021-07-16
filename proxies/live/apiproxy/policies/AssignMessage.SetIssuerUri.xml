@@ -2,6 +2,6 @@
 <AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.SetIssuerUri">
   <AssignVariable>
     <Name>issuerUri</Name>
-    <Template>https://{request.header.host}{proxy.basepath}</Template>
+    <Template>https://{request.header.host}/{proxy.basepath}</Template>
   </AssignVariable>
 </AssignMessage>
