@@ -1,0 +1,10 @@
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.SetAuthorizationRedirectNHSLogin">
+  <Set>
+    <StatusCode>302</StatusCode>
+    <Headers>
+      <Header name="Location">{identity-service-config.nhs_login.authorize_endpoint}?response_type={request.queryparam.response_type}&amp;client_id={identity-service-config.nhs_login.client_id}&amp;redirect_uri={identity-service-config.nhs_login.redirect_uri}&amp;scope=openid profile&amp;state={apigee.state}&amp;max_age=300</Header>
+    </Headers>
+  </Set>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <AssignTo createNew="false" transport="http" type="response" />
+</AssignMessage>

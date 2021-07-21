@@ -4,7 +4,7 @@
       <Payload contentType="application/json">
         {
           "error" : "invalid_grant",
-          "error_description" :"access token refresh period has expired",
+          "error_description" :"refresh token refresh period has expired",
           "message_id": "{messageid}"
         }
       </Payload>

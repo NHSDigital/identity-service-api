@@ -1,6 +1,15 @@
-var id_token_acr = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.decoded.claim.acr');
+var idp = context.getVariable('idp');
+
+if(idp == 'nhs-login'){
+    var id_token_acr = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.decoded.claim.identity_proofing_level');
+    id_token_acr = ':' + id_token_acr.slice(0, 2) + ':'; 
+}
+else{
+    var id_token_acr = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.decoded.claim.acr');
+    id_token_acr = ':' + id_token_acr.slice(0, 4).toLowerCase() + ':';
+}
+
 var api_product_scopes = String(context.getVariable('original_scope'));
-id_token_acr = ':' + id_token_acr.slice(0, 4).toLowerCase() + ':';
 
 if (api_product_scopes == 'null') {
     api_product_scopes = String(context.getVariable('oauthv2accesstoken.OAuthV2.TokenExchangeGenerateAccessToken.scope'));
