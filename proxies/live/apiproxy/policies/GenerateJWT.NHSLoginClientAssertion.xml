@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<GenerateJWT async="false" continueOnError="false" enabled="true" name="GenerateJWT.NHSLoginClientAssertion">
+    <DisplayName>GenerateJWT.NHSLoginClientAssertion</DisplayName>
+    <Algorithm>RS512</Algorithm>
+    <PrivateKey>
+        <Value ref="private.jwt"/>
+        <Id ref= "identity-service-config.nhs_login.kid"/>
+    </PrivateKey>
+    <Subject ref="identity-service-config.nhs_login.client_id"/>
+    <Issuer ref="identity-service-config.nhs_login.client_id"/>
+    <Audience ref="identity-service-config.nhs_login.audience"/>
+    <ExpiresIn>1h</ExpiresIn>
+    <OutputVariable>client_assertion</OutputVariable>
+</GenerateJWT>

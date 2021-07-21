@@ -18,6 +18,11 @@
         <Attribute name="id_token-issuer" ref="jwt.DecodeJWT.FromExternalIdToken.claim.issuer" display="true"/>
         <Attribute name="id_token-acr" ref="jwt.DecodeJWT.FromExternalIdToken.claim.acr" display="true"/>
         <Attribute name="id_token-amr" ref="jwt.DecodeJWT.FromExternalIdToken.claim.amr" display="true"/>
+        <Attribute name="auth_type" display="true">user</Attribute>
+        <Attribute name="auth_grant_type" display="true">authorization_code</Attribute>
+        <Attribute name="auth_provider" ref="splunk.auth.provider" display="true"/>
+        <Attribute name="auth_level" ref="splunk.auth.level" display="true"/>
         <Attribute name="_first_issued" ref="system.timestamp" display="false"/>
+        <Attribute name="issuer" ref="issuerUri" display="false"/>
     </Attributes>
 </OAuthV2>

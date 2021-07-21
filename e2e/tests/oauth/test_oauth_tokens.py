@@ -1,6 +1,6 @@
 import pytest
 from time import sleep
-from e2e.scripts.config import HELLO_WORLD_API_URL
+from e2e.scripts.config import HELLO_WORLD_API_URL, MOCK_IDP_BASE_URL
 
 
 @pytest.mark.asyncio
@@ -154,7 +154,7 @@ class TestOauthTokens:
         assert resp['status_code'] == 401
         assert resp['body'] == {
             "error": "invalid_grant",
-            "error_description": "access token refresh period has expired",
+            "error_description": "refresh token refresh period has expired",
         }
 
     @pytest.mark.apm_1010
@@ -177,7 +177,7 @@ class TestOauthTokens:
         assert resp['status_code'] == 401
         assert resp['body'] == {
             "error": "invalid_grant",
-            "error_description": "access token refresh period has expired"
+            "error_description": "refresh token refresh period has expired"
         }
 
     @pytest.mark.apm_1475
@@ -206,3 +206,86 @@ class TestOauthTokens:
             "error": "invalid_grant",
             "error_description": "refresh_token is invalid"
         }
+
+    @pytest.mark.authorize_endpoint
+    async def test_nhs_login_auth_code_flow_happy_path(self, helper):
+
+       # Make authorize request to retrieve state2
+        response = await self.oauth.hit_oauth_endpoint(
+            method="GET",
+            endpoint="authorize",
+            params={
+                "client_id": self.oauth.client_id,
+                "redirect_uri": self.oauth.redirect_uri,
+                "response_type": "code",
+                "state": "1234567890",
+                "scope": "nhs-login"
+            },
+            allow_redirects=False,
+        )
+
+        state = helper.get_param_from_url(
+            url=response["headers"]["Location"], param="state"
+        )
+        # Make simulated auth request to authenticate
+        response = await self.oauth.hit_oauth_endpoint(
+            base_uri=MOCK_IDP_BASE_URL,
+            method="POST",
+            endpoint="nhs_login_simulated_auth",
+            params={
+                "response_type": "code",
+                "client_id": self.oauth.client_id,
+                "redirect_uri": self.oauth.redirect_uri,
+                "scope": "openid",
+                "state": state,
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data={
+                "state": state,
+                "auth_method": "P5"
+            },
+            allow_redirects=False,
+        )
+
+        # Make initial callback request
+        auth_code = helper.get_param_from_url(
+            url=response["headers"]["Location"], param="code"
+        )
+
+        response = await self.oauth.hit_oauth_endpoint(
+            method="GET",
+            endpoint="callback",
+            params={"code": auth_code, "client_id": "some-client-id", "state": state},
+            allow_redirects=False,
+        )
+
+        auth_code = helper.get_param_from_url(
+            url=response["headers"]["Location"], param="code"
+        )
+
+        response = await self.oauth.hit_oauth_endpoint(
+            method="POST",
+            endpoint="token",
+            data={
+                "grant_type": "authorization_code",
+                "state": state,
+                "code": auth_code, 
+                "redirect_uri": self.oauth.redirect_uri,
+                "client_id": self.oauth.client_id, 
+                "client_secret": self.oauth.client_secret
+            },
+            allow_redirects=False,
+        )
+
+        access_token = response['body']['access_token']
+
+        assert helper.check_endpoint(
+            verb='GET',
+            endpoint=HELLO_WORLD_API_URL,
+            expected_status_code=200,
+            expected_response={"message": "hello user!"},
+            headers={
+                'Authorization': f'Bearer {access_token}',
+                'NHSD-Session-URID': 'ROLD-ID',
+            }
+        )

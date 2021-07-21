@@ -15,6 +15,9 @@
     <Variable name="original_scope">
       <JSONPath>$.scope</JSONPath>
     </Variable>
+    <Variable name="idp">
+      <JSONPath>$.idp</JSONPath>
+    </Variable>
   </JSONPayload>
   <Source clearPayload="false">client-state</Source>
 </ExtractVariables>
