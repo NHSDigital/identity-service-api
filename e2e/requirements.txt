@@ -11,11 +11,12 @@ bandit
 autopep8
 requests
 pytest
+pytest-rerunfailures
 aiohttp
 pytest-asyncio
 coverage
 pytest-xdist
 pytest-sugar
-https://github.com/NHSDigital/apim-test-utils/releases/download/v1.1.6-alpha/api_test_utils-1.1.6a0-py3-none-any.whl
+https://github.com/NHSDigital/apim-test-utils/releases/download/v1.1.12-alpha/api_test_utils-1.1.12a0-py3-none-any.whl
 python-dotenv
 
