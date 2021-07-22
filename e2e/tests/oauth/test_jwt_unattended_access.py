@@ -22,39 +22,68 @@ class TestJwtUnattendedAccess:
             if request.get("iis", None) == "/replace_me":
                 request["iis"] = self.oauth.client_id
 
-    @pytest.mark.parametrize('jwt_claims, expected_response, expected_status_code', [
-        # 1. Incorrect JWT algorithm using “HS256” instead of “RS512”
-        (
-            {
-                'kid': 'test-1',
-                'algorithm': 'HS256',
-            },
-            {
-                'error': 'invalid_request',
-                'error_description': "Invalid 'alg' header in JWT - unsupported JWT algorithm - must be 'RS512'"
-            },
-            400
-        ),
+    @pytest.mark.apm_1521
+    @pytest.mark.errors
+    async def test_incorrect_jwt_algorithm(self, helper):
 
-        # 2. Invalid “sub” & “iss” in jwt claims
-        (
-            {
-                'kid': 'test-1',
-                'claims': {
-                    "sub": 'INVALID',
-                    "iss": 'INVALID',
-                    "jti": str(uuid4()),
-                    "aud": f"{OAUTH_URL}/token",
-                    "exp": int(time()) + 10,
-                }
-            },
-            {'error': 'invalid_request', 'error_description': 'Invalid iss/sub claims in JWT'},
-            401
-        ),
+        # Given
+        jwt_claims= {
+                        'kid': 'test-1',
+                        'algorithm': 'HS256',
+                     }
+        expected_response = {
+                            'error': 'invalid_request',
+                              'error_description': "Invalid 'alg' header in JWT - unsupported JWT algorithm - must be 'RS512'"
+                            }
+        expected_status_code = 400
 
-        # 3. Invalid “sub” in jwt claims and different from “iss”
-        (
-            {
+        self._update_secrets(jwt_claims)
+        jwt = self.oauth.create_jwt(**jwt_claims)
+
+        # When
+        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.apm_1521
+    @pytest.mark.errors
+    async def test_invalid_sub_and_iss(self, helper):
+
+        # # Given
+        jwt_claims= {
+                        'kid': 'test-1',
+                        'claims': {
+                            "sub": 'INVALID',
+                            "iss": 'INVALID',
+                            "jti": str(uuid4()),
+                            "aud": f"{OAUTH_URL}/token",
+                            "exp": int(time()) + 10,
+                                }
+                    }
+
+        expected_response = {
+                        'error': 'invalid_request', 
+                        'error_description': 'Invalid iss/sub claims in JWT'
+                        }
+
+        expected_status_code = 401
+
+        self._update_secrets(jwt_claims)
+        jwt = self.oauth.create_jwt(**jwt_claims)
+
+        # When
+        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.apm_1521
+    @pytest.mark.errors
+    async def test_invalid_sub_different_to_iss(self, helper):
+
+        # Given
+        jwt_claims={
                 'kid': 'test-1',
                 'claims': {
                     "sub": 'INVALID',
@@ -63,14 +92,27 @@ class TestJwtUnattendedAccess:
                     "aud": f"{OAUTH_URL}/token",
                     "exp": int(time()) + 10,
                 }
-            },
-            {'error': 'invalid_request', 'error_description': 'Missing or non-matching iss/sub claims in JWT'},
-            400
-        ),
+            }
 
-        #  4. Invalid “iss” in jwt claims and different from “sub"
-        (
-            {
+        expected_response = {'error': 'invalid_request', 'error_description': 'Missing or non-matching iss/sub claims in JWT'}
+
+        expected_status_code = 400
+
+        self._update_secrets(jwt_claims)
+        jwt = self.oauth.create_jwt(**jwt_claims)
+
+        # When
+        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.apm_1521
+    @pytest.mark.errors
+    async def test_invalid_iss_different_to_sub(self, helper):
+
+        # Given
+        jwt_claims={
                 'kid': 'test-1',
                 'claims': {
                     "sub": "/replace_me",
@@ -79,14 +121,27 @@ class TestJwtUnattendedAccess:
                     "aud": f"{OAUTH_URL}/token",
                     "exp": int(time()) + 10,
                 }
-            },
-            {'error': 'invalid_request', 'error_description': 'Missing or non-matching iss/sub claims in JWT'},
-            400
-        ),
+            }
 
-        # 5. Missing “sub” in jwt claims
-        (
-            {
+        expected_response = {'error': 'invalid_request', 'error_description': 'Missing or non-matching iss/sub claims in JWT'}
+
+        expected_status_code = 400
+
+        self._update_secrets(jwt_claims)
+        jwt = self.oauth.create_jwt(**jwt_claims)
+
+        # When
+        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.apm_1521
+    @pytest.mark.errors
+    async def test_missing_sub(self, helper):
+
+        # Given
+        jwt_claims=  {
                 'kid': 'test-1',
                 'claims': {
                     "iss": "/replace_me",
@@ -94,14 +149,27 @@ class TestJwtUnattendedAccess:
                     "aud": f"{OAUTH_URL}/token",
                     "exp": int(time()) + 10,
                 }
-            },
-            {'error': 'invalid_request', 'error_description': 'Missing or non-matching iss/sub claims in JWT'},
-            400
-        ),
+            }
 
-        # 6. Missing “iss” in jwt claims
-        (
-            {
+        expected_response = {'error': 'invalid_request', 'error_description': 'Missing or non-matching iss/sub claims in JWT'}
+
+        expected_status_code = 400
+
+        self._update_secrets(jwt_claims)
+        jwt = self.oauth.create_jwt(**jwt_claims)
+
+        # When
+        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.apm_1521
+    @pytest.mark.errors
+    async def test_missing_iss(self, helper):
+
+        # Given       
+        jwt_claims=  {
                 'kid': 'test-1',
                 'claims': {
                     "sub": "/replace_me",
@@ -109,14 +177,27 @@ class TestJwtUnattendedAccess:
                     "aud": f"{OAUTH_URL}/token",
                     "exp": int(time()) + 10,
                 }
-            },
-            {'error': 'invalid_request', 'error_description': 'Missing or non-matching iss/sub claims in JWT'},
-            400
-        ),
+            }
 
-        # 7. Invalid “jti” in jwt claims e.g using an INT type instead of a STRING
-        (
-            {
+        expected_response = {'error': 'invalid_request', 'error_description': 'Missing or non-matching iss/sub claims in JWT'}
+
+        expected_status_code = 400
+
+        self._update_secrets(jwt_claims)
+        jwt = self.oauth.create_jwt(**jwt_claims)
+
+        # When
+        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.apm_1521
+    @pytest.mark.errors
+    async def test_invalid_jti(self, helper):
+
+        # Given  
+        jwt_claims=  {
                 'kid': 'test-1',
                 'claims': {
                     "sub": "/replace_me",
@@ -125,14 +206,27 @@ class TestJwtUnattendedAccess:
                     "aud": f"{OAUTH_URL}/token",
                     "exp": int(time()) + 10,
                 }
-            },
-            {'error': 'invalid_request', 'error_description': 'Failed to decode JWT'},
-            400
-        ),
+            }
 
-        #  8. Missing “jti” in jwt claims
-        (
-            {
+        expected_response = {'error': 'invalid_request', 'error_description': 'Failed to decode JWT'}
+
+        expected_status_code = 400
+
+        self._update_secrets(jwt_claims)
+        jwt = self.oauth.create_jwt(**jwt_claims)
+
+        # When
+        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.apm_1521
+    @pytest.mark.errors
+    async def test_missing_jti(self, helper):
+
+        # Given  
+        jwt_claims=   {
                 'kid': 'test-1',
                 'claims': {
                     "sub": "/replace_me",
@@ -140,14 +234,27 @@ class TestJwtUnattendedAccess:
                     "aud": f"{OAUTH_URL}/token",
                     "exp": int(time()) + 10,
                 }
-            },
-            {'error': 'invalid_request', 'error_description': 'Missing jti claim in JWT'},
-            400
-        ),
+            }
 
-        # 9. Invalid “aud” in jwt claims
-        (
-            {
+        expected_response = {'error': 'invalid_request', 'error_description': 'Missing jti claim in JWT'}
+
+        expected_status_code = 400
+
+        self._update_secrets(jwt_claims)
+        jwt = self.oauth.create_jwt(**jwt_claims)
+
+        # When
+        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+        
+    @pytest.mark.apm_1521
+    @pytest.mark.errors
+    async def test_invalid_aud(self, helper):
+
+        # Given  
+        jwt_claims=    {
                 'kid': 'test-1',
                 'claims': {
                     "sub": "/replace_me",
@@ -156,14 +263,27 @@ class TestJwtUnattendedAccess:
                     "aud": f"{OAUTH_URL}/token" + 'INVALID',
                     "exp": int(time()) + 60,
                 }
-            },
-            {'error': 'invalid_request', 'error_description': 'Missing or invalid aud claim in JWT'},
-            401
-        ),
+            }
 
-        # 10. Missing “aud” in jwt claims
-        (
-            {
+        expected_response = {'error': 'invalid_request', 'error_description': 'Missing or invalid aud claim in JWT'}
+
+        expected_status_code = 401
+
+        self._update_secrets(jwt_claims)
+        jwt = self.oauth.create_jwt(**jwt_claims)
+
+        # When
+        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.apm_1521
+    @pytest.mark.errors
+    async def test_missing_aud(self, helper):
+
+        # Given  
+        jwt_claims=    {
                 'kid': 'test-1',
                 'claims': {
                     "sub": "/replace_me",
@@ -171,14 +291,27 @@ class TestJwtUnattendedAccess:
                     "jti": str(uuid4()),
                     "exp": int(time()) + 60,
                 }
-            },
-            {'error': 'invalid_request', 'error_description': 'Missing or invalid aud claim in JWT'},
-            401
-        ),
+            }
 
-        # 11. Invalid “exp” in jwt claims e.g. using a STRING type
-        (
-            {
+        expected_response = {'error': 'invalid_request', 'error_description': 'Missing or invalid aud claim in JWT'}
+
+        expected_status_code = 401
+
+        self._update_secrets(jwt_claims)
+        jwt = self.oauth.create_jwt(**jwt_claims)
+
+        # When
+        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.apm_1521
+    @pytest.mark.errors
+    async def test_invalid_exp(self, helper):
+
+        # Given  
+        jwt_claims=    {
                 'kid': 'test-1',
                 'claims': {
                     "sub": "/replace_me",
@@ -187,14 +320,27 @@ class TestJwtUnattendedAccess:
                     "aud": f"{OAUTH_URL}/token",
                     "exp": 'INVALID',
                 }
-            },
-            {'error': 'invalid_request', 'error_description': 'Failed to decode JWT'},
-            400
-        ),
+            }
 
-        # 12. Missing “exp” in jwt claims
-        (
-            {
+        expected_response = {'error': 'invalid_request', 'error_description': 'Failed to decode JWT'}
+
+        expected_status_code = 400
+
+        self._update_secrets(jwt_claims)
+        jwt = self.oauth.create_jwt(**jwt_claims)
+
+        # When
+        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.apm_1521
+    @pytest.mark.errors
+    async def test_missing_exp(self, helper):
+
+        # Given  
+        jwt_claims=    {
                 'kid': 'test-1',
                 'claims': {
                     "sub": "/replace_me",
@@ -202,30 +348,56 @@ class TestJwtUnattendedAccess:
                     "jti": str(uuid4()),
                     "aud": f"{OAUTH_URL}/token",
                 }
-            },
-            {'error': 'invalid_request', 'error_description': 'Missing exp claim in JWT'},
-            400
-        ),
+            }
 
-        # 13. “Exp” in the past
-        (
-            {
+        expected_response = {'error': 'invalid_request', 'error_description': 'Missing exp claim in JWT'}
+
+        expected_status_code = 400
+
+        self._update_secrets(jwt_claims)
+        jwt = self.oauth.create_jwt(**jwt_claims)
+
+        # When
+        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.apm_1521
+    @pytest.mark.errors
+    async def test_exp_in_the_past(self, helper):
+
+        # Given  
+        jwt_claims=    {
                 'kid': 'test-1',
                 'claims': {
                     "sub": "/replace_me",
                     "iss": "/replace_me",
                     "jti": str(uuid4()),
                     "aud": f"{OAUTH_URL}/token",
-                    "exp": int(time()) - 10,
+                    "exp": int(time()) - 20,
                 }
-            },
-            {'error': 'invalid_request', 'error_description': 'Invalid exp claim in JWT - JWT has expired'},
-            400
-        ),
+            }
 
-        # 14. “Exp” too far into the future (more than 5 minuets)
-        (
-            {
+        expected_response = {'error': 'invalid_request', 'error_description': 'Invalid exp claim in JWT - JWT has expired'}
+
+        expected_status_code = 400
+
+        self._update_secrets(jwt_claims)
+        jwt = self.oauth.create_jwt(**jwt_claims)
+
+        # When
+        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.apm_1521
+    @pytest.mark.errors
+    async def test_exp_far_in_future(self, helper):
+
+        # Given  
+        jwt_claims=    {
                 'kid': 'test-1',
                 'claims': {
                     "sub": "/replace_me",
@@ -234,19 +406,20 @@ class TestJwtUnattendedAccess:
                     "aud": f"{OAUTH_URL}/token",
                     "exp": int(time()) + 360,  # this includes the +30 seconds grace
                 }
-            },
-            {'error': 'invalid_request',
-             'error_description': 'Invalid exp claim in JWT - more than 5 minutes in future'},
-            400
-        )
-    ])
-    @pytest.mark.apm_1521
-    @pytest.mark.errors
-    async def test_invalid_jwt_claims(self, jwt_claims, expected_response, expected_status_code, helper):
+            }
+
+        expected_response = {'error': 'invalid_request',
+             'error_description': 'Invalid exp claim in JWT - more than 5 minutes in future'}
+
+        expected_status_code = 400
+
         self._update_secrets(jwt_claims)
         jwt = self.oauth.create_jwt(**jwt_claims)
+
+        # When
         resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
 
+        # Then
         assert helper.check_response(resp, expected_status_code, expected_response)
 
     @pytest.mark.apm_1521
@@ -279,111 +452,165 @@ class TestJwtUnattendedAccess:
         assert list(resp['body'].keys()) == ['access_token', 'expires_in', 'token_type', 'issued_at'], \
             f'UNEXPECTED RESPONSE: {list(resp["body"].keys())}'
 
-    @pytest.mark.apm_1521
     @pytest.mark.errors
-    @pytest.mark.parametrize('form_data, expected_response', [
-        # Invalid formdata “client_assertion_type”
-        (
-            {
+    async def test_invalid_client_assertion_type(self, helper):
+
+        # Given
+        form_data = {
                 "client_assertion_type": "INVALID",
                 "grant_type": "client_credentials",
-            },
-            {
+            }
+        expected_response = {
                 'error': 'invalid_request',
                 'error_description': "Missing or invalid client_assertion_type - "
                                      "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
             }
+        expected_status_code = 400
 
-        ),
+        jwt = self.oauth.create_jwt(kid="test-1")
 
-        # Missing formdata “client_assertion_type”
-        (
-            {
+        # When
+        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt, data=form_data)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.errors
+    async def test_missing_client_assertion_type(self, helper):
+
+        # Given
+        form_data = {
                 "grant_type": "client_credentials",
-            },
-            {
+            }
+        expected_response = {
                 'error': 'invalid_request',
                 'error_description': "Missing or invalid client_assertion_type - "
                                      "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
             }
-        ),
+        expected_status_code = 400
 
-        # Invalid formdata “client_assertion”
-        (
-            {
+        jwt = self.oauth.create_jwt(kid="test-1")
+
+        # When
+        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt, data=form_data)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.errors
+    async def test_invalid_client_assertion(self, helper):
+
+        # Given
+        form_data = {
                 "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
                 "client_assertion": "INVALID",
                 "grant_type": "client_credentials",
-            },
-            {'error': 'invalid_request', 'error_description': 'Malformed JWT in client_assertion'}
-        ),
+            }
+        expected_response = {'error': 'invalid_request', 'error_description': 'Malformed JWT in client_assertion'}
+        expected_status_code = 400
 
-        # Missing formdata “client_assertion”
-        (
-            {
+        jwt = self.oauth.create_jwt(kid="test-1")
+
+        # When
+        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt, data=form_data)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.errors
+    async def test_missing_client_assertion(self, helper):
+
+        # Given
+        form_data = {
                 "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
                 "grant_type": "client_credentials",
-            },
-            {'error': 'invalid_request', 'error_description': 'Missing client_assertion'}
-        ),
+            }
+        expected_response = {'error': 'invalid_request', 'error_description': 'Missing client_assertion'}
+        expected_status_code = 400
 
-        # Invalid formdata “grant_type”
-        (
-            {
+        jwt = self.oauth.create_jwt(kid="test-1")
+
+        # When
+        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt, data=form_data)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.errors
+    async def test_invalid_grant_type(self, helper):
+
+        # Given
+        form_data = {
                 "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
                 "grant_type": "INVALID",
-            },
-            {'error': 'unsupported_grant_type', 'error_description': 'grant_type is invalid'}
-        ),
+            }
+        expected_response = {'error': 'unsupported_grant_type', 'error_description': 'grant_type is invalid'}
+        expected_status_code = 400
 
-        # Missing formdata "grant_type"
-        (
-            {
+        jwt = self.oauth.create_jwt(kid="test-1")
+
+        # When
+        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt, data=form_data)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.errors
+    async def test_missing_grant_type(self, helper):
+
+        # Given
+        form_data = {
                 "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-            },
-            {
+            }
+        expected_response = {
                 'error': 'invalid_request',
                 'error_description': 'grant_type is missing'
             }
-        )
+        expected_status_code = 400
 
-    ])
-    async def test_invalid_form_data(self, form_data, expected_response):
         jwt = self.oauth.create_jwt(kid="test-1")
+
+        # When
         resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt, data=form_data)
 
-        assert resp['status_code'] == 400
-        assert resp['body'] == expected_response
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
 
-    @pytest.mark.apm_1521
     @pytest.mark.errors
-    @pytest.mark.parametrize('jwt_details, expected_response, expected_status_code', [
-        # Invalid KID
-        (
-            {
-                'kid': 'INVALID',
-            },
-            {'error': 'invalid_request', 'error_description': "Invalid 'kid' header in JWT - no matching public key"},
-            401
-        ),
+    async def test_invalid_kid(self, helper):
 
-        # Missing KID Header
-        (
-            {
-                'kid': None,
+        # Given
+        jwt_headers = {
+                'kid': 'INVALID'
+            }
+        expected_response = {'error': 'invalid_request', 'error_description': "Invalid 'kid' header in JWT - no matching public key"}
+        expected_status_code = 401
 
-            },
-            {'error': 'invalid_request', 'error_description': "Missing 'kid' header in JWT"},
-            400
-        ),
+        jwt = self.oauth.create_jwt(**jwt_headers)
 
-    ])
-    async def test_invalid_jwt(self, jwt_details, expected_response, expected_status_code):
-        jwt = self.oauth.create_jwt(**jwt_details)
+        # When
         resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
 
-        assert resp['status_code'] == expected_status_code
-        assert resp['body'] == expected_response
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
+
+    @pytest.mark.errors
+    async def test_missing_kid(self, helper):
+
+        # Given
+        jwt_headers = {
+                'kid': None
+            }
+        expected_response = {'error': 'invalid_request', 'error_description': "Missing 'kid' header in JWT"}
+        expected_status_code = 400
+
+        jwt = self.oauth.create_jwt(**jwt_headers)
+
+        # When
+        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
+
+        # Then
+        assert helper.check_response(resp, expected_status_code, expected_response)
 
     @pytest.mark.skip("Fails in the pipeline")
     async def test_manipulated_jwt_json(self):

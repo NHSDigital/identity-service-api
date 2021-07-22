@@ -392,6 +392,9 @@
               <Name>JavaScript.SetLoggingFieldsInAccessToken</Name>
           </Step>
           <Step>
+            <Name>AssignMessage.SetIssuerUri</Name>
+          </Step>
+          <Step>
             <Name>OAuthV2.ClientCredentialsGenerateAccessTokenFilteredScopes</Name>
           </Step>
         </Request>
@@ -559,6 +562,9 @@
               <Name>JavaScript.SetLoggingFieldsInAccessToken</Name>
           </Step>
           <Step>
+            <Name>AssignMessage.SetIssuerUri</Name>
+          </Step>
+          <Step>
               <Name>OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes</Name>
           </Step>
         </Request>
@@ -637,6 +643,9 @@
                 </Step>
                 <Step>
                     <Name>JavaScript.SetLoggingFieldsInAccessToken</Name>
+                </Step>
+                <Step>
+                  <Name>AssignMessage.SetIssuerUri</Name>
                 </Step>
                 <Step>
                     <Name>OAuthV2.GenerateAccessToken</Name>
