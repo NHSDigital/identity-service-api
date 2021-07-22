@@ -53,10 +53,13 @@ class TestSplunkUserAuthLogging:
         # Then
         expected_access_token_hashed = calculate_hmac_sha512(access_token, ACCESS_TOKEN_SECRET).decode('utf-8')
         actual_access_token_hashed = await apigee_trace.get_apigee_variable_from_trace(name='auth.access_token_hash')
+        print(expected_access_token_hashed)
+        print(actual_access_token_hashed)
         assert expected_access_token_hashed == actual_access_token_hashed
 
     @pytest.mark.happy_path
     @pytest.mark.logging
+    @pytest.mark.debug2
     async def test_populate_hashed_access_token_using_auth_code_nhs_login(self, test_app_and_product, helper):
         # Given
         # Make authorize request to retrieve state2
