@@ -573,7 +573,7 @@
                     <Name>AssignMessage.SetAccessTokenHashSecret</Name>
                 </Step>
                 <Step>
-                    <Name>HMAC.HashAccessTokenClientCredentials</Name>
+                    <Name>HMAC.HashAccessTokenTokenExchange</Name>
                 </Step>
             </Request>
             <Response>
