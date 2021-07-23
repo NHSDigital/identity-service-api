@@ -361,10 +361,6 @@
                   <Name>AssignMessage.CCJWKS</Name>
                   <Condition>ccjwks = null</Condition>
                 </Step>
-                <!-- Not sure this is necessary
-          <Step>
-            <Name>ExtractVariables.ParseJWKS</Name>
-          </Step> -->
                 <Step>
                     <Name>VerifyJWT.ClientCredentials</Name>
                 </Step>
@@ -374,36 +370,42 @@
                 </Step>
                 <!-- Next step allows optional REDUCTION of access_token_expiry KVM values
                using _access_token_expiry_ms form param -->
-          <Step>
-            <Name>AssignMessage.AccessTokenExpiryOverride</Name>
-            <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan identity-service-config.cis2.access_token_expiry_ms)</Condition>
-          </Step>
-          <Step>
-            <Name>OAuthV2.ClientCredentialsGenerateAccessToken</Name>
-          </Step>
-          <Step>
-            <Name>JavaScript.FilterApplicationRestrictedScopes</Name>
-          </Step>
-          <Step>
-            <Name>RaiseFault.VerifyAccessLevel</Name>
-            <Condition>(apigee.application_restricted_scopes = "")</Condition>
-          </Step>
-          <Step>
-              <Name>JavaScript.SetLoggingFieldsInAccessToken</Name>
-          </Step>
-          <Step>
-            <Name>AssignMessage.SetIssuerUri</Name>
-          </Step>
-          <Step>
-            <Name>OAuthV2.ClientCredentialsGenerateAccessTokenFilteredScopes</Name>
-          </Step>
-        </Request>
-        <Response>
-          <Step>
-              <Name>AssignMessage.ClientCredentialsGenerateTokenResponse</Name>
-          </Step>
-      </Response>
-      <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Equals "client_credentials") and ((request.formparam.subject_token_type NotEquals "urn:ietf:params:oauth:token-type:id_token")))</Condition>
+                <Step>
+                    <Name>AssignMessage.AccessTokenExpiryOverride</Name>
+                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan identity-service-config.cis2.access_token_expiry_ms)</Condition>
+                </Step>
+                <Step>
+                    <Name>OAuthV2.ClientCredentialsGenerateAccessToken</Name>
+                </Step>
+                <Step>
+                    <Name>JavaScript.FilterApplicationRestrictedScopes</Name>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.VerifyAccessLevel</Name>
+                    <Condition>(apigee.application_restricted_scopes = "")</Condition>
+                </Step>
+                <Step>
+                    <Name>JavaScript.SetLoggingFieldsInAccessToken</Name>
+                </Step>
+                <Step>
+                    <Name>AssignMessage.SetIssuerUri</Name>
+                </Step>
+                <Step>
+                    <Name>OAuthV2.ClientCredentialsGenerateAccessTokenFilteredScopes</Name>
+                </Step>
+                <Step>
+                    <Name>AssignMessage.SetAccessTokenHashSecret</Name>
+                </Step>
+                <Step>
+                    <Name>HMAC.HashAccessTokenClientCredentials</Name>
+                </Step>
+                </Request>
+                <Response>
+                <Step>
+                    <Name>AssignMessage.ClientCredentialsGenerateTokenResponse</Name>
+                </Step>
+            </Response>
+            <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Equals "client_credentials") and ((request.formparam.subject_token_type NotEquals "urn:ietf:params:oauth:token-type:id_token")))</Condition>
       </Flow>
       <Flow name="Flow.PostTokenTokenExchange">
         <Description>OAuth Token Endpoint - Token-Exchange</Description>
