@@ -18,7 +18,6 @@ class TestSplunkLogging:
     @pytest.mark.happy_path
     @pytest.mark.logging
     @pytest.mark.usefixtures("set_access_token")
-    @pytest.mark.debug1
     async def test_access_token_fields_for_logging_when_using_authorization_code_cis2(
         self, helper
     ):

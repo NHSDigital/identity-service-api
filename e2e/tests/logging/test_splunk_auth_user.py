@@ -26,7 +26,7 @@ def calculate_hmac_sha512(content: str, key: str) -> str:
 class TestSplunkUserAuthLogging:
     @pytest.mark.happy_path
     @pytest.mark.logging
-    @pytest.mark.debug2
+    @pytest.mark.amb_776
     async def test_populate_hashed_access_token_using_auth_code_cis2(
         self, test_app_and_product, helper
     ):
@@ -68,7 +68,7 @@ class TestSplunkUserAuthLogging:
 
     @pytest.mark.happy_path
     @pytest.mark.logging
-    @pytest.mark.debug2
+    @pytest.mark.amb_776
     async def test_populate_hashed_access_token_using_auth_code_nhs_login(
         self, test_app_and_product, helper
     ):
@@ -154,7 +154,7 @@ class TestSplunkUserAuthLogging:
 
     @pytest.mark.happy_path
     @pytest.mark.logging
-    @pytest.mark.debug2
+    @pytest.mark.amb_776
     async def test_populate_hashed_access_token_using_client_credentials(self):
         jwt = self.oauth.create_jwt(kid="test-1")
         apigee_trace = ApigeeApiTraceDebug(proxy=SERVICE_NAME)
@@ -171,7 +171,7 @@ class TestSplunkUserAuthLogging:
 
     @pytest.mark.happy_path
     @pytest.mark.logging
-    @pytest.mark.debug2
+    @pytest.mark.amb_776
     async def test_populate_hashed_access_token_using_token_exchange_cis2(self):
 
         id_token_jwt = self.oauth.create_id_token_jwt()
@@ -194,7 +194,7 @@ class TestSplunkUserAuthLogging:
 
     @pytest.mark.happy_path
     @pytest.mark.logging
-    @pytest.mark.debug2
+    @pytest.mark.amb_776
     async def test_populate_hashed_access_token_using_token_exchange_nhs_login(self):
 
         id_token_claims = {
