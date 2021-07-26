@@ -23,7 +23,7 @@ test:
 
 e2e:
 	rm -f ../reports/e2e.xml  > /dev/null || true
-	$(activate) coverage run --source ./ --module pytest -m debug2 --reruns 6 --reruns-delay 1 -rxs -v --junit-xml=../reports/e2e.xml --ignore .venv || true
+	$(activate) coverage run --source ./ --module pytest --reruns 3 --reruns-delay 1 -rxs -v --junit-xml=../reports/e2e.xml --ignore .venv || true
 	@if [[ ! -f ../reports/e2e.xml ]]; then echo report not created; exit 1; fi
 
 smoketest:
