@@ -396,9 +396,6 @@
                 <Step>
                     <Name>OAuthV2.ClientCredentialsGenerateAccessTokenFilteredScopes</Name>
                 </Step>
-                <Step>
-                    <Name>AssignMessage.SetAccessTokenHashSecret</Name>
-                </Step>
                 </Request>
                 <Response>
                 <Step>
@@ -568,9 +565,6 @@
                 </Step>
                 <Step>
                     <Name>OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes</Name>
-                </Step>
-                <Step>
-                    <Name>AssignMessage.SetAccessTokenHashSecret</Name>
                 </Step>
             </Request>
             <Response>
