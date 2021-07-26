@@ -64,8 +64,6 @@ class TestSplunkUserAuthLogging:
         actual_access_token_hashed = await apigee_trace.get_apigee_variable_from_trace(
             name="auth.access_token_hash"
         )
-        print(expected_access_token_hashed)
-        print(actual_access_token_hashed)
         assert expected_access_token_hashed == actual_access_token_hashed
 
     @pytest.mark.happy_path
