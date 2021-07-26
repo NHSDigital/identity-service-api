@@ -27,6 +27,7 @@ class TestSplunkUserAuthLogging:
     @pytest.mark.happy_path
     @pytest.mark.logging
     @pytest.mark.amb_776
+    @pytest.mark.debug
     async def test_populate_hashed_access_token_using_auth_code_cis2(
         self, test_app_and_product, helper
     ):

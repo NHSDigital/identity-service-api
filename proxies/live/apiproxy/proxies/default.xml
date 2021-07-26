@@ -179,6 +179,9 @@
     </PreFlow>
     <PostFlow name="PostFlow">
         <Request>
+            <Step>
+                <Name>FlowCallout.HashAccessToken</Name>
+            </Step>
         </Request>
         <Response/>
     </PostFlow>
@@ -396,9 +399,6 @@
                 <Step>
                     <Name>AssignMessage.SetAccessTokenHashSecret</Name>
                 </Step>
-                <Step>
-                    <Name>HMAC.HashAccessTokenClientCredentials</Name>
-                </Step>
                 </Request>
                 <Response>
                 <Step>
@@ -572,9 +572,6 @@
                 <Step>
                     <Name>AssignMessage.SetAccessTokenHashSecret</Name>
                 </Step>
-                <Step>
-                    <Name>HMAC.HashAccessTokenTokenExchange</Name>
-                </Step>
             </Request>
             <Response>
                 <Step>
@@ -659,10 +656,7 @@
                     <Name>OAuthV2.GenerateAccessToken</Name>
                 </Step>
                 <Step>
-                    <Name>AssignMessage.SetAccessTokenHashSecret</Name>
-                </Step>
-                <Step>
-                    <Name>HMAC.HashAccessToken</Name>
+                    <Name>AssignMessage.RenameAccessTokenVariableAuthCode</Name>
                 </Step>
             </Request>
             <Response>

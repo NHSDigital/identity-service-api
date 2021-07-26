@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.RenameAccessTokenVariableAuthCode">
+    <DisplayName>AssignMessage.RenameAccessTokenVariableAuthCode</DisplayName>
+    <Properties/>
+    <AssignVariable>
+        <Name>apigee.access_token</Name>
+        <Value ref="oauthv2accesstoken.OAuthV2.GenerateAccessToken.access_token"/>
+    </AssignVariable>
+    <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
+    <AssignTo createNew="false" transport="http" type="request"/>
+</AssignMessage>
