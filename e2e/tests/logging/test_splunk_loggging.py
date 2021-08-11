@@ -31,6 +31,7 @@ class TestSplunkLogging:
         assert auth_level == 'aal3'
         assert auth_provider == 'nhs-cis2'
 
+
     @pytest.mark.happy_path
     @pytest.mark.logging
     @pytest.mark.parametrize('scope', ['P9', 'P5', 'P0'])
