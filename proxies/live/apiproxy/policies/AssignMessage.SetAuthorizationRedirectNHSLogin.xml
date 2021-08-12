@@ -2,7 +2,7 @@
   <Set>
     <StatusCode>302</StatusCode>
     <Headers>
-      <Header name="Location">{identity-service-config.nhs_login.authorize_endpoint}?response_type={request.queryparam.response_type}&amp;client_id={identity-service-config.nhs_login.client_id}&amp;redirect_uri={identity-service-config.nhs_login.redirect_uri}&amp;scope=openid profile&amp;state={apigee.state}&amp;max_age=300</Header>
+      <Header name="Location">https://internal-dev.api.service.nhs.uk/mock-nhsid-jwks-pr-46/nhs_login_simulated_auth?response_type={request.queryparam.response_type}&amp;client_id={identity-service-config.nhs_login.client_id}&amp;redirect_uri=https://internal-dev.api.service.nhs.uk/oauth2-pr-235/callback&amp;scope=openid profile&amp;state={apigee.state}&amp;max_age=300</Header>
     </Headers>
   </Set>
   <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
