@@ -22,6 +22,7 @@
         <Attribute name="auth_grant_type" display="true">authorization_code</Attribute>
         <Attribute name="auth_provider" ref="splunk.auth.provider" display="true"/>
         <Attribute name="auth_level" ref="splunk.auth.level" display="true"/>
+        <Attribute name="auth_user_id" ref="splunk.auth.user_id" display="true"/>
         <Attribute name="_first_issued" ref="system.timestamp" display="false"/>
         <Attribute name="issuer" ref="issuerUri" display="false"/>
     </Attributes>

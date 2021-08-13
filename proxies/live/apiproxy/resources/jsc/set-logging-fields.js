@@ -1,6 +1,7 @@
 var grant_type = context.getVariable('request.formparam.grant_type')
 var provider = 'unknown'
 var level = 'unknown'
+var user_id = ''
 
 if (grant_type === 'authorization_code') {
   var token_issuer = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.issuer')
@@ -41,8 +42,15 @@ if (grant_type === 'authorization_code') {
   }
 }
 
+if (provider == 'nsh-login') {
+  user_id = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.nhs_number')
+} else {
+  user_id = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.subject')
+}
+
 context.setVariable('splunk.auth.provider', provider)
 context.setVariable('splunk.auth.level', level)
+context.setVariable('splunk.auth.user_id', user_id)
 
 function getLevel(level) {
   if (level) {
