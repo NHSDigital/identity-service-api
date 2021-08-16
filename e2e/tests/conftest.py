@@ -50,6 +50,60 @@ def get_token(request):
 
 
 @pytest.fixture()
+async def get_token_cis2_token_exchange(test_app_and_product):
+    """Call identity server to get an access token"""
+    test_product, test_app = test_app_and_product
+    oauth = OauthHelper(
+        client_id=test_app.client_id,
+        client_secret=test_app.client_secret,
+        redirect_uri=test_app.callback_url,
+    )
+
+    claims = {
+        "at_hash": "tf_-lqpq36lwO7WmSBIJ6Q",
+        "sub": "lala",
+        "auditTrackingId": "91f694e6-3749-42fd-90b0-c3134b0d98f6-1546391",
+        "amr": ["N3_SMARTCARD"],
+        "iss": "https://am.nhsint.auth-ptl.cis2.spineservices.nhs.uk:443/"
+        "openam/oauth2/realms/root/realms/NHSIdentity/realms/Healthcare",
+        "tokenName": "id_token",
+        "aud": "969567331415.apps.national",
+        "c_hash": "bc7zzGkClC3MEiFQ3YhPKg",
+        "acr": "AAL3_ANY",
+        "org.forgerock.openidconnect.ops": "-I45NjmMDdMa-aNF2sr9hC7qEGQ",
+        "s_hash": "LPJNul-wow4m6Dsqxbning",
+        "azp": "969567331415.apps.national",
+        "auth_time": 1610559802,
+        "realm": "/NHSIdentity/Healthcare",
+        "exp": int(time()) + 6000,
+        "tokenType": "JWTToken",
+        "iat": int(time()) - 100,
+    }
+
+    with open(config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
+        contents = f.read()
+
+    client_assertion_jwt = oauth.create_jwt(kid="test-1")
+    id_token_jwt = oauth.create_id_token_jwt(
+        kid="identity-service-tests-1", claims=claims, signing_key=contents
+    )
+
+    # When
+    token_resp = await oauth.get_token_response(
+        grant_type="token_exchange",
+        data={
+            "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+            "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
+            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            "subject_token": id_token_jwt,
+            "client_assertion": client_assertion_jwt,
+        },
+    )
+    assert token_resp["status_code"] == 200
+    return token_resp["body"]
+
+
+@pytest.fixture()
 async def set_access_token(request, get_token):
     token = await get_token()
     setattr(request.cls.oauth, "access_token", token['access_token'])
