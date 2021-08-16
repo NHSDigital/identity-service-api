@@ -7,9 +7,14 @@ if (grant_type === 'authorization_code') {
   var token_issuer = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.issuer')
   var cis2_issuer = context.getVariable('identity-service-config.cis2.issuer')
   var nhslogin_issuer = context.getVariable('identity-service-config.nhs_login.issuer')
-  if (token_issuer.includes('api.service.nhs.uk'))
-    provider = 'apim-mock'
-  else if (token_issuer === cis2_issuer)
+  if (token_issuer.includes('api.service.nhs.uk')) {
+    nhs_number = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.nhs_number')
+    if (nhs_number) {
+      provider = 'apim-mock-nhs-login'
+    } else {
+      provider = 'apim-mock-cis2'
+    }
+  } else if (token_issuer === cis2_issuer)
     provider = 'nhs-cis2'
   else if (token_issuer === nhslogin_issuer)
     provider = 'nhs-login'
@@ -25,6 +30,12 @@ if (grant_type === 'authorization_code') {
     level = getLevel(proofing_level)
   }
 
+  if (provider === 'nsh-login' || provider === 'apim-mock-nhs-login') {
+    user_id = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.nhs_number')
+  } else {
+    user_id = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.subject')
+  }
+
 } else {
   // Now it's either client-credentials or token-exhange.
   // We can't rely on apigee since, there is no support for token-exchange
@@ -34,18 +45,20 @@ if (grant_type === 'authorization_code') {
 
     issuer = context.getVariable('idTokenIssuer')
     provider = getProvider(issuer)
+
+    if (provider === 'nhs-login' || provider === 'apim-mock-nhs-login') {
+      user_id = user_id = context.getVariable('jwt.VerifyJWT.SubjectToken.claim.nhs_number')
+    } else {
+      user_id = context.getVariable('jwt.VerifyJWT.SubjectToken.claim.subject')
+    }
+
   } else {
     scope = context.getVariable('apigee.application_restricted_scopes')
     level = getLevel(scope)
 
     provider = 'apim'
+    user_id = ''
   }
-}
-
-if (provider == 'nsh-login') {
-  user_id = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.nhs_number')
-} else {
-  user_id = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.subject')
 }
 
 context.setVariable('splunk.auth.provider', provider)
