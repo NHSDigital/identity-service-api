@@ -51,14 +51,19 @@ def get_token(request):
 
     return _token
 
+@pytest.fixture()
+async def apigee_start_trace(expected_filtered_scopes):
+    apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME)
+    await apigee_trace.start_trace()
+    return apigee_trace
+
 
 @pytest.fixture()
-async def get_token_cis2_token_exchange(test_app_and_product, product_1_scopes, product_2_scopes, expected_filtered_scopes):
+async def get_token_cis2_token_exchange(test_app_and_product, product_1_scopes, product_2_scopes):
     """Call identity server to get an access token"""
     test_product, test_product2, test_app = test_app_and_product
     await test_product.update_scopes(product_1_scopes)
     await test_product2.update_scopes(product_2_scopes)
-    apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME)
 
     oauth = OauthHelper(
         client_id=test_app.client_id,
@@ -95,10 +100,6 @@ async def get_token_cis2_token_exchange(test_app_and_product, product_1_scopes, 
         kid="identity-service-tests-1", claims=claims, signing_key=contents
     )
 
-    # client_assertion_jwt = oauth.create_jwt(kid="test-1", client_id=test_app.client_id)
-    # id_token_jwt = oauth.create_id_token_jwt(kid="identity-service-tests-1", claims=claims)
-    await apigee_trace.start_trace()
-
     # When
     token_resp = await oauth.get_token_response(
         grant_type="token_exchange",
@@ -110,13 +111,10 @@ async def get_token_cis2_token_exchange(test_app_and_product, product_1_scopes, 
             "client_assertion": client_assertion_jwt,
         },
     )
-    filtered_scopes = await apigee_trace.get_apigee_variable_from_trace(name='apigee.user_restricted_scopes')
-    assert filtered_scopes is not None, 'variable apigee.user_restricted_scopes not found in the trace'
-    filtered_scopes = filtered_scopes.split(" ")
-    assert expected_filtered_scopes.sort() == filtered_scopes.sort()
 
-    assert token_resp["status_code"] == 200
-    return token_resp["body"]
+    # assert token_resp["status_code"] == 200
+    # return token_resp["body"]
+    return token_resp
 
 
 @pytest.fixture()
