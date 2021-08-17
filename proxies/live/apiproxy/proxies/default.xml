@@ -248,6 +248,9 @@
                     <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyClientId</Name>
                 </Step>
                 <Step>
+                    <Name>JavaScript.SetLoggingFieldsAuthorizeEndpoint</Name>
+                </Step>
+                <Step>
                     <Name>SpikeArrest</Name>
                 </Step>
                 <Step>
@@ -829,6 +832,9 @@
                 <Step>
                   <Name>RaiseFault.VerifyAccessLevel</Name>
                   <Condition>(apigee.user_restricted_scopes = "")</Condition>
+                </Step>
+                <Step>
+                    <Name>JavaScript.SetLoggingFieldsCallbackEndpoint</Name>
                 </Step>
             </Request>
             <Response>
