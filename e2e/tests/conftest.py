@@ -4,6 +4,9 @@ from api_test_utils.oauth_helper import OauthHelper
 from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
 from api_test_utils.apigee_api_products import ApigeeApiProducts
 from e2e.scripts.generic_request import GenericRequest
+from time import time, sleep
+from e2e.scripts import config
+from api_test_utils.apigee_api_trace import ApigeeApiTraceDebug
 
 
 @pytest.fixture()
@@ -50,9 +53,13 @@ def get_token(request):
 
 
 @pytest.fixture()
-async def get_token_cis2_token_exchange(test_app_and_product):
+async def get_token_cis2_token_exchange(test_app_and_product, product_1_scopes, product_2_scopes, expected_filtered_scopes):
     """Call identity server to get an access token"""
-    test_product, test_app = test_app_and_product
+    test_product, test_product2, test_app = test_app_and_product
+    await test_product.update_scopes(product_1_scopes)
+    await test_product2.update_scopes(product_2_scopes)
+    apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME)
+
     oauth = OauthHelper(
         client_id=test_app.client_id,
         client_secret=test_app.client_secret,
@@ -61,7 +68,7 @@ async def get_token_cis2_token_exchange(test_app_and_product):
 
     claims = {
         "at_hash": "tf_-lqpq36lwO7WmSBIJ6Q",
-        "sub": "lala",
+        "sub": "787807429511",
         "auditTrackingId": "91f694e6-3749-42fd-90b0-c3134b0d98f6-1546391",
         "amr": ["N3_SMARTCARD"],
         "iss": "https://am.nhsint.auth-ptl.cis2.spineservices.nhs.uk:443/"
@@ -88,6 +95,10 @@ async def get_token_cis2_token_exchange(test_app_and_product):
         kid="identity-service-tests-1", claims=claims, signing_key=contents
     )
 
+    # client_assertion_jwt = oauth.create_jwt(kid="test-1", client_id=test_app.client_id)
+    # id_token_jwt = oauth.create_id_token_jwt(kid="identity-service-tests-1", claims=claims)
+    await apigee_trace.start_trace()
+
     # When
     token_resp = await oauth.get_token_response(
         grant_type="token_exchange",
@@ -99,6 +110,11 @@ async def get_token_cis2_token_exchange(test_app_and_product):
             "client_assertion": client_assertion_jwt,
         },
     )
+    filtered_scopes = await apigee_trace.get_apigee_variable_from_trace(name='apigee.user_restricted_scopes')
+    assert filtered_scopes is not None, 'variable apigee.user_restricted_scopes not found in the trace'
+    filtered_scopes = filtered_scopes.split(" ")
+    assert expected_filtered_scopes.sort() == filtered_scopes.sort()
+
     assert token_resp["status_code"] == 200
     return token_resp["body"]
 
