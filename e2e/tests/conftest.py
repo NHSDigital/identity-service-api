@@ -4,6 +4,7 @@ from api_test_utils.oauth_helper import OauthHelper
 from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
 from api_test_utils.apigee_api_products import ApigeeApiProducts
 from e2e.scripts.generic_request import GenericRequest
+from e2e.scripts import config
 
 
 @pytest.fixture()
@@ -25,26 +26,32 @@ def get_token(request):
     async def _token(
         grant_type: str = "authorization_code",
         test_app: ApigeeApiDeveloperApps = None,
-        **kwargs
+        **kwargs,
     ):
         if test_app:
             # Use provided test app
-            oauth = OauthHelper(test_app.client_id, test_app.client_secret, test_app.callback_url)
+            oauth = OauthHelper(
+                test_app.client_id, test_app.client_secret, test_app.callback_url
+            )
             resp = await oauth.get_token_response(grant_type=grant_type, **kwargs)
         else:
             # Use default test app
-            resp = await request.cls.oauth.get_token_response(grant_type=grant_type, **kwargs)
+            resp = await request.cls.oauth.get_token_response(
+                grant_type=grant_type, **kwargs
+            )
 
-        if resp['status_code'] != 200:
-            message = 'unable to get token'
-            raise RuntimeError(f"\n{'*' * len(message)}\n"
-                               f"MESSAGE: {message}\n"
-                               f"URL: {resp.get('url')}\n"
-                               f"STATUS CODE: {resp.get('status_code')}\n"
-                               f"RESPONSE: {resp.get('body')}\n"
-                               f"HEADERS: {resp.get('headers')}\n"
-                               f"{'*' * len(message)}\n")
-        return resp['body']
+        if resp["status_code"] != 200:
+            message = "unable to get token"
+            raise RuntimeError(
+                f"\n{'*' * len(message)}\n"
+                f"MESSAGE: {message}\n"
+                f"URL: {resp.get('url')}\n"
+                f"STATUS CODE: {resp.get('status_code')}\n"
+                f"RESPONSE: {resp.get('body')}\n"
+                f"HEADERS: {resp.get('headers')}\n"
+                f"{'*' * len(message)}\n"
+            )
+        return resp["body"]
 
     return _token
 
@@ -52,14 +59,16 @@ def get_token(request):
 @pytest.fixture()
 async def set_access_token(request, get_token):
     token = await get_token()
-    setattr(request.cls.oauth, "access_token", token['access_token'])
-    setattr(request.cls.oauth, "refresh_token", token['refresh_token'])
+    setattr(request.cls.oauth, "access_token", token["access_token"])
+    setattr(request.cls.oauth, "refresh_token", token["refresh_token"])
 
 
 @pytest.fixture()
 async def set_refresh_token(request, get_token, set_access_token):
-    refresh_token = await get_token(grant_type="refresh_token", refresh_token=request.cls.oauth.refresh_token)
-    setattr(request.cls.oauth, "refresh_token", refresh_token['refresh_token'])
+    refresh_token = await get_token(
+        grant_type="refresh_token", refresh_token=request.cls.oauth.refresh_token
+    )
+    setattr(request.cls.oauth, "refresh_token", refresh_token["refresh_token"])
 
 
 @pytest.fixture()
@@ -68,13 +77,12 @@ def helper():
 
 
 def _set_default_rate_limit(product: ApigeeApiProducts):
-    product.update_ratelimits(quota=60000,
-                              quota_interval="1",
-                              quota_time_unit="minute",
-                              rate_limit="1000ps")
+    product.update_ratelimits(
+        quota=60000, quota_interval="1", quota_time_unit="minute", rate_limit="1000ps"
+    )
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 async def test_product():
     """Create a test product which can be modified by the test"""
     product = ApigeeApiProducts()
@@ -84,12 +92,12 @@ async def test_product():
     await product.destroy_product()
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def app():
     return ApigeeApiDeveloperApps()
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 async def test_app(app):
     """Create a test app which can be modified in the test"""
     await app.create_new_app()
@@ -102,14 +110,16 @@ async def _product_with_full_access():
     product = ApigeeApiProducts()
     await product.create_new_product()
     _set_default_rate_limit(product)
-    product.update_scopes([
-        "personal-demographics-service:USER-RESTRICTED",
-        "urn:nhsd:apim:app:level3:",
-        "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
-        "urn:nhsd:apim:user-nhs-login:P9:some-api",
-        "urn:nhsd:apim:user-nhs-login:P5:some-api",
-        "urn:nhsd:apim:user-nhs-login:P0:some-api"
-    ])
+    product.update_scopes(
+        [
+            "personal-demographics-service:USER-RESTRICTED",
+            "urn:nhsd:apim:app:level3:",
+            "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
+            "urn:nhsd:apim:user-nhs-login:P9:some-api",
+            "urn:nhsd:apim:user-nhs-login:P5:some-api",
+            "urn:nhsd:apim:user-nhs-login:P0:some-api",
+        ]
+    )
 
     await product.update_paths(paths=["/", "/*"])
     return product
@@ -125,16 +135,20 @@ def setup_session(request):
     app = ApigeeApiDeveloperApps()
 
     print("\nCreating Default App..")
-    asyncio.run(app.create_new_app(callback_url="https://nhsd-apim-testing-internal-dev.herokuapp.com/callback"))
+    asyncio.run(
+        app.create_new_app(
+            callback_url="https://nhsd-apim-testing-internal-dev.herokuapp.com/callback"
+        )
+    )
     asyncio.run(app.add_api_product([product.name]))
 
     # Set default JWT Testing resource url
     asyncio.run(
         app.set_custom_attributes(
             {
-                'jwks-resource-url': 'https://raw.githubusercontent.com/NHSDigital/'
-                                     'identity-service-jwks/main/jwks/internal-dev/'
-                                     '9baed6f4-1361-4a8e-8531-1f8426e3aba8.json'
+                "jwks-resource-url": "https://raw.githubusercontent.com/NHSDigital/"
+                "identity-service-jwks/main/jwks/internal-dev/"
+                "9baed6f4-1361-4a8e-8531-1f8426e3aba8.json"
             }
         )
     )
@@ -155,5 +169,56 @@ def setup_session(request):
 def setup_function(request):
     """This function is called before each test is executed"""
     # Get the name of the current test and attach it the the test instance
-    name = (request.node.name, request.node.originalname)[request.node.originalname is not None]
+    name = (request.node.name, request.node.originalname)[
+        request.node.originalname is not None
+    ]
     setattr(request.cls, "name", name)
+
+
+@pytest.fixture(scope="class")
+async def test_app_and_product():
+    apigee_product = ApigeeApiProducts()
+    apigee_product2 = ApigeeApiProducts()
+    await apigee_product.create_new_product()
+    await apigee_product.update_proxies([config.SERVICE_NAME])
+    await apigee_product2.create_new_product()
+    await apigee_product2.update_proxies([config.SERVICE_NAME])
+
+    apigee_app = ApigeeApiDeveloperApps()
+    await apigee_app.create_new_app()
+
+    # Set default JWT Testing resource url
+    await apigee_app.set_custom_attributes(
+        {
+            "jwks-resource-url": "https://raw.githubusercontent.com/NHSDigital/"
+            "identity-service-jwks/main/jwks/internal-dev/"
+            "9baed6f4-1361-4a8e-8531-1f8426e3aba8.json"
+        }
+    )
+
+    await apigee_app.add_api_product(
+        api_products=[apigee_product.name, apigee_product2.name]
+    )
+
+    [
+        await product.update_ratelimits(
+            quota=60000,
+            quota_interval="1",
+            quota_time_unit="minute",
+            rate_limit="1000ps",
+        )
+        for product in [apigee_product, apigee_product2]
+    ]
+
+    yield apigee_product, apigee_product2, apigee_app
+
+    await apigee_app.destroy_app()
+    await apigee_product.destroy_product()
+    await apigee_product2.destroy_product()
+
+
+@pytest.yield_fixture(scope="class")
+def event_loop(request):
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
