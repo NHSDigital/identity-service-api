@@ -8,7 +8,7 @@ from e2e.scripts.config import OAUTH_URL, HELLO_WORLD_API_URL, ENVIRONMENT, ID_T
 
 
 @pytest.mark.asyncio
-class TestSplunkLogging:
+class TestAttachLoggingFields:
     @pytest.mark.happy_path
     @pytest.mark.logging
     @pytest.mark.usefixtures('set_access_token')

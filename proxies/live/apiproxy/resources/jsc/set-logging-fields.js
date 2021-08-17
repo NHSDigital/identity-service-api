@@ -1,9 +1,14 @@
 var grant_type = context.getVariable('request.formparam.grant_type')
+var auth_grant_type = grant_type // apigee doesn't support token_exchange. This variable holds the "correct" auth grant_type
+var auth_type = 'app'
 var provider = 'unknown'
 var level = 'unknown'
 var user_id = ''
 
 if (grant_type === 'authorization_code') {
+  auth_grant_type = 'authorization_code'
+  auth_type = 'user'
+
   var token_issuer = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.issuer')
   var cis2_issuer = context.getVariable('identity-service-config.cis2.issuer')
   var nhslogin_issuer = context.getVariable('identity-service-config.nhs_login.issuer')
@@ -40,6 +45,9 @@ if (grant_type === 'authorization_code') {
   // Now it's either client-credentials or token-exhange.
   // We can't rely on apigee since, there is no support for token-exchange
   if (context.getVariable('request.formparam.subject_token')) { // Then it's token-exchange
+    auth_grant_type = 'token_exchange'
+    auth_type = 'user'
+
     scope = context.getVariable('apigee.user_restricted_scopes')
     level = getLevel(scope)
 
@@ -53,6 +61,9 @@ if (grant_type === 'authorization_code') {
     }
 
   } else {
+    auth_grant_type = 'client_credentials'
+    auth_type = 'app'
+
     scope = context.getVariable('apigee.application_restricted_scopes')
     level = getLevel(scope)
 
@@ -61,9 +72,18 @@ if (grant_type === 'authorization_code') {
   }
 }
 
+context.setVariable('splunk.auth.grant_type', auth_grant_type)
+context.setVariable('splunk.auth.type', auth_type)
 context.setVariable('splunk.auth.provider', provider)
 context.setVariable('splunk.auth.level', level)
 context.setVariable('splunk.auth.user_id', user_id)
+
+// Identity Service doesn't have VerifyAccessToken. Below variables must be populated, so LogToSplunk can log auth data
+context.setVariable('accesstoken.auth_grant_type', auth_grant_type)
+context.setVariable('accesstoken.auth_type', auth_type)
+context.setVariable('accesstoken.auth_level', level)
+context.setVariable('accesstoken.auth_provider', provider)
+context.setVariable('accesstoken.auth_user_id', user_id)
 
 function getLevel(level) {
   if (level) {
