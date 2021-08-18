@@ -391,7 +391,7 @@
             <Condition>(apigee.application_restricted_scopes = "")</Condition>
           </Step>
           <Step>
-              <Name>JavaScript.SetLoggingFieldsInAccessToken</Name>
+              <Name>JavaScript.SetLoggingFieldsTokenEndpoint</Name>
           </Step>
           <Step>
             <Name>AssignMessage.SetIssuerUri</Name>
@@ -561,7 +561,7 @@
               <Condition>(apigee.user_restricted_scopes = "")</Condition>
           </Step>
           <Step>
-              <Name>JavaScript.SetLoggingFieldsInAccessToken</Name>
+              <Name>JavaScript.SetLoggingFieldsTokenEndpoint</Name>
           </Step>
           <Step>
             <Name>AssignMessage.SetIssuerUri</Name>
@@ -644,7 +644,7 @@
                     <Condition>(apigee.can_override_refresh_token != null) and (apigee.can_override_refresh_token = true)</Condition>
                 </Step>
                 <Step>
-                    <Name>JavaScript.SetLoggingFieldsInAccessToken</Name>
+                    <Name>JavaScript.SetLoggingFieldsTokenEndpoint</Name>
                 </Step>
                 <Step>
                   <Name>AssignMessage.SetIssuerUri</Name>
