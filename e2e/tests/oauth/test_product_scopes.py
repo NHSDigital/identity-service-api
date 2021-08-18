@@ -762,10 +762,9 @@ class TestProductScopes:
     ])
     async def test_nhs_login_token_exchange_user_restricted_scope_combination(
         self,
-        product_1_scopes,
-        product_2_scopes,
+        apigee_start_trace,
+        get_token_nhs_login_token_exchange,
         expected_filtered_scopes,
-        test_app_and_product,
         helper
     ):
         expected_status_code = 200
@@ -773,50 +772,10 @@ class TestProductScopes:
         expected_token_type = 'Bearer'
         expected_issued_token_type = 'urn:ietf:params:oauth:token-type:access_token'
 
-        test_product, test_product2, test_app = test_app_and_product
-
-        await test_product.update_scopes(product_1_scopes)
-        await test_product2.update_scopes(product_2_scopes)
-        apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME)
-
-        id_token_claims = {
-            "sub": "8dc9fc1d-c3cb-48e1-ba62-b1532539ab6d",
-            "birthdate": "1939-09-26",
-            "nhs_number": "9482807146",
-            "iss": "https://internal-dev.api.service.nhs.uk",
-            "nonce": "randomnonce",
-            "vtm": "https://auth.aos.signin.nhs.uk/trustmark/auth.aos.signin.nhs.uk",
-            "aud": "java_test_client",
-            "id_status": "verified",
-            "token_use": "id",
-            "surname": "CARTHY",
-            "auth_time": 1617272144,
-            "vot": "P9.Cp.Cd",
-            "identity_proofing_level": "P9",
-            "exp": int(time()) + 6000,
-            "iat": int(time()) - 100,
-            "family_name": "CARTHY",
-            "jti": "b6d6a28e-b0bb-44e3-974f-bb245c0b688a"
-        }
-
-        with open(config.ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
-            contents = f.read()
-
-        client_assertion_jwt = self.oauth.create_jwt(kid="test-1", client_id=test_app.client_id)
-        id_token_jwt = self.oauth.create_id_token_jwt(kid="nhs-login", algorithm='RS512', claims=id_token_claims, signing_key=contents)
-        await apigee_trace.start_trace()
-
         # When
-        resp = await self.oauth.get_token_response(
-            grant_type="token_exchange",
-            data={
-                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
-                'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
-                'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-                'subject_token': id_token_jwt,
-                'client_assertion': client_assertion_jwt
-            }
-        )
+        resp = get_token_nhs_login_token_exchange
+    
+        apigee_trace = apigee_start_trace
         filtered_scopes = await apigee_trace.get_apigee_variable_from_trace(name='apigee.user_restricted_scopes')
         assert filtered_scopes is not None, 'variable apigee.user_restricted_scopes not found in the trace'
         filtered_scopes = filtered_scopes.split(" ")
@@ -885,6 +844,7 @@ class TestProductScopes:
     ])
     async def test_nhs_login_token_exchange_error_user_restricted_scope_combination(
         self,
+        get_token_nhs_login_token_exchange,
         product_1_scopes,
         product_2_scopes,
         test_app_and_product,
@@ -895,49 +855,9 @@ class TestProductScopes:
         expected_error_description = "you have tried to requests authorization but your " \
                                      "application is not configured to use this authorization grant type"
 
-        test_product, test_product2, test_app = test_app_and_product
-
-        await test_product.update_scopes(product_1_scopes)
-        await test_product2.update_scopes(product_2_scopes)
-
-        id_token_claims = {
-            "sub": "8dc9fc1d-c3cb-48e1-ba62-b1532539ab6d",
-            "birthdate": "1939-09-26",
-            "nhs_number": "9482807146",
-            "iss": "https://internal-dev.api.service.nhs.uk",
-            "nonce": "randomnonce",
-            "vtm": "https://auth.aos.signin.nhs.uk/trustmark/auth.aos.signin.nhs.uk",
-            "aud": "java_test_client",
-            "id_status": "verified",
-            "token_use": "id",
-            "surname": "CARTHY",
-            "auth_time": 1617272144,
-            "vot": "P9.Cp.Cd",
-            "identity_proofing_level": "P9",
-            "exp": int(time()) + 6000,
-            "iat": int(time()) - 100,
-            "family_name": "CARTHY",
-            "jti": "b6d6a28e-b0bb-44e3-974f-bb245c0b688a"
-        }
-
-        with open(config.ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
-            contents = f.read()
-
-        client_assertion_jwt = self.oauth.create_jwt(kid="test-1", client_id=test_app.client_id)
-        id_token_jwt = self.oauth.create_id_token_jwt(kid="nhs-login", algorithm='RS512', claims=id_token_claims, signing_key=contents)
-
         # When
-        resp = await self.oauth.get_token_response(
-            grant_type="token_exchange",
-            data={
-                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
-                'subject_token_type': 'urn:ietf:params:oauth:token-type:id_token',
-                'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-                'subject_token': id_token_jwt,
-                'client_assertion': client_assertion_jwt
-            }
-        )
-
+        resp = get_token_nhs_login_token_exchange
+      
         # Then
         assert expected_status_code == resp['status_code']
         assert expected_error == resp['body']['error']

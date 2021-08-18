@@ -112,8 +112,62 @@ async def get_token_cis2_token_exchange(test_app_and_product, product_1_scopes, 
         },
     )
 
-    # assert token_resp["status_code"] == 200
-    # return token_resp["body"]
+    return token_resp
+
+@pytest.fixture()
+async def get_token_nhs_login_token_exchange(test_app_and_product, product_1_scopes, product_2_scopes):
+    """Call nhs login to get an access token"""
+    test_product, test_product2, test_app = test_app_and_product
+    await test_product.update_scopes(product_1_scopes)
+    await test_product2.update_scopes(product_2_scopes)
+
+    oauth = OauthHelper(
+        client_id=test_app.client_id,
+        client_secret=test_app.client_secret,
+        redirect_uri=test_app.callback_url,
+    )
+
+    claims = {
+        "sub": "8dc9fc1d-c3cb-48e1-ba62-b1532539ab6d",
+        "birthdate": "1939-09-26",
+        "nhs_number": "9482807146",
+        "iss": "https://internal-dev.api.service.nhs.uk",
+        "nonce": "randomnonce",
+        "vtm": "https://auth.aos.signin.nhs.uk/trustmark/auth.aos.signin.nhs.uk",
+        "aud": "java_test_client",
+        "id_status": "verified",
+        "token_use": "id",
+        "surname": "CARTHY",
+        "auth_time": 1617272144,
+        "vot": "P9.Cp.Cd",
+        "identity_proofing_level": "P9",
+        "exp": int(time()) + 6000,
+        "iat": int(time()) - 100,
+        "family_name": "CARTHY",
+        "jti": "b6d6a28e-b0bb-44e3-974f-bb245c0b688a"
+    }
+
+
+    with open(config.ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
+        contents = f.read()
+
+    client_assertion_jwt = oauth.create_jwt(kid="test-1")
+    id_token_jwt = oauth.create_id_token_jwt(
+        kid="nhs-login", algorithm='RS512', claims=claims, signing_key=contents
+    )
+
+    # When
+    token_resp = await oauth.get_token_response(
+        grant_type="token_exchange",
+        data={
+            "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+            "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
+            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            "subject_token": id_token_jwt,
+            "client_assertion": client_assertion_jwt,
+        },
+    )
+
     return token_resp
 
 
