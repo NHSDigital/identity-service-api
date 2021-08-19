@@ -253,6 +253,6 @@ class TestAttachLoggingFields:
 
         assert auth_type == 'user'
         assert auth_grant_type == 'token_exchange'
-        assert auth_provider == 'nhs-login'
+        assert auth_provider == 'apim-mock-nhs-login'
         assert auth_level == scope.lower()
         assert auth_user_id == '900000000001'

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Javascript async="false" continueOnError="false" enabled="true" timeLimit="200" name="JavaScript.SetLoggingFields">
+    <DisplayName>JavaScript.SetLoggingFields</DisplayName>
+    <Properties/>
+    <ResourceURL>jsc://set-logging-fields.js</ResourceURL>
+</Javascript>
