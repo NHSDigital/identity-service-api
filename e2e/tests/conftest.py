@@ -59,6 +59,28 @@ async def apigee_start_trace(expected_filtered_scopes):
 
 
 @pytest.fixture()
+async def get_token_application_restricted_token_exchange(test_app_and_product, product_1_scopes, product_2_scopes):
+    """Call application restricted server to get an access token"""
+    test_product, test_product2, test_app = test_app_and_product
+
+    await test_product.update_scopes(product_1_scopes)
+    await test_product2.update_scopes(product_2_scopes)
+
+    oauth = OauthHelper(
+        client_id=test_app.client_id,
+        client_secret=test_app.client_secret,
+        redirect_uri=test_app.callback_url,
+    )
+
+    client_assertion_jwt = oauth.create_jwt(kid="test-1")
+    id_token_jwt = oauth.create_id_token_jwt(
+        kid='test-1')
+    resp = await oauth.get_token_response(grant_type="client_credentials", _jwt=client_assertion_jwt)
+
+    return resp
+
+
+@pytest.fixture()
 async def get_token_cis2_token_exchange(test_app_and_product, product_1_scopes, product_2_scopes):
     """Call identity server to get an access token"""
     test_product, test_product2, test_app = test_app_and_product

@@ -111,21 +111,13 @@ class TestProductScopes:
     ])
     async def test_valid_application_restricted_scope_combination(
         self,
-        product_1_scopes,
-        product_2_scopes,
+        apigee_start_trace,
+        get_token_application_restricted_token_exchange,
         expected_filtered_scopes,
-        test_app_and_product,
     ):
-        test_product, test_product2, test_app = test_app_and_product
-        apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME)
-
-        await test_product.update_scopes(product_1_scopes)
-        await test_product2.update_scopes(product_2_scopes)
-
-        jwt = self.oauth.create_jwt(kid='test-1', client_id=test_app.client_id)
-        await apigee_trace.start_trace()
-        resp = await self.oauth.get_token_response(grant_type="client_credentials", _jwt=jwt)
-
+        # when
+        resp = get_token_application_restricted_token_exchange
+        apigee_trace = apigee_start_trace
         application_scope = await apigee_trace.get_apigee_variable_from_trace(name='apigee.application_restricted_scopes')
         assert application_scope is not None, 'variable apigee.user_restricted_scopes not found in the trace'
         application_scope = application_scope.split(" ")
@@ -192,19 +184,13 @@ class TestProductScopes:
     ])
     async def test_error_application_restricted_scope_combination(
         self,
+        get_token_application_restricted_token_exchange,
         product_1_scopes,
         product_2_scopes,
         test_app_and_product
     ):
-        test_product, test_product2, test_app = test_app_and_product
-
-        await test_product.update_scopes(product_1_scopes)
-        await test_product2.update_scopes(product_2_scopes)
-
-        resp = await self.oauth.get_token_response(
-            grant_type="client_credentials",
-            _jwt=self.oauth.create_jwt(kid='test-1', client_id=test_app.client_id)
-        )
+        # when
+        resp = get_token_application_restricted_token_exchange
 
         assert resp['status_code'] == 401
         assert resp['body'] == {
