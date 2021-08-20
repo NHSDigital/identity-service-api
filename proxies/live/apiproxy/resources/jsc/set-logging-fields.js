@@ -1,48 +1,95 @@
+var auth_grant_type = '' // apigee doesn't support token_exchange. This variable holds the "correct" auth grant_type
+var auth_type = 'app'
+var level = ''
+var user_id = ''
+
 var grant_type = context.getVariable('request.formparam.grant_type')
-var provider = 'unknown'
-var level = 'unknown'
+var pathsuffix = context.getVariable('proxy.pathsuffix')
+if (grant_type === 'authorization_code' || pathsuffix === '/authorize' || pathsuffix === '/callback') {
+  auth_grant_type = 'authorization_code'
+  auth_type = 'user'
+  provider = getProvider()
+  if (pathsuffix === '/authorize') {
+    level = ''
+    user_id = ''
+  } else {
+    if (provider.includes('nhs-login')) {
+      proofing_level = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.identity_proofing_level')
 
-if (grant_type === 'authorization_code') {
-  var token_issuer = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.issuer')
-  var cis2_issuer = context.getVariable('identity-service-config.cis2.issuer')
-  var nhslogin_issuer = context.getVariable('identity-service-config.nhs_login.issuer')
-  if (token_issuer.includes('api.service.nhs.uk'))
-    provider = 'apim-mock'
-  else if (token_issuer === cis2_issuer)
-    provider = 'nhs-cis2'
-  else if (token_issuer === nhslogin_issuer)
-    provider = 'nhs-login'
-  else
-    provider = 'unknown'
+      level = getLevel(proofing_level)
+      user_id = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.nhs_number')
+    } else {
+      claim_acr = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.acr')
 
-  var claim_acr = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.acr')
-  var proofing_level = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.identity_proofing_level')
+      level = getLevel(claim_acr)
+      user_id = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.subject')
+    }
+  }
 
-  if (claim_acr) {
-    level = getLevel(claim_acr)
-  } else if (proofing_level) {
-    level = getLevel(proofing_level)
+} else if (context.getVariable('request.formparam.subject_token')) {
+  auth_grant_type = 'token_exchange'
+  auth_type = 'user'
+  provider = getProvider()
+  scope = context.getVariable('apigee.user_restricted_scopes')
+  level = getLevel(scope)
+
+  if (provider.includes('nhs-login')) {
+    user_id = user_id = context.getVariable('jwt.VerifyJWT.SubjectToken.claim.nhs_number')
+  } else {
+    user_id = context.getVariable('jwt.VerifyJWT.SubjectToken.claim.subject')
   }
 
 } else {
-  // Now it's either client-credentials or token-exhange.
-  // We can't rely on apigee since, there is no support for token-exchange
-  if (context.getVariable('request.formparam.subject_token')) { // Then it's token-exchange
-    scope = context.getVariable('apigee.user_restricted_scopes')
-    level = getLevel(scope)
-
-    issuer = context.getVariable('idTokenIssuer')
-    provider = getProvider(issuer)
-  } else {
-    scope = context.getVariable('apigee.application_restricted_scopes')
-    level = getLevel(scope)
-
-    provider = 'apim'
-  }
+  auth_grant_type = 'client_credentials'
+  auth_type = 'app'
+  provider = 'apim'
+  user_id = ''
+  scope = context.getVariable('apigee.application_restricted_scopes')
+  level = getLevel(scope)
 }
 
+// Populate variables; these are embedded into apigee access token
+context.setVariable('splunk.auth.grant_type', auth_grant_type)
+context.setVariable('splunk.auth.type', auth_type)
 context.setVariable('splunk.auth.provider', provider)
 context.setVariable('splunk.auth.level', level)
+context.setVariable('splunk.auth.user_id', user_id)
+
+// Populate variables; these are used in LogToSplunk shared-flow. IS doesn't have VerifyAccessToken that's why we need to populate these manually.
+context.setVariable('accesstoken.auth_grant_type', auth_grant_type)
+context.setVariable('accesstoken.auth_type', auth_type)
+context.setVariable('accesstoken.auth_level', level)
+context.setVariable('accesstoken.auth_provider', provider)
+context.setVariable('accesstoken.auth_user_id', user_id)
+
+function getProvider() {
+  var cis2_issuer = context.getVariable('identity-service-config.cis2.issuer')
+  var is_mock_cis2_provider = cis2_issuer.includes('api.service.nhs.uk')
+
+  var nhs_login_issuer = context.getVariable('identity-service-config.nhs_login.issuer')
+  var is_mock_nhs_login_provider = nhs_login_issuer.includes('api.service.nhs.uk')
+
+  var is_nhs_login = context.getVariable('idp') === 'nhs-login'
+    || context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.nhs_number')
+    || context.getVariable('jwt.VerifyJWT.SubjectToken.claim.nhs_number')
+
+  var provider = ''
+  if (is_nhs_login) {
+    if (is_mock_nhs_login_provider) {
+      provider = 'apim-mock-nhs-login'
+    } else {
+      provider = 'nhs-login'
+    }
+  } else {
+    if (is_mock_cis2_provider) {
+      provider = 'apim-mock-nhs-cis2'
+    } else {
+      provider = 'nhs-cis2'
+    }
+  }
+
+  return provider
+}
 
 function getLevel(level) {
   if (level) {
@@ -62,20 +109,6 @@ function getLevel(level) {
     }
     if (level.includes('p0')) {
       return 'p0'
-    }
-  }
-  return 'unknown'
-}
-
-function getProvider(provider) {
-  if (provider) {
-    provider = provider.toLowerCase()
-
-    if (provider.includes('cis2') || provider.includes('nhscis2')) {
-      return 'nhs-cis2'
-    }
-    if (provider.includes('nhslogin')) {
-      return 'nhs-login'
     }
   }
   return 'unknown'
