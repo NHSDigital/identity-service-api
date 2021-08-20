@@ -248,6 +248,9 @@
                     <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyClientId</Name>
                 </Step>
                 <Step>
+                    <Name>JavaScript.SetLoggingFields</Name>
+                </Step>
+                <Step>
                     <Name>SpikeArrest</Name>
                 </Step>
                 <Step>
@@ -388,7 +391,7 @@
             <Condition>(apigee.application_restricted_scopes = "")</Condition>
           </Step>
           <Step>
-              <Name>JavaScript.SetLoggingFieldsInAccessToken</Name>
+              <Name>JavaScript.SetLoggingFields</Name>
           </Step>
           <Step>
             <Name>AssignMessage.SetIssuerUri</Name>
@@ -558,7 +561,7 @@
               <Condition>(apigee.user_restricted_scopes = "")</Condition>
           </Step>
           <Step>
-              <Name>JavaScript.SetLoggingFieldsInAccessToken</Name>
+              <Name>JavaScript.SetLoggingFields</Name>
           </Step>
           <Step>
             <Name>AssignMessage.SetIssuerUri</Name>
@@ -641,7 +644,7 @@
                     <Condition>(apigee.can_override_refresh_token != null) and (apigee.can_override_refresh_token = true)</Condition>
                 </Step>
                 <Step>
-                    <Name>JavaScript.SetLoggingFieldsInAccessToken</Name>
+                    <Name>JavaScript.SetLoggingFields</Name>
                 </Step>
                 <Step>
                   <Name>AssignMessage.SetIssuerUri</Name>
@@ -829,6 +832,9 @@
                 <Step>
                   <Name>RaiseFault.VerifyAccessLevel</Name>
                   <Condition>(apigee.user_restricted_scopes = "")</Condition>
+                </Step>
+                <Step>
+                    <Name>JavaScript.SetLoggingFields</Name>
                 </Step>
             </Request>
             <Response>
