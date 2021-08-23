@@ -9,6 +9,7 @@ from e2e.scripts import config
 from api_test_utils.apigee_api_trace import ApigeeApiTraceDebug
 
 
+
 @pytest.fixture()
 def get_token(request):
     """Get an access or refresh token
