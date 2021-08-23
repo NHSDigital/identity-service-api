@@ -148,17 +148,11 @@ class TestClientCredentialsHappyCases:
     )
     async def test_valid_application_restricted_scope_combination(
         self,
-        apigee_start_trace,
-        get_token_application_restricted_token_exchange,
+        product_1_scopes,
+        product_2_scopes,
         expected_filtered_scopes,
+        test_app_and_product,
     ):
-<<<<<<< HEAD
-        # when
-        resp = get_token_application_restricted_token_exchange
-        apigee_trace = apigee_start_trace
-        application_scope = await apigee_trace.get_apigee_variable_from_trace(name='apigee.application_restricted_scopes')
-        assert application_scope is not None, 'variable apigee.user_restricted_scopes not found in the trace'
-=======
         test_product, test_product2, test_app = test_app_and_product
         apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME)
 
@@ -177,7 +171,6 @@ class TestClientCredentialsHappyCases:
         assert (
             application_scope is not None
         ), "variable apigee.user_restricted_scopes not found in the trace"
->>>>>>> f022e3c58ddec894646e3b51054ee66e3e8508a9
         application_scope = application_scope.split(" ")
 
         assert list(resp["body"].keys()) == [
@@ -194,71 +187,6 @@ class TestClientCredentialsHappyCases:
 class TestClientCredentialsErrorCases:
     @pytest.mark.apm_1701
     @pytest.mark.errors
-<<<<<<< HEAD
-    @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
-        # Scenario 1: multiple products with no scopes
-        (
-            [],
-            []
-        ),
-        # Scenario 2: one product with test_user_restricted_scope_combinationinvalid scope, one product with no scope
-        (
-            ['urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service'],
-            []
-        ),
-        # Scenario 3: multiple products with invalid scopes
-        (
-            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service'],
-            ['urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics']
-        ),
-        # Scenario 4: one product with multiple invalid scopes
-        (
-            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service',
-            'urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics'],
-            []
-        ),
-        # Scenario 5: multiple products with multiple invalid scopes
-        (
-            ['urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service',
-            'urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics'],
-            ['urn:nhsd:apim:user-nhs-id:aal3:example-1', 'urn:nhsd:apim:user-nhs-id:aal3:example-2']
-        ),
-        # Scenario 6: one product with invalid scope (wrong formation)
-        (
-            ['ThisDoesNotExist'],
-            []
-        ),
-        # Scenario 7: one product with invalid scope (special caracters)
-        (
-            ['#£$?!&%*.;@~_-'],
-            []
-        ),
-        # Scenario 8: one product with invalid scope (empty string)
-        (
-            [""],
-            []
-        ),
-        # Scenario 8: one product with invalid scope (None object)
-        (
-            [None],
-            []
-        ),
-        # Scenario 9: one product with invalid scope (missing colon)
-        (
-            ['urn:nshd:apim:app:level3personal-demographics-service'],
-            []
-        )
-    ])
-    async def test_error_application_restricted_scope_combination(
-        self,
-        get_token_application_restricted_token_exchange,
-        product_1_scopes,
-        product_2_scopes,
-        test_app_and_product
-    ):
-        # when
-        resp = get_token_application_restricted_token_exchange
-=======
     @pytest.mark.parametrize(
         "product_1_scopes, product_2_scopes",
         [
@@ -316,7 +244,6 @@ class TestClientCredentialsErrorCases:
                 _jwt=self.oauth.create_jwt(kid="test-1", client_id=test_app.client_id),
             )
         )
->>>>>>> f022e3c58ddec894646e3b51054ee66e3e8508a9
 
         assert resp["status_code"] == 401
         assert resp["body"] == {
@@ -417,7 +344,6 @@ class TestAuthorizationCodeCis2HappyCases:
     )
     async def test_cis2_user_restricted_scope_combination(
         self,
-        set_token_client_credentials,
         product_1_scopes,
         product_2_scopes,
         expected_filtered_scopes,
@@ -426,14 +352,12 @@ class TestAuthorizationCodeCis2HappyCases:
     ):
         test_product, test_product2, test_app = test_app_and_product
 
-        # await test_product.update_scopes(product_1_scopes)
-        # await test_product2.update_scopes(product_2_scopes)
-
-        # callback_url = await test_app.get_callback_url()
-        # oauth = OauthHelper(test_app.client_id, test_app.client_secret, callback_url)
-        oauth, callback_url = set_token_client_credentials
-
+        await test_product.update_scopes(product_1_scopes)
+        await test_product2.update_scopes(product_2_scopes)
         apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME)
+
+        callback_url = await test_app.get_callback_url()
+        oauth = OauthHelper(test_app.client_id, test_app.client_secret, callback_url)
 
         apigee_trace.add_trace_filter(
             header_name="Auto-Test-Header", header_value="flow-callback"
@@ -519,16 +443,7 @@ class TestAuthorizationCodeCis2ErrorCases:
         ],
     )
     async def test_cis2_error_user_restricted_scope_combination(
-<<<<<<< HEAD
-        self,
-        set_token_client_credentials,
-        product_1_scopes,
-        product_2_scopes,
-        test_app_and_product,
-        helper
-=======
         self, product_1_scopes, product_2_scopes, test_app_and_product, helper
->>>>>>> f022e3c58ddec894646e3b51054ee66e3e8508a9
     ):
         test_product, test_product2, test_app = test_app_and_product
 
@@ -540,7 +455,7 @@ class TestAuthorizationCodeCis2ErrorCases:
         # When
         await test_product.update_scopes(product_1_scopes)
         await test_product2.update_scopes(product_2_scopes)
-       
+
         callback_url = await test_app.get_callback_url()
 
         response = await self.oauth.hit_oauth_endpoint(
