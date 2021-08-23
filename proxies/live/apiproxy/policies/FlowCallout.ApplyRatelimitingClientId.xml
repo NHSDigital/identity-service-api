@@ -1,0 +1,35 @@
+<FlowCallout async="false" continueOnError="false" enabled="true" name="FlowCallout.ApplyRateLimiting">
+    <DisplayName>Apply Rate Limiting</DisplayName>
+    <SharedFlowBundle>ApplyRateLimiting</SharedFlowBundle>
+    <Parameters>
+      <Parameter name="VerifyApiKeyPolicyName">VerifyAPIKey.ClientId</Parameter>
+      <Parameter name="ratelimiting">
+{
+  "app": {
+    "quota": {
+      "limit": 25,
+      "interval": 1,
+      "timeunit": "minute",
+      "enabled": true
+    },
+    "spikeArrest": {
+      "ratelimit": "161660pm",
+      "enabled": true
+    }
+  },
+  "proxy": {
+    "quota": {
+      "limit": 1,
+      "interval": 1,
+      "timeunit": "minute",
+      "enabled": true
+    },
+    "spikeArrest": {
+      "ratelimit": "9999pm",
+      "enabled": true
+    }
+  }
+}
+</Parameter>
+    </Parameters>
+</FlowCallout>

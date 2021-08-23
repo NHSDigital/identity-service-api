@@ -144,13 +144,6 @@
           <Name>AssignMessage.CacheKeyError</Name>
         </Step>
       </FaultRule>
-      <FaultRule name="ratelimit_exceeded">
-        <Condition>(ratelimit.SpikeArrest.failed Equals true) Or (ratelimit.Quota.failed Equals true)</Condition>
-        <Step>
-          <Name>AssignMessage.RatelimitExceeded</Name>
-        </Step>
-      </FaultRule>
-    </FaultRules>
     <DefaultFaultRule>
         <Step>
             <Name>AssignMessage.CatchallErrorMessage</Name>
@@ -198,6 +191,9 @@
                 <!-- Verify the client has sent a valid Client ID -->
                 <Step>
                     <Name>VerifyAPIKey.ClientId</Name>
+                </Step>
+                <Step>
+                    <Name>FlowCallout.ApplyRatelimitingClientId</Name>
                 </Step>
                 <!-- Verify the client has sent a valid redirect uri -->
                 <Step>
@@ -333,6 +329,9 @@
                     <Name>VerifyAPIKey.FromJWT</Name>
                 </Step>
                 <Step>
+                    <Name>FlowCallout.ApplyRatelimitingFromJWT</Name>
+                </Step>
+                <Step>
                     <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJWT</Name>
                 </Step>
                 <Step>
@@ -466,6 +465,9 @@
                 <Name>VerifyAPIKey.FromJWT</Name>
             </Step>
             <Step>
+                <Name>FlowCallout.ApplyRatelimitingFromJWT</Name>
+            </Step>
+            <Step>
                 <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJWT</Name>
             </Step>
             <Step>
@@ -583,6 +585,9 @@
                 <!-- Verify the Client Application using both client_id and client_secret form params -->
                 <Step>
                     <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
+                </Step>
+                <Step>
+                  <Name>FlowCallout.FromClientSecretFormParam</Name>
                 </Step>
                 <Step>
                     <Name>RaiseFault.MissingClientSecret</Name>
