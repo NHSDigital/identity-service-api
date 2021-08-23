@@ -147,13 +147,9 @@ async def get_token_cis2_token_exchange(set_token_client_credentials):
 
 
 @pytest.fixture()
-<<<<<<< HEAD
-async def get_token_nhs_login_token_exchange(set_token_client_credentials):
-=======
 async def get_token_nhs_login_token_exchange(
     test_app_and_product, product_1_scopes, product_2_scopes
 ):
->>>>>>> f022e3c58ddec894646e3b51054ee66e3e8508a9
     """Call nhs login to get an access token"""
     oauth, callback_url = set_token_client_credentials
 
