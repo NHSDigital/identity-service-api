@@ -7,6 +7,8 @@ from e2e.scripts.generic_request import GenericRequest
 from time import time, sleep
 from e2e.scripts import config
 from api_test_utils.apigee_api_trace import ApigeeApiTraceDebug
+import urllib.parse as urlparse
+from urllib.parse import parse_qs
 
 
 
@@ -280,3 +282,95 @@ def setup_function(request):
     # Get the name of the current test and attach it the the test instance
     name = (request.node.name, request.node.originalname)[request.node.originalname is not None]
     setattr(request.cls, "name", name)
+
+async def _get_token_auth_code(
+    oauth, scope: str = "", auth_method: str = ""
+):
+    # test_product, test_app = test_app_and_product
+    # oauth = OauthHelper(
+    #     client_id=test_app.client_id,
+    #     client_secret=test_app.client_secret,
+    #     redirect_uri=test_app.callback_url,
+    # )
+    # Make authorize request to retrieve state2
+    response = await oauth.hit_oauth_endpoint(
+        method="GET",
+        endpoint="authorize",
+        params={
+            "client_id": oauth.client_id,
+            "redirect_uri": oauth.redirect_uri,
+            "response_type": "code",
+            "state": "1234567890",
+            "scope": scope,
+        },
+        allow_redirects=False,
+    )
+
+    location = response["headers"]["Location"]
+    state = urlparse.urlparse(location)
+    state = parse_qs(state.query)["state"]
+
+    # # Make simulated auth request to authenticate
+    response = await oauth.hit_oauth_endpoint(
+        base_uri="https://internal-dev.api.service.nhs.uk/mock-nhsid-jwks",
+        method="POST",
+        endpoint="nhs_login_simulated_auth",
+        params={
+            "response_type": "code",
+            "client_id": oauth.client_id,
+            "redirect_uri": oauth.redirect_uri,
+            "scope": "openid",
+            "state": state[0],
+        },
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        data={"state": state[0], "auth_method": auth_method},
+        allow_redirects=False,
+    )
+    # # Make initial callback request
+    location = response["headers"]["Location"]
+    auth_code = urlparse.urlparse(location)
+    auth_code = parse_qs(auth_code.query)["code"]
+
+    response = await oauth.hit_oauth_endpoint(
+        method="GET",
+        endpoint="callback",
+        params={"code": auth_code[0], "client_id": "some-client-id", "state": state[0]},
+        allow_redirects=False,
+    )
+
+    location = response["headers"]["Location"]
+    auth_code = urlparse.urlparse(location)
+    auth_code = parse_qs(auth_code.query)["code"]
+
+    token_resp = await oauth.hit_oauth_endpoint(
+        method="POST",
+        endpoint="token",
+        data={
+            "grant_type": "authorization_code",
+            "state": state,
+            "code": auth_code,
+            "redirect_uri": oauth.redirect_uri,
+            "client_id": oauth.client_id,
+            "client_secret": oauth.client_secret,
+        },
+        allow_redirects=False,
+    )
+
+    return token_resp["body"]
+
+
+@pytest.fixture()
+def get_token_auth_code_nhs_login(this_oauth, auth_method):
+    return asyncio.run( 
+        _get_token_auth_code(
+            oauth=this_oauth, scope="nhs-login", auth_method=auth_method
+        )
+    )
+
+
+@pytest.fixture()
+def get_token_auth_code_nhs_cis2(auth_method):
+    return asyncio.run(
+        _get_token_auth_code(auth_method=auth_method)
+    ) 
+    
