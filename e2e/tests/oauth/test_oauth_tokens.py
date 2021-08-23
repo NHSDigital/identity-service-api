@@ -7,6 +7,10 @@ from e2e.scripts.config import HELLO_WORLD_API_URL, MOCK_IDP_BASE_URL
 class TestOauthTokens:
     """ A test suite to confirm Oauth tokens error responses are as expected"""
 
+    @pytest.fixture()
+    async def this_oauth(self):
+        return self.oauth
+
     @pytest.mark.apm_801
     @pytest.mark.happy_path
     @pytest.mark.usefixtures('set_access_token')
@@ -208,76 +212,11 @@ class TestOauthTokens:
         }
 
     @pytest.mark.authorize_endpoint
-    async def test_nhs_login_auth_code_flow_happy_path(self, helper):
+    @pytest.mark.parametrize("auth_method", ["P5"])
+    async def test_nhs_login_auth_code_flow_happy_path(self, helper, get_token_auth_code_nhs_login):
 
-       # Make authorize request to retrieve state2
-        response = await self.oauth.hit_oauth_endpoint(
-            method="GET",
-            endpoint="authorize",
-            params={
-                "client_id": self.oauth.client_id,
-                "redirect_uri": self.oauth.redirect_uri,
-                "response_type": "code",
-                "state": "1234567890",
-                "scope": "nhs-login"
-            },
-            allow_redirects=False,
-        )
-
-        state = helper.get_param_from_url(
-            url=response["headers"]["Location"], param="state"
-        )
-        # Make simulated auth request to authenticate
-        response = await self.oauth.hit_oauth_endpoint(
-            base_uri=MOCK_IDP_BASE_URL,
-            method="POST",
-            endpoint="nhs_login_simulated_auth",
-            params={
-                "response_type": "code",
-                "client_id": self.oauth.client_id,
-                "redirect_uri": self.oauth.redirect_uri,
-                "scope": "openid",
-                "state": state,
-            },
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-            data={
-                "state": state,
-                "auth_method": "P5"
-            },
-            allow_redirects=False,
-        )
-
-        # Make initial callback request
-        auth_code = helper.get_param_from_url(
-            url=response["headers"]["Location"], param="code"
-        )
-
-        response = await self.oauth.hit_oauth_endpoint(
-            method="GET",
-            endpoint="callback",
-            params={"code": auth_code, "client_id": "some-client-id", "state": state},
-            allow_redirects=False,
-        )
-
-        auth_code = helper.get_param_from_url(
-            url=response["headers"]["Location"], param="code"
-        )
-
-        response = await self.oauth.hit_oauth_endpoint(
-            method="POST",
-            endpoint="token",
-            data={
-                "grant_type": "authorization_code",
-                "state": state,
-                "code": auth_code, 
-                "redirect_uri": self.oauth.redirect_uri,
-                "client_id": self.oauth.client_id, 
-                "client_secret": self.oauth.client_secret
-            },
-            allow_redirects=False,
-        )
-
-        access_token = response['body']['access_token']
+        response = get_token_auth_code_nhs_login
+        access_token = response['access_token']
 
         assert helper.check_endpoint(
             verb='GET',

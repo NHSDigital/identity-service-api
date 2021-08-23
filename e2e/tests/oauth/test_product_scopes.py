@@ -257,6 +257,7 @@ class TestProductScopes:
     ])
     async def test_cis2_user_restricted_scope_combination(
         self,
+        set_token_client_credentials,
         product_1_scopes,
         product_2_scopes,
         expected_filtered_scopes,
@@ -265,12 +266,14 @@ class TestProductScopes:
     ):
         test_product, test_product2, test_app = test_app_and_product
 
-        await test_product.update_scopes(product_1_scopes)
-        await test_product2.update_scopes(product_2_scopes)
-        apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME)
+        # await test_product.update_scopes(product_1_scopes)
+        # await test_product2.update_scopes(product_2_scopes)
 
-        callback_url = await test_app.get_callback_url()
-        oauth = OauthHelper(test_app.client_id, test_app.client_secret, callback_url)
+        # callback_url = await test_app.get_callback_url()
+        # oauth = OauthHelper(test_app.client_id, test_app.client_secret, callback_url)
+        oauth, callback_url = set_token_client_credentials
+
+        apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME)
 
         apigee_trace.add_trace_filter(header_name="Auto-Test-Header", header_value="flow-callback")
         await apigee_trace.start_trace()
@@ -357,6 +360,7 @@ class TestProductScopes:
     ])
     async def test_cis2_error_user_restricted_scope_combination(
         self,
+        set_token_client_credentials,
         product_1_scopes,
         product_2_scopes,
         test_app_and_product,
@@ -372,7 +376,7 @@ class TestProductScopes:
         # When
         await test_product.update_scopes(product_1_scopes)
         await test_product2.update_scopes(product_2_scopes)
-
+       
         callback_url = await test_app.get_callback_url()
 
         response = await self.oauth.hit_oauth_endpoint(
