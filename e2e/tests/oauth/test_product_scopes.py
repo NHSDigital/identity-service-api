@@ -6,7 +6,6 @@ from api_test_utils.apigee_api_trace import ApigeeApiTraceDebug
 from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
 from api_test_utils.apigee_api_products import ApigeeApiProducts
 import asyncio
-from time import time
 
 
 @pytest.fixture(scope="class")
@@ -253,6 +252,7 @@ class TestClientCredentialsErrorCases:
             "application is not configured to use this authorization grant type",
         }
 
+
 @pytest.mark.asyncio
 class TestAuthorizationCodeCis2HappyCases:
     @pytest.mark.apm_1701
@@ -394,75 +394,63 @@ class TestAuthorizationCodeCis2HappyCases:
         user_restricted_scopes = user_restricted_scopes.split(" ")
         assert expected_filtered_scopes.sort() == user_restricted_scopes.sort()
 
+
 @pytest.mark.asyncio
 class TestAuthorizationCodeCis2ErrorCases:
     @pytest.mark.apm_1701
     @pytest.mark.errors
-    @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
-        # Scenario 1: multiple products with no scopes
-        (
-            [],
-            []
-        ),
-        # Scenario 2: one product with invalid scope, one product with no scope
-        (
-            ['urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service'],
-            []
-        ),
-        # Scenario 3: multiple products with invalid scopes
-        (
-            ['urn:nhsd:apim:app:level3:personal-demographics-service'],
-            ['urn:nhsd:apim:app:level3:ambulance-analytics']
-        ),
-        # Scenario 4: one product with multiple invalid scopes
-        (
-            ['urn:nhsd:apim:app:level3:personal-demographics-service', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
-            []
-        ),
-        # Scenario 5: multiple products with multiple invalid scopes
-        (
-            ['urn:nhsd:apim:app:level3:personal-demographics-service', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
-            ['urn:nhsd:apim:app:level3:example-1', 'urn:nhsd:apim:app:level3:example-2']
-        ),
-        # Scenario 6: one product with invalid scope (wrong formation)
-        (
-            ['ThisDoesNotExist'],
-            []
-        ),
-        # Scenario 7: one product with invalid scope (special characters)
-        (
-            ['#£$?!&%*.;@~_-'],
-            []
-        ),
-        # Scenario 8: one product with invalid scope (empty string)
-        (
-            [""],
-            []
-        ),
-        # Scenario 8: one product with invalid scope (None object)
-        (
-            [None],
-            []
-        ),
-        # Scenario 9: one product with invalid scope, one product with no scope
-        (
-            ['urn:nhsd:apim:user:aal3personal-demographics-service'],
-            []
-        ),
-    ])
+    @pytest.mark.parametrize(
+        "product_1_scopes, product_2_scopes",
+        [
+            # Scenario 1: multiple products with no scopes
+            ([], []),
+            # Scenario 2: one product with invalid scope, one product with no scope
+            (["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"], []),
+            # Scenario 3: multiple products with invalid scopes
+            (
+                ["urn:nhsd:apim:app:level3:personal-demographics-service"],
+                ["urn:nhsd:apim:app:level3:ambulance-analytics"],
+            ),
+            # Scenario 4: one product with multiple invalid scopes
+            (
+                [
+                    "urn:nhsd:apim:app:level3:personal-demographics-service",
+                    "urn:nhsd:apim:app:level3:ambulance-analytics",
+                ],
+                [],
+            ),
+            # Scenario 5: multiple products with multiple invalid scopes
+            (
+                [
+                    "urn:nhsd:apim:app:level3:personal-demographics-service",
+                    "urn:nhsd:apim:app:level3:ambulance-analytics",
+                ],
+                [
+                    "urn:nhsd:apim:app:level3:example-1",
+                    "urn:nhsd:apim:app:level3:example-2",
+                ],
+            ),
+            # Scenario 6: one product with invalid scope (wrong formation)
+            (["ThisDoesNotExist"], []),
+            # Scenario 7: one product with invalid scope (special characters)
+            (["#£$?!&%*.;@~_-"], []),
+            # Scenario 8: one product with invalid scope (empty string)
+            ([""], []),
+            # Scenario 8: one product with invalid scope (None object)
+            ([None], []),
+            # Scenario 9: one product with invalid scope, one product with no scope
+            (["urn:nhsd:apim:user:aal3personal-demographics-service"], []),
+        ],
+    )
     async def test_cis2_error_user_restricted_scope_combination(
-        self,
-        product_1_scopes,
-        product_2_scopes,
-        test_app_and_product,
-        helper
+        self, product_1_scopes, product_2_scopes, test_app_and_product, helper
     ):
         test_product, test_product2, test_app = test_app_and_product
 
         # Given
         expected_status_code = 401
-        expected_error = 'unauthorized_client'
-        expected_error_description = 'you have tried to requests authorization but your application is not configured to use this authorization grant type'
+        expected_error = "unauthorized_client"
+        expected_error_description = "you have tried to requests authorization but your application is not configured to use this authorization grant type"
 
         # When
         await test_product.update_scopes(product_1_scopes)
@@ -516,83 +504,76 @@ class TestAuthorizationCodeCis2ErrorCases:
         )
 
         # Then
-        assert expected_status_code == response['status_code']
-        assert expected_error == response['body']['error']
-        assert expected_error_description == response['body']['error_description']
+        assert expected_status_code == response["status_code"]
+        assert expected_error == response["body"]["error"]
+        assert expected_error_description == response["body"]["error_description"]
+
 
 @pytest.mark.asyncio
 class TestTokenExchangeCis2ErrorCases:
     @pytest.mark.token_exchange
     @pytest.mark.errors
-    @pytest.mark.parametrize('product_1_scopes, product_2_scopes', [
-        # Scenario 1: multiple products with no scopes
-        (
-            [],
-            []
-        ),
-        # Scenario 2: one product with invalid scope, one product with no scope
-        (
-            ['urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service'],
-            []
-        ),
-        # Scenario 3: multiple products with invalid scopes
-        (
-            ['urn:nhsd:apim:app:level3:personal-demographics-service'],
-            ['urn:nhsd:apim:app:level3:ambulance-analytics']
-        ),
-        # Scenario 4: one product with multiple invalid scopes
-        (
-            ['urn:nhsd:apim:app:level3:personal-demographics-service', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
-            []
-        ),
-        # Scenario 5: multiple products with multiple invalid scopes
-        (
-            ['urn:nhsd:apim:app:level3:personal-demographics-service', 'urn:nhsd:apim:app:level3:ambulance-analytics'],
-            ['urn:nhsd:apim:app:level3:example-1', 'urn:nhsd:apim:app:level3:example-2']
-        ),
-        # Scenario 6: one product with invalid scope (wrong formation)
-        (
-            ['ThisDoesNotExist'],
-            []
-        ),
-        # Scenario 7: one product with invalid scope (special characters)
-        (
-            ['#£$?!&%*.;@~_-'],
-            []
-        ),
-        # Scenario 8: one product with invalid scope (empty string)
-        (
-            [""],
-            []
-        ),
-        # Scenario 8: one product with invalid scope (None object)
-        (
-            [None],
-            []
-        ),
-        # Scenario 9: one product with invalid scope, one product with no scope
-        (
-            ['urn:nhsd:apim:user:aal3personal-demographics-service'],
-            []
-        ),
-    ])
+    @pytest.mark.parametrize(
+        "product_1_scopes, product_2_scopes",
+        [
+            # Scenario 1: multiple products with no scopes
+            ([], []),
+            # Scenario 2: one product with invalid scope, one product with no scope
+            (["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"], []),
+            # Scenario 3: multiple products with invalid scopes
+            (
+                ["urn:nhsd:apim:app:level3:personal-demographics-service"],
+                ["urn:nhsd:apim:app:level3:ambulance-analytics"],
+            ),
+            # Scenario 4: one product with multiple invalid scopes
+            (
+                [
+                    "urn:nhsd:apim:app:level3:personal-demographics-service",
+                    "urn:nhsd:apim:app:level3:ambulance-analytics",
+                ],
+                [],
+            ),
+            # Scenario 5: multiple products with multiple invalid scopes
+            (
+                [
+                    "urn:nhsd:apim:app:level3:personal-demographics-service",
+                    "urn:nhsd:apim:app:level3:ambulance-analytics",
+                ],
+                [
+                    "urn:nhsd:apim:app:level3:example-1",
+                    "urn:nhsd:apim:app:level3:example-2",
+                ],
+            ),
+            # Scenario 6: one product with invalid scope (wrong formation)
+            (["ThisDoesNotExist"], []),
+            # Scenario 7: one product with invalid scope (special characters)
+            (["#£$?!&%*.;@~_-"], []),
+            # Scenario 8: one product with invalid scope (empty string)
+            ([""], []),
+            # Scenario 8: one product with invalid scope (None object)
+            ([None], []),
+            # Scenario 9: one product with invalid scope, one product with no scope
+            (["urn:nhsd:apim:user:aal3personal-demographics-service"], []),
+        ],
+    )
     async def test_cis2_token_exchange_error_user_restricted_scope_combination(
-        self,
-        get_token_cis2_token_exchange,
-        helper
+        self, get_token_cis2_token_exchange
     ):
         expected_status_code = 401
-        expected_error = 'unauthorized_client'
-        expected_error_description = "you have tried to requests authorization but your " \
-                                     "application is not configured to use this authorization grant type"
+        expected_error = "unauthorized_client"
+        expected_error_description = (
+            "you have tried to requests authorization but your "
+            "application is not configured to use this authorization grant type"
+        )
 
         # When
         resp = get_token_cis2_token_exchange
 
         # Then
-        assert expected_status_code == resp['status_code']
-        assert expected_error == resp['body']['error']
-        assert expected_error_description == resp['body']['error_description']
+        assert expected_status_code == resp["status_code"]
+        assert expected_error == resp["body"]["error"]
+        assert expected_error_description == resp["body"]["error_description"]
+
 
 @pytest.mark.asyncio
 class TestTokenExchangeCis2HappyCases:
@@ -688,7 +669,6 @@ class TestTokenExchangeCis2HappyCases:
         expected_filtered_scopes,
         apigee_start_trace,
         get_token_cis2_token_exchange,
-        helper
     ):
         expected_status_code = 200
         expected_expires_in = "599"
@@ -699,8 +679,12 @@ class TestTokenExchangeCis2HappyCases:
         resp = get_token_cis2_token_exchange
 
         apigee_trace = apigee_start_trace
-        filtered_scopes = await apigee_trace.get_apigee_variable_from_trace(name='apigee.user_restricted_scopes')
-        assert filtered_scopes is not None, 'variable apigee.user_restricted_scopes not found in the trace'
+        filtered_scopes = await apigee_trace.get_apigee_variable_from_trace(
+            name="apigee.user_restricted_scopes"
+        )
+        assert (
+            filtered_scopes is not None
+        ), "variable apigee.user_restricted_scopes not found in the trace"
 
         filtered_scopes = filtered_scopes.split(" ")
 
@@ -774,9 +758,7 @@ class TestTokenExchangeRemoveExternalScopes:
             ],
         ],
     )
-    async def test_token_exchange_remove_external_scopes(
-        self, test_app_and_product, external_scope
-    ):
+    async def test_token_exchange_remove_external_scopes(self, external_scope):
         client_assertion_jwt = self.oauth.create_jwt(kid="test-1")
         id_token_jwt = self.oauth.create_id_token_jwt()
 
@@ -846,98 +828,127 @@ class TestAuthorizationCodeRemoveExternalScopes:
             },
         )
 
+
 @pytest.mark.asyncio
 class TestTokenExchangeNhsLoginHappyCases:
     @pytest.mark.token_exchange
     @pytest.mark.errors
-    @pytest.mark.parametrize('product_1_scopes, product_2_scopes, expected_filtered_scopes', [
-        # Scenario 1: one product with valid scope
-        (
-            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service'],
-            [],
-            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service']
-
-        ),
-        # Scenario 2: one product with valid scope, one product with invalid scope
-        (
-            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service'],
-            ['urn:nhsd:apim:app:level3:ambulance-analytics'],
-            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service']
-        ),
-        # Scenario 3: multiple products with valid scopes
-        (
-            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service'],
-            ['urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics'],
-            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service,'
-             'urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics']
-        ),
-        # Scenario 4: one product with multiple valid scopes
-        (
-            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
-             'urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics'],
-            [],
-            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
-             'urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics']
-        ),
-        # Scenario 5: multiple products with multiple valid scopes
-        (
-            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
-             'urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics'],
-            ['urn:nhsd:apim:user-nhs-login:P9:example-1', 'urn:nhsd:apim:user-nhs-login:P9:example-2'],
-            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
-             'urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics',
-             'urn:nhsd:apim:user-nhs-login:P9:example-1',
-             'urn:nhsd:apim:user-nhs-login:P9:example-2']
-        ),
-        # Scenario 6: one product with multiple scopes (valid and invalid)
-        (
-            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
-             'urn:nhsd:apim:app:level3:ambulance-analytics'],
-            [],
-            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service']
-        ),
-        # Scenario 7: multiple products with multiple scopes (valid and invalid)
-        (
-            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
-             'urn:nhsd:apim:app:level3:ambulance-analytics'],
-            ['urn:nhsd:apim:user-nhs-login:P9:example-1', 'urn:nhsd:apim:app:level3:example-2'],
-            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service',
-             'urn:nhsd:apim:user-nhs-login:P9:example-1']
-        ),
-        # Scenario 8: one product with valid scope with trailing and leading spaces
-        (
-            [' urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service '],
-            [],
-            ['urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service']
-        ),
-    ])
+    @pytest.mark.parametrize(
+        "product_1_scopes, product_2_scopes, expected_filtered_scopes",
+        [
+            # Scenario 1: one product with valid scope
+            (
+                ["urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service"],
+                [],
+                ["urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service"],
+            ),
+            # Scenario 2: one product with valid scope, one product with invalid scope
+            (
+                ["urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service"],
+                ["urn:nhsd:apim:app:level3:ambulance-analytics"],
+                ["urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service"],
+            ),
+            # Scenario 3: multiple products with valid scopes
+            (
+                ["urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics"],
+                [
+                    "urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service,"
+                    "urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics"
+                ],
+            ),
+            # Scenario 4: one product with multiple valid scopes
+            (
+                [
+                    "urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service",
+                    "urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics",
+                ],
+                [],
+                [
+                    "urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service",
+                    "urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics",
+                ],
+            ),
+            # Scenario 5: multiple products with multiple valid scopes
+            (
+                [
+                    "urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service",
+                    "urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics",
+                ],
+                [
+                    "urn:nhsd:apim:user-nhs-login:P9:example-1",
+                    "urn:nhsd:apim:user-nhs-login:P9:example-2",
+                ],
+                [
+                    "urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service",
+                    "urn:nhsd:apim:user-nhs-login:P9:ambulance-analytics",
+                    "urn:nhsd:apim:user-nhs-login:P9:example-1",
+                    "urn:nhsd:apim:user-nhs-login:P9:example-2",
+                ],
+            ),
+            # Scenario 6: one product with multiple scopes (valid and invalid)
+            (
+                [
+                    "urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service",
+                    "urn:nhsd:apim:app:level3:ambulance-analytics",
+                ],
+                [],
+                ["urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service"],
+            ),
+            # Scenario 7: multiple products with multiple scopes (valid and invalid)
+            (
+                [
+                    "urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service",
+                    "urn:nhsd:apim:app:level3:ambulance-analytics",
+                ],
+                [
+                    "urn:nhsd:apim:user-nhs-login:P9:example-1",
+                    "urn:nhsd:apim:app:level3:example-2",
+                ],
+                [
+                    "urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service",
+                    "urn:nhsd:apim:user-nhs-login:P9:example-1",
+                ],
+            ),
+            # Scenario 8: one product with valid scope with trailing and leading spaces
+            (
+                [" urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service "],
+                [],
+                ["urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service"],
+            ),
+        ],
+    )
     async def test_nhs_login_token_exchange_user_restricted_scope_combination(
         self,
         apigee_start_trace,
         get_token_nhs_login_token_exchange,
         expected_filtered_scopes,
-        helper
     ):
         expected_status_code = 200
-        expected_expires_in = '599'
-        expected_token_type = 'Bearer'
-        expected_issued_token_type = 'urn:ietf:params:oauth:token-type:access_token'
+        expected_expires_in = "599"
+        expected_token_type = "Bearer"
+        expected_issued_token_type = "urn:ietf:params:oauth:token-type:access_token"
 
         # When
         resp = get_token_nhs_login_token_exchange
-    
+
         apigee_trace = apigee_start_trace
-        filtered_scopes = await apigee_trace.get_apigee_variable_from_trace(name='apigee.user_restricted_scopes')
-        assert filtered_scopes is not None, 'variable apigee.user_restricted_scopes not found in the trace'
+        filtered_scopes = await apigee_trace.get_apigee_variable_from_trace(
+            name="apigee.user_restricted_scopes"
+        )
+        assert (
+            filtered_scopes is not None
+        ), "variable apigee.user_restricted_scopes not found in the trace"
         filtered_scopes = filtered_scopes.split(" ")
 
         # Then
-        assert expected_status_code == resp['status_code'], resp['body']
-        assert 'access_token' in resp['body']
-        assert expected_expires_in == resp['body']['expires_in']
-        assert expected_token_type == resp['body']['token_type']
-        assert expected_issued_token_type == resp['body']['issued_token_type']
+        assert expected_status_code == resp["status_code"], resp["body"]
+        assert "access_token" in resp["body"]
+        assert expected_expires_in == resp["body"]["expires_in"]
+        assert expected_token_type == resp["body"]["token_type"]
+        assert expected_issued_token_type == resp["body"]["issued_token_type"]
         assert expected_filtered_scopes.sort() == filtered_scopes.sort()
+
 
 @pytest.mark.asyncio
 class TestTokenExchangeNhsLoginErrorCases:
@@ -987,12 +998,7 @@ class TestTokenExchangeNhsLoginErrorCases:
         ],
     )
     async def test_nhs_login_token_exchange_error_user_restricted_scope_combination(
-        self,
-        get_token_nhs_login_token_exchange,
-        product_1_scopes,
-        product_2_scopes,
-        test_app_and_product,
-        helper
+        self, get_token_nhs_login_token_exchange
     ):
         expected_status_code = 401
         expected_error = "unauthorized_client"
@@ -1001,10 +1007,9 @@ class TestTokenExchangeNhsLoginErrorCases:
             "application is not configured to use this authorization grant type"
         )
 
-
         # When
         resp = get_token_nhs_login_token_exchange
-              # Then
+        # Then
         assert expected_status_code == resp["status_code"]
         assert expected_error == resp["body"]["error"]
         assert expected_error_description == resp["body"]["error_description"]

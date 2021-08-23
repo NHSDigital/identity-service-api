@@ -4,11 +4,9 @@ from api_test_utils.oauth_helper import OauthHelper
 from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
 from api_test_utils.apigee_api_products import ApigeeApiProducts
 from e2e.scripts.generic_request import GenericRequest
-
-from time import time, sleep
+from time import time
 from e2e.scripts import config
 from api_test_utils.apigee_api_trace import ApigeeApiTraceDebug
-
 
 
 @pytest.fixture()
@@ -59,6 +57,7 @@ def get_token(request):
 
     return _token
 
+
 @pytest.fixture()
 async def apigee_start_trace(expected_filtered_scopes):
     apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME)
@@ -67,7 +66,9 @@ async def apigee_start_trace(expected_filtered_scopes):
 
 
 @pytest.fixture()
-async def get_token_cis2_token_exchange(test_app_and_product, product_1_scopes, product_2_scopes):
+async def get_token_cis2_token_exchange(
+    test_app_and_product, product_1_scopes, product_2_scopes
+):
     """Call identity server to get an access token"""
     test_product, test_product2, test_app = test_app_and_product
     await test_product.update_scopes(product_1_scopes)
@@ -122,8 +123,11 @@ async def get_token_cis2_token_exchange(test_app_and_product, product_1_scopes, 
 
     return token_resp
 
+
 @pytest.fixture()
-async def get_token_nhs_login_token_exchange(test_app_and_product, product_1_scopes, product_2_scopes):
+async def get_token_nhs_login_token_exchange(
+    test_app_and_product, product_1_scopes, product_2_scopes
+):
     """Call nhs login to get an access token"""
     test_product, test_product2, test_app = test_app_and_product
     await test_product.update_scopes(product_1_scopes)
@@ -152,16 +156,15 @@ async def get_token_nhs_login_token_exchange(test_app_and_product, product_1_sco
         "exp": int(time()) + 6000,
         "iat": int(time()) - 100,
         "family_name": "CARTHY",
-        "jti": "b6d6a28e-b0bb-44e3-974f-bb245c0b688a"
+        "jti": "b6d6a28e-b0bb-44e3-974f-bb245c0b688a",
     }
-
 
     with open(config.ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
         contents = f.read()
 
     client_assertion_jwt = oauth.create_jwt(kid="test-1")
     id_token_jwt = oauth.create_id_token_jwt(
-        kid="nhs-login", algorithm='RS512', claims=claims, signing_key=contents
+        kid="nhs-login", algorithm="RS512", claims=claims, signing_key=contents
     )
 
     # When
@@ -203,7 +206,6 @@ async def _set_default_rate_limit(product: ApigeeApiProducts):
     await product.update_ratelimits(
         quota=60000, quota_interval="1", quota_time_unit="minute", rate_limit="1000ps"
     )
-
 
 
 @pytest.fixture(scope="function")
