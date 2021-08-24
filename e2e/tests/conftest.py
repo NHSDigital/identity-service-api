@@ -416,11 +416,7 @@ async def get_userinfo_nhs_login_exchanged_token(this_oauth):
     )
     token = resp["body"]["access_token"]
 
-    resp = await this_oauth.hit_oauth_endpoint(
-        method="GET",
-        endpoint="userinfo",
-        headers={"Authorization": f"Bearer {token}"},
-    )
+    resp = await hit_oauth_userinfo_endpoint(this_oauth, resp)
     return resp
 
 @pytest.fixture()
@@ -428,11 +424,7 @@ async def get_userinfo_client_credentials_token(this_oauth):
     jwt = this_oauth.create_jwt(kid="test-1")
     resp = await this_oauth.get_token_response("client_credentials", _jwt=jwt)
     token = resp["body"]["access_token"]
-    resp = await this_oauth.hit_oauth_endpoint(
-        method="GET",
-        endpoint="userinfo",
-        headers={"Authorization": f"Bearer {token}"},
-    )
+    resp = await hit_oauth_userinfo_endpoint(this_oauth, resp)
     return resp
 
 @pytest.fixture()
@@ -444,6 +436,10 @@ async def get_userinfo_cis2_exchanged_token(this_oauth):
         _jwt=client_assertion_jwt,
         id_token_jwt=id_token_jwt,
     )
+    resp = await hit_oauth_userinfo_endpoint(this_oauth, resp)
+    return resp
+
+async def hit_oauth_userinfo_endpoint(this_oauth, resp):
     token = resp["body"]["access_token"]
     resp = await this_oauth.hit_oauth_endpoint(
         method="GET",
