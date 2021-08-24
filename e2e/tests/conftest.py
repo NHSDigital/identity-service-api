@@ -286,13 +286,6 @@ def setup_function(request):
 async def _get_token_auth_code(
     oauth, scope: str = "", auth_method: str = ""
 ):
-    # test_product, test_app = test_app_and_product
-    # oauth = OauthHelper(
-    #     client_id=test_app.client_id,
-    #     client_secret=test_app.client_secret,
-    #     redirect_uri=test_app.callback_url,
-    # )
-    # Make authorize request to retrieve state2
     response = await oauth.hit_oauth_endpoint(
         method="GET",
         endpoint="authorize",
@@ -373,4 +366,54 @@ def get_token_auth_code_nhs_cis2(auth_method):
     return asyncio.run(
         _get_token_auth_code(auth_method=auth_method)
     ) 
-    
+
+@pytest.fixture()
+async def get_userinfo_nhs_login_exchanged_token():
+    id_token_claims = {
+            "aud": "tf_-APIM-1",
+            "id_status": "verified",
+            "token_use": "id",
+            "auth_time": 1616600683,
+            "iss": "https://internal-dev.api.service.nhs.uk",
+            "vot": "P9.Cp.Cd",
+            "exp": int(time()) + 600,
+            "iat": int(time()) - 10,
+            "vtm": "https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk",
+            "jti": "b68ddb28-e440-443d-8725-dfe0da330118",
+            "identity_proofing_level": "P9"
+        }
+    id_token_headers = {
+            "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",
+            "aud": "APIM-1",
+            "kid": "nhs-login",
+            "iss": "https://internal-dev.api.service.nhs.uk",
+            "typ": "JWT",
+            "exp": 1616604574,
+            "iat": 1616600974,
+            "alg": "RS512",
+            "jti": "b68ddb28-e440-443d-8725-dfe0da330118",
+        }
+
+    with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
+        contents = f.read()
+
+    client_assertion_jwt = self.oauth.create_jwt(kid="test-1")
+    id_token_jwt = self.oauth.create_id_token_jwt(
+        algorithm="RS512",
+        claims=id_token_claims,
+        headers=id_token_headers,
+        signing_key=contents,
+    )
+    resp = await self.oauth.get_token_response(
+        grant_type="token_exchange",
+        _jwt=client_assertion_jwt,
+        id_token_jwt=id_token_jwt,
+    )
+    token = resp["body"]["access_token"]
+
+    resp = await self.oauth.hit_oauth_endpoint(
+        method="GET",
+        endpoint="userinfo",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    return resp

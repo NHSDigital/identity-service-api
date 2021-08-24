@@ -216,8 +216,6 @@ class TestOauthTokens:
     @pytest.mark.authorize_endpoint
     async def test_nhs_login_auth_code_flow_happy_path(self, helper, get_token_auth_code_nhs_login):
 
-
-
         response = get_token_auth_code_nhs_login
         access_token = response['access_token']
 
