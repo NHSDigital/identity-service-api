@@ -4,4 +4,31 @@ variables:
   service_base_path: oauth2
   product_display_name: Identity Service
   product_description: Placeholder description
+  ratelimiting: |
+    {
+      "app": {
+        "quota": {
+          "limit": 6000,
+          "interval": 1,
+          "timeunit": "minute",
+          "enabled": true
+        },
+        "spikeArrest": {
+          "ratelimit": "6000pm",
+          "enabled": true
+        }
+      },
+      "proxy": {
+        "quota": {
+          "limit": 60000,
+          "interval": 1,
+          "timeunit": "minute",
+          "enabled": true
+        },
+        "spikeArrest": {
+          "ratelimit": "60000pm",
+          "enabled": true
+        }
+      }
+    }
 
