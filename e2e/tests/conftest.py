@@ -9,6 +9,11 @@ from e2e.scripts import config
 from api_test_utils.apigee_api_trace import ApigeeApiTraceDebug
 import urllib.parse as urlparse
 from urllib.parse import parse_qs
+from e2e.scripts.config import (
+    OAUTH_URL,
+    ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
+    MOCK_IDP_BASE_URL
+)
 
 
 
@@ -368,7 +373,7 @@ def get_token_auth_code_nhs_cis2(auth_method):
     ) 
 
 @pytest.fixture()
-async def get_userinfo_nhs_login_exchanged_token():
+async def get_userinfo_nhs_login_exchanged_token(this_oauth):
     id_token_claims = {
             "aud": "tf_-APIM-1",
             "id_status": "verified",
@@ -397,21 +402,50 @@ async def get_userinfo_nhs_login_exchanged_token():
     with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
         contents = f.read()
 
-    client_assertion_jwt = self.oauth.create_jwt(kid="test-1")
-    id_token_jwt = self.oauth.create_id_token_jwt(
+    client_assertion_jwt = this_oauth.create_jwt(kid="test-1")
+    id_token_jwt = this_oauth.create_id_token_jwt(
         algorithm="RS512",
         claims=id_token_claims,
         headers=id_token_headers,
         signing_key=contents,
     )
-    resp = await self.oauth.get_token_response(
+    resp = await this_oauth.get_token_response(
         grant_type="token_exchange",
         _jwt=client_assertion_jwt,
         id_token_jwt=id_token_jwt,
     )
     token = resp["body"]["access_token"]
 
-    resp = await self.oauth.hit_oauth_endpoint(
+    resp = await this_oauth.hit_oauth_endpoint(
+        method="GET",
+        endpoint="userinfo",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    return resp
+
+@pytest.fixture()
+async def get_userinfo_client_credentials_token(this_oauth):
+    jwt = this_oauth.create_jwt(kid="test-1")
+    resp = await this_oauth.get_token_response("client_credentials", _jwt=jwt)
+    token = resp["body"]["access_token"]
+    resp = await this_oauth.hit_oauth_endpoint(
+        method="GET",
+        endpoint="userinfo",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    return resp
+
+@pytest.fixture()
+async def get_userinfo_cis2_exchanged_token(this_oauth):
+    id_token_jwt = this_oauth.create_id_token_jwt()
+    client_assertion_jwt = this_oauth.create_jwt(kid="test-1")
+    resp = await this_oauth.get_token_response(
+        grant_type="token_exchange",
+        _jwt=client_assertion_jwt,
+        id_token_jwt=id_token_jwt,
+    )
+    token = resp["body"]["access_token"]
+    resp = await this_oauth.hit_oauth_endpoint(
         method="GET",
         endpoint="userinfo",
         headers={"Authorization": f"Bearer {token}"},
