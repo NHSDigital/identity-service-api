@@ -289,14 +289,14 @@ def setup_function(request):
     setattr(request.cls, "name", name)
 
 async def _get_token_auth_code(
-    oauth, scope: str = "", auth_method: str = ""
+    this_oauth, scope: str = "", auth_method: str = ""
 ):
-    response = await oauth.hit_oauth_endpoint(
+    response = await this_oauth.hit_oauth_endpoint(
         method="GET",
         endpoint="authorize",
         params={
-            "client_id": oauth.client_id,
-            "redirect_uri": oauth.redirect_uri,
+            "client_id": this_oauth.client_id,
+            "redirect_uri": this_oauth.redirect_uri,
             "response_type": "code",
             "state": "1234567890",
             "scope": scope,
@@ -309,14 +309,14 @@ async def _get_token_auth_code(
     state = parse_qs(state.query)["state"]
 
     # # Make simulated auth request to authenticate
-    response = await oauth.hit_oauth_endpoint(
+    response = await this_oauth.hit_oauth_endpoint(
         base_uri="https://internal-dev.api.service.nhs.uk/mock-nhsid-jwks",
         method="POST",
         endpoint="nhs_login_simulated_auth",
         params={
             "response_type": "code",
-            "client_id": oauth.client_id,
-            "redirect_uri": oauth.redirect_uri,
+            "client_id": this_oauth.client_id,
+            "redirect_uri": this_oauth.redirect_uri,
             "scope": "openid",
             "state": state[0],
         },
@@ -329,7 +329,7 @@ async def _get_token_auth_code(
     auth_code = urlparse.urlparse(location)
     auth_code = parse_qs(auth_code.query)["code"]
 
-    response = await oauth.hit_oauth_endpoint(
+    response = await this_oauth.hit_oauth_endpoint(
         method="GET",
         endpoint="callback",
         params={"code": auth_code[0], "client_id": "some-client-id", "state": state[0]},
@@ -340,16 +340,16 @@ async def _get_token_auth_code(
     auth_code = urlparse.urlparse(location)
     auth_code = parse_qs(auth_code.query)["code"]
 
-    token_resp = await oauth.hit_oauth_endpoint(
+    token_resp = await this_oauth.hit_oauth_endpoint(
         method="POST",
         endpoint="token",
         data={
             "grant_type": "authorization_code",
             "state": state,
             "code": auth_code,
-            "redirect_uri": oauth.redirect_uri,
-            "client_id": oauth.client_id,
-            "client_secret": oauth.client_secret,
+            "redirect_uri": this_oauth.redirect_uri,
+            "client_id": this_oauth.client_id,
+            "client_secret": this_oauth.client_secret,
         },
         allow_redirects=False,
     )
@@ -361,7 +361,7 @@ async def _get_token_auth_code(
 def get_token_auth_code_nhs_login(this_oauth, auth_method):
     return asyncio.run( 
         _get_token_auth_code(
-            oauth=this_oauth, scope="nhs-login", auth_method=auth_method
+            this_oauth=this_oauth, scope="nhs-login", auth_method=auth_method
         )
     )
 
@@ -369,7 +369,7 @@ def get_token_auth_code_nhs_login(this_oauth, auth_method):
 @pytest.fixture()
 def get_token_auth_code_nhs_cis2(auth_method):
     return asyncio.run(
-        _get_token_auth_code(auth_method=auth_method)
+        _get_token_auth_code(this_oauth=this_oauth, auth_method=auth_method)
     ) 
 
 @pytest.fixture()
