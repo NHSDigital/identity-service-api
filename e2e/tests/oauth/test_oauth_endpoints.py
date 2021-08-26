@@ -13,10 +13,6 @@ from time import time
 class TestOauthEndpoints:
     """ A test suit to verify all the oauth endpoints """
 
-    @pytest.fixture()
-    async def this_oauth(self):
-        return self.oauth
-
     def _update_secrets(self, request):
         key = ("params", "data")[request.get("params", None) is None]
         if request[key].get("client_id", None) == "/replace_me":

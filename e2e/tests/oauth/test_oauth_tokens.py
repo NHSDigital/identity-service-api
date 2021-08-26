@@ -7,10 +7,6 @@ from e2e.scripts.config import HELLO_WORLD_API_URL, MOCK_IDP_BASE_URL
 class TestOauthTokens:
     """ A test suite to confirm Oauth tokens error responses are as expected"""
 
-    @pytest.fixture()
-    async def this_oauth(self):
-        return self.oauth
-
 
     @pytest.mark.apm_801
     @pytest.mark.happy_path

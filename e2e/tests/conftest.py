@@ -289,14 +289,14 @@ def setup_function(request):
     setattr(request.cls, "name", name)
 
 async def _get_token_auth_code(
-    this_oauth, scope: str = "", auth_method: str = ""
+    scope: str = "", auth_method: str = ""
 ):
-    response = await this_oauth.hit_oauth_endpoint(
+    response = await self.oauth.hit_oauth_endpoint(
         method="GET",
         endpoint="authorize",
         params={
-            "client_id": this_oauth.client_id,
-            "redirect_uri": this_oauth.redirect_uri,
+            "client_id": self.oauth.client_id,
+            "redirect_uri": self.oauth.redirect_uri,
             "response_type": "code",
             "state": "1234567890",
             "scope": scope,
@@ -309,14 +309,14 @@ async def _get_token_auth_code(
     state = parse_qs(state.query)["state"]
 
     # # Make simulated auth request to authenticate
-    response = await this_oauth.hit_oauth_endpoint(
+    response = await self.oauth.hit_oauth_endpoint(
         base_uri="https://internal-dev.api.service.nhs.uk/mock-nhsid-jwks",
         method="POST",
         endpoint="nhs_login_simulated_auth",
         params={
             "response_type": "code",
-            "client_id": this_oauth.client_id,
-            "redirect_uri": this_oauth.redirect_uri,
+            "client_id": self.oauth.client_id,
+            "redirect_uri": self.oauth.redirect_uri,
             "scope": "openid",
             "state": state[0],
         },
@@ -329,7 +329,7 @@ async def _get_token_auth_code(
     auth_code = urlparse.urlparse(location)
     auth_code = parse_qs(auth_code.query)["code"]
 
-    response = await this_oauth.hit_oauth_endpoint(
+    response = await self.oauth.hit_oauth_endpoint(
         method="GET",
         endpoint="callback",
         params={"code": auth_code[0], "client_id": "some-client-id", "state": state[0]},
@@ -340,16 +340,16 @@ async def _get_token_auth_code(
     auth_code = urlparse.urlparse(location)
     auth_code = parse_qs(auth_code.query)["code"]
 
-    token_resp = await this_oauth.hit_oauth_endpoint(
+    token_resp = await self.oauth.hit_oauth_endpoint(
         method="POST",
         endpoint="token",
         data={
             "grant_type": "authorization_code",
             "state": state,
             "code": auth_code,
-            "redirect_uri": this_oauth.redirect_uri,
-            "client_id": this_oauth.client_id,
-            "client_secret": this_oauth.client_secret,
+            "redirect_uri": self.oauth.redirect_uri,
+            "client_id": self.oauth.client_id,
+            "client_secret": self.oauth.client_secret,
         },
         allow_redirects=False,
     )
@@ -358,10 +358,10 @@ async def _get_token_auth_code(
 
 
 @pytest.fixture()
-def get_token_auth_code_nhs_login(this_oauth, auth_method):
+def get_token_auth_code_nhs_login(auth_method):
     return asyncio.run( 
         _get_token_auth_code(
-            this_oauth=this_oauth, scope="nhs-login", auth_method=auth_method
+            scope="nhs-login", auth_method=auth_method
         )
     )
 
@@ -369,11 +369,11 @@ def get_token_auth_code_nhs_login(this_oauth, auth_method):
 @pytest.fixture()
 def get_token_auth_code_nhs_cis2(auth_method):
     return asyncio.run(
-        _get_token_auth_code(this_oauth=this_oauth, auth_method=auth_method)
+        _get_token_auth_code(auth_method=auth_method)
     ) 
 
 @pytest.fixture()
-async def get_userinfo_nhs_login_exchanged_token(this_oauth):
+async def get_userinfo_nhs_login_exchanged_token():
     id_token_claims = {
             "aud": "tf_-APIM-1",
             "id_status": "verified",
@@ -402,46 +402,46 @@ async def get_userinfo_nhs_login_exchanged_token(this_oauth):
     with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
         contents = f.read()
 
-    client_assertion_jwt = this_oauth.create_jwt(kid="test-1")
-    id_token_jwt = this_oauth.create_id_token_jwt(
+    client_assertion_jwt = self.oauth.create_jwt(kid="test-1")
+    id_token_jwt = self.oauth.create_id_token_jwt(
         algorithm="RS512",
         claims=id_token_claims,
         headers=id_token_headers,
         signing_key=contents,
     )
-    resp = await this_oauth.get_token_response(
+    resp = await self.oauth.get_token_response(
         grant_type="token_exchange",
         _jwt=client_assertion_jwt,
         id_token_jwt=id_token_jwt,
     )
     token = resp["body"]["access_token"]
 
-    resp = await hit_oauth_userinfo_endpoint(this_oauth, resp)
+    resp = await hit_oauth_userinfo_endpoint(self.oauth, resp)
     return resp
 
 @pytest.fixture()
-async def get_userinfo_client_credentials_token(this_oauth):
-    jwt = this_oauth.create_jwt(kid="test-1")
-    resp = await this_oauth.get_token_response("client_credentials", _jwt=jwt)
+async def get_userinfo_client_credentials_token():
+    jwt = self.oauth.create_jwt(kid="test-1")
+    resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
     token = resp["body"]["access_token"]
-    resp = await hit_oauth_userinfo_endpoint(this_oauth, resp)
+    resp = await hit_oauth_userinfo_endpoint(self.oauth, resp)
     return resp
 
 @pytest.fixture()
-async def get_userinfo_cis2_exchanged_token(this_oauth):
-    id_token_jwt = this_oauth.create_id_token_jwt()
-    client_assertion_jwt = this_oauth.create_jwt(kid="test-1")
-    resp = await this_oauth.get_token_response(
+async def get_userinfo_cis2_exchanged_token():
+    id_token_jwt = self.oauth.create_id_token_jwt()
+    client_assertion_jwt = self.oauth.create_jwt(kid="test-1")
+    resp = await self.oauth.get_token_response(
         grant_type="token_exchange",
         _jwt=client_assertion_jwt,
         id_token_jwt=id_token_jwt,
     )
-    resp = await hit_oauth_userinfo_endpoint(this_oauth, resp)
+    resp = await hit_oauth_userinfo_endpoint(self.oauth, resp)
     return resp
 
-async def hit_oauth_userinfo_endpoint(this_oauth, resp):
+async def hit_oauth_userinfo_endpoint(resp):
     token = resp["body"]["access_token"]
-    resp = await this_oauth.hit_oauth_endpoint(
+    resp = await self.oauth.hit_oauth_endpoint(
         method="GET",
         endpoint="userinfo",
         headers={"Authorization": f"Bearer {token}"},
