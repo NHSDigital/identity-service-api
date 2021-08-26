@@ -8,7 +8,7 @@ from e2e.scripts.config import OAUTH_URL, HELLO_WORLD_API_URL, ENVIRONMENT, ID_T
 
 
 @pytest.mark.asyncio
-class TestSplunkLogging:
+class TestAttachLoggingFields:
     @pytest.mark.happy_path
     @pytest.mark.logging
     @pytest.mark.usefixtures('set_access_token')
@@ -25,16 +25,17 @@ class TestSplunkLogging:
         auth_grant_type = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_grant_type')
         auth_level = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_level')
         auth_provider = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_provider')
+        auth_user_id = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_user_id')
 
         assert auth_type == 'user'
         assert auth_grant_type == 'authorization_code'
         assert auth_level == 'aal3'
         assert auth_provider == 'nhs-cis2'
+        assert auth_user_id == '787807429511'
 
     @pytest.mark.happy_path
     @pytest.mark.logging
     @pytest.mark.parametrize('scope', ['P9', 'P5', 'P0'])
-    @pytest.mark.debug
     async def test_access_token_fields_for_logging_when_using_authorization_code_nhs_login(self, scope, helper):
         # Given
         apigee_trace = ApigeeApiTraceDebug(proxy=f"hello-world-{ENVIRONMENT}")
@@ -116,11 +117,13 @@ class TestSplunkLogging:
         auth_grant_type = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_grant_type')
         auth_level = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_level')
         auth_provider = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_provider')
+        auth_user_id = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_user_id')
 
         assert auth_type == 'user'
         assert auth_grant_type == 'authorization_code'
         assert auth_level == scope.lower()
-        assert auth_provider == 'apim-mock'
+        assert auth_provider == 'apim-mock-nhs-login'
+        assert auth_user_id == '9912003071'
 
     @pytest.mark.happy_path
     @pytest.mark.logging
@@ -150,11 +153,13 @@ class TestSplunkLogging:
         auth_grant_type = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_grant_type')
         auth_level = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_level')
         auth_provider = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_provider')
+        auth_user_id = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_user_id')
 
         assert auth_type == 'app'
         assert auth_grant_type == 'client_credentials'
         assert auth_level == 'level3'
         assert auth_provider == 'apim'
+        assert auth_user_id == ''
 
     @pytest.mark.happy_path
     @pytest.mark.logging
@@ -177,11 +182,13 @@ class TestSplunkLogging:
         auth_grant_type = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_grant_type')
         auth_provider = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_provider')
         auth_level = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_level')
+        auth_user_id = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_user_id')
 
         assert auth_type == 'user'
         assert auth_grant_type == 'token_exchange'
         assert auth_provider == 'nhs-cis2'
         assert auth_level == 'aal3'
+        assert auth_user_id == '787807429511'
 
     @pytest.mark.happy_path
     @pytest.mark.logging
@@ -201,7 +208,8 @@ class TestSplunkLogging:
             "iat": int(time()) - 10,
             "vtm": "https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk",
             "jti": str(uuid4()),
-            "identity_proofing_level": scope
+            "identity_proofing_level": scope,
+            "nhs_number": "900000000001"
         }
         id_token_headers = {
             "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",
@@ -241,8 +249,10 @@ class TestSplunkLogging:
         auth_grant_type = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_grant_type')
         auth_provider = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_provider')
         auth_level = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_level')
+        auth_user_id = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_user_id')
 
         assert auth_type == 'user'
         assert auth_grant_type == 'token_exchange'
-        assert auth_provider == 'nhs-login'
+        assert auth_provider == 'apim-mock-nhs-login'
         assert auth_level == scope.lower()
+        assert auth_user_id == '900000000001'
