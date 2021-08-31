@@ -564,9 +564,6 @@
                     <Name>FlowCallout.ApplyRatelimitingFromClientSecretFormParam</Name>
                 </Step>
                 <Step>
-                  <Name>FlowCallout.FromClientSecretFormParam</Name>
-                </Step>
-                <Step>
                     <Name>RaiseFault.MissingClientSecret</Name>
                     <Condition>request.formparam.client_secret = null</Condition>
                 </Step>
