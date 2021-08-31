@@ -2,7 +2,6 @@ import pytest
 from time import sleep
 from e2e.scripts.config import HELLO_WORLD_API_URL, MOCK_IDP_BASE_URL
 
-
 @pytest.mark.asyncio
 class TestOauthTokens:
     """ A test suite to confirm Oauth tokens error responses are as expected"""
@@ -208,11 +207,12 @@ class TestOauthTokens:
             "error_description": "refresh_token is invalid"
         }
 
-    @pytest.mark.parametrize("auth_method", ["P5"])
+    @pytest.mark.parametrize("auth_method", [("P0"),("P5"),("P9")])
     @pytest.mark.authorize_endpoint
-    async def test_nhs_login_auth_code_flow_happy_path(self, helper, get_token_auth_code_nhs_login):
+    async def test_nhs_login_auth_code_flow_happy_path(self, helper, auth_code_nhs_login):
+        
+        response = await auth_code_nhs_login.get_token(self.oauth)
 
-        response = get_token_auth_code_nhs_login
         access_token = response['access_token']
 
         assert helper.check_endpoint(

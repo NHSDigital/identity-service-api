@@ -15,8 +15,6 @@ from e2e.scripts.config import (
     MOCK_IDP_BASE_URL
 )
 
-
-
 @pytest.fixture()
 def get_token(request):
     """Get an access or refresh token
@@ -309,14 +307,15 @@ def setup_function(request):
     setattr(request.cls, "name", name)
 
 async def _get_token_auth_code(
-    scope: str = "", auth_method: str = ""
+    oauth, scope: str = "", auth_method: str = ""
 ):
-    response = await self.oauth.hit_oauth_endpoint(
+
+    response = await oauth.hit_oauth_endpoint(
         method="GET",
         endpoint="authorize",
         params={
-            "client_id": self.oauth.client_id,
-            "redirect_uri": self.oauth.redirect_uri,
+            "client_id": oauth.client_id,
+            "redirect_uri": oauth.redirect_uri,
             "response_type": "code",
             "state": "1234567890",
             "scope": scope,
@@ -329,14 +328,14 @@ async def _get_token_auth_code(
     state = parse_qs(state.query)["state"]
 
     # # Make simulated auth request to authenticate
-    response = await self.oauth.hit_oauth_endpoint(
+    response = await oauth.hit_oauth_endpoint(
         base_uri="https://internal-dev.api.service.nhs.uk/mock-nhsid-jwks",
         method="POST",
         endpoint="nhs_login_simulated_auth",
         params={
             "response_type": "code",
-            "client_id": self.oauth.client_id,
-            "redirect_uri": self.oauth.redirect_uri,
+            "client_id": oauth.client_id,
+            "redirect_uri": oauth.redirect_uri,
             "scope": "openid",
             "state": state[0],
         },
@@ -349,7 +348,7 @@ async def _get_token_auth_code(
     auth_code = urlparse.urlparse(location)
     auth_code = parse_qs(auth_code.query)["code"]
 
-    response = await self.oauth.hit_oauth_endpoint(
+    response = await oauth.hit_oauth_endpoint(
         method="GET",
         endpoint="callback",
         params={"code": auth_code[0], "client_id": "some-client-id", "state": state[0]},
@@ -360,37 +359,43 @@ async def _get_token_auth_code(
     auth_code = urlparse.urlparse(location)
     auth_code = parse_qs(auth_code.query)["code"]
 
-    token_resp = await self.oauth.hit_oauth_endpoint(
+    token_resp = await oauth.hit_oauth_endpoint(
         method="POST",
         endpoint="token",
         data={
             "grant_type": "authorization_code",
             "state": state,
             "code": auth_code,
-            "redirect_uri": self.oauth.redirect_uri,
-            "client_id": self.oauth.client_id,
-            "client_secret": self.oauth.client_secret,
+            "redirect_uri": oauth.redirect_uri,
+            "client_id": oauth.client_id,
+            "client_secret": oauth.client_secret,
         },
         allow_redirects=False,
     )
 
     return token_resp["body"]
 
-
-@pytest.fixture()
-def get_token_auth_code_nhs_login(auth_method):
-    return asyncio.run( 
-        _get_token_auth_code(
-            scope="nhs-login", auth_method=auth_method
-        )
-    )
+class TokenFlow:
+    async def get_token(self, oauth):
+        return await _get_token_auth_code(oauth=oauth, scope=self.scope, auth_method=self.auth_method) 
+    auth_method = ""
+    scope = ""
 
 
 @pytest.fixture()
-def get_token_auth_code_nhs_cis2(auth_method):
-    return asyncio.run(
-        _get_token_auth_code(auth_method=auth_method)
-    ) 
+def auth_code_nhs_login(auth_method):
+
+    this_token = TokenFlow()
+    this_token.auth_method = auth_method
+    this_token.scope = "nhs-login"
+    return this_token
+
+@pytest.fixture()
+def auth_code_nhs_cis2(auth_method):
+    
+    this_token = TokenFlow()
+    this_token.auth_method = auth_method
+    return this_token
 
 @pytest.fixture()
 async def get_userinfo_nhs_login_exchanged_token():
