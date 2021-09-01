@@ -748,12 +748,25 @@ class TestOauthEndpoints:
         )
 
     @pytest.mark.errors
-    async def test_userinfo_cis2_exchanged_token(self, get_userinfo_cis2_exchanged_token):
+    async def test_userinfo_cis2_exchanged_token(self):
         # Given
         expected_status_code = 404
 
         # When
-        resp = get_userinfo_cis2_exchanged_token
+        id_token_jwt = self.oauth.create_id_token_jwt()
+        client_assertion_jwt = self.oauth.create_jwt(kid="test-1")
+        resp = await self.oauth.get_token_response(
+            grant_type="token_exchange",
+            _jwt=client_assertion_jwt,
+            id_token_jwt=id_token_jwt,
+        )
+
+        token = resp["body"]["access_token"]
+        resp = await self.oauth.hit_oauth_endpoint(
+        method="GET",
+        endpoint="userinfo",
+        headers={"Authorization": f"Bearer {token}"},
+        )
 
         # Then
         assert expected_status_code == resp["status_code"]
@@ -778,14 +791,23 @@ class TestOauthEndpoints:
         assert expected_error == resp['body']['error']
         assert expected_error_description == resp['body']['error_description']
 
-    async def test_userinfo_client_credentials_token(self, get_userinfo_client_credentials_token):
+    async def test_userinfo_client_credentials_token(self):
         # Given
         expected_status_code = 404
         expected_error = 'invalid_request'
         expected_error_description = 'Not Found'
 
         # When
-        resp = get_userinfo_client_credentials_token
+        jwt = self.oauth.create_jwt(kid="test-1")
+        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
+        
+        token = resp["body"]["access_token"]
+        resp = await self.oauth.hit_oauth_endpoint(
+        method="GET",
+        endpoint="userinfo",
+        headers={"Authorization": f"Bearer {token}"},
+        )
+       
 
         # Then
         assert expected_status_code == resp['status_code']
