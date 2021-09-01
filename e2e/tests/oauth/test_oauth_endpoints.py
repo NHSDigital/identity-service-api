@@ -82,7 +82,7 @@ class TestOauthEndpoints:
     @pytest.mark.apm_993
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
-    async def test_cache_invalidation(self, helper):
+    async def test_cache_invalidation(self, helper, auth_code_nhs_cis2):
         """
         Test identity cache invalidation after use:
             * Given i am authorizing
@@ -92,56 +92,16 @@ class TestOauthEndpoints:
         """
 
         # Make authorize request to retrieve state2
-        response = await self.oauth.hit_oauth_endpoint(
-            method="GET",
-            endpoint="authorize",
-            params={
-                "client_id": self.oauth.client_id,
-                "redirect_uri": self.oauth.redirect_uri,
-                "response_type": "code",
-                "state": "1234567890",
-            },
-            allow_redirects=False,
-        )
-
-        state = helper.get_param_from_url(
-            url=response["headers"]["Location"], param="state"
-        )
-
-        # Make simulated auth request to authenticate
-        response = await self.oauth.hit_oauth_endpoint(
-            base_uri=MOCK_IDP_BASE_URL,
-            method="POST",
-            endpoint="simulated_auth",
-            params={
-                "response_type": "code",
-                "client_id": self.oauth.client_id,
-                "redirect_uri": self.oauth.redirect_uri,
-                "scope": "openid",
-                "state": state,
-            },
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-            data={"state": state},
-            allow_redirects=False,
-        )
-
-        # Make initial callback request
-        auth_code = helper.get_param_from_url(
-            url=response["headers"]["Location"], param="code"
-        )
-
-        response = await self.oauth.hit_oauth_endpoint(
-            method="GET",
-            endpoint="callback",
-            params={"code": auth_code, "client_id": "some-client-id", "state": state},
-            allow_redirects=False,
-        )
+        state = await auth_code_nhs_cis2.fetch_state(self.oauth)        
+        
+        # Make simulated auth request to authenticate and make initial callback request
+        auth_code = await auth_code_nhs_cis2.fetch_auth_code(self.oauth)
 
         # Verify auth code and state are returned
-        # response_params = helper.get_params_from_url(response["headers"]["Location"])
-        helper.verify_params_exist_in_url(
-            params=["code", "state"], url=response["headers"]["Location"]
-        )
+
+        # helper.verify_params_exist_in_url(
+        #     params=["code", "state"], url=response["headers"]["Location"]
+        # )
 
         # Make second callback request with same state value
         assert helper.check_endpoint(
@@ -763,9 +723,9 @@ class TestOauthEndpoints:
 
         token = resp["body"]["access_token"]
         resp = await self.oauth.hit_oauth_endpoint(
-        method="GET",
-        endpoint="userinfo",
-        headers={"Authorization": f"Bearer {token}"},
+            method="GET",
+            endpoint="userinfo",
+            headers={"Authorization": f"Bearer {token}"},
         )
 
         # Then
@@ -781,9 +741,9 @@ class TestOauthEndpoints:
         resp = await get_exchange_code_nhs_login_token(self.oauth)
         token = resp["body"]["access_token"]
         resp = await self.oauth.hit_oauth_endpoint(
-        method="GET",
-        endpoint="userinfo",
-        headers={"Authorization": f"Bearer {token}"},
+            method="GET",
+            endpoint="userinfo",
+            headers={"Authorization": f"Bearer {token}"},
         )
 
         # Then
@@ -802,10 +762,11 @@ class TestOauthEndpoints:
         resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
         
         token = resp["body"]["access_token"]
+
         resp = await self.oauth.hit_oauth_endpoint(
-        method="GET",
-        endpoint="userinfo",
-        headers={"Authorization": f"Bearer {token}"},
+            method="GET",
+            endpoint="userinfo",
+            headers={"Authorization": f"Bearer {token}"},
         )
        
 
