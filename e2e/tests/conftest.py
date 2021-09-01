@@ -377,14 +377,13 @@ async def _get_token_auth_code(
 
 class TokenFlow:
     async def get_token(self, oauth):
-        return await _get_token_auth_code(oauth=oauth, scope=self.scope, auth_method=self.auth_method) 
+        return await _get_token_auth_code(oauth=oauth, scope=self.scope, auth_method=self.auth_method)
     auth_method = ""
     scope = ""
 
 
 @pytest.fixture()
 def auth_code_nhs_login(auth_method):
-
     this_token = TokenFlow()
     this_token.auth_method = auth_method
     this_token.scope = "nhs-login"
@@ -392,13 +391,15 @@ def auth_code_nhs_login(auth_method):
 
 @pytest.fixture()
 def auth_code_nhs_cis2(auth_method):
-    
     this_token = TokenFlow()
     this_token.auth_method = auth_method
     return this_token
 
 @pytest.fixture()
-async def get_userinfo_nhs_login_exchanged_token():
+def get_exchange_code_nhs_login_token():
+    return _get_userinfo_nhs_login_exchanged_token
+
+async def _get_userinfo_nhs_login_exchanged_token(oauth):
     id_token_claims = {
             "aud": "tf_-APIM-1",
             "id_status": "verified",
@@ -427,21 +428,18 @@ async def get_userinfo_nhs_login_exchanged_token():
     with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
         contents = f.read()
 
-    client_assertion_jwt = self.oauth.create_jwt(kid="test-1")
-    id_token_jwt = self.oauth.create_id_token_jwt(
+    client_assertion_jwt = oauth.create_jwt(kid="test-1")
+    id_token_jwt = oauth.create_id_token_jwt(
         algorithm="RS512",
         claims=id_token_claims,
         headers=id_token_headers,
         signing_key=contents,
     )
-    resp = await self.oauth.get_token_response(
+    resp = await oauth.get_token_response(
         grant_type="token_exchange",
         _jwt=client_assertion_jwt,
         id_token_jwt=id_token_jwt,
     )
-    token = resp["body"]["access_token"]
-
-    resp = await hit_oauth_userinfo_endpoint(self.oauth, resp)
     return resp
 
 @pytest.fixture()

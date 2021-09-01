@@ -758,14 +758,20 @@ class TestOauthEndpoints:
         # Then
         assert expected_status_code == resp["status_code"]
 
-    async def test_userinfo_nhs_login_exchanged_token(self, get_userinfo_nhs_login_exchanged_token):
+    async def test_userinfo_nhs_login_exchanged_token(self, get_exchange_code_nhs_login_token):
         # Given
         expected_status_code = 404
         expected_error = 'invalid_request'
         expected_error_description = 'Not Found'
 
         # When
-        resp = get_userinfo_nhs_login_exchanged_token
+        resp = await get_exchange_code_nhs_login_token(self.oauth)
+        token = resp["body"]["access_token"]
+        resp = await self.oauth.hit_oauth_endpoint(
+        method="GET",
+        endpoint="userinfo",
+        headers={"Authorization": f"Bearer {token}"},
+        )
 
         # Then
         assert expected_status_code == resp['status_code']
