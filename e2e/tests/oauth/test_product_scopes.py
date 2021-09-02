@@ -1243,7 +1243,7 @@ class TestAuthorizationCodeNhsLoginErrorCases:
 
 
         # Make simulated auth request to authenticate and  Make initial callback request
-        await auth_code_nhs_login.fetch_auth_code(self.oauth, state)
+        await auth_code_nhs_login.get_auth_code(self.oauth, state)
         response = auth_code_nhs_login.response
 
 
