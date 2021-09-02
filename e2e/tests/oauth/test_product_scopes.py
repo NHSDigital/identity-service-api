@@ -1239,7 +1239,7 @@ class TestAuthorizationCodeNhsLoginErrorCases:
         await test_product2.update_scopes(product_2_scopes)
 
         
-        state = await auth_code_nhs_login.fetch_state(self.oauth, test_app)
+        state = await auth_code_nhs_login.get_state(self.oauth, test_app)
 
 
         # Make simulated auth request to authenticate and  Make initial callback request
