@@ -1224,7 +1224,7 @@ class TestAuthorizationCodeNhsLoginErrorCases:
     )
     @pytest.mark.parametrize("auth_method", [("P9")])
     async def test_nhs_login_user_restricted_error_scope_combination(
-        self, product_1_scopes, product_2_scopes, test_app_and_product, helper, auth_code_nhs_login_with_methods
+        self, product_1_scopes, product_2_scopes, test_app_and_product, helper, auth_code_nhs_login
     ):
         test_product, test_product2, test_app = test_app_and_product
 
@@ -1239,12 +1239,12 @@ class TestAuthorizationCodeNhsLoginErrorCases:
         await test_product2.update_scopes(product_2_scopes)
 
         
-        state = await auth_code_nhs_login_with_methods.fetch_state(self.oauth, test_app)
+        state = await auth_code_nhs_login.fetch_state(self.oauth, test_app)
 
 
         # Make simulated auth request to authenticate and  Make initial callback request
-        await auth_code_nhs_login_with_methods.fetch_auth_code(self.oauth, state)
-        response = auth_code_nhs_login_with_methods.response
+        await auth_code_nhs_login.fetch_auth_code(self.oauth, state)
+        response = auth_code_nhs_login.response
 
 
         assert expected_status_code == response["status_code"]

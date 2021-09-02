@@ -306,10 +306,10 @@ def setup_function(request):
     ]
     setattr(request.cls, "name", name)
 
-class AuthCode:
+class AuthCredentialAndTokenClaim:
     async def get_token(self, oauth):
-        state = await self.fetch_state(oauth)
-        auth_code = await self.fetch_auth_code(oauth, state)
+        state = await self.get_state(oauth)
+        auth_code = await self.get_auth_code(oauth, state)
 
         token_resp = await oauth.hit_oauth_endpoint(
             method="POST",
@@ -327,7 +327,7 @@ class AuthCode:
         
         return token_resp["body"]
 
-    async def fetch_state(self, oauth, test_app=None):
+    async def get_state(self, oauth, test_app=None):
 
         self.client_id = oauth.client_id
         self.redirect_uri = oauth.redirect_uri
@@ -354,20 +354,17 @@ class AuthCode:
             return parse_qs(state.query)["state"]
 
 
-    async def fetch_auth_code(self, oauth, state):
-        # # Make simulated auth request to authenticate
-        data={"state": state[0], "auth_method": self.auth_method}
-        if(not self.auth_method):
-            data={"state": state[0]}        
+    async def get_auth_code(self, oauth, state):
+        # # Make simulated auth request to authenticate     
     
-        endpoint = "simulated_auth"
+        # endpoint = "simulated_auth"
         # if(self.scope == "nhs-login"):
         #     endpoint = "nhs_login_simulated_auth"
 
         response = await oauth.hit_oauth_endpoint(
             base_uri=MOCK_IDP_BASE_URL,
             method="POST",
-            endpoint=endpoint,
+            endpoint="simulated_auth",
             params={
                 "response_type": "code",
                 "client_id": self.client_id,
@@ -376,7 +373,7 @@ class AuthCode:
                 "state": state[0],
             },
             headers={"Content-Type": "application/x-www-form-urlencoded"},
-            data=data,
+            data={"state": state[0], "auth_method": self.auth_method},
             allow_redirects=False,
         )
         # # Make initial callback request
@@ -399,33 +396,22 @@ class AuthCode:
 
     auth_method = None
     scope = ""
-    client_id = ""
-    redirect_uri = ""
-    response = ""
+    client_id = None
+    redirect_uri = None
+    response = None
 
 @pytest.fixture()
-def auth_code_nhs_login():
-    this_token = AuthCode()
-    this_token.scope = "nhs-login"
-    return this_token
+def auth_code_nhs_login(auth_method):
+    this_claim = AuthCredentialAndTokenClaim()
+    this_claim.auth_method = auth_method
+    this_claim.scope = "nhs-login"
+    return this_claim
 
 @pytest.fixture()
-def auth_code_nhs_login_with_methods(auth_method):
-    this_token = AuthCode()
-    this_token.auth_method = auth_method
-    this_token.scope = "nhs-login"
-    return this_token
-
-@pytest.fixture()
-def auth_code_nhs_cis2():
-    this_token = AuthCode()
-    return this_token
-
-@pytest.fixture()
-def auth_code_nhs_cis2_with_methods(auth_method):
-    this_token = AuthCode()
-    this_token.auth_method = auth_method
-    return this_token
+def auth_code_nhs_cis2(auth_method):
+    this_claim = AuthCredentialAndTokenClaim()
+    this_claim.auth_method = auth_method
+    return this_claim
 
 async def _get_userinfo_nhs_login_exchanged_token(oauth):
     id_token_claims = {

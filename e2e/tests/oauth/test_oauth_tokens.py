@@ -209,9 +209,9 @@ class TestOauthTokens:
 
     @pytest.mark.parametrize("auth_method", [("P0"),("P5"),("P9")])
     @pytest.mark.authorize_endpoint
-    async def test_nhs_login_auth_code_flow_happy_path(self, helper, auth_code_nhs_login_with_methods):
+    async def test_nhs_login_auth_code_flow_happy_path(self, helper, auth_code_nhs_login):
         
-        response = await auth_code_nhs_login_with_methods.get_token(self.oauth)
+        response = await auth_code_nhs_login.get_token(self.oauth)
 
         access_token = response['access_token']
 

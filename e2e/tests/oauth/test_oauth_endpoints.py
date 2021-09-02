@@ -82,6 +82,7 @@ class TestOauthEndpoints:
     @pytest.mark.apm_993
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
+    @pytest.mark.parametrize("auth_method", [(None)])
     async def test_cache_invalidation(self, helper, auth_code_nhs_cis2):
         """
         Test identity cache invalidation after use:
@@ -92,16 +93,16 @@ class TestOauthEndpoints:
         """
 
         # Make authorize request to retrieve state2
-        state = await auth_code_nhs_cis2.fetch_state(self.oauth)        
+        state = await auth_code_nhs_cis2.get_state(self.oauth)        
         
         # Make simulated auth request to authenticate and make initial callback request
-        auth_code = await auth_code_nhs_cis2.fetch_auth_code(self.oauth, state)
+        auth_code = await auth_code_nhs_cis2.get_auth_code(self.oauth, state)
 
-        # Verify auth code and state are returned
+        # Verify state is returned
+        assert state is not None 
 
-        # helper.verify_params_exist_in_url(
-        #     params=["code", "state"], url=response["headers"]["Location"]
-        # )
+        # Verify auth_code is not returned
+        assert auth_code is None
 
         # Make second callback request with same state value
         assert helper.check_endpoint(
