@@ -8,25 +8,21 @@ variables:
     {
       "app": {
         "quota": {
-          "limit": 6000,
+          "limit": 300,
           "interval": 1,
           "timeunit": "minute",
           "enabled": true
         },
         "spikeArrest": {
-          "ratelimit": "6000pm",
-          "enabled": true
+          "enabled": false
         }
       },
       "proxy": {
         "quota": {
-          "limit": 60000,
-          "interval": 1,
-          "timeunit": "minute",
-          "enabled": true
+          "enabled": false
         },
         "spikeArrest": {
-          "ratelimit": "60000pm",
+          "ratelimit": "300000pm",
           "enabled": true
         }
       }
