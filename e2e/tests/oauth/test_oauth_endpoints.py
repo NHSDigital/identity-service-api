@@ -95,7 +95,7 @@ class TestOauthEndpoints:
         state = await auth_code_nhs_cis2.fetch_state(self.oauth)        
         
         # Make simulated auth request to authenticate and make initial callback request
-        auth_code = await auth_code_nhs_cis2.fetch_auth_code(self.oauth)
+        auth_code = await auth_code_nhs_cis2.fetch_auth_code(self.oauth, state)
 
         # Verify auth code and state are returned
 

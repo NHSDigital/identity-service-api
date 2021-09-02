@@ -308,49 +308,72 @@ def setup_function(request):
 
 class AuthCode:
     async def get_token(self, oauth):
-        await self.fetch_state(oauth)
-        await self.fetch_auth_code(oauth)
-        return await self.fetch_token(oauth)
+        state = await self.fetch_state(oauth)
+        auth_code = await self.fetch_auth_code(oauth, state)
 
-    async def fetch_state(self, oauth):
+        token_resp = await oauth.hit_oauth_endpoint(
+            method="POST",
+            endpoint="token",
+            data={
+                "grant_type": "authorization_code",
+                "state": state,
+                "code": auth_code,
+                "redirect_uri": oauth.redirect_uri,
+                "client_id": oauth.client_id,
+                "client_secret": oauth.client_secret,
+            },
+            allow_redirects=False,
+        )
+        
+        return token_resp["body"]
+
+    async def fetch_state(self, oauth, test_app=None):
+
+        self.client_id = oauth.client_id
+        self.redirect_uri = oauth.redirect_uri
+        if(test_app):
+            self.client_id = test_app.client_id
+            self.redirect_uri = await test_app.get_callback_url()
+
         response = await oauth.hit_oauth_endpoint(
             method="GET",
             endpoint="authorize",
             params={
-                "client_id": oauth.client_id,
-                "redirect_uri": oauth.redirect_uri,
+                "client_id": self.client_id,
+                "redirect_uri": self.redirect_uri,
                 "response_type": "code",
                 "state": "1234567890",
                 "scope": self.scope,
             },
             allow_redirects=False,
         )
+        self.response = response
+        if("Location" in response["headers"]):
+            location = response["headers"]["Location"]
+            state = urlparse.urlparse(location)
+            return parse_qs(state.query)["state"]
 
-        location = response["headers"]["Location"]
-        state = urlparse.urlparse(location)
-        self.state = parse_qs(state.query)["state"]
-        return self.state
 
-    async def fetch_auth_code(self, oauth):
+    async def fetch_auth_code(self, oauth, state):
         # # Make simulated auth request to authenticate
-        data={"state": self.state[0], "auth_method": self.auth_method}
-        if(self.auth_method == ""):
-            data={"state": self.state[0]}
+        data={"state": state[0], "auth_method": self.auth_method}
+        if(not self.auth_method):
+            data={"state": state[0]}        
     
         endpoint = "simulated_auth"
-        if(self.scope == "nhs-login"):
-            endpoint = "nhs_login_simulated_auth"
+        # if(self.scope == "nhs-login"):
+        #     endpoint = "nhs_login_simulated_auth"
 
         response = await oauth.hit_oauth_endpoint(
-            base_uri="https://internal-dev.api.service.nhs.uk/mock-nhsid-jwks",
+            base_uri=MOCK_IDP_BASE_URL,
             method="POST",
             endpoint=endpoint,
             params={
                 "response_type": "code",
-                "client_id": oauth.client_id,
-                "redirect_uri": oauth.redirect_uri,
+                "client_id": self.client_id,
+                "redirect_uri": self.redirect_uri,
                 "scope": "openid",
-                "state": self.state[0],
+                "state": state[0],
             },
             headers={"Content-Type": "application/x-www-form-urlencoded"},
             data=data,
@@ -364,36 +387,21 @@ class AuthCode:
         response = await oauth.hit_oauth_endpoint(
             method="GET",
             endpoint="callback",
-            params={"code": auth_code[0], "client_id": "some-client-id", "state": self.state[0]},
+            params={"code": auth_code[0], "client_id": "some-client-id", "state": state[0]},
             allow_redirects=False,
         )
+        self.response = response
+        if("Location" in response["headers"]):
+            location = response["headers"]["Location"]
+            auth_code = urlparse.urlparse(location)
+            return parse_qs(auth_code.query)["code"]
+        
 
-        location = response["headers"]["Location"]
-        auth_code = urlparse.urlparse(location)
-        self.auth_code = parse_qs(auth_code.query)["code"]
-        return self.auth_code
-
-    async def fetch_token(self, oauth):
-        token_resp = await oauth.hit_oauth_endpoint(
-            method="POST",
-            endpoint="token",
-            data={
-                "grant_type": "authorization_code",
-                "state": self.state,
-                "code": self.auth_code,
-                "redirect_uri": oauth.redirect_uri,
-                "client_id": oauth.client_id,
-                "client_secret": oauth.client_secret,
-            },
-            allow_redirects=False,
-        )
-
-        return token_resp["body"]
-
-    auth_method = ""
+    auth_method = None
     scope = ""
-    state = ""
-    auth_code = ""
+    client_id = ""
+    redirect_uri = ""
+    response = ""
 
 @pytest.fixture()
 def auth_code_nhs_login():
