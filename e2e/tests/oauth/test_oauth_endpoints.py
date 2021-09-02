@@ -96,13 +96,8 @@ class TestOauthEndpoints:
         state = await auth_code_nhs_cis2.get_state(self.oauth)        
         
         # Make simulated auth request to authenticate and make initial callback request
-        auth_code = await auth_code_nhs_cis2.get_auth_code(self.oauth, state)
-
-        # Verify state is returned
-        assert state is not None 
-
-        # Verify auth_code is not returned
-        assert auth_code is None
+        auth_code = await auth_code_nhs_cis2.make_auth_request(self.oauth, state)
+        auth_code = await auth_code_nhs_cis2.make_callback_request(self.oauth, state, auth_code)
 
         # Make second callback request with same state value
         assert helper.check_endpoint(

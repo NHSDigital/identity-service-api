@@ -309,7 +309,8 @@ def setup_function(request):
 class AuthCredentialAndTokenClaim:
     async def get_token(self, oauth):
         state = await self.get_state(oauth)
-        auth_code = await self.get_auth_code(oauth, state)
+        auth_code = await self.make_auth_request(oauth, state)
+        auth_code = await self.make_callback_request(oauth, state, auth_code)
 
         token_resp = await oauth.hit_oauth_endpoint(
             method="POST",
@@ -354,7 +355,12 @@ class AuthCredentialAndTokenClaim:
             return parse_qs(state.query)["state"]
 
 
-    async def get_auth_code(self, oauth, state):
+    async def make_auth_request(self, oauth, state):
+
+        data={"state": state[0]}
+        if(self.auth_method):
+            data={"state": state[0], "auth_method": self.auth_method}
+
         # # Make simulated auth request to authenticate     
     
         # endpoint = "simulated_auth"
@@ -373,13 +379,17 @@ class AuthCredentialAndTokenClaim:
                 "state": state[0],
             },
             headers={"Content-Type": "application/x-www-form-urlencoded"},
-            data={"state": state[0], "auth_method": self.auth_method},
+            data=data,
             allow_redirects=False,
         )
+        self.response = response
+        if("Location" in response["headers"]):
+            location = response["headers"]["Location"]
+            auth_code = urlparse.urlparse(location)
+            return parse_qs(auth_code.query)["code"]
+
+    async def make_callback_request(self, oauth, state, auth_code):
         # # Make initial callback request
-        location = response["headers"]["Location"]
-        auth_code = urlparse.urlparse(location)
-        auth_code = parse_qs(auth_code.query)["code"]
 
         response = await oauth.hit_oauth_endpoint(
             method="GET",
