@@ -1,3 +1,4 @@
+import json
 import pytest
 import asyncio
 from api_test_utils.oauth_helper import OauthHelper
@@ -227,7 +228,14 @@ def app():
 async def test_app(app):
     """Create a test app which can be modified in the test"""
     await app.create_new_app()
-
+    # Sadly no way to do this in the constructor
+    ratelimiting = {
+        config.SERVICE_NAME: {
+            "quota": {"enabled": False},
+            "spikeArrest": {"enabled": False},
+        }
+    }
+    app.set_custom_attributes({"ratelimiting": json.dumps(ratelimiting)})
     yield app
     await app.destroy_app()
 

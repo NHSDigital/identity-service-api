@@ -1,0 +1,8 @@
+<FlowCallout async="false" continueOnError="false" enabled="true" name="FlowCallout.ApplyRatelimitingFromJSON">
+    <DisplayName>Apply Rate Limiting</DisplayName>
+    <SharedFlowBundle>ApplyRateLimiting</SharedFlowBundle>
+    <Parameters>
+      <Parameter name="VerifyApiKeyPolicyName">VerifyAPIKey.FromJSON</Parameter>
+      <Parameter name="ratelimiting">{{ RATELIMITING | to_nice_json }}</Parameter>
+    </Parameters>
+</FlowCallout>
