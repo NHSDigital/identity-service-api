@@ -555,23 +555,10 @@ class TestOauthEndpoints:
     @pytest.mark.apm_1064
     @pytest.mark.errors
     @pytest.mark.callback_endpoint
-    async def test_callback_error_conditions(self, helper):
-        response = await self.oauth.hit_oauth_endpoint(
-        method="GET",
-        endpoint="authorize",
-        params={
-            "client_id": self.oauth.client_id,
-            "redirect_uri": self.oauth.redirect_uri,
-            "response_type": "code",
-            "state": "1234567890",
-            "scope": ""
-        },
-        allow_redirects=False,
-        )
-        state = helper.get_param_from_url(
-            url=response["headers"]["Location"], param="state"
-        )
-
+    @pytest.mark.parametrize("auth_method", [(None)])
+    async def test_callback_error_conditions(self, helper, auth_code_nhs_cis2):
+        
+        state = await auth_code_nhs_cis2.get_state(self.oauth)
         assert await helper.send_request_and_check_output(
 
             expected_status_code=401,

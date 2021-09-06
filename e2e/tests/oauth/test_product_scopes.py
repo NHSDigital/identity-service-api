@@ -1082,56 +1082,12 @@ class TestAuthorizationCodeNhsLoginHappyCases:
 
         callback_url = await test_app.get_callback_url()
 
-        # response = await self.oauth.hit_oauth_endpoint(
-        #     method="GET",
-        #     endpoint="authorize",
-        #     params={
-        #         "client_id": test_app.client_id,
-        #         "redirect_uri": callback_url,
-        #         "response_type": "code",
-        #         "state": "1234567890",
-        #         "scope": "nhs-login",
-        #     },
-        #     allow_redirects=False,
-        # )
-
-        # state = helper.get_param_from_url(
-        #     url=response["headers"]["Location"], param="state"
-        # )
+        
         state = await auth_code_nhs_login.get_state(self.oauth, test_app)
-
-        # Make simulated auth request to authenticate
-        # response = await self.oauth.hit_oauth_endpoint(
-        #     base_uri=MOCK_IDP_BASE_URL,
-        #     method="POST",
-        #     endpoint="nhs_login_simulated_auth",
-        #     params={
-        #         "response_type": "code",
-        #         "client_id": test_app.client_id,
-        #         "redirect_uri": callback_url,
-        #         "scope": "openid",
-        #         "state": state,
-        #     },
-        #     headers={"Content-Type": "application/x-www-form-urlencoded"},
-        #     data={"state": state, "auth_method": "P9"},
-        #     allow_redirects=False,
-        # )
-
-        # # Make initial callback request
-        # auth_code = helper.get_param_from_url(
-        #     url=response["headers"]["Location"], param="code"
-        # )
 
         auth_code = await auth_code_nhs_login.make_auth_request(self.oauth, state)
 
         await apigee_trace.start_trace()
-
-        # response = await self.oauth.hit_oauth_endpoint(
-        #     method="GET",
-        #     endpoint="callback",
-        #     params={"code": auth_code, "client_id": "some-client-id", "state": state},
-        #     allow_redirects=False,
-        # )
         await auth_code_nhs_login.make_callback_request(self.oauth, state, auth_code)
 
         user_restricted_scopes = await apigee_trace.get_apigee_variable_from_trace(

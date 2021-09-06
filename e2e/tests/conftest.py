@@ -307,6 +307,10 @@ def setup_function(request):
     setattr(request.cls, "name", name)
 
 class AuthCredentialAndTokenClaim:
+    def __init__(self, auth_method=None, scope=''):
+        self.auth_method=auth_method
+        self.scope=scope
+
     async def get_token(self, oauth):
         state = await self.get_state(oauth)
         auth_code = await self.make_auth_request(oauth, state)
@@ -362,10 +366,6 @@ class AuthCredentialAndTokenClaim:
             data={"state": state[0], "auth_method": self.auth_method}
 
         # # Make simulated auth request to authenticate     
-    
-        # endpoint = "simulated_auth"
-        # if(self.scope == "nhs-login"):
-        #     endpoint = "nhs_login_simulated_auth"
 
         response = await oauth.hit_oauth_endpoint(
             base_uri=MOCK_IDP_BASE_URL,
@@ -402,26 +402,14 @@ class AuthCredentialAndTokenClaim:
             location = response["headers"]["Location"]
             auth_code = urlparse.urlparse(location)
             return parse_qs(auth_code.query)["code"]
-        
-
-    auth_method = None
-    scope = ""
-    client_id = None
-    redirect_uri = None
-    response = None
 
 @pytest.fixture()
 def auth_code_nhs_login(auth_method):
-    this_claim = AuthCredentialAndTokenClaim()
-    this_claim.auth_method = auth_method
-    this_claim.scope = "nhs-login"
-    return this_claim
+    return AuthCredentialAndTokenClaim(auth_method, "nhs-login")
 
 @pytest.fixture()
 def auth_code_nhs_cis2(auth_method):
-    this_claim = AuthCredentialAndTokenClaim()
-    this_claim.auth_method = auth_method
-    return this_claim
+    return AuthCredentialAndTokenClaim(auth_method)
 
 async def _get_userinfo_nhs_login_exchanged_token(oauth):
     id_token_claims = {
