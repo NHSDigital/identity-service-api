@@ -2,7 +2,7 @@
     <DisplayName>Apply Rate Limiting</DisplayName>
     <SharedFlowBundle>ApplyRateLimiting</SharedFlowBundle>
     <Parameters>
-      <Parameter name="VerifyApiKeyPolicyName">VerifyAPIKey.FromJWT</Parameter>
+      <Parameter name="verifyApiKeyPolicyName">VerifyAPIKey.FromJWT</Parameter>
       <Parameter name="ratelimiting">{{ RATELIMITING | to_nice_json }}</Parameter>
     </Parameters>
 </FlowCallout>
