@@ -40,6 +40,7 @@ extends:
       VARIABLES_KVM: identity_service_config
       ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
       NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+      RATELIMITING: ${{ variables.ratelimiting }}
     apigee_deployments:
       - environment: internal-dev
         post_deploy:
@@ -62,6 +63,7 @@ extends:
           VARIABLES_KVM: identity_service_config_int
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
           NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
       - environment: internal-qa-sandbox
         depends_on:
           - internal_dev
@@ -79,4 +81,5 @@ extends:
           VARIABLES_KVM: identity_service_config_no_smartcard
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted-no-smartcard
           NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
       - environment: prod

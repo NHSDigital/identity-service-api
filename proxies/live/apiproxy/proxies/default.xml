@@ -144,18 +144,12 @@
           <Name>AssignMessage.CacheKeyError</Name>
         </Step>
       </FaultRule>
-      <FaultRule name="ratelimit_exceeded">
-        <Condition>(ratelimit.SpikeArrest.failed Equals true) Or (ratelimit.Quota.failed Equals true)</Condition>
-        <Step>
-          <Name>AssignMessage.RatelimitExceeded</Name>
-        </Step>
-      </FaultRule>
-    </FaultRules>
-    <DefaultFaultRule>
+      <DefaultFaultRule>
         <Step>
             <Name>AssignMessage.CatchallErrorMessage</Name>
         </Step>
-    </DefaultFaultRule>
+      </DefaultFaultRule>
+    </FaultRules>
     <PreFlow name="PreFlow">
         <Request>
         <Step>
@@ -198,6 +192,9 @@
                 <!-- Verify the client has sent a valid Client ID -->
                 <Step>
                     <Name>VerifyAPIKey.ClientId</Name>
+                </Step>
+                <Step>
+                    <Name>FlowCallout.ApplyRatelimitingClientId</Name>
                 </Step>
                 <!-- Verify the client has sent a valid redirect uri -->
                 <Step>
@@ -245,16 +242,7 @@
                     <Name>PopulateCache.OriginalClientInfo</Name>
                 </Step>
                 <Step>
-                    <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyClientId</Name>
-                </Step>
-                <Step>
                     <Name>JavaScript.SetLoggingFields</Name>
-                </Step>
-                <Step>
-                    <Name>SpikeArrest</Name>
-                </Step>
-                <Step>
-                    <Name>Quota</Name>
                 </Step>
             </Request>
             <Response>
@@ -333,17 +321,11 @@
                     <Name>VerifyAPIKey.FromJWT</Name>
                 </Step>
                 <Step>
-                    <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJWT</Name>
+                    <Name>FlowCallout.ApplyRatelimitingFromJWT</Name>
                 </Step>
                 <Step>
                     <Name>RaiseFault.PublicKeyMisconfigured</Name>
                     <Condition>verifyapikey.VerifyAPIKey.FromJWT.jwks-resource-url = null</Condition>
-                </Step>
-                <Step>
-                    <Name>SpikeArrest</Name>
-                </Step>
-                <Step>
-                    <Name>Quota</Name>
                 </Step>
                 <Step>
                     <Name>Javascript.SetServiceCalloutUrl</Name>
@@ -466,17 +448,11 @@
                 <Name>VerifyAPIKey.FromJWT</Name>
             </Step>
             <Step>
-                <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJWT</Name>
+                <Name>FlowCallout.ApplyRatelimitingFromJWT</Name>
             </Step>
             <Step>
                 <Name>RaiseFault.PublicKeyMisconfigured</Name>
                 <Condition>verifyapikey.VerifyAPIKey.FromJWT.jwks-resource-url = null</Condition>
-            </Step>
-            <Step>
-                <Name>SpikeArrest</Name>
-            </Step>
-            <Step>
-                <Name>Quota</Name>
             </Step>
             <Step>
                 <Name>Javascript.SetServiceCalloutUrl</Name>
@@ -585,6 +561,9 @@
                     <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
                 </Step>
                 <Step>
+                    <Name>FlowCallout.ApplyRatelimitingFromClientSecretFormParam</Name>
+                </Step>
+                <Step>
                     <Name>RaiseFault.MissingClientSecret</Name>
                     <Condition>request.formparam.client_secret = null</Condition>
                 </Step>
@@ -605,15 +584,6 @@
                 <Step>
                     <Name>RaiseFault.MissingAuthorizationCode</Name>
                     <Condition>request.formparam.code = null</Condition>
-                </Step>
-                <Step>
-                    <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
-                </Step>
-                <Step>
-                    <Name>SpikeArrest</Name>
-                </Step>
-                <Step>
-                    <Name>Quota</Name>
                 </Step>
                 <Step>
                     <Name>LookupCache.ExternalIdToken</Name>
@@ -671,6 +641,9 @@
                     <Name>VerifyAPIKey.FromClientSecretFormParam</Name>
                 </Step>
                 <Step>
+                    <Name>FlowCallout.ApplyRatelimitingFromClientSecretFormParam</Name>
+                </Step>
+                <Step>
                     <Name>RaiseFault.MissingClientSecret</Name>
                     <Condition>request.formparam.client_secret = null</Condition>
                 </Step>
@@ -706,16 +679,6 @@
               <Step>
                 <Name>AssignMessage.RefreshTokensValidityOverride</Name>
                 <Condition>(apigee.can_override_refresh_token_validity != null) and (apigee.can_override_refresh_token_validity = true)</Condition>
-              </Step>
-              <!-- Next 3 verify that the request is within the set rate limits -->
-              <Step>
-                <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromClientSecretFormParam</Name>
-              </Step>
-              <Step>
-                <Name>SpikeArrest</Name>
-              </Step>
-              <Step>
-                <Name>Quota</Name>
               </Step>
               <Step>
                 <Name>OAuthV2.GenerateRefreshToken</Name>
@@ -755,13 +718,7 @@
                     <Name>VerifyAPIKey.FromJSON</Name>
                 </Step>
                 <Step>
-                    <Name>AssignMessage.RenameQuotaVarsFromVerifyAPIKeyPolicyFromJSON</Name>
-                </Step>
-                <Step>
-                    <Name>SpikeArrest</Name>
-                </Step>
-                <Step>
-                    <Name>Quota</Name>
+                    <Name>FlowCallout.ApplyRatelimitingFromJSON</Name>
                 </Step>
                 <Step>
                     <Name>KeyValueMapOperations.GetSecureVariables</Name>
@@ -861,10 +818,7 @@
               <Name>OAuthV2.VerifyAccessToken</Name>
             </Step>
             <Step>
-              <Name>SpikeArrest</Name>
-            </Step>
-            <Step>
-              <Name>Quota</Name>
+                <Name>FlowCallout.ApplyRatelimiting</Name>
             </Step>
             <Step>
               <Name>Javascript.CheckApigeeAccessTokenAttributes</Name>
