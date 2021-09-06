@@ -8,7 +8,13 @@ from e2e.scripts.generic_request import GenericRequest
 from time import time
 from e2e.scripts import config
 from api_test_utils.apigee_api_trace import ApigeeApiTraceDebug
-
+import urllib.parse as urlparse
+from urllib.parse import parse_qs
+from e2e.scripts.config import (
+    OAUTH_URL,
+    ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
+    MOCK_IDP_BASE_URL
+)
 
 @pytest.fixture()
 def get_token(request):
@@ -307,3 +313,157 @@ def setup_function(request):
         request.node.originalname is not None
     ]
     setattr(request.cls, "name", name)
+
+class AuthCredentialAndTokenClaim:
+    def __init__(self, auth_method=None, scope=''):
+        self.auth_method=auth_method
+        self.scope=scope
+
+    async def get_token(self, oauth):
+        state = await self.get_state(oauth)
+        auth_code = await self.make_auth_request(oauth, state)
+        auth_code = await self.make_callback_request(oauth, state, auth_code)
+
+        token_resp = await oauth.hit_oauth_endpoint(
+            method="POST",
+            endpoint="token",
+            data={
+                "grant_type": "authorization_code",
+                "state": state,
+                "code": auth_code,
+                "redirect_uri": oauth.redirect_uri,
+                "client_id": oauth.client_id,
+                "client_secret": oauth.client_secret,
+            },
+            allow_redirects=False,
+        )
+        
+        return token_resp["body"]
+
+    async def get_state(self, oauth, test_app=None):
+
+        self.client_id = oauth.client_id
+        self.redirect_uri = oauth.redirect_uri
+        if(test_app):
+            self.client_id = test_app.client_id
+            self.redirect_uri = await test_app.get_callback_url()
+
+        response = await oauth.hit_oauth_endpoint(
+            method="GET",
+            endpoint="authorize",
+            params={
+                "client_id": self.client_id,
+                "redirect_uri": self.redirect_uri,
+                "response_type": "code",
+                "state": "1234567890",
+                "scope": self.scope,
+            },
+            allow_redirects=False,
+        )
+        self.response = response
+        if("Location" in response["headers"]):
+            location = response["headers"]["Location"]
+            state = urlparse.urlparse(location)
+            return parse_qs(state.query)["state"]
+
+
+    async def make_auth_request(self, oauth, state):
+
+        data={"state": state[0]}
+        if(self.auth_method):
+            data={"state": state[0], "auth_method": self.auth_method}
+
+        # # Make simulated auth request to authenticate     
+
+        response = await oauth.hit_oauth_endpoint(
+            base_uri=MOCK_IDP_BASE_URL,
+            method="POST",
+            endpoint="simulated_auth",
+            params={
+                "response_type": "code",
+                "client_id": self.client_id,
+                "redirect_uri": self.redirect_uri,
+                "scope": "openid",
+                "state": state[0],
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=data,
+            allow_redirects=False,
+        )
+        self.response = response
+        if("Location" in response["headers"]):
+            location = response["headers"]["Location"]
+            auth_code = urlparse.urlparse(location)
+            return parse_qs(auth_code.query)["code"]
+
+    async def make_callback_request(self, oauth, state, auth_code):
+        # # Make initial callback request
+
+        response = await oauth.hit_oauth_endpoint(
+            method="GET",
+            endpoint="callback",
+            params={"code": auth_code[0], "client_id": "some-client-id", "state": state[0]},
+            allow_redirects=False,
+        )
+        self.response = response
+        if("Location" in response["headers"]):
+            location = response["headers"]["Location"]
+            auth_code = urlparse.urlparse(location)
+            return parse_qs(auth_code.query)["code"]
+
+@pytest.fixture()
+def auth_code_nhs_login(auth_method):
+    return AuthCredentialAndTokenClaim(auth_method, "nhs-login")
+
+@pytest.fixture()
+def auth_code_nhs_cis2(auth_method):
+    return AuthCredentialAndTokenClaim(auth_method)
+
+async def _get_userinfo_nhs_login_exchanged_token(oauth):
+    id_token_claims = {
+            "aud": "tf_-APIM-1",
+            "id_status": "verified",
+            "token_use": "id",
+            "auth_time": 1616600683,
+            "iss": "https://internal-dev.api.service.nhs.uk",
+            "vot": "P9.Cp.Cd",
+            "exp": int(time()) + 600,
+            "iat": int(time()) - 10,
+            "vtm": "https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk",
+            "jti": "b68ddb28-e440-443d-8725-dfe0da330118",
+            "identity_proofing_level": "P9"
+        }
+    id_token_headers = {
+            "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",
+            "aud": "APIM-1",
+            "kid": "nhs-login",
+            "iss": "https://internal-dev.api.service.nhs.uk",
+            "typ": "JWT",
+            "exp": 1616604574,
+            "iat": 1616600974,
+            "alg": "RS512",
+            "jti": "b68ddb28-e440-443d-8725-dfe0da330118",
+        }
+
+    with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
+        contents = f.read()
+
+    client_assertion_jwt = oauth.create_jwt(kid="test-1")
+    id_token_jwt = oauth.create_id_token_jwt(
+        algorithm="RS512",
+        claims=id_token_claims,
+        headers=id_token_headers,
+        signing_key=contents,
+    )
+    resp = await oauth.get_token_response(
+        grant_type="token_exchange",
+        _jwt=client_assertion_jwt,
+        id_token_jwt=id_token_jwt,
+    )
+    return resp       
+
+@pytest.fixture()
+def get_exchange_code_nhs_login_token():
+    return _get_userinfo_nhs_login_exchanged_token
+
+
