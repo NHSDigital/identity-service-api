@@ -34,7 +34,9 @@ def nhs_login_subject_token(test_app: ApigeeApiDeveloperApps) -> Dict[str, str]:
         "iat": int(time()) - 10,
         "vtm": "https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk",
         "jti": str(uuid4()),
-        "sid": "08a5019c-17e1-4977-8f42-65a12843ea02"
+        "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
+        "identity_proofing_level": "P9",
+        'vot': 'P9.Cp.Cd'
     }
 
     id_token_headers = {
@@ -84,6 +86,7 @@ async def test_app_and_product():
         rate_limit="1000ps",
     )
 
+
     await apigee_app.setup_app(
         api_products=[apigee_product.name],
         custom_attributes={
@@ -92,6 +95,12 @@ async def test_app_and_product():
     )
 
     apigee_app.oauth = OauthHelper(apigee_app.client_id, apigee_app.client_secret, apigee_app.callback_url)
+
+    api_service_name = get_env("SERVICE_NAME")
+
+    await apigee_product.update_scopes(
+        [f"urn:nhsd:apim:user-nhs-login:P9:{api_service_name}"]
+    )
 
     yield apigee_product, apigee_app
 
@@ -125,10 +134,22 @@ class TestBackChannelLogout:
                 "client_assertion": client_assertion_jwt,
             },
         )
-        print(token_resp)
         
         # Test access token
         assert token_resp["status_code"] == 200
+
+        print(token_resp)
+        access_token = token_resp["body"]["access_token"]
+
+        user_info_resp = await test_app.oauth.hit_oauth_endpoint(
+            method="GET",
+            endpoint="userinfo",
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
+
+        print(user_info_resp)
+
+        assert user_info_resp["status_code"] == 200
 
         # Generate and sign logout token
         # Submit logout token to back-channel logout endpoint
