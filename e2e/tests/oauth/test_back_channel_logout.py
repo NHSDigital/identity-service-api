@@ -66,18 +66,53 @@ def nhs_login_subject_token(test_app: ApigeeApiDeveloperApps) -> Dict[str, str]:
     return subject_token
 
 
+def create_logout_token(test_app: ApigeeApiDeveloperApps) -> Dict[str, str]:
+    logout_token_claims = {
+        "aud": "tf_-APIM-1",
+        "id_status": "verified",
+        "token_use": "id",
+        "auth_time": 1616600683,
+        "iss": "https://internal-dev.api.service.nhs.uk",  # Points to internal dev -> testing JWKS
+        "sub": "https://internal-dev.api.service.nhs.uk",
+        "exp": int(time()) + 300,
+        "iat": int(time()) - 10,
+        "vtm": "https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk",
+        "jti": str(uuid4()),
+        "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
+        "identity_proofing_level": "P9",
+        'vot': 'P9.Cp.Cd',
+        "events": { "http://schemas.openid.net/event/backchannel-logout": {} }
+    }
+
+    logout_token_headers = {
+        "kid": "nhs-login",
+        "typ": "JWT",
+        "alg": "RS512",
+    }
+    
+    # private key we retrieved from earlier
+    nhs_login_id_token_private_key_path = get_env("ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH")
+
+    with open(nhs_login_id_token_private_key_path, "r") as f:
+        contents = f.read()
+
+    logout_token_jwt = test_app.oauth.create_id_token_jwt(
+        algorithm="RS512",
+        claims=logout_token_claims,
+        headers=logout_token_headers,
+        signing_key=contents,
+    )
+
+    return logout_token_jwt
+
+
 @pytest.fixture(scope="function")
-async def test_app_and_product():
+async def test_app():
     apigee_product = ApigeeApiProducts()
     await apigee_product.create_new_product()
     await apigee_product.update_proxies([config.SERVICE_NAME])
 
     apigee_app = ApigeeApiDeveloperApps()
-    # await apigee_app.create_new_app()
-
-    # await apigee_app.add_api_product(
-    #     api_products=[apigee_product.name]
-    # )
 
     await apigee_product.update_ratelimits(
         quota=60000,
@@ -85,7 +120,6 @@ async def test_app_and_product():
         quota_time_unit="minute",
         rate_limit="1000ps",
     )
-
 
     await apigee_app.setup_app(
         api_products=[apigee_product.name],
@@ -102,20 +136,17 @@ async def test_app_and_product():
         [f"urn:nhsd:apim:user-nhs-login:P9:{api_service_name}"]
     )
 
-    yield apigee_product, apigee_app
+    yield apigee_app
 
     await apigee_app.destroy_app()
-    await apigee_product.destroy_product()
 
 @pytest.mark.asyncio
 class TestBackChannelLogout:
     """ A test suite for back-channel logout functionality"""
 
     @pytest.mark.asyncio
-    async def test_back_channel_logout(self, test_app_and_product):
-        test_product, test_app = test_app_and_product
-        client_id = test_app.client_id
-        client_secret = test_app.client_secret
+    async def test_back_channel_logout(self, test_app):
+        test_app = test_app
 
         # Generate and sign subject access token
         subject_token = nhs_login_subject_token(test_app)
@@ -138,7 +169,6 @@ class TestBackChannelLogout:
         # Test access token
         assert token_resp["status_code"] == 200
 
-        print(token_resp)
         access_token = token_resp["body"]["access_token"]
 
         user_info_resp = await test_app.oauth.hit_oauth_endpoint(
@@ -147,11 +177,25 @@ class TestBackChannelLogout:
             headers={"Authorization": f"Bearer {access_token}"}
         )
 
-        print(user_info_resp)
-
         assert user_info_resp["status_code"] == 200
 
-        # Generate and sign logout token
-        # Submit logout token to back-channel logout endpoint
-        # Test access token has been revoked
+        # TO DO - Generate and sign logout token
+        logout_token = create_logout_token(test_app)
 
+        # Submit logout token to back-channel logout endpoint
+        back_channel_resp = await test_app.oauth.hit_oauth_endpoint(
+            method="POST",
+            endpoint="backchannel_logout",
+            data={"logout_token": logout_token}
+        )
+
+        assert back_channel_resp["status_code"] == 200
+
+        # Test access token has been revoked
+        user_info_resp = await test_app.oauth.hit_oauth_endpoint(
+            method="GET",
+            endpoint="userinfo",
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
+
+        assert user_info_resp["status_code"] == 401
