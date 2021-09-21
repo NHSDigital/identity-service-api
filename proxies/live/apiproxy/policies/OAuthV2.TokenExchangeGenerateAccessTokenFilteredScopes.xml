@@ -12,6 +12,7 @@
     </SupportedGrantTypes>
     <GrantType>request.formparam.grant_type</GrantType>
     <GenerateResponse enabled="false"/>
+    <ExternalAccessToken>request.formparam.subject_token</ExternalAccessToken>
     <Attributes>
         <Attribute name="id_token-subject" ref="jwt.VerifyJWT.SubjectToken.claim.subject" display="true"/>
         <Attribute name="id_token" display="true" ref="request.formparam.subject_token"/>

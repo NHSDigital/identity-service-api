@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PopulateCache async="false" continueOnError="false" enabled="true" name="PopulateCacheRevokedSessionID">
+    <DisplayName>PopulateCache.RevokedSessionID</DisplayName>
+    <Properties/>
+    <CacheKey>
+        <KeyFragment ref=""/>
+    </CacheKey>
+    <CacheResource>session-ids</CacheResource>
+    <Scope>Exclusive</Scope>
+    <ExpirySettings>
+        <TimeoutInSec>3600</TimeoutInSec>
+    </ExpirySettings>
+    <Source>session-ids</Source>
+</PopulateCache>

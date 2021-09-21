@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<AssignMessage continueOnError="false" enabled="true" name="AssignMessage.SetApimGuids">
+  <!-- This method of settings guids will have to be revisted -->
+  <!-- when/if a single proxy handles multiple specs. -->
+  <DisplayName>Set APIM Guids</DisplayName>
+  <AssignVariable>
+    <Name>apim.api_guid</Name>
+    <Value>d5a3f4fc-e61f-41f3-ab72-16aa5ef3ff2b</Value>
+  </AssignVariable>
+  <AssignVariable>
+    <Name>apim.api_spec_guid</Name>
+    <Value></Value>
+  </AssignVariable>
+</AssignMessage>

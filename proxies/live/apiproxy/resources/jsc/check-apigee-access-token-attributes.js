@@ -9,7 +9,7 @@ if(issuer === null || issuer === '' ) {
 } else if (issuer.includes('signin.nhs.uk') || issuer.includes('login.nhs.uk')) {
     idTokenIssuer = 'nhsLogin';
 } else {
-    InvalidIdTokenIssuer = true;
+    idTokenIssuer = 'nhsCis2';
 }
 
 context.setVariable('idTokenIssuer', idTokenIssuer);

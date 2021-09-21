@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PopulateCache async="false" continueOnError="false" enabled="true" name="PopulateCache.SessionID">
+    <CacheKey>
+        <!--<KeyFragment ref="jwt.VerifyJWT.SubjectToken.decoded.claim.sid ">08a5019c-17e1-4977-8f42-65a12843ea02</KeyFragment>-->
+        <KeyFragment ref="jwt.VerifyJWT.SubjectToken.decoded.claim.sid">08a5019c-17e1-4977-8f42-65a12843ea02</KeyFragment>
+    </CacheKey>
+    <CacheResource>session-ids</CacheResource>
+    <Scope>Global</Scope>
+    <ExpirySettings>
+        <TimeoutInSec>3600</TimeoutInSec>
+    </ExpirySettings>
+    <Source>apigee.access_token</Source>
+</PopulateCache>
