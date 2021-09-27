@@ -77,7 +77,7 @@ extends:
         service_base_path: oauth2-no-smartcard
         jinja_templates:
           IDENTITY_PROVIDER_CIS2: cis2-no-smartcard
-          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
+          IDENTITY_PROVIDER_NHS_LOGIN: identity-server-no-smartcard
           VARIABLES_KVM: identity_service_config_no_smartcard
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted-no-smartcard
           NUM_RANDOM_LONG_INTS_FOR_STATE: 4
