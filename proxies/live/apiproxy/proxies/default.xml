@@ -568,6 +568,10 @@
                 <Step>
                     <Name>DecodeJWT.LogoutToken</Name>
                 </Step>
+                <!--VerifyJWT-->
+                <Step>
+                    <Name>VerifyJWT.LogoutToken</Name>
+                </Step>
                 <Step>
                     <Name>LookupCache.SessionID</Name>
                 </Step>
