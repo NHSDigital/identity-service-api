@@ -581,6 +581,11 @@
                 <Step>
                     <Name>AccessControl.VerifyIP</Name>
                 </Step>
+                <!-- 
+                <Step>
+                    <Name>PopulateCache.RevokedSessionID</Name>
+                </Step>
+                -->
             </Request>
             <Response>
                 <Step>
