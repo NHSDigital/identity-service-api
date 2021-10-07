@@ -553,6 +553,38 @@
         </Response>
         <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.subject_token_type Equals "urn:ietf:params:oauth:token-type:id_token") and (apim.feature_toggles.enable-token-exchange = true))</Condition>
     </Flow>
+        <Flow name="Flow.BackChannelLogout">
+            <Description>OAuth Token Endpoint - Back Channel Logout</Description>
+            <Request>
+                <Step>
+                    <Name>ExtractVariables.LogoutToken</Name>
+                </Step>
+                <Step>
+                    <Name>DecodeJWT.LogoutToken</Name>
+                </Step>
+                <Step>
+                    <Name>VerifyJWT.LogoutToken</Name>
+                </Step>
+                <Step>
+                    <Name>AccessControl.VerifyIP</Name>
+                </Step>
+                <Step>
+                    <Name>LookupCache.SessionID</Name>
+                </Step>
+                <Step>
+                    <Name>OAuthV2.InvalidateSessionAccessToken</Name>
+                </Step>
+                <Step>
+                    <Name>PopulateCache.RevokedSessionID</Name>
+                </Step>
+            </Request>
+            <Response>
+                <Step>
+                    <Name>AssignMessage.BackchannelLogoutResponse</Name>
+                </Step>
+            </Response>
+            <Condition>((proxy.pathsuffix MatchesPath "/backchannel_logout") and (request.verb Equals "POST")</Condition>
+        </Flow>
         <Flow name="Flow.PostTokenAuthorizationCode">
             <Description>OAuth Token Endpoint - Authorization Code Flow</Description>
             <Request>
