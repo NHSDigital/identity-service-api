@@ -1,0 +1,15 @@
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.GatewayTimeout">
+  <FaultResponse>
+    <Set>
+      <Payload contentType="application/json">
+        {
+          "error" : "gateway_timeout",
+          "error_description" :"Gateway Timeout",
+          "message_id": "{messageid}"
+        }</Payload>
+      <StatusCode>504</StatusCode>
+      <ReasonPhrase>Gateway Timeout</ReasonPhrase>
+    </Set>
+  </FaultResponse>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</RaiseFault>

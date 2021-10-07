@@ -2,7 +2,7 @@
 <AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.BackchannelLogoutResponse">
     <DisplayName>AssignMessage.BackchannelLogoutResponse</DisplayName>
     <Set>
-        <Payload>did that for you boss</Payload>
+        <Payload>OK</Payload>
     </Set>
     <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
     <AssignTo createNew="false" transport="http" type="request"/>
