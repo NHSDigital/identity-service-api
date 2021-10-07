@@ -578,6 +578,9 @@
                 <Step>
                     <Name>OAuthV2.InvalidateSessionAccessToken</Name>
                 </Step>
+                <Step>
+                    <Name>AccessControl.VerifyIP</Name>
+                </Step>
             </Request>
             <Response>
                 <Step>
