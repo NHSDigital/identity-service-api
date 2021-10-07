@@ -560,7 +560,7 @@
             <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.subject_token_type Equals "urn:ietf:params:oauth:token-type:id_token") and (apim.feature_toggles.enable-token-exchange = true))</Condition>
         </Flow>
         <Flow name="Flow.BackChannelLogout">
-            <Description>OAuth Token Endpoint - Token-Exchange</Description>
+            <Description>OAuth Token Endpoint - Back Channel Logout</Description>
             <Request>
                 <Step>
                     <Name>ExtractVariables.LogoutToken</Name>
@@ -568,9 +568,11 @@
                 <Step>
                     <Name>DecodeJWT.LogoutToken</Name>
                 </Step>
-                <!--VerifyJWT-->
                 <Step>
                     <Name>VerifyJWT.LogoutToken</Name>
+                </Step>
+                <Step>
+                    <Name>AccessControl.VerifyIP</Name>
                 </Step>
                 <Step>
                     <Name>LookupCache.SessionID</Name>
@@ -579,13 +581,8 @@
                     <Name>OAuthV2.InvalidateSessionAccessToken</Name>
                 </Step>
                 <Step>
-                    <Name>AccessControl.VerifyIP</Name>
-                </Step>
-                <!-- 
-                <Step>
                     <Name>PopulateCache.RevokedSessionID</Name>
                 </Step>
-                -->
             </Request>
             <Response>
                 <Step>
