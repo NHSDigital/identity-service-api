@@ -4,7 +4,7 @@
       <Payload contentType="application/json">
         {
           "error" : "gateway_timeout",
-          "error_description" :"Gateway Timeout",
+          "error_description" :"The local logout successed but some downstream logouts have failed",
           "message_id": "{messageid}"
         }</Payload>
       <StatusCode>504</StatusCode>

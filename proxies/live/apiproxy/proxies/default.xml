@@ -572,7 +572,7 @@
                     <Name>LookupCache.SessionID</Name>
                 </Step>
                 <Step>
-                    <Name>RaiseFault.NotImplemented</Name>
+                    <Name>RaiseFault.SIDNotFound</Name>
                     <Condition>session.access_token = null</Condition>
                 </Step>
                 <Step>

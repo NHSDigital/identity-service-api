@@ -4,7 +4,7 @@
       <Payload contentType="application/json">
         {
           "error" : "bad_request",
-          "error_description" :"Bad Request",
+          "error_description" :"The logout request was invalid",
           "message_id": "{messageid}"
         }</Payload>
       <StatusCode>400</StatusCode>
