@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessageBackchannelLogoutResponse">
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.BackchannelLogoutResponse">
     <DisplayName>AssignMessage.BackchannelLogoutResponse</DisplayName>
     <Set>
         <Payload>did that for you boss</Payload>
