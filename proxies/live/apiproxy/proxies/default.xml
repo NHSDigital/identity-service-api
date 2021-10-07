@@ -581,7 +581,7 @@
             </Request>
             <Response>
                 <Step>
-                    <Name>AssignMessageBackchannelLogoutResponse</Name>
+                    <Name>AssignMessage.BackchannelLogoutResponse</Name>
                 </Step>
             </Response>
             <Condition>((proxy.pathsuffix MatchesPath "/backchannel_logout") and (request.verb Equals "POST")</Condition>
