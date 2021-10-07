@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<AccessControl async="false" continueOnError="false" enabled="true" name="AccessControl.VerifyIP">
+  <IPRules noRuleMatchAction = "DENY">
+    <MatchRule action = "ALLOW">
+      <SourceAddress mask="31">52.142.148.70</SourceAddress>
+      <SourceAddress mask="31">51.143.231.182</SourceAddress>
+      <SourceAddress mask="31">51.143.229.100</SourceAddress>
+      <SourceAddress mask="31">51.104.255.212</SourceAddress>
+      <SourceAddress mask="31">51.132.152.140</SourceAddress>
+      <SourceAddress mask="31">20.49.138.64</SourceAddress>
+     </MatchRule>
+  </IPRules>
+</AccessControl>
