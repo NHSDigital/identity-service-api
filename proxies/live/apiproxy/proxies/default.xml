@@ -572,6 +572,10 @@
                     <Name>LookupCache.SessionID</Name>
                 </Step>
                 <Step>
+                    <Name>RaiseFault.NotImplemented</Name>
+                    <Condition>session.access_token = null</Condition>
+                </Step>
+                <Step>
                     <Name>OAuthV2.InvalidateSessionAccessToken</Name>
                 </Step>
                 <Step>
