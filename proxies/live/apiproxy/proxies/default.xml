@@ -562,6 +562,14 @@
                 <Step>
                     <Name>DecodeJWT.LogoutToken</Name>
                 </Step>
+                <!-- new javascript ValidateLogoutTokenClaims bit here-->
+                <Step>
+                    <Name>Javascript.ValidateLogoutTokenClaims</Name>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.JWTClaimsInvalid</Name>
+                    <Condition>claims_validation.is_valid == false</Condition>
+                </Step>
                 <Step>
                     <Name>VerifyJWT.LogoutToken</Name>
                 </Step>

@@ -1,0 +1,77 @@
+var idp = context.getVariable("idp");
+var aud_claim = context.getVariable("jwt.DecodeJWT.LogoutToken.decoded.claim.aud");
+var iss_claim = context.getVariable("jwt.DecodeJWT.LogoutToken.decoded.claim.iss");
+var sub_claim = context.getVariable("jwt.DecodeJWT.LogoutToken.decoded.claim.sub");
+var sid_claim = context.getVariable("jwt.DecodeJWT.LogoutToken.decoded.claim.sid");
+var events_claim = context.getVariable("jwt.DecodeJWT.LogoutToken.decoded.claim.events");
+var nonce_claim = context.getVariable("jwt.DecodeJWT.LogoutToken.decoded.claim.nonce");
+
+if(idp == 'nhs-login'){
+    var client_id = context.getVariable("identity-service-config.nhs_login.client_id");
+    var base_url = context.getVariable("identity-service-config.nhs_login.issuer");
+}
+else{
+    var client_id = context.getVariable("identity-service-config.cis2.client_id");
+    var base_url = context.getVariable("identity-service-config.cis2.issuer");
+}
+
+
+aud_claim = JSON.parse(aud_claim);
+            
+function eventsCheck(str) {
+    try {
+        events_json = JSON.parse(str);
+    } catch (e) {
+        return false;
+    }
+    if(!events_json.events["http://schemas.openid.net/event/backchannel-logout"])
+	{
+		return false;		
+	}
+ 
+    return true;
+}
+
+if(aud_claim != client_id)
+    {
+	context.setVariable('claims_validation.error', "invalid_request")
+        context.setVariable('claims_validation.error_description', "Invalid aud claim in JWT")
+        context.setVariable('claims_validation.is_valid', false)
+    }
+    
+else if(iss_claim.toLowerCase() != base_url.toLowerCase())
+    {
+	context.setVariable('claims_validation.error', "invalid_request")
+	context.setVariable('claims_validation.error_description', "Invalid iss claim in JWT")
+	context.setVariable('claims_validation.is_valid', false)
+    }
+	
+//else if(sub) << check sub here 
+//    {
+//	context.setVariable('claims_validation.error', "invalid_request")
+//	context.setVariable('claims_validation.error_description', "Invalid sub claim in JWT")
+//	context.setVariable('claims_validation.is_valid', false)
+//    }
+	
+else if(sid_claim == null)
+    {
+	context.setVariable('claims_validation.error', "invalid_request")
+	context.setVariable('claims_validation.error_description', "Invalid sid claim in JWT")
+	context.setVariable('claims_validation.is_valid', false)
+    }
+
+else if(!eventsCheck(events_claim))
+    {
+	context.setVariable('claims_validation.error', "invalid_request")
+	context.setVariable('claims_validation.error_description', "Invalid events claim in JWT")
+	context.setVariable('claims_validation.is_valid', false)
+    }
+
+else if(nonce_claim != null)
+    {
+	context.setVariable('claims_validation.error', "invalid_request")
+	context.setVariable('claims_validation.error_description', "Invalid nonce claim in JWT")
+	context.setVariable('claims_validation.is_valid', false)
+    }
+
+
