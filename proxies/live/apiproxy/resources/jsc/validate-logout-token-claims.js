@@ -6,30 +6,26 @@ var sid_claim = context.getVariable("jwt.DecodeJWT.LogoutToken.decoded.claim.sid
 var events_claim = context.getVariable("jwt.DecodeJWT.LogoutToken.decoded.claim.events");
 var nonce_claim = context.getVariable("jwt.DecodeJWT.LogoutToken.decoded.claim.nonce");
 
-if(idp == 'nhs-login'){
-    var client_id = context.getVariable("identity-service-config.nhs_login.client_id");
-    var base_url = context.getVariable("identity-service-config.nhs_login.issuer");
-}
-else{
+if(idp == 'cis2'){
     var client_id = context.getVariable("identity-service-config.cis2.client_id");
     var base_url = context.getVariable("identity-service-config.cis2.issuer");
 }
+// Left here for future implementation for nhs_login
+//else{
+//    var client_id = context.getVariable("identity-service-config.nhs_login.client_id");
+//    var base_url = context.getVariable("identity-service-config.nhs_login.issuer");
+//}
 
 
 aud_claim = JSON.parse(aud_claim);
-            
+ 
 function eventsCheck(str) {
     try {
         events_json = JSON.parse(str);
+        return events_json.events.hasOwnProperty("http://schemas.openid.net/event/backchannel-logout");
     } catch (e) {
         return false;
     }
-    if(!events_json.events["http://schemas.openid.net/event/backchannel-logout"])
-	{
-		return false;		
-	}
- 
-    return true;
 }
 
 if(aud_claim != client_id)
