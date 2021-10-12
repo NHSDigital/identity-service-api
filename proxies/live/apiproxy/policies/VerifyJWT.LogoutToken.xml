@@ -10,4 +10,8 @@
     <PublicKey>
         <JWKS ref="jwks"/>
     </PublicKey>
+    <AdditionalClaims>
+        <Claim name='sid' ref='session.logout_token.sid'/>
+        <Claim name='events' ref='session.logout_token.events'/>
+    </AdditionalClaims>
 </VerifyJWT>
