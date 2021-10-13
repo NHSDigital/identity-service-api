@@ -42,14 +42,7 @@ else if(iss_claim.toLowerCase() != base_url.toLowerCase())
 	context.setVariable('claims_validation.is_valid', false)
     }
 	
-//else if(sub) << check sub here 
-//    {
-//	context.setVariable('claims_validation.error', "invalid_request")
-//	context.setVariable('claims_validation.error_description', "Invalid sub claim in JWT")
-//	context.setVariable('claims_validation.is_valid', false)
-//    }
-	
-else if(sid_claim == null)
+else if(sid_claim == null && sub_claim == null)
     {
 	context.setVariable('claims_validation.error', "invalid_request")
 	context.setVariable('claims_validation.error_description', "Invalid sid claim in JWT")
