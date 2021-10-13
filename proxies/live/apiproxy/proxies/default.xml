@@ -562,7 +562,6 @@
                 <Step>
                     <Name>DecodeJWT.LogoutToken</Name>
                 </Step>
-                <!-- new javascript ValidateLogoutTokenClaims bit here-->
                 <Step>
                     <Name>Javascript.ValidateLogoutTokenClaims</Name>
                 </Step>
@@ -570,6 +569,11 @@
                     <Name>RaiseFault.JWTClaimsInvalid</Name>
                     <Condition>claims_validation.is_valid == false</Condition>
                 </Step>
+               <Step>
+                    <Name>ServiceCallout.GetJWKS</Name>
+                    <Condition>(jwks = null Or jwks_kid_found = false)  and idp != "nhs-login"</Condition>
+                </Step>
+                <!-- ServiceCallout.GetJWKS condtion should use ipd == "nhs-login" for future work-->
                 <Step>
                     <Name>VerifyJWT.LogoutToken</Name>
                 </Step>
