@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PopulateCache async="false" continueOnError="false" enabled="true" name="PopulateCache.SessionId">
+    <CacheKey>
+        <KeyFragment ref="jwt.DecodeJWT.FromExternalIdToken.decoded.claim.sid" />
+    </CacheKey>
+    <CacheResource>session-ids</CacheResource>
+    <Scope>Global</Scope>
+    <ExpirySettings>
+        <TimeoutInSec ref="oauthv2accesstoken.OAuthV2.GenerateAccessToken.expires_in" />
+    </ExpirySettings>
+    <Source>apigee.access_token</Source>
+</PopulateCache>
