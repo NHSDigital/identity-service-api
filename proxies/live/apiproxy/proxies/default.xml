@@ -622,6 +622,10 @@
                 <Step>
                     <Name>OAuthV2.GenerateAccessToken</Name>
                 </Step>
+                <Step>
+                    <Name>PopulateCache.SessionId</Name>
+                    <Condition>accesstoken.auth_provider = "nhs-cis2"</Condition>
+                </Step>
             </Request>
             <Response>
                 <Step>
