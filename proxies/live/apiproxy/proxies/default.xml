@@ -557,6 +557,10 @@
             <Description>OAuth Token Endpoint - Back Channel Logout</Description>
             <Request>
                 <Step>
+                    <Name>AccessControl.VerifyIP</Name>
+                </Step>
+                <!-- I think AC policy raises 403 by default if the incoming IP matches one on the DENY list ( if we want to trigger a 401 RaiseFault.Unauthorized)-->
+                <Step>
                     <Name>ExtractVariables.LogoutToken</Name>
                 </Step>
                 <Step>
@@ -569,16 +573,21 @@
                     <Name>RaiseFault.JWTClaimsInvalid</Name>
                     <Condition>claims_validation.is_valid == false</Condition>
                 </Step>
-               <Step>
+                <Step>
                     <Name>ServiceCallout.GetJWKS</Name>
                     <Condition>(jwks = null Or jwks_kid_found = false)  and idp != "nhs-login"</Condition>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.LogoutFailed</Name>
+                    <Condition>jwks = null</Condition>
                 </Step>
                 <!-- ServiceCallout.GetJWKS condtion should use ipd == "nhs-login" for future work-->
                 <Step>
                     <Name>VerifyJWT.LogoutToken</Name>
                 </Step>
                 <Step>
-                    <Name>AccessControl.VerifyIP</Name>
+                    <Name>RaiseFault.BadRequest</Name> <!--does this need to be more specific to signify a fail?-->
+                    <Condition>jwt.VerifyJWT.LogoutToken.valid != true</Condition>
                 </Step>
                 <Step>
                     <Name>LookupCache.SessionID</Name>
@@ -591,8 +600,13 @@
                     <Name>OAuthV2.InvalidateSessionAccessToken</Name>
                 </Step>
                 <Step>
+                    <Name>RaiseFault.LogoutFailed</Name>
+                    <Condition>oauthV2.OAuthV2.InvalidateSessionAccessToken.failed = true</Condition>
+                </Step>
+                <Step>
                     <Name>PopulateCache.RevokedSessionID</Name>
                 </Step>
+                <!--TODO - RaiseFault if this fails? Investigate logging-->
             </Request>
             <Response>
                 <Step>
