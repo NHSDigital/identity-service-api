@@ -10,5 +10,5 @@
     <ExpirySettings>
         <TimeoutInSec>3600</TimeoutInSec>
     </ExpirySettings>
-    <Source>apigee.access_token</Source>
+    <Source>system.time</Source>
 </PopulateCache>

@@ -3,7 +3,7 @@
     <DisplayName>LookupCache.SessionID</DisplayName>
     <Properties/>
     <CacheKey>
-        <KeyFragment ref="jwt.DecodeJWT.LogoutToken.decoded.claim.sid "/>
+        <KeyFragment ref="jwt.DecodeJWT.LogoutToken.decoded.claim.sid"/>
     </CacheKey>
     <CacheResource>session-ids</CacheResource>
     <Scope>Global</Scope>
