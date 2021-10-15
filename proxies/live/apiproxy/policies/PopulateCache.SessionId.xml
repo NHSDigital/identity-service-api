@@ -8,5 +8,5 @@
     <ExpirySettings>
         <TimeoutInSec ref="identity-service-config.cis2.refresh_token_expiry_ms" />
     </ExpirySettings>
-    <Source>apigee.refresh_token</Source>
+    <Source>apigee.access_token</Source>
 </PopulateCache>
