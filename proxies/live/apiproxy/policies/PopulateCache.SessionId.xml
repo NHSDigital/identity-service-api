@@ -6,7 +6,7 @@
     <CacheResource>session-ids</CacheResource>
     <Scope>Global</Scope>
     <ExpirySettings>
-        <TimeoutInSec ref="oauthv2accesstoken.OAuthV2.GenerateAccessToken.expires_in" />
+        <TimeoutInSec ref="identity-service-config.cis2.refresh_token_expiry_ms" />
     </ExpirySettings>
-    <Source>apigee.access_token</Source>
+    <Source>apigee.refresh_token</Source>
 </PopulateCache>
