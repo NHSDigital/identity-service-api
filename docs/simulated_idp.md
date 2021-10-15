@@ -25,4 +25,3 @@ To complete configuation:
     * Set the `authorize_endpoint` to `https://<environment_hostname>/<proxy_base_path>/simulated_auth`
     * `client_id` can be set to anything
     * `jwks_path` and `access_token_path` are no longer used (can be removed)
-
