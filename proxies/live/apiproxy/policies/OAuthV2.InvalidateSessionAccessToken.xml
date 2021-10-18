@@ -4,6 +4,6 @@
     <ExternalAuthorization>false</ExternalAuthorization>
     <Operation>InvalidateToken</Operation>
     <Tokens>
-        <Token type="accesstoken" cascade="true">session.access_token</Token>
+        <Token type="refreshtoken" cascade="true">session.access_token</Token>
     </Tokens>
 </OAuthV2>
