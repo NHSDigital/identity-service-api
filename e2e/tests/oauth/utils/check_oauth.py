@@ -1,7 +1,8 @@
-from e2e.tests.oauth.utils.authenticator import Authenticator
 import requests
 import json
-from ..configuration import config
+import config
+
+from e2e.tests.oauth.utils.authenticator import Authenticator
 
 
 class CheckOauth:

@@ -1,5 +1,5 @@
+import config
 from urllib import parse
-from ..configuration import config
 
 
 class Authenticator:

@@ -1,4 +1,4 @@
-from ...scripts.environment import EnvVarWrapper
+from environment import EnvVarWrapper
 
 
 ENV = EnvVarWrapper(
