@@ -16,53 +16,53 @@ from e2e.scripts.config import (
     MOCK_IDP_BASE_URL
 )
 
-@pytest.fixture()
-def get_token(request):
-    """Get an access or refresh token
-    some examples:
-        1. access_token via simulated oauth (default)
-            get_token()
-        2. get access token with a specified timeout value (default is 5 seconds)
-            get_token(timeout=500000)  # 5 minuets
-        3. refresh_token via simulated oauth
-            get_token(grant_type="refresh_token", refresh_token=<refresh_token>)
-        4. access_token with JWT
-            get_token(grant_type='client_credentials', _jwt=jwt)
-        5. access_token using a specific app
-            get_token(app=<app>)
-    """
+# @pytest.fixture()
+# def get_token(request):
+#     """Get an access or refresh token
+#     some examples:
+#         1. access_token via simulated oauth (default)
+#             get_token()
+#         2. get access token with a specified timeout value (default is 5 seconds)
+#             get_token(timeout=500000)  # 5 minuets
+#         3. refresh_token via simulated oauth
+#             get_token(grant_type="refresh_token", refresh_token=<refresh_token>)
+#         4. access_token with JWT
+#             get_token(grant_type='client_credentials', _jwt=jwt)
+#         5. access_token using a specific app
+#             get_token(app=<app>)
+#     """
 
-    async def _token(
-        grant_type: str = "authorization_code",
-        test_app: ApigeeApiDeveloperApps = None,
-        **kwargs,
-    ):
-        if test_app:
-            # Use provided test app
-            oauth = OauthHelper(
-                test_app.client_id, test_app.client_secret, test_app.callback_url
-            )
-            resp = await oauth.get_token_response(grant_type=grant_type, **kwargs)
-        else:
-            # Use default test app
-            resp = await request.cls.oauth.get_token_response(
-                grant_type=grant_type, **kwargs
-            )
+#     async def _token(
+#         grant_type: str = "authorization_code",
+#         test_app: ApigeeApiDeveloperApps = None,
+#         **kwargs,
+#     ):
+#         if test_app:
+#             # Use provided test app
+#             oauth = OauthHelper(
+#                 test_app.client_id, test_app.client_secret, test_app.callback_url
+#             )
+#             resp = await oauth.get_token_response(grant_type=grant_type, **kwargs)
+#         else:
+#             # Use default test app
+#             resp = await request.cls.oauth.get_token_response(
+#                 grant_type=grant_type, **kwargs
+#             )
 
-        if resp["status_code"] != 200:
-            message = "unable to get token"
-            raise RuntimeError(
-                f"\n{'*' * len(message)}\n"
-                f"MESSAGE: {message}\n"
-                f"URL: {resp.get('url')}\n"
-                f"STATUS CODE: {resp.get('status_code')}\n"
-                f"RESPONSE: {resp.get('body')}\n"
-                f"HEADERS: {resp.get('headers')}\n"
-                f"{'*' * len(message)}\n"
-            )
-        return resp["body"]
+#         if resp["status_code"] != 200:
+#             message = "unable to get token"
+#             raise RuntimeError(
+#                 f"\n{'*' * len(message)}\n"
+#                 f"MESSAGE: {message}\n"
+#                 f"URL: {resp.get('url')}\n"
+#                 f"STATUS CODE: {resp.get('status_code')}\n"
+#                 f"RESPONSE: {resp.get('body')}\n"
+#                 f"HEADERS: {resp.get('headers')}\n"
+#                 f"{'*' * len(message)}\n"
+#             )
+#         return resp["body"]
 
-    return _token
+#     return _token
 
 
 @pytest.fixture()
