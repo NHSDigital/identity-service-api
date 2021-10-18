@@ -1,4 +1,4 @@
-import config
+import e2e.tests.oauth.utils.config as config
 from urllib import parse
 
 

@@ -1,4 +1,4 @@
-from environment import EnvVarWrapper
+from e2e.tests.oauth.utils.environment import EnvVarWrapper
 
 
 ENV = EnvVarWrapper(
@@ -25,15 +25,6 @@ SIM_AUTH_URL = f"{BASE_URL}/{IDENTITY_SERVICE}/simulated_auth"
 AUTHENTICATE_URL = ENV["authenticate_url"]
 CALLBACK_URL = f"{BASE_URL}/{IDENTITY_SERVICE}/callback"
 
-# PDS
-PDS_BASE_PATH = ENV["pds_base_path"]
-
-SPINE_HOSTNAME = (
-    # This value is the url returned in the patients response payload which reflects a spine environment.
-    # internal-qa environment points to spine int environment.
-    "https://veit07.api.service.nhs.uk" if ENVIRONMENT == "internal-dev" else "https://int.api.service.nhs.uk"
-)
-
 # App details
 CLIENT_ID = ENV["client_id"]
 CLIENT_SECRET = ENV["client_secret"]
@@ -47,5 +38,3 @@ ENDPOINTS = {
     "callback": CALLBACK_URL,
     "sim_auth": SIM_AUTH_URL,
 }
-
-TEST_PATIENT_ID = ENV["test_patient_id"]

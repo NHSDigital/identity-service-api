@@ -1,6 +1,6 @@
 import requests
 import json
-import config
+import e2e.tests.oauth.utils.config as config
 
 from e2e.tests.oauth.utils.authenticator import Authenticator
 

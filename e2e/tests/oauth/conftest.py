@@ -1,8 +1,10 @@
 import pytest
-from .utils.check_oauth import CheckOauth
 import uuid
 import random
-from ..scripts import config
+from e2e.tests.oauth.utils.check_oauth import CheckOauth
+
+
+ROLE_ID = "555254242102"
 
 
 @pytest.fixture()
@@ -11,7 +13,7 @@ def headers_with_token(get_token, request):
     token = get_token
     headers = {"X-Request-ID": str(uuid.uuid1()),
                "X-Correlation-ID": str(uuid.uuid1()),
-               "NHSD-Session-URID": config.ROLE_ID,
+               "NHSD-Session-URID": ROLE_ID,
                "Authorization": f'Bearer {token}'
                }
     setattr(request.cls, 'headers', headers)
@@ -22,7 +24,7 @@ def headers():
     """Assign required headers without the Authorization header"""
     headers = {"X-Request-ID": str(uuid.uuid1()),
                "X-Correlation-ID": str(uuid.uuid1()),
-               "NHSD-Session-URID": config.ROLE_ID
+               "NHSD-Session-URID": ROLE_ID
                }
     return headers
 
