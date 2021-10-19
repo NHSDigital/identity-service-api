@@ -17,12 +17,12 @@ if (idp !== 'nhs-login') {
 //    var base_url = context.getVariable("identity-service-config.nhs_login.issuer");
 //}
 
-aud_claim = JSON.parse(aud_claim);
+aud_claim = JSON.parse(aud_claim)[0];
  
 function eventsCheck(str) {
     try {
         events_json = JSON.parse(str);
-        return events_json.events.hasOwnProperty("http://schemas.openid.net/event/backchannel-logout");
+        return events_json.hasOwnProperty("http://schemas.openid.net/event/backchannel-logout");
     } catch (e) {
         return false;
     }
