@@ -3,7 +3,7 @@ import aiohttp
 import os
 import pytest
 from time import time
-from typing import Dict
+from typing import Dict, Optional
 from uuid import uuid4
 from api_test_utils.oauth_helper import OauthHelper
 from api_test_utils.apigee_api_trace import ApigeeApiTraceDebug
@@ -22,7 +22,7 @@ def get_env(variable_name: str) -> str:
         raise RuntimeError(f"Variable is not set, Check {variable_name}.")
 
 
-def create_logout_token(test_app: ApigeeApiDeveloperApps) -> Dict[str, str]:
+def create_logout_token(test_app: ApigeeApiDeveloperApps, override_claims: Optional[Dict[str, str]] = None) -> Dict[str, str]:
     logout_token_claims = {
         "aud": "9999999999",
         "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",  # Points to internal dev -> testing JWKS
@@ -32,7 +32,9 @@ def create_logout_token(test_app: ApigeeApiDeveloperApps) -> Dict[str, str]:
         "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
         "events": { "http://schemas.openid.net/event/backchannel-logout": {} }
     }
-
+    if override_claims is not None:
+        logout_token_claims = override_claims
+    
     logout_token_headers = {
         "kid": "identity-service-tests-1",
         "typ": "JWT",
@@ -143,3 +145,68 @@ class TestBackChannelLogout:
 
         assert user_info_resp["status_code"] == 401
 
+    #Request sends a JWT has one or more missing or invalid claims of the following problems, returns a 400
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("claims,status_code", [
+        ({
+        "aud": "9999999999",
+        "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",  # Points to internal dev -> testing JWKS
+        "sub": "9999999999",
+        "iat": int(time()) - 10,
+        "jti": str(uuid4()),
+        "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
+        "events": { "http://schemas.openid.net/event/backchannel-logout": {} }
+    }, 200)
+    ])
+    async def test_claims(self, test_app, claims, status_code):
+        token_resp = await self.oauth.hit_oauth_endpoint(
+            method="POST",
+            endpoint="token",
+            data={
+                'client_id': self.oauth.client_id,
+                'client_secret': self.oauth.client_secret,
+                'grant_type': "authorization_code",
+                'redirect_uri': self.oauth.redirect_uri,
+                'code': await self.oauth.get_authenticated_with_simulated_auth(),
+                '_access_token_expiry_ms': 5000
+            }
+        )
+        #<----
+        # Test access token
+        assert token_resp["status_code"] == 200
+
+        access_token = token_resp["body"]["access_token"]
+
+        user_info_resp = await test_app.oauth.hit_oauth_endpoint(
+            method="GET",
+            endpoint="userinfo",
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
+
+        assert user_info_resp["status_code"] == 200
+
+        # TO DO - Generate and sign logout token
+        logout_token = create_logout_token(test_app, claims)
+
+        # Submit logout token to back-channel logout endpoint
+        back_channel_resp = await test_app.oauth.hit_oauth_endpoint(
+            method="POST",
+            endpoint="backchannel_logout",
+            data={"logout_token": logout_token}
+        )
+
+        assert back_channel_resp["status_code"] == status_code
+
+    @pytest.mark.asyncio
+    async def test_invalid_claims(self, test_app):
+        pass
+
+    #Request sends JWT that cannot be verified (Unable to decode using RS256 or RS512) returns a  400
+    @pytest.mark.asyncio
+    async def test_invalid_jwt(self, test_app):
+        pass
+
+    #Requests sends an access token that does not exist in the session-id cache returns a 501
+    @pytest.mark.asyncio
+    async def test_missing_sid(self, test_app):
+        pass 
