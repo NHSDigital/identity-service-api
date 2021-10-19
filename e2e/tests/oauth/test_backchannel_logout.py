@@ -24,9 +24,9 @@ def get_env(variable_name: str) -> str:
 
 def create_logout_token(test_app: ApigeeApiDeveloperApps) -> Dict[str, str]:
     logout_token_claims = {
-        "aud": "some-client-id",
-        "iss": "https://internal-dev.api.service.nhs.uk",  # Points to internal dev -> testing JWKS
-        "sub": "https://internal-dev.api.service.nhs.uk",
+        "aud": "9999999999",
+        "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",  # Points to internal dev -> testing JWKS
+        "sub": "9999999999",
         "iat": int(time()) - 10,
         "jti": str(uuid4()),
         "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
@@ -40,9 +40,9 @@ def create_logout_token(test_app: ApigeeApiDeveloperApps) -> Dict[str, str]:
     }
     
     # private key we retrieved from earlier
-    nhs_login_id_token_private_key_path = get_env("ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH")
+    id_token_private_key_path = get_env("ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH")
 
-    with open(nhs_login_id_token_private_key_path, "r") as f:
+    with open(id_token_private_key_path, "r") as f:
         contents = f.read()
 
     logout_token_jwt = test_app.oauth.create_id_token_jwt(

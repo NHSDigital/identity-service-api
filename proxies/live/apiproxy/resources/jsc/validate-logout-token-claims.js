@@ -28,15 +28,16 @@ function eventsCheck(str) {
     }
 }
 
-if (aud_claim !== client_id) {
+// Change hardcoded aud and iss when we play APM-2524
+if (aud_claim !== "9999999999") {
     context.setVariable('claims_validation.error', "invalid_request")
     context.setVariable('claims_validation.error_description', "Invalid aud claim in JWT")
     context.setVariable('claims_validation.is_valid', false)
-} else if (iss_claim.toLowerCase() !== base_url.toLowerCase()) {
+} else if (iss_claim.toLowerCase() !== "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc") {
 	context.setVariable('claims_validation.error', "invalid_request")
 	context.setVariable('claims_validation.error_description', "Invalid iss claim in JWT")
 	context.setVariable('claims_validation.is_valid', false)
-} else if (sid_claim === null && sub_claim === null) {
+} else if (sid_claim === null) {
 	context.setVariable('claims_validation.error', "invalid_request")
 	context.setVariable('claims_validation.error_description', "Invalid sid claim in JWT")
 	context.setVariable('claims_validation.is_valid', false)
