@@ -7,7 +7,7 @@ var sid_claim = context.getVariable("jwt.DecodeJWT.LogoutToken.decoded.claim.sid
 var events_claim = context.getVariable("jwt.DecodeJWT.LogoutToken.decoded.claim.events");
 var nonce_claim = context.getVariable("jwt.DecodeJWT.LogoutToken.decoded.claim.nonce");
 
-if(idp === 'cis2'){
+if (idp !== 'nhs-login') {
     var client_id = context.getVariable("identity-service-config.cis2.client_id");
     var base_url = context.getVariable("identity-service-config.cis2.issuer");
 }
