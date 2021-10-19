@@ -34,7 +34,7 @@ def create_logout_token(test_app: ApigeeApiDeveloperApps) -> Dict[str, str]:
     }
 
     logout_token_headers = {
-        "kid": "nhs-login",
+        "kid": "identity-service-tests-1",
         "typ": "JWT",
         "alg": "RS512",
     }
