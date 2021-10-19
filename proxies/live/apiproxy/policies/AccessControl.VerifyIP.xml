@@ -2,6 +2,7 @@
 <AccessControl async="false" continueOnError="false" enabled="true" name="AccessControl.VerifyIP">
   <IPRules noRuleMatchAction = "DENY">
     <MatchRule action = "ALLOW">
+      <!-- DO NOT MERGE WITHOUT TEMPLATING FOR MULTIPLE SOURCES OR PROD WILL FAIL -->
       <SourceAddress mask="31">52.142.148.70</SourceAddress>
       <SourceAddress mask="31">51.143.231.182</SourceAddress>
       <SourceAddress mask="31">51.143.229.100</SourceAddress>
