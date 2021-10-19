@@ -557,6 +557,9 @@
             <Description>OAuth Token Endpoint - Back Channel Logout</Description>
             <Request>
                 <Step>
+                    <Name>JavaScript.SetAllowedIPs</Name>
+                </Step>
+                <Step>
                     <Name>AccessControl.VerifyIP</Name>
                 </Step>
                 <!-- I think AC policy raises 403 by default if the incoming IP matches one on the DENY list ( if we want to trigger a 401 RaiseFault.Unauthorized)-->
