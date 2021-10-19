@@ -574,7 +574,7 @@
                 </Step>
                 <Step>
                     <Name>RaiseFault.JWTClaimsInvalid</Name>
-                    <Condition>claims_validation.is_valid == false</Condition>
+                    <Condition>claims_validation.is_valid = false</Condition>
                 </Step>
                 <Step>
                     <Name>ServiceCallout.GetJWKS</Name>
