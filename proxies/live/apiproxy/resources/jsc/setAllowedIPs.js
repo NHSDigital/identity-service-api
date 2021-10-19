@@ -1,4 +1,4 @@
-const allowedIPList = context.getVariable('identity-service-config.cis2.backchannel_allowed_ips');
+const allowedIPList = JSON.parse(context.getVariable('identity-service-config.cis2.backchannel_allowed_ips'));
 
 context.setVariable('allowed_ip_1.address', allowedIPList[0].address);
 context.setVariable('allowed_ip_1.mask', allowedIPList[0].mask);
