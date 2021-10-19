@@ -22,65 +22,14 @@ def get_env(variable_name: str) -> str:
         raise RuntimeError(f"Variable is not set, Check {variable_name}.")
 
 
-def nhs_login_subject_token(test_app: ApigeeApiDeveloperApps) -> Dict[str, str]:
-    id_token_claims = {
-        "aud": "tf_-APIM-1",
-        "id_status": "verified",
-        "token_use": "id",
-        "auth_time": 1616600683,
-        "iss": "https://internal-dev.api.service.nhs.uk",  # Points to internal dev -> testing JWKS
-        "sub": "https://internal-dev.api.service.nhs.uk",
-        "exp": int(time()) + 300,
-        "iat": int(time()) - 10,
-        "vtm": "https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk",
-        "jti": str(uuid4()),
-        "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
-        "identity_proofing_level": "P9",
-        'vot': 'P9.Cp.Cd'
-    }
-
-    id_token_headers = {
-        "kid": "nhs-login",
-        "typ": "JWT",
-        "alg": "RS512",
-    }
-    
-    # private key we retrieved from earlier
-    nhs_login_id_token_private_key_path = get_env("ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH")
-
-    with open(nhs_login_id_token_private_key_path, "r") as f:
-        contents = f.read()
-
-    id_token_jwt = test_app.oauth.create_id_token_jwt(
-        algorithm="RS512",
-        claims=id_token_claims,
-        headers=id_token_headers,
-        signing_key=contents,
-    )
-
-    subject_token = {
-        "id_token_jwt": id_token_jwt,
-        "sid": "08a5019c-17e1-4977-8f42-65a12843ea02"
-    }
-
-    return subject_token
-
-
 def create_logout_token(test_app: ApigeeApiDeveloperApps) -> Dict[str, str]:
     logout_token_claims = {
-        "aud": "tf_-APIM-1",
-        "id_status": "verified",
-        "token_use": "id",
-        "auth_time": 1616600683,
+        "aud": "some-client-id",
         "iss": "https://internal-dev.api.service.nhs.uk",  # Points to internal dev -> testing JWKS
         "sub": "https://internal-dev.api.service.nhs.uk",
-        "exp": int(time()) + 300,
         "iat": int(time()) - 10,
-        "vtm": "https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk",
         "jti": str(uuid4()),
         "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
-        "identity_proofing_level": "P9",
-        'vot': 'P9.Cp.Cd',
         "events": { "http://schemas.openid.net/event/backchannel-logout": {} }
     }
 
@@ -141,37 +90,12 @@ async def test_app():
     await apigee_app.destroy_app()
 
 
-# async def test_access_token_with_params(self):
-#     resp = await self.oauth.hit_oauth_endpoint(
-#         method="POST",
-#         endpoint="token",
-#         params={
-#             'client_id': self.oauth.client_id,
-#             'client_secret': self.oauth.client_secret,
-#             'grant_type': "authorization_code",
-#             'redirect_uri': self.oauth.redirect_uri,
-#             'code': await self.oauth.get_authenticated_with_simulated_auth(),
-#             '_access_token_expiry_ms': 5000
-#         }
-#     )
-
-#     assert resp['status_code'] == 400
-#     assert resp['body'] == {
-#         "error": "invalid_request",
-#         "error_description": "grant_type is missing"
-#     }
-
 @pytest.mark.asyncio
 class TestBackChannelLogout:
     """ A test suite for back-channel logout functionality"""
 
     @pytest.mark.asyncio
     async def test_backchannel_logout_happy_path(self, test_app):
-        # Generate and sign subject access token
-        #subject_token = nhs_login_subject_token(test_app) # needs implementing 
-
-        # Create client assertion JWT
-        #client_assertion_jwt = test_app.oauth.create_jwt(kid="test-1")
         token_resp = await self.oauth.hit_oauth_endpoint(
             method="POST",
             endpoint="token",
