@@ -1,5 +1,3 @@
-import asyncio
-import aiohttp
 import os
 import pytest
 from time import time
@@ -23,15 +21,17 @@ def get_env(variable_name: str) -> str:
 
 
 def create_logout_token(test_app: ApigeeApiDeveloperApps, override_claims: Optional[Dict[str, str]] = None) -> Dict[str, str]:
+    """Creates logout token. To be replaced with Mock OIDC"""
     logout_token_claims = {
         "aud": "9999999999",
-        "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",  # Points to internal dev -> testing JWKS
+        "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",
         "sub": "9999999999",
         "iat": int(time()) - 10,
         "jti": str(uuid4()),
         "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
         "events": { "http://schemas.openid.net/event/backchannel-logout": {} }
     }
+
     if override_claims is not None:
         logout_token_claims = override_claims
     
@@ -41,7 +41,6 @@ def create_logout_token(test_app: ApigeeApiDeveloperApps, override_claims: Optio
         "alg": "RS512",
     }
     
-    # private key we retrieved from earlier
     id_token_private_key_path = get_env("ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH")
 
     with open(id_token_private_key_path, "r") as f:
@@ -59,6 +58,7 @@ def create_logout_token(test_app: ApigeeApiDeveloperApps, override_claims: Optio
 
 @pytest.fixture(scope="function")
 async def test_app():
+    """Programmitcally create and destroy test app for each test"""
     apigee_product = ApigeeApiProducts()
     await apigee_product.create_new_product()
     await apigee_product.update_proxies([config.SERVICE_NAME])
@@ -75,7 +75,7 @@ async def test_app():
     await apigee_app.setup_app(
         api_products=[apigee_product.name],
         custom_attributes={
-            "jwks-resource-url": "https://raw.githubusercontent.com/NHSDigital/identity-service-jwks/main/jwks/internal-dev/9baed6f4-1361-4a8e-8531-1f8426e3aba8.json" # noqa
+            "jwks-resource-url": "https://raw.githubusercontent.com/NHSDigital/identity-service-jwks/main/jwks/internal-dev/9baed6f4-1361-4a8e-8531-1f8426e3aba8.json"
         },
     )
 
@@ -95,9 +95,7 @@ async def test_app():
 @pytest.mark.asyncio
 class TestBackChannelLogout:
     """ A test suite for back-channel logout functionality"""
-
-    @pytest.mark.asyncio
-    async def test_backchannel_logout_happy_path(self, test_app):
+    async def get_access_token(self):
         token_resp = await self.oauth.hit_oauth_endpoint(
             method="POST",
             endpoint="token",
@@ -110,24 +108,28 @@ class TestBackChannelLogout:
                 '_access_token_expiry_ms': 5000
             }
         )
-        #<----
-        # Test access token
-        assert token_resp["status_code"] == 200
 
-        access_token = token_resp["body"]["access_token"]
-
-        user_info_resp = await test_app.oauth.hit_oauth_endpoint(
+        return token_resp["body"]["access_token"]
+    
+    async def call_user_info(self, app, access_token):
+        user_info_resp = await app.oauth.hit_oauth_endpoint(
             method="GET",
             endpoint="userinfo",
             headers={"Authorization": f"Bearer {access_token}"}
         )
 
-        assert user_info_resp["status_code"] == 200
+        return user_info_resp["status_code"]
 
-        # TO DO - Generate and sign logout token
+    @pytest.mark.asyncio
+    async def test_backchannel_logout_happy_path(self, test_app):
+        access_token = await self.get_access_token()
+
+        # Test token can be used to access identity service
+        assert await self.call_user_info(test_app, access_token) == 200
+
+        # Mock back channel logout notification and test succesful logout response
         logout_token = create_logout_token(test_app)
 
-        # Submit logout token to back-channel logout endpoint
         back_channel_resp = await test_app.oauth.hit_oauth_endpoint(
             method="POST",
             endpoint="backchannel_logout",
@@ -148,44 +150,26 @@ class TestBackChannelLogout:
     #Request sends a JWT has one or more missing or invalid claims of the following problems, returns a 400
     @pytest.mark.asyncio
     @pytest.mark.parametrize("claims,status_code", [
-        ({
-        "aud": "9999999999",
-        "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",  # Points to internal dev -> testing JWKS
-        "sub": "9999999999",
-        "iat": int(time()) - 10,
-        "jti": str(uuid4()),
-        "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
-        "events": { "http://schemas.openid.net/event/backchannel-logout": {} }
-    }, 200)
+        ( # Successful aud claim
+            {
+                "aud": "9999999999",
+                "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",
+                "sub": "9999999999",
+                "iat": int(time()) - 10,
+                "jti": str(uuid4()),
+                "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
+                "events": { "http://schemas.openid.net/event/backchannel-logout": {} }
+            },
+            200
+        )
     ])
     async def test_claims(self, test_app, claims, status_code):
-        token_resp = await self.oauth.hit_oauth_endpoint(
-            method="POST",
-            endpoint="token",
-            data={
-                'client_id': self.oauth.client_id,
-                'client_secret': self.oauth.client_secret,
-                'grant_type': "authorization_code",
-                'redirect_uri': self.oauth.redirect_uri,
-                'code': await self.oauth.get_authenticated_with_simulated_auth(),
-                '_access_token_expiry_ms': 5000
-            }
-        )
-        #<----
-        # Test access token
-        assert token_resp["status_code"] == 200
+        access_token = await self.get_access_token()
 
-        access_token = token_resp["body"]["access_token"]
+        # Test token can be used to access identity service
+        assert await self.call_user_info(test_app, access_token) == 200
 
-        user_info_resp = await test_app.oauth.hit_oauth_endpoint(
-            method="GET",
-            endpoint="userinfo",
-            headers={"Authorization": f"Bearer {access_token}"}
-        )
-
-        assert user_info_resp["status_code"] == 200
-
-        # TO DO - Generate and sign logout token
+        # Mock back channel logout notification with overridden claims
         logout_token = create_logout_token(test_app, claims)
 
         # Submit logout token to back-channel logout endpoint
@@ -209,4 +193,4 @@ class TestBackChannelLogout:
     #Requests sends an access token that does not exist in the session-id cache returns a 501
     @pytest.mark.asyncio
     async def test_missing_sid(self, test_app):
-        pass 
+        pass
