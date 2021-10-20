@@ -120,6 +120,7 @@ class TestBackChannelLogout:
 
         return user_info_resp["status_code"]
 
+    @pytest.mark.skip
     @pytest.mark.asyncio
     async def test_backchannel_logout_happy_path(self, test_app):
         access_token = await self.get_access_token()
@@ -149,10 +150,10 @@ class TestBackChannelLogout:
 
     #Request sends a JWT has one or more missing or invalid claims of the following problems, returns a 400
     @pytest.mark.asyncio
-    @pytest.mark.parametrize("claims,status_code", [
-        ( # Successful aud claim
+    @pytest.mark.parametrize("claims,status_code,error_message", [
+        ( # invalid aud claim
             {
-                "aud": "9999999999",
+                "aud": "invalid_aud_claim",
                 "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",
                 "sub": "9999999999",
                 "iat": int(time()) - 10,
@@ -160,10 +161,23 @@ class TestBackChannelLogout:
                 "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
                 "events": { "http://schemas.openid.net/event/backchannel-logout": {} }
             },
-            200
+            400,
+            "Invalid aud claim in JWT"
+        ),
+        ( # missing aud claim
+            {
+                "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",
+                "sub": "9999999999",
+                "iat": int(time()) - 10,
+                "jti": str(uuid4()),
+                "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
+                "events": { "http://schemas.openid.net/event/backchannel-logout": {} }
+            },
+            400,
+            "Invalid aud claim in JWT"
         )
     ])
-    async def test_claims(self, test_app, claims, status_code):
+    async def test_claims(self, test_app, claims, status_code, error_message):
         access_token = await self.get_access_token()
 
         # Test token can be used to access identity service
@@ -178,19 +192,18 @@ class TestBackChannelLogout:
             endpoint="backchannel_logout",
             data={"logout_token": logout_token}
         )
-
+        print(back_channel_resp)
         assert back_channel_resp["status_code"] == status_code
-
-    @pytest.mark.asyncio
-    async def test_invalid_claims(self, test_app):
-        pass
+        assert back_channel_resp["body"]["error_description"] == error_message
 
     #Request sends JWT that cannot be verified (Unable to decode using RS256 or RS512) returns a  400
+    @pytest.mark.skip
     @pytest.mark.asyncio
     async def test_invalid_jwt(self, test_app):
         pass
 
     #Requests sends an access token that does not exist in the session-id cache returns a 501
+    @pytest.mark.skip
     @pytest.mark.asyncio
     async def test_missing_sid(self, test_app):
         pass

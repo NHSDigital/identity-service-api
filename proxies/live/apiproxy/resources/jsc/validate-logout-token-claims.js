@@ -17,8 +17,10 @@ if (idp !== 'nhs-login') {
 //    var base_url = context.getVariable("identity-service-config.nhs_login.issuer");
 //}
 
-aud_claim = JSON.parse(aud_claim)[0];
- 
+if (aud_claim !== null) {
+	aud_claim = JSON.parse(aud_claim)[0];
+}
+	
 function eventsCheck(str) {
     try {
         events_json = JSON.parse(str);
