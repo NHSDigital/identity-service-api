@@ -175,6 +175,82 @@ class TestBackChannelLogout:
             },
             400,
             "Invalid aud claim in JWT"
+        ),
+        ( # invalid iss claim
+            {
+                "aud": "9999999999",
+                "iss": "invalid_iss_claim",
+                "sub": "9999999999",
+                "iat": int(time()) - 10,
+                "jti": str(uuid4()),
+                "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
+                "events": { "http://schemas.openid.net/event/backchannel-logout": {} }
+            },
+            400,
+            "Invalid iss claim in JWT"
+        ),
+        ( # missing iss claim
+            {
+                "aud": "9999999999",
+                "sub": "9999999999",
+                "iat": int(time()) - 10,
+                "jti": str(uuid4()),
+                "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
+                "events": { "http://schemas.openid.net/event/backchannel-logout": {} }
+            },
+            400,
+            "Invalid iss claim in JWT"
+        ),
+        ( # missing sid claim
+            {
+                "aud": "9999999999",
+                "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",
+                "sub": "9999999999",
+                "iat": int(time()) - 10,
+                "jti": str(uuid4()),
+                "events": { "http://schemas.openid.net/event/backchannel-logout": {} }
+            },
+            400,
+            "Invalid sid claim in JWT"
+        ),
+        ( # invalid events claim
+            {
+                "aud": "9999999999",
+                "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",
+                "sub": "9999999999",
+                "iat": int(time()) - 10,
+                "jti": str(uuid4()),
+                "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
+                "events": { "invalid_event_url": {} }
+            },
+            400,
+            "Invalid events claim in JWT"
+        ),
+        ( # missing events claim
+            {
+                "aud": "9999999999",
+                "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",
+                "sub": "9999999999",
+                "iat": int(time()) - 10,
+                "jti": str(uuid4()),
+                "sid": "08a5019c-17e1-4977-8f42-65a12843ea02"
+            },
+            400,
+            "Invalid events claim in JWT"
+        ),
+        ( # present nonce claim
+            {
+                "aud": "9999999999",
+                "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",
+                "sub": "9999999999",
+                "iat": int(time()) - 10,
+                "jti": str(uuid4()),
+                "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
+                "events": { "invalid_event_url": {} },
+                "nonce":"valid_nonce"
+            },
+            400,
+            "Prohibited nonce claim in JWT"
         )
     ])
     async def test_claims(self, test_app, claims, status_code, error_message):

@@ -16,10 +16,6 @@ if (idp !== 'nhs-login') {
 //    var client_id = context.getVariable("identity-service-config.nhs_login.client_id");
 //    var base_url = context.getVariable("identity-service-config.nhs_login.issuer");
 //}
-
-if (aud_claim !== null) {
-	aud_claim = JSON.parse(aud_claim)[0];
-}
 	
 function eventsCheck(str) {
     try {
@@ -30,12 +26,20 @@ function eventsCheck(str) {
     }
 }
 
+if (aud_claim !== null) {
+	aud_claim = JSON.parse(aud_claim)[0];
+}
+
+if (iss_claim) {
+	iss_claim = iss_claim.toLowerCase();
+}
+
 // Change hardcoded aud and iss when we play APM-2524
 if (aud_claim !== "9999999999") {
     context.setVariable('claims_validation.error', "invalid_request")
     context.setVariable('claims_validation.error_description', "Invalid aud claim in JWT")
     context.setVariable('claims_validation.is_valid', false)
-} else if (iss_claim.toLowerCase() !== "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc") {
+} else if (iss_claim !== "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc") {
 	context.setVariable('claims_validation.error', "invalid_request")
 	context.setVariable('claims_validation.error_description', "Invalid iss claim in JWT")
 	context.setVariable('claims_validation.is_valid', false)
@@ -49,7 +53,7 @@ if (aud_claim !== "9999999999") {
 	context.setVariable('claims_validation.is_valid', false)
 } else if (nonce_claim !== null) {
 	context.setVariable('claims_validation.error', "invalid_request")
-	context.setVariable('claims_validation.error_description', "Invalid nonce claim in JWT")
+	context.setVariable('claims_validation.error_description', "Prohibited nonce claim in JWT")
 	context.setVariable('claims_validation.is_valid', false)
 }
 
