@@ -23,10 +23,10 @@ test:
 
 e2e:
 	rm -f ../reports/e2e.xml  > /dev/null || true
-	$(activate) coverage run --source ./ --module pytest --reruns 10  -rxs -v --junit-xml=../reports/e2e.xml --ignore .venv || true
+	$(activate) python -m coverage run --source ./ --module pytest --reruns 10  -rxs -v --junit-xml=../reports/e2e.xml --ignore .venv || true
 	@if [[ ! -f ../reports/e2e.xml ]]; then echo report not created; exit 1; fi
 
 smoketest:
 	rm -f ../reports/smoketest.xml  > /dev/null || true
-	$(activate) coverage run --source ./ --module pytest -m smoketest -rxs -v --junit-xml=../reports/smoketest.xml --ignore .venv || true
+	$(activate) python -m coverage run --source ./ --module pytest -m smoketest -rxs -v --junit-xml=../reports/smoketest.xml --ignore .venv || true
 	@if [[ ! -f ../reports/smoketest.xml ]]; then echo report not created; exit 1; fi
