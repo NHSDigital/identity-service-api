@@ -20,7 +20,11 @@ def get_env(variable_name: str) -> str:
         raise RuntimeError(f"Variable is not set, Check {variable_name}.")
 
 
-def create_logout_token(test_app: ApigeeApiDeveloperApps, override_claims: Optional[Dict[str, str]] = None, override_kid: Optional[str] = None) -> Dict[str, str]:
+def create_logout_token(
+    test_app: ApigeeApiDeveloperApps,
+    override_claims: Optional[Dict[str, str]] = None,
+    override_kid: Optional[str] = None,
+    ) -> Dict[str, str]:
     """Creates logout token. To be replaced with Mock OIDC"""
     logout_token_claims = {
         "aud": "9999999999",
@@ -150,7 +154,7 @@ class TestBackChannelLogout:
 
         assert user_info_resp["status_code"] == 401
 
-    #Request sends a JWT has one or more missing or invalid claims of the following problems, returns a 400
+    #Request sends a JWT has missing or invalid claims of the following problems, returns a 400
     @pytest.mark.asyncio
     @pytest.mark.parametrize("claims,status_code,error_message", [
         ( # invalid aud claim
@@ -262,7 +266,7 @@ class TestBackChannelLogout:
         assert await self.call_user_info(test_app, access_token) == 200
 
         # Mock back channel logout notification with overridden claims
-        logout_token = create_logout_token(test_app, claims)
+        logout_token = create_logout_token(test_app, override_claims=claims)
 
         # Submit logout token to back-channel logout endpoint
         back_channel_resp = await test_app.oauth.hit_oauth_endpoint(
@@ -274,7 +278,7 @@ class TestBackChannelLogout:
         assert back_channel_resp["status_code"] == status_code
         assert back_channel_resp["body"]["error_description"] == error_message
 
-    #Request sends JWT that cannot be verified (Unable to decode using RS256 or RS512) returns a  400
+    #Request sends JWT that cannot be verified returns a  400
     @pytest.mark.asyncio
     async def test_invalid_jwt(self, test_app):
         access_token = await self.get_access_token()
@@ -293,8 +297,36 @@ class TestBackChannelLogout:
 
         assert back_channel_resp["status_code"] == 400
 
-    #Requests sends an access token that does not exist in the session-id cache returns a 501
-    @pytest.mark.skip
+    #Requests sends an logout token that does not exist in the session-id cache returns a 501
     @pytest.mark.asyncio
     async def test_sid_not_cached(self, test_app):
-        pass
+        logout_token = create_logout_token(test_app)
+
+        back_channel_resp = await test_app.oauth.hit_oauth_endpoint(
+            method="POST",
+            endpoint="backchannel_logout",
+            data={"logout_token": logout_token}
+        )
+
+        assert back_channel_resp["status_code"] == 501
+
+    #TO DO
+    #Requests sends an logout token that does not match the session-id cache returns a 501
+    @pytest.mark.skip
+    @pytest.mark.asyncio
+    async def test_cached_sid_does_not_match(self, test_app):
+        access_token = await self.get_access_token()
+
+        # Test token can be used to access identity service
+        assert await self.call_user_info(test_app, access_token) == 200
+
+        # Mock back channel logout notification and test with invalid kid
+        logout_token = create_logout_token(test_app, override_kid="invalid_kid")
+
+        back_channel_resp = await test_app.oauth.hit_oauth_endpoint(
+            method="POST",
+            endpoint="backchannel_logout",
+            data={"logout_token": logout_token}
+        )
+
+        assert back_channel_resp["status_code"] == 400

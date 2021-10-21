@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<VerifyJWT async="false" continueOnError="false" enabled="true" name="VerifyJWT.LogoutToken">
+<VerifyJWT async="false" continueOnError="true" enabled="true" name="VerifyJWT.LogoutToken">
+    <!-- Continue on error set to true as CIS2 expect a 400 from the request failing -->
     <DisplayName>VerifyJWT.LogoutToken</DisplayName>
     <Source>session.logout_token</Source>
     <!-- Contact in NHSID Advised on 2020-03-13: "

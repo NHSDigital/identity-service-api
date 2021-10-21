@@ -593,8 +593,8 @@
                     <Name>VerifyJWT.LogoutToken</Name>
                 </Step>
                 <Step>
-                    <Name>RaiseFault.BadRequest</Name> <!--does this need to be more specific to signify a fail?-->
-                    <Condition>jwt.VerifyJWT.LogoutToken.valid != true</Condition>
+                    <Name>RaiseFault.VerifyLogoutJWTFailed</Name>
+                    <Condition>JWT.failed = true</Condition>
                 </Step>
                 <Step>
                     <Name>LookupCache.SessionID</Name>
