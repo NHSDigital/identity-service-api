@@ -1,4 +1,4 @@
-<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.BadRequest">
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.VerifyLogoutJWTFailed">
   <FaultResponse>
     <Set>
       <Payload contentType="application/json">
