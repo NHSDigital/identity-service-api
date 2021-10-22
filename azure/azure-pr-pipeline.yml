@@ -34,7 +34,7 @@ extends:
     service_base_path: ${{ variables.service_base_path }}
     ping: false
     jinja_templates:
-      IDENTITY_PROVIDER_CIS2: cis2
+      IDENTITY_PROVIDER_CIS2: cis2-keycloak
       IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
       VARIABLES_KVM: identity_service_config_keycloak
       ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted

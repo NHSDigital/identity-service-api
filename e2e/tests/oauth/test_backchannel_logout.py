@@ -126,8 +126,6 @@ class TestBackChannelLogout:
 
         return user_info_resp["status_code"]
 
-    # TO DO - Integrate with Mock OIDC
-    @pytest.mark.skip
     @pytest.mark.asyncio
     async def test_backchannel_logout_happy_path(self, test_app):
         access_token = await self.get_access_token()
@@ -312,17 +310,9 @@ class TestBackChannelLogout:
 
         assert back_channel_resp["status_code"] == 501
 
-    #TO DO
     #Requests sends an logout token that does not match the session-id cache returns a 501
-    @pytest.mark.skip
     @pytest.mark.asyncio
     async def test_cached_sid_does_not_match(self, test_app):
-        # TO DO - need a separate SID on ID token.
-        access_token = await self.get_access_token()
-
-        # Test token can be used to access identity service
-        assert await self.call_user_info(test_app, access_token) == 200
-
         claims_non_matching_sid = {
             "aud": "9999999999",
             "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",
