@@ -21,3 +21,5 @@ __pycache__/
 
 .direnv
 .venv
+
+npm-debug.log

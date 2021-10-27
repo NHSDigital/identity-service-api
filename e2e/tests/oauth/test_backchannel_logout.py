@@ -1,8 +1,14 @@
 import os
+
+from selenium.webdriver.chrome import options
 import pytest
+import aiohttp
+from selenium.webdriver.chrome.options import Options
 from time import time
 from typing import Dict, Optional
-from uuid import uuid4
+from uuid import UUID, uuid4
+from bs4 import BeautifulSoup
+from selenium import webdriver
 from api_test_utils.oauth_helper import OauthHelper
 from api_test_utils.apigee_api_trace import ApigeeApiTraceDebug
 from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
@@ -102,6 +108,43 @@ async def test_app():
 class TestBackChannelLogout:
     """ A test suite for back-channel logout functionality"""
     async def get_access_token(self):
+
+        options = Options()
+        options.headless = True
+        options.binary_location = "/usr/bin/chromium-browser"
+        #options.add_argument("--headless")
+        #options.add_argument("--disable-gpu")
+        #options.add_argument("--remote-debugging-port=9222")
+        driver = webdriver.Chrome("/home/jodiebarnsley/bin/chromedriver", options=options)
+        driver.get("google.com")
+
+        #code = await self.oauth.get_authenticated_with_simulated_auth() 
+        #print(code)
+        #pytest.set_trace()
+        # /oauth2-pr-251/authorize?client_id=Y2GdHRFXn3AzgOkSWWWgEIfuBZQ9rQAc&redirect_uri=https%3A%2F%2Fnhsd-apim-testing-internal-dev.herokuapp.com%2Fcallback&response_type=code&state=22c9b600-1d58-4556-9461-856e9d555121 
+        auth_resp = await self.oauth.hit_oauth_endpoint(
+            method="GET",
+            endpoint="authorize",
+            params={
+                'client_id': self.oauth.client_id,
+                'redirect_uri': 'https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock/protocol/openid-connect/auth',
+                'response_type': 'code',
+                'state': str(uuid4())
+            }
+        )
+
+        body=BeautifulSoup(auth_resp["body"])
+        action = body.form["action"]
+        async with aiohttp.ClientSession() as session:
+
+            async with session.post(action, skip_auto_headers=["User-Agent"],
+                        headers={"User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:93.0) Gecko/20100101 Firefox/93.0", "Content-Type": "application/x-www-form-urlencoded"}, 
+                        data={"username": "aal1"}) as resp:
+                print('body.form')
+                print(body.form)
+                print('resp.text')
+                print(await resp.text())
+
         token_resp = await self.oauth.hit_oauth_endpoint(
             method="POST",
             endpoint="token",
@@ -110,7 +153,7 @@ class TestBackChannelLogout:
                 'client_secret': self.oauth.client_secret,
                 'grant_type': "authorization_code",
                 'redirect_uri': self.oauth.redirect_uri,
-                'code': await self.oauth.get_authenticated_with_simulated_auth(),
+                'code': code,
                 '_access_token_expiry_ms': 5000
             }
         )
@@ -127,6 +170,7 @@ class TestBackChannelLogout:
         return user_info_resp["status_code"]
 
     @pytest.mark.asyncio
+    @pytest.mark.happy_path
     async def test_backchannel_logout_happy_path(self, test_app):
         access_token = await self.get_access_token()
 
