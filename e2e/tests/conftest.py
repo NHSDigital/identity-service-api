@@ -120,7 +120,7 @@ async def get_token_cis2_token_exchange(
     token_resp = await oauth.get_token_response(
         grant_type="token_exchange",
         data={
-            "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+            "grant_type": "urn:etf:params:oeuth:grant-type:token-exchange",
             "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
             "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
             "subject_token": id_token_jwt,
@@ -277,7 +277,7 @@ def setup_session(request):
     print("\nCreating Default App..")
     asyncio.run(
         app.create_new_app(
-            callback_url="https://nhsd-apim-testing-internal-dev.herokuapp.com/callback"
+            callback_url="https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock/protocol/openid-connect/auth"
         )
     )
     asyncio.run(app.add_api_product([product.name]))
