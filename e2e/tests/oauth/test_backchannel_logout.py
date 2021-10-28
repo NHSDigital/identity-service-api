@@ -9,6 +9,7 @@ from typing import Dict, Optional
 from uuid import UUID, uuid4
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from api_test_utils.oauth_helper import OauthHelper
 from api_test_utils.apigee_api_trace import ApigeeApiTraceDebug
 from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
@@ -25,6 +26,9 @@ def get_env(variable_name: str) -> str:
     except KeyError:
         raise RuntimeError(f"Variable is not set, Check {variable_name}.")
 
+@pytest.fixture
+def webdriver():
+    return webdriver.Remote(command_executor='http://127.0.0.1:4444/wd/hub', desired_capabilities=[DesiredCapabilities.CHROME, DesiredCapabilities.EDGE, DesiredCapabilities.FIREFOX])
 
 def create_logout_token(
     test_app: ApigeeApiDeveloperApps,
@@ -107,16 +111,8 @@ async def test_app():
 @pytest.mark.asyncio
 class TestBackChannelLogout:
     """ A test suite for back-channel logout functionality"""
-    async def get_access_token(self):
-
-        options = Options()
-        options.headless = True
-        options.binary_location = "/usr/bin/chromium-browser"
-        #options.add_argument("--headless")
-        #options.add_argument("--disable-gpu")
-        #options.add_argument("--remote-debugging-port=9222")
-        driver = webdriver.Chrome("/home/jodiebarnsley/bin/chromedriver", options=options)
-        driver.get("google.com")
+    async def get_access_token(self, webdriver):
+        webdriver.get("google.com")
 
         #code = await self.oauth.get_authenticated_with_simulated_auth() 
         #print(code)
