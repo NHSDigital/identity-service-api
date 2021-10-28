@@ -249,8 +249,8 @@ async def test_app(app):
 async def _product_with_full_access():
     product = ApigeeApiProducts()
     await product.create_new_product()
-    _set_default_rate_limit(product)
-    product.update_scopes(
+    await _set_default_rate_limit(product)
+    await product.update_scopes(
         [
             "personal-demographics-service:USER-RESTRICTED",
             "urn:nhsd:apim:app:level3:",
