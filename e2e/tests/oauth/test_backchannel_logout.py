@@ -1,14 +1,17 @@
 import os
+import urllib.parse
 
-from selenium.webdriver.chrome import options
 import pytest
 import aiohttp
 from selenium.webdriver.chrome.options import Options
-from time import time
+from time import time, sleep
 from typing import Dict, Optional
 from uuid import UUID, uuid4
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.chrome import options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from api_test_utils.oauth_helper import OauthHelper
 from api_test_utils.apigee_api_trace import ApigeeApiTraceDebug
@@ -26,9 +29,11 @@ def get_env(variable_name: str) -> str:
     except KeyError:
         raise RuntimeError(f"Variable is not set, Check {variable_name}.")
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def our_webdriver():
-    return webdriver.Remote(command_executor='http://127.0.0.1:4444/wd/hub', desired_capabilities=DesiredCapabilities.CHROME)
+    wd = webdriver.Remote(command_executor='http://127.0.0.1:4444/wd/hub', desired_capabilities=DesiredCapabilities.CHROME)
+    yield wd
+    wd.quit()
 
 def create_logout_token(
     test_app: ApigeeApiDeveloperApps,
@@ -56,7 +61,7 @@ def create_logout_token(
         "typ": "JWT",
         "alg": "RS512",
     }
-    
+
     id_token_private_key_path = get_env("ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH")
 
     with open(id_token_private_key_path, "r") as f:
@@ -93,6 +98,8 @@ async def test_app():
         custom_attributes={
             "jwks-resource-url": "https://raw.githubusercontent.com/NHSDigital/identity-service-jwks/main/jwks/internal-dev/9baed6f4-1361-4a8e-8531-1f8426e3aba8.json"
         },
+        # TODO: set this via env
+        callback_url=f"{config.OAUTH_URL}/callback"
     )
 
     apigee_app.oauth = OauthHelper(apigee_app.client_id, apigee_app.client_secret, apigee_app.callback_url)
@@ -112,50 +119,49 @@ async def test_app():
 class TestBackChannelLogout:
     """ A test suite for back-channel logout functionality"""
     async def get_access_token(self, driver):
-        driver.get("https://google.com")
+        params = urllib.parse.urlencode([(k, v) for k, v in {
+            'client_id': self.oauth.client_id,
+            'redirect_uri': 'https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock/protocol/openid-connect/auth',
+            'response_type': 'code',
+            'state': str(uuid4())
+        }.items()])
+        authorize_url = f"{self.oauth.base_uri}/authorize?{params}"
 
-        #code = await self.oauth.get_authenticated_with_simulated_auth() 
-        #print(code)
-        #pytest.set_trace()
-        # /oauth2-pr-251/authorize?client_id=Y2GdHRFXn3AzgOkSWWWgEIfuBZQ9rQAc&redirect_uri=https%3A%2F%2Fnhsd-apim-testing-internal-dev.herokuapp.com%2Fcallback&response_type=code&state=22c9b600-1d58-4556-9461-856e9d555121 
-        auth_resp = await self.oauth.hit_oauth_endpoint(
-            method="GET",
-            endpoint="authorize",
-            params={
-                'client_id': self.oauth.client_id,
-                'redirect_uri': 'https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock/protocol/openid-connect/auth',
-                'response_type': 'code',
-                'state': str(uuid4())
-            }
-        )
+        driver.get(authorize_url)
+        username = driver.find_element(By.ID, 'username')
+        username.send_keys('aal3' + Keys.ENTER)
 
-        body=BeautifulSoup(auth_resp["body"])
-        action = body.form["action"]
-        async with aiohttp.ClientSession() as session:
+        # TODO: go like fix the identity service callback bruh
 
-            async with session.post(action, skip_auto_headers=["User-Agent"],
-                        headers={"User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:93.0) Gecko/20100101 Firefox/93.0", "Content-Type": "application/x-www-form-urlencoded"}, 
-                        data={"username": "aal1"}) as resp:
-                print('body.form')
-                print(body.form)
-                print('resp.text')
-                print(await resp.text())
+        sleep(30)
 
-        token_resp = await self.oauth.hit_oauth_endpoint(
-            method="POST",
-            endpoint="token",
-            data={
-                'client_id': self.oauth.client_id,
-                'client_secret': self.oauth.client_secret,
-                'grant_type': "authorization_code",
-                'redirect_uri': self.oauth.redirect_uri,
-                'code': code,
-                '_access_token_expiry_ms': 5000
-            }
-        )
+        # body=BeautifulSoup(auth_resp["body"])
+        # action = body.form["action"]
+        # async with aiohttp.ClientSession() as session:
 
-        return token_resp["body"]["access_token"]
-    
+        #     async with session.post(action, skip_auto_headers=["User-Agent"],
+        #                 headers={"User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:93.0) Gecko/20100101 Firefox/93.0", "Content-Type": "application/x-www-form-urlencoded"},
+        #                 data={"username": "aal1"}) as resp:
+        #         print('body.form')
+        #         print(body.form)
+        #         print('resp.text')
+        #         print(await resp.text())
+
+        # token_resp = await self.oauth.hit_oauth_endpoint(
+        #     method="POST",
+        #     endpoint="token",
+        #     data={
+        #         'client_id': self.oauth.client_id,
+        #         'client_secret': self.oauth.client_secret,
+        #         'grant_type': "authorization_code",
+        #         'redirect_uri': self.oauth.redirect_uri,
+        #         'code': code,
+        #         '_access_token_expiry_ms': 5000
+        #     }
+        # )
+
+        # return token_resp["body"]["access_token"]
+
     async def call_user_info(self, app, access_token):
         user_info_resp = await app.oauth.hit_oauth_endpoint(
             method="GET",
