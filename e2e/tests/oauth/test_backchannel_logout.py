@@ -27,8 +27,8 @@ def get_env(variable_name: str) -> str:
         raise RuntimeError(f"Variable is not set, Check {variable_name}.")
 
 @pytest.fixture
-def webdriver():
-    return webdriver.Remote(command_executor='http://127.0.0.1:4444/wd/hub', desired_capabilities=[DesiredCapabilities.CHROME, DesiredCapabilities.EDGE, DesiredCapabilities.FIREFOX])
+def our_webdriver():
+    return webdriver.Remote(command_executor='http://127.0.0.1:4444/wd/hub', desired_capabilities=DesiredCapabilities.CHROME)
 
 def create_logout_token(
     test_app: ApigeeApiDeveloperApps,
@@ -111,8 +111,8 @@ async def test_app():
 @pytest.mark.asyncio
 class TestBackChannelLogout:
     """ A test suite for back-channel logout functionality"""
-    async def get_access_token(self, webdriver):
-        webdriver.get("google.com")
+    async def get_access_token(self, driver):
+        driver.get("https://google.com")
 
         #code = await self.oauth.get_authenticated_with_simulated_auth() 
         #print(code)
@@ -167,8 +167,8 @@ class TestBackChannelLogout:
 
     @pytest.mark.asyncio
     @pytest.mark.happy_path
-    async def test_backchannel_logout_happy_path(self, test_app):
-        access_token = await self.get_access_token()
+    async def test_backchannel_logout_happy_path(self, test_app, our_webdriver):
+        access_token = await self.get_access_token(our_webdriver)
 
         # Test token can be used to access identity service
         assert await self.call_user_info(test_app, access_token) == 200
