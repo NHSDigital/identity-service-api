@@ -780,10 +780,11 @@
                 <Step>
                     <Name>ExtractVariables.ReadCacheJson</Name>
                 </Step>
-                <Step>
+                <!-- This check is not compliant with the OIDC specification and has been removed as it also breaks compat with Keycloak -JF -->
+                <!-- <Step>
                   <Name>RaiseFault.Unauthorized</Name>
                   <Condition>(idp != "nhs-login") and (request.queryparam.client_id NotEquals identity-service-config.cis2.client_id)</Condition>
-                </Step>
+                </Step> -->
                 <Step>
                     <Name>InvalidateCache.OriginalClientInfo</Name>
                 </Step>
