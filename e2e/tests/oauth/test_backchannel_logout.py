@@ -47,7 +47,7 @@ def create_logout_token(
         "sub": "9999999999",
         "iat": int(time()) - 10,
         "jti": str(uuid4()),
-        "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
+        "sid": "3b433806-d2e2-4d85-b9a7-5d8b8aa1e494",
         "events": { "http://schemas.openid.net/event/backchannel-logout": {} }
     }
 
@@ -175,6 +175,7 @@ class TestBackChannelLogout:
     @pytest.mark.happy_path
     async def test_backchannel_logout_happy_path(self, test_app, our_webdriver):
         access_token = await self.get_access_token(our_webdriver)
+        print(access_token)
 
         # Test token can be used to access identity service
         assert await self.call_user_info(test_app, access_token) == 200
