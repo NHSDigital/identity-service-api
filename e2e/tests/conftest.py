@@ -277,7 +277,7 @@ def setup_session(request):
     print("\nCreating Default App..")
     asyncio.run(
         app.create_new_app(
-            callback_url="https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock/protocol/openid-connect/auth"
+            callback_url="https://httpbin.org/anything"
         )
     )
     asyncio.run(app.add_api_product([product.name]))

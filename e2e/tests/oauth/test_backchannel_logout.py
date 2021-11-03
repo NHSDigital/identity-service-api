@@ -1,6 +1,6 @@
 import os
 import urllib.parse
-
+import pickle
 import pytest
 import aiohttp
 from selenium.webdriver.chrome.options import Options
@@ -18,6 +18,7 @@ from api_test_utils.apigee_api_trace import ApigeeApiTraceDebug
 from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
 from api_test_utils.apigee_api_products import ApigeeApiProducts
 from e2e.scripts import config
+from e2e.tests.oauth.conftest import headers
 
 def get_env(variable_name: str) -> str:
     """Returns a environment variable"""
@@ -97,9 +98,7 @@ async def test_app():
         api_products=[apigee_product.name],
         custom_attributes={
             "jwks-resource-url": "https://raw.githubusercontent.com/NHSDigital/identity-service-jwks/main/jwks/internal-dev/9baed6f4-1361-4a8e-8531-1f8426e3aba8.json"
-        },
-        # TODO: set this via env
-        callback_url=f"{config.OAUTH_URL}/callback"
+        }
     )
 
     apigee_app.oauth = OauthHelper(apigee_app.client_id, apigee_app.client_secret, apigee_app.callback_url)
@@ -119,9 +118,10 @@ async def test_app():
 class TestBackChannelLogout:
     """ A test suite for back-channel logout functionality"""
     async def get_access_token(self, driver):
+
         params = urllib.parse.urlencode([(k, v) for k, v in {
             'client_id': self.oauth.client_id,
-            'redirect_uri': 'https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock/protocol/openid-connect/auth',
+            'redirect_uri': 'https://httpbin.org/anything',
             'response_type': 'code',
             'state': str(uuid4())
         }.items()])
@@ -130,37 +130,32 @@ class TestBackChannelLogout:
         driver.get(authorize_url)
         username = driver.find_element(By.ID, 'username')
         username.send_keys('aal3' + Keys.ENTER)
+        driver.implicitly_wait(2)
 
-        # TODO: go like fix the identity service callback bruh
+        code = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(driver.current_url).query))["code"]
 
-        sleep(30)
+        token_resp = await self.oauth.hit_oauth_endpoint(
+            method="POST",
+            endpoint="token",
+            data={
+                'client_id': self.oauth.client_id,
+                'client_secret': self.oauth.client_secret,
+                'grant_type': "authorization_code",
+                'redirect_uri': self.oauth.redirect_uri,
+                'code': code,
+                '_access_token_expiry_ms': 5000
+            }
+        )
 
-        # body=BeautifulSoup(auth_resp["body"])
-        # action = body.form["action"]
-        # async with aiohttp.ClientSession() as session:
+        print(token_resp)
+        cookies_list = driver.get_cookies()
+        cookies_dict = {}
+        for cookie in cookies_list:
+            cookies_dict[cookie['name']] = cookie['value']
 
-        #     async with session.post(action, skip_auto_headers=["User-Agent"],
-        #                 headers={"User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:93.0) Gecko/20100101 Firefox/93.0", "Content-Type": "application/x-www-form-urlencoded"},
-        #                 data={"username": "aal1"}) as resp:
-        #         print('body.form')
-        #         print(body.form)
-        #         print('resp.text')
-        #         print(await resp.text())
+        print(cookies_dict)
 
-        # token_resp = await self.oauth.hit_oauth_endpoint(
-        #     method="POST",
-        #     endpoint="token",
-        #     data={
-        #         'client_id': self.oauth.client_id,
-        #         'client_secret': self.oauth.client_secret,
-        #         'grant_type': "authorization_code",
-        #         'redirect_uri': self.oauth.redirect_uri,
-        #         'code': code,
-        #         '_access_token_expiry_ms': 5000
-        #     }
-        # )
-
-        # return token_resp["body"]["access_token"]
+        return (token_resp["body"]["access_token"], cookies_dict["id_token"])
 
     async def call_user_info(self, app, access_token):
         user_info_resp = await app.oauth.hit_oauth_endpoint(
@@ -181,15 +176,18 @@ class TestBackChannelLogout:
         assert await self.call_user_info(test_app, access_token) == 200
 
         # Mock back channel logout notification and test succesful logout response
-        logout_token = create_logout_token(test_app)
+        # logout_token = create_logout_token(test_app)
 
-        back_channel_resp = await test_app.oauth.hit_oauth_endpoint(
-            method="POST",
-            endpoint="backchannel_logout",
-            data={"logout_token": logout_token}
-        )
+        # back_channel_resp = await test_app.oauth.hit_oauth_endpoint(
+        #     method="POST",
+        #     endpoint="backchannel_logout",
+        #     data={"logout_token": logout_token}
+        # )
 
-        assert back_channel_resp["status_code"] == 200
+        async with aiohttp.ClientSession() as session:
+            back_channel_resp = await session.get("https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock/protocol/openid-connect/logout", headers={"Authorization": "Bearer {access_token}"})
+
+        assert back_channel_resp.status == 200
 
         # Test access token has been revoked
         user_info_resp = await test_app.oauth.hit_oauth_endpoint(
