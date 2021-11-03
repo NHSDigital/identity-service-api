@@ -114,6 +114,26 @@ async def test_app():
     await apigee_app.destroy_app()
 
 
+def get_id_token_from_trace(data) -> dict:
+    executions = [x.get('results', None) for x in data['point'] if x.get('id', "") == "Execution"]
+    executions = list(filter(lambda x: x != [], executions))
+
+    variable_accesses = []
+    id_token = None
+
+    for execution in executions:
+        for item in execution:
+            if item.get('ActionResult', '') == 'VariableAccess':
+                variable_accesses.append(item)
+
+    for result in variable_accesses:
+        for item in result['accessList']:
+            if item.get('Set', {}).get('name', '') == 'accesstoken.id_token':
+                id_token = item.get('Set', {}).get('value', None)
+                break
+    
+    return id_token
+
 @pytest.mark.asyncio
 class TestBackChannelLogout:
     """ A test suite for back-channel logout functionality"""
@@ -147,15 +167,7 @@ class TestBackChannelLogout:
             }
         )
 
-        print(token_resp)
-        cookies_list = driver.get_cookies()
-        cookies_dict = {}
-        for cookie in cookies_list:
-            cookies_dict[cookie['name']] = cookie['value']
-
-        print(cookies_dict)
-
-        return (token_resp["body"]["access_token"], cookies_dict["id_token"])
+        return token_resp["body"]["access_token"]
 
     async def call_user_info(self, app, access_token):
         user_info_resp = await app.oauth.hit_oauth_endpoint(
@@ -169,8 +181,9 @@ class TestBackChannelLogout:
     @pytest.mark.asyncio
     @pytest.mark.happy_path
     async def test_backchannel_logout_happy_path(self, test_app, our_webdriver):
+        apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME)
+        await apigee_trace.start_trace()
         access_token = await self.get_access_token(our_webdriver)
-        print(access_token)
 
         # Test token can be used to access identity service
         assert await self.call_user_info(test_app, access_token) == 200
@@ -183,9 +196,11 @@ class TestBackChannelLogout:
         #     endpoint="backchannel_logout",
         #     data={"logout_token": logout_token}
         # )
-
+        trace_data = await apigee_trace.get_trace_data()
+        id_token = get_id_token_from_trace(trace_data)
+        print(id_token)
         async with aiohttp.ClientSession() as session:
-            back_channel_resp = await session.get("https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock/protocol/openid-connect/logout", headers={"Authorization": "Bearer {access_token}"})
+            back_channel_resp = await session.get(f"https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock/protocol/openid-connect/logout?id_token_hint={id_token}")
 
         assert back_channel_resp.status == 200
 
