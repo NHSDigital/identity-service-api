@@ -1,8 +1,10 @@
+from logging import log
 import os
 import urllib.parse
 import pickle
+from aiohttp.client import _BaseRequestContextManager
 import pytest
-import aiohttp
+import jwt
 from selenium.webdriver.chrome.options import Options
 from time import time, sleep
 from typing import Dict, Optional
@@ -40,6 +42,7 @@ def create_logout_token(
     test_app: ApigeeApiDeveloperApps,
     override_claims: Optional[Dict[str, str]] = None,
     override_kid: Optional[str] = None,
+    override_sid: Optional[str] = None,
     ) -> Dict[str, str]:
     """Creates logout token. To be replaced with Mock OIDC"""
     logout_token_claims = {
@@ -48,7 +51,6 @@ def create_logout_token(
         "sub": "9999999999",
         "iat": int(time()) - 10,
         "jti": str(uuid4()),
-        "sid": "3b433806-d2e2-4d85-b9a7-5d8b8aa1e494",
         "events": { "http://schemas.openid.net/event/backchannel-logout": {} }
     }
 
@@ -62,6 +64,9 @@ def create_logout_token(
         "typ": "JWT",
         "alg": "RS512",
     }
+
+    logout_token_sid = override_sid if override_sid is not None else "3b433806-d2e2-4d85-b9a7-5d8b8aa1e494"
+    logout_token_claims['sid'] = logout_token_sid
 
     id_token_private_key_path = get_env("ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH")
 
@@ -114,25 +119,37 @@ async def test_app():
     await apigee_app.destroy_app()
 
 
-def get_id_token_from_trace(data) -> dict:
+def get_sid_from_id_token(id_token):
+    print(jwt.decode(bytes(id_token, encoding='utf-8'), algorithms=["RS256"]))
+
+
+def get_sid_from_trace(data) -> dict:
     executions = [x.get('results', None) for x in data['point'] if x.get('id', "") == "Execution"]
     executions = list(filter(lambda x: x != [], executions))
 
+
     variable_accesses = []
-    id_token = None
+    sid = None
 
     for execution in executions:
         for item in execution:
             if item.get('ActionResult', '') == 'VariableAccess':
                 variable_accesses.append(item)
 
+    # print(variable_accesses)
+
     for result in variable_accesses:
         for item in result['accessList']:
-            if item.get('Set', {}).get('name', '') == 'accesstoken.id_token':
-                id_token = item.get('Set', {}).get('value', None)
+            if item.get('Set', {}).get('name', '') == 'jwt.DecodeJWT.FromExternalIdToken.decoded.claim.sid':
+                sid = item.get('Set', {}).get('value', None)
                 break
-    
-    return id_token
+
+    if not sid:
+        print("NO SID IN TRACE")
+
+
+    return sid
+
 
 @pytest.mark.asyncio
 class TestBackChannelLogout:
@@ -181,33 +198,35 @@ class TestBackChannelLogout:
     @pytest.mark.asyncio
     @pytest.mark.happy_path
     async def test_backchannel_logout_happy_path(self, test_app, our_webdriver):
-        apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME)
+        apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME, timeout=60)
         await apigee_trace.start_trace()
         access_token = await self.get_access_token(our_webdriver)
         
 
         # Test token can be used to access identity service
         assert await self.call_user_info(test_app, access_token) == 200
-
-        sleep(1)
-        transaction_ids = await apigee_trace.get_all_transaction_ids()
-        print(transaction_ids)
+        sleep(10)
+        import json
+        # for n, tid in enumerate(await apigee_trace.get_all_transaction_ids()):
+        filename = f"transaction-3.json"
+        filedata = await apigee_trace.get_trace_data()
+        print(filename)
+        with open(filename, 'w') as f:
+            f.write(json.dumps(filedata))
+            f.close()
 
         # Mock back channel logout notification and test succesful logout response
-        # logout_token = create_logout_token(test_app)
+        logout_token = create_logout_token(test_app, override_sid=get_sid_from_trace(filedata), override_kid='test-1')
 
-        # back_channel_resp = await test_app.oauth.hit_oauth_endpoint(
-        #     method="POST",
-        #     endpoint="backchannel_logout",
-        #     data={"logout_token": logout_token}
-        # )
-        trace_data = await apigee_trace.get_trace_data()
-        id_token = get_id_token_from_trace(trace_data)
-        print(id_token)
-        async with aiohttp.ClientSession() as session:
-            back_channel_resp = await session.get(f"https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock/protocol/openid-connect/logout?id_token_hint={id_token}")
+        await apigee_trace.stop_trace()
 
-        assert back_channel_resp.status == 200
+        back_channel_resp = await test_app.oauth.hit_oauth_endpoint(
+            method="POST",
+            endpoint="backchannel_logout",
+            data={"logout_token": logout_token}
+        )
+        print(back_channel_resp['body'])
+        assert back_channel_resp['status_code'] == 200
 
         # Test access token has been revoked
         user_info_resp = await test_app.oauth.hit_oauth_endpoint(
