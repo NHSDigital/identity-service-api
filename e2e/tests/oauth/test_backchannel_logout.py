@@ -184,9 +184,14 @@ class TestBackChannelLogout:
         apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME)
         await apigee_trace.start_trace()
         access_token = await self.get_access_token(our_webdriver)
+        
 
         # Test token can be used to access identity service
         assert await self.call_user_info(test_app, access_token) == 200
+
+        sleep(1)
+        transaction_ids = await apigee_trace.get_all_transaction_ids()
+        print(transaction_ids)
 
         # Mock back channel logout notification and test succesful logout response
         # logout_token = create_logout_token(test_app)
