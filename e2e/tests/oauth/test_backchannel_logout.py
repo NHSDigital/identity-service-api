@@ -65,7 +65,7 @@ def create_logout_token(
         "alg": "RS512",
     }
 
-    logout_token_sid = override_sid if override_sid is not None else "3b433806-d2e2-4d85-b9a7-5d8b8aa1e494"
+    logout_token_sid = override_sid #there should be something here 
     logout_token_claims['sid'] = logout_token_sid
 
     id_token_private_key_path = get_env("ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH")
@@ -102,7 +102,7 @@ async def test_app():
     await apigee_app.setup_app(
         api_products=[apigee_product.name],
         custom_attributes={
-            "jwks-resource-url": "https://raw.githubusercontent.com/NHSDigital/identity-service-jwks/main/jwks/internal-dev/9baed6f4-1361-4a8e-8531-1f8426e3aba8.json"
+            "jwks-resource-url": "https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock/protocol/openid-connect/certs"
         }
     )
 
