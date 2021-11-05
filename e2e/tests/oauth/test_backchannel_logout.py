@@ -247,7 +247,7 @@ class TestBackChannelLogout:
                 "events": { "http://schemas.openid.net/event/backchannel-logout": {} }
             },
             400,
-            "Invalid aud claim in JWT"
+            "iMissing/invalid aud claim in JWT"
         ),
         ( # missing aud claim
             {
@@ -259,7 +259,7 @@ class TestBackChannelLogout:
                 "events": { "http://schemas.openid.net/event/backchannel-logout": {} }
             },
             400,
-            "Invalid aud claim in JWT"
+            "Missing/Invalid aud claim in JWT"
         ),
         ( # invalid iss claim
             {
@@ -272,7 +272,7 @@ class TestBackChannelLogout:
                 "events": { "http://schemas.openid.net/event/backchannel-logout": {} }
             },
             400,
-            "Invalid iss claim in JWT"
+            "Missing/invalid iss claim in JWT"
         ),
         ( # missing iss claim
             {
@@ -284,7 +284,7 @@ class TestBackChannelLogout:
                 "events": { "http://schemas.openid.net/event/backchannel-logout": {} }
             },
             400,
-            "Invalid iss claim in JWT"
+            "Missing/invalid iss claim in JWT"
         ),
         ( # missing sid claim
             {
@@ -309,7 +309,7 @@ class TestBackChannelLogout:
                 "events": { "invalid_event_url": {} }
             },
             400,
-            "Invalid events claim in JWT"
+            "Missing/invalid events claim in JWT"
         ),
         ( # missing events claim
             {
@@ -321,7 +321,7 @@ class TestBackChannelLogout:
                 "sid": "08a5019c-17e1-4977-8f42-65a12843ea02"
             },
             400,
-            "Invalid events claim in JWT"
+            "Missing/invalid events claim in JWT"
         ),
         ( # present nonce claim
             {
@@ -338,8 +338,8 @@ class TestBackChannelLogout:
             "Prohibited nonce claim in JWT"
         )
     ])
-    async def test_claims(self, test_app, claims, status_code, error_message):
-        access_token = await self.get_access_token()
+    async def test_claims(self, test_app, claims, status_code, error_message, our_webdriver):
+        access_token = await self.get_access_token(our_webdriver)
 
         # Test token can be used to access identity service
         assert await self.call_user_info(test_app, access_token) == 200
@@ -359,8 +359,8 @@ class TestBackChannelLogout:
 
     #Request sends JWT that cannot be verified returns a  400
     @pytest.mark.asyncio
-    async def test_invalid_jwt(self, test_app):
-        access_token = await self.get_access_token()
+    async def test_invalid_jwt(self, test_app, our_webdriver):
+        access_token = await self.get_access_token(our_webdriver)
 
         # Test token can be used to access identity service
         assert await self.call_user_info(test_app, access_token) == 200

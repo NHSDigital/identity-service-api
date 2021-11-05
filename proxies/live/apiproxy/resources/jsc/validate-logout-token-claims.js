@@ -37,19 +37,19 @@ if (iss_claim) {
 // Change hardcoded aud and iss when we play APM-2524
 if (aud_claim !== "9999999999") {
     context.setVariable('claims_validation.error', "invalid_request")
-    context.setVariable('claims_validation.error_description', "Invalid aud claim in JWT")
+    context.setVariable('claims_validation.error_description', "Missing/invalid aud claim in JWT")
     context.setVariable('claims_validation.is_valid', false)
 } else if (iss_claim !== "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc") {
 	context.setVariable('claims_validation.error', "invalid_request")
-	context.setVariable('claims_validation.error_description', "Invalid iss claim in JWT")
+	context.setVariable('claims_validation.error_description', "Missing/invalid iss claim in JWT")
 	context.setVariable('claims_validation.is_valid', false)
 } else if (sid_claim === null) {
 	context.setVariable('claims_validation.error', "invalid_request")
-	context.setVariable('claims_validation.error_description', "Invalid sid claim in JWT")
+	context.setVariable('claims_validation.error_description', "Missing sid claim in JWT")
 	context.setVariable('claims_validation.is_valid', false)
 } else if (!eventsCheck(events_claim)) {
 	context.setVariable('claims_validation.error', "invalid_request")
-	context.setVariable('claims_validation.error_description', "Invalid events claim in JWT")
+	context.setVariable('claims_validation.error_description', "Missing/invalid events claim in JWT")
 	context.setVariable('claims_validation.is_valid', false)
 } else if (nonce_claim !== null) {
 	context.setVariable('claims_validation.error', "invalid_request")
