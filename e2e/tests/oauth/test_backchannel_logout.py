@@ -102,7 +102,7 @@ async def test_app():
     await apigee_app.setup_app(
         api_products=[apigee_product.name],
         custom_attributes={
-            "jwks-resource-url": "https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock/protocol/openid-connect/certs"
+            "jwks-resource-url": "https://internal-dev.api.service.nhs.uk/mock-nhsid-jwks/identity-service/nhs-cis2-jwks"
         }
     )
 
