@@ -1,17 +1,12 @@
 from logging import log
 import os
 import urllib.parse
-import pickle
-from aiohttp.client import _BaseRequestContextManager
 import pytest
 import jwt
-from selenium.webdriver.chrome.options import Options
 from time import time, sleep
 from typing import Dict, Optional
-from uuid import UUID, uuid4
-from bs4 import BeautifulSoup
+from uuid import uuid4
 from selenium import webdriver
-from selenium.webdriver.chrome import options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -20,7 +15,6 @@ from api_test_utils.apigee_api_trace import ApigeeApiTraceDebug
 from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
 from api_test_utils.apigee_api_products import ApigeeApiProducts
 from e2e.scripts import config
-from e2e.tests.oauth.conftest import headers
 
 def get_env(variable_name: str) -> str:
     """Returns a environment variable"""
@@ -57,15 +51,14 @@ def create_logout_token(
     if override_claims is not None:
         logout_token_claims = override_claims
 
-    logout_token_kid = override_kid if override_kid is not None else "identity-service-tests-1" 
-    print(logout_token_kid)
+    logout_token_kid = override_kid if override_kid is not None else "Xie81yxqBz-7MBOyykWmf-W1UwpsV16DJnQpxs_zixQ" 
     logout_token_headers = {
         "kid": logout_token_kid,
         "typ": "JWT",
         "alg": "RS512",
     }
 
-    logout_token_sid = override_sid #there should be something here 
+    logout_token_sid = override_sid # josh TODO there should be something here 
     logout_token_claims['sid'] = logout_token_sid
 
     id_token_private_key_path = get_env("ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH")
@@ -85,7 +78,7 @@ def create_logout_token(
 
 @pytest.fixture(scope="function")
 async def test_app():
-    """Programmitcally create and destroy test app for each test"""
+    """Programatically create and destroy test app for each test"""
     apigee_product = ApigeeApiProducts()
     await apigee_product.create_new_product()
     await apigee_product.update_proxies([config.SERVICE_NAME])
@@ -119,14 +112,9 @@ async def test_app():
     await apigee_app.destroy_app()
 
 
-def get_sid_from_id_token(id_token):
-    print(jwt.decode(bytes(id_token, encoding='utf-8'), algorithms=["RS256"]))
-
-
 def get_sid_from_trace(data) -> dict:
     executions = [x.get('results', None) for x in data['point'] if x.get('id', "") == "Execution"]
     executions = list(filter(lambda x: x != [], executions))
-
 
     variable_accesses = []
     sid = None
@@ -136,8 +124,6 @@ def get_sid_from_trace(data) -> dict:
             if item.get('ActionResult', '') == 'VariableAccess':
                 variable_accesses.append(item)
 
-    # print(variable_accesses)
-
     for result in variable_accesses:
         for item in result['accessList']:
             if item.get('Set', {}).get('name', '') == 'jwt.DecodeJWT.FromExternalIdToken.decoded.claim.sid':
@@ -146,7 +132,6 @@ def get_sid_from_trace(data) -> dict:
 
     if not sid:
         print("NO SID IN TRACE")
-
 
     return sid
 
@@ -169,10 +154,7 @@ class TestBackChannelLogout:
         username.send_keys('aal3' + Keys.ENTER)
         driver.implicitly_wait(2)
 
-        query_string = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(driver.current_url).query))
-        print(query_string)
         code = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(driver.current_url).query))["code"]
-        #sid = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(driver.current_url).query))["session_state"]
 
         token_resp = await self.oauth.hit_oauth_endpoint(
             method="POST",
@@ -202,23 +184,17 @@ class TestBackChannelLogout:
     async def test_backchannel_logout_happy_path(self, test_app, our_webdriver):
         apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME, timeout=60)
         await apigee_trace.start_trace()
-        access_token = await self.get_access_token(our_webdriver)
         
+        access_token = await self.get_access_token(our_webdriver)
 
         # Test token can be used to access identity service
         assert await self.call_user_info(test_app, access_token) == 200
+
         sleep(10)
-        import json
-        # for n, tid in enumerate(await apigee_trace.get_all_transaction_ids()):
-        filename = f"transaction-3.json"
         filedata = await apigee_trace.get_trace_data()
-        print(filename)
-        with open(filename, 'w') as f:
-            f.write(json.dumps(filedata))
-            f.close()
 
         # Mock back channel logout notification and test succesful logout response
-        logout_token = create_logout_token(test_app, override_sid=get_sid_from_trace(filedata), override_kid='Xie81yxqBz-7MBOyykWmf-W1UwpsV16DJnQpxs_zixQ')
+        logout_token = create_logout_token(test_app, override_sid=get_sid_from_trace(filedata))
 
         await apigee_trace.stop_trace()
 
@@ -227,7 +203,6 @@ class TestBackChannelLogout:
             endpoint="backchannel_logout",
             data={"logout_token": logout_token}
         )
-        print(back_channel_resp['body'])
         assert back_channel_resp['status_code'] == 200
 
         # Test access token has been revoked
@@ -247,7 +222,7 @@ class TestBackChannelLogout:
                 "events": { "http://schemas.openid.net/event/backchannel-logout": {} }
             },
             400,
-            "iMissing/invalid aud claim in JWT"
+            "Missing/invalid aud claim in JWT"
         ),
         ( # missing aud claim
             {
@@ -259,7 +234,7 @@ class TestBackChannelLogout:
                 "events": { "http://schemas.openid.net/event/backchannel-logout": {} }
             },
             400,
-            "Missing/Invalid aud claim in JWT"
+            "Missing/invalid aud claim in JWT"
         ),
         ( # invalid iss claim
             {
@@ -296,7 +271,7 @@ class TestBackChannelLogout:
                 "events": { "http://schemas.openid.net/event/backchannel-logout": {} }
             },
             400,
-            "Invalid sid claim in JWT"
+            "Missing sid claim in JWT" # josh TODO this is broken
         ),
         ( # invalid events claim
             {
