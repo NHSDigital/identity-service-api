@@ -182,6 +182,7 @@ class TestBackChannelLogout:
     @pytest.mark.asyncio
     @pytest.mark.happy_path
     async def test_backchannel_logout_happy_path(self, test_app, our_webdriver):
+        # josh TODO try and do without test utils 
         apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME, timeout=60)
         await apigee_trace.start_trace()
         
@@ -218,7 +219,7 @@ class TestBackChannelLogout:
                 "sub": "9999999999",
                 "iat": int(time()) - 10,
                 "jti": str(uuid4()),
-                "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
+                "sid": "08a5019c-17e1-4977-8f42-65a12843ea02", # josh TODO these are all hardcoded and need to not be
                 "events": { "http://schemas.openid.net/event/backchannel-logout": {} }
             },
             400,
