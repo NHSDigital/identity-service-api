@@ -58,7 +58,7 @@ def create_logout_token(
         logout_token_claims = override_claims
 
     logout_token_kid = override_kid if override_kid is not None else "identity-service-tests-1" 
-
+    print(logout_token_kid)
     logout_token_headers = {
         "kid": logout_token_kid,
         "typ": "JWT",
@@ -169,7 +169,10 @@ class TestBackChannelLogout:
         username.send_keys('aal3' + Keys.ENTER)
         driver.implicitly_wait(2)
 
+        query_string = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(driver.current_url).query))
+        print(query_string)
         code = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(driver.current_url).query))["code"]
+        #sid = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(driver.current_url).query))["session_state"]
 
         token_resp = await self.oauth.hit_oauth_endpoint(
             method="POST",
@@ -179,8 +182,7 @@ class TestBackChannelLogout:
                 'client_secret': self.oauth.client_secret,
                 'grant_type': "authorization_code",
                 'redirect_uri': self.oauth.redirect_uri,
-                'code': code,
-                '_access_token_expiry_ms': 5000
+                'code': code
             }
         )
 
@@ -216,7 +218,7 @@ class TestBackChannelLogout:
             f.close()
 
         # Mock back channel logout notification and test succesful logout response
-        logout_token = create_logout_token(test_app, override_sid=get_sid_from_trace(filedata), override_kid='test-1')
+        logout_token = create_logout_token(test_app, override_sid=get_sid_from_trace(filedata), override_kid='Xie81yxqBz-7MBOyykWmf-W1UwpsV16DJnQpxs_zixQ')
 
         await apigee_trace.stop_trace()
 
