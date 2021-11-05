@@ -2,8 +2,11 @@
 <AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.BackchannelLogoutResponse">
     <DisplayName>AssignMessage.BackchannelLogoutResponse</DisplayName>
     <Set>
-        <Payload>OK</Payload>
-    </Set>
+        <Payload>{"success": true}</Payload>
+        <Headers>
+            <Header name="Content-Type">application/json</Header>
+        </Headers>
+    </Set> 
     <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
     <AssignTo createNew="false" transport="http" type="request"/>
 </AssignMessage>

@@ -231,14 +231,8 @@ class TestBackChannelLogout:
         assert back_channel_resp['status_code'] == 200
 
         # Test access token has been revoked
-        user_info_resp = await test_app.oauth.hit_oauth_endpoint(
-            method="GET",
-            endpoint="userinfo",
-            headers={"Authorization": f"Bearer {access_token}"}
-        )
-
-        assert user_info_resp["status_code"] == 401
-
+        assert await self.call_user_info(test_app, access_token) == 401
+ 
     #Request sends a JWT has missing or invalid claims of the following problems, returns a 400
     @pytest.mark.asyncio
     @pytest.mark.parametrize("claims,status_code,error_message", [
