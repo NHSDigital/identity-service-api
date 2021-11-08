@@ -277,7 +277,7 @@ def setup_session(request):
     print("\nCreating Default App..")
     asyncio.run(
         app.create_new_app(
-            callback_url="https://httpbin.org/anything"
+            callback_url="https://nhsd-apim-testing-internal-dev.herokuapp.com/callback"
         )
     )
     asyncio.run(app.add_api_product([product.name]))

@@ -122,7 +122,7 @@ class TestBackChannelLogout:
 
         params = urllib.parse.urlencode([(k, v) for k, v in {
             'client_id': self.oauth.client_id,
-            'redirect_uri': 'https://httpbin.org/anything',
+            'redirect_uri': 'https://nhsd-apim-testing-internal-dev.herokuapp.com/callback',
             'response_type': 'code',
             'state': str(uuid4())
         }.items()])
@@ -192,7 +192,7 @@ class TestBackChannelLogout:
                 "sub": "9999999999",
                 "iat": int(time()) - 10,
                 "jti": str(uuid4()),
-                "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",  # josh TODO these are all hardcoded and need to not be
+                "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
                 "events": {"http://schemas.openid.net/event/backchannel-logout": {}}
             },
             400,
@@ -245,7 +245,7 @@ class TestBackChannelLogout:
                 "events": {"http://schemas.openid.net/event/backchannel-logout": {}}
             },
             400,
-            "Missing sid claim in JWT"  # josh TODO this is broken
+            "Missing sid claim in JWT"
         ),
         (  # invalid events claim
             {
