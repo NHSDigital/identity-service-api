@@ -120,7 +120,7 @@ async def get_token_cis2_token_exchange(
     token_resp = await oauth.get_token_response(
         grant_type="token_exchange",
         data={
-            "grant_type": "urn:etf:params:oeuth:grant-type:token-exchange",
+            "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
             "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
             "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
             "subject_token": id_token_jwt,

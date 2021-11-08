@@ -1,6 +1,7 @@
 import os
 import urllib.parse
 import pytest
+from asyncio import sleep
 from time import time
 from typing import Dict, Optional
 from uuid import uuid4
@@ -177,6 +178,9 @@ class TestBackChannelLogout:
             data={"logout_token": logout_token}
         )
         assert back_channel_resp['status_code'] == 200
+
+        # Revoking a token seems to be eventually consistent?
+        sleep(2)
 
         # Test access token has been revoked
         userinfo_resp = await self.call_user_info(test_app, access_token)
