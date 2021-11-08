@@ -905,7 +905,12 @@
               <Name>AssignMessage.SetAuthorizationHeader</Name>
             </Step>
           </Request>
-          <Response/>
+          <Response>
+            <Step>
+              <Name>Javascript.AddSidToResponse</Name>
+              <Condition>environment.name Equals "internal-dev"</Condition>
+            </Step>
+          </Response>
           <Condition>(proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
         </Flow>
         <Flow name="Flow.OptionsCors">

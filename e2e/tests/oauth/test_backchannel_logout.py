@@ -58,8 +58,8 @@ def create_logout_token(
         "alg": "RS512",
     }
 
-    logout_token_sid = override_sid # josh TODO there should be something here 
-    logout_token_claims['sid'] = logout_token_sid
+    if override_sid:
+        logout_token_claims['sid'] = override_sid
 
     id_token_private_key_path = get_env("ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH")
 
@@ -177,7 +177,7 @@ class TestBackChannelLogout:
             headers={"Authorization": f"Bearer {access_token}"}
         )
 
-        return user_info_resp["status_code"]
+        return user_info_resp
 
     @pytest.mark.asyncio
     @pytest.mark.happy_path
@@ -189,13 +189,12 @@ class TestBackChannelLogout:
         access_token = await self.get_access_token(our_webdriver)
 
         # Test token can be used to access identity service
-        assert await self.call_user_info(test_app, access_token) == 200
-
-        sleep(10)
-        filedata = await apigee_trace.get_trace_data()
+        userinfo_resp = await self.call_user_info(test_app, access_token)
+        assert userinfo_resp['status_code'] == 200
+        assert 'sid' in [*userinfo_resp['body']]
 
         # Mock back channel logout notification and test succesful logout response
-        logout_token = create_logout_token(test_app, override_sid=get_sid_from_trace(filedata))
+        logout_token = create_logout_token(test_app, override_sid=userinfo_resp['body']['sid'])
 
         await apigee_trace.stop_trace()
 
@@ -207,7 +206,7 @@ class TestBackChannelLogout:
         assert back_channel_resp['status_code'] == 200
 
         # Test access token has been revoked
-        assert await self.call_user_info(test_app, access_token) == 401
+        assert await self.call_user_info(test_app, access_token)['status_code'] == 401
  
     #Request sends a JWT has missing or invalid claims of the following problems, returns a 400
     @pytest.mark.asyncio
@@ -318,7 +317,7 @@ class TestBackChannelLogout:
         access_token = await self.get_access_token(our_webdriver)
 
         # Test token can be used to access identity service
-        assert await self.call_user_info(test_app, access_token) == 200
+        assert await self.call_user_info(test_app, access_token)['status_code'] == 200
 
         # Mock back channel logout notification with overridden claims
         logout_token = create_logout_token(test_app, override_claims=claims)
@@ -339,10 +338,10 @@ class TestBackChannelLogout:
         access_token = await self.get_access_token(our_webdriver)
 
         # Test token can be used to access identity service
-        assert await self.call_user_info(test_app, access_token) == 200
+        assert await self.call_user_info(test_app, access_token)['status_code'] == 200
 
         # Mock back channel logout notification and test with invalid kid
-        logout_token = create_logout_token(test_app, override_kid="invalid_kid")
+        logout_token = create_logout_token(test_app, override_kid="invalid_kid", override_sid="5b8f2499-ad4a-4a7c-b0ac-aaada65bda2b")
 
         back_channel_resp = await test_app.oauth.hit_oauth_endpoint(
             method="POST",
@@ -356,7 +355,7 @@ class TestBackChannelLogout:
     #Requests sends an logout token that does not exist in the session-id cache returns a 501
     @pytest.mark.asyncio
     async def test_sid_not_cached(self, test_app):
-        logout_token = create_logout_token(test_app)
+        logout_token = create_logout_token(test_app, override_sid="5b8f2499-ad4a-4a7c-b0ac-aaada65bda2b")
 
         back_channel_resp = await test_app.oauth.hit_oauth_endpoint(
             method="POST",
