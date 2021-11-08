@@ -5,8 +5,3 @@ services:
     container_name: selenium
     ports:
       - "4444:4444"
-
-  httpbin:
-    image: kennethreitz/httpbin
-    ports:
-      - '8012:80'
