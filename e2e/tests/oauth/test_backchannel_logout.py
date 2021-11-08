@@ -168,7 +168,7 @@ class TestBackChannelLogout:
             }
         )
 
-        return token_resp["body"]["access_token"]
+        return token_resp["body"]["access_token"], token_resp["body"].get("sid", None)
 
     async def call_user_info(self, app, access_token):
         user_info_resp = await app.oauth.hit_oauth_endpoint(
@@ -177,7 +177,7 @@ class TestBackChannelLogout:
             headers={"Authorization": f"Bearer {access_token}"}
         )
 
-        return user_info_resp
+        return await user_info_resp
 
     @pytest.mark.asyncio
     @pytest.mark.happy_path
@@ -186,15 +186,15 @@ class TestBackChannelLogout:
         apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME, timeout=60)
         await apigee_trace.start_trace()
         
-        access_token = await self.get_access_token(our_webdriver)
+        access_token, sid = await self.get_access_token(our_webdriver)
+        assert sid
 
         # Test token can be used to access identity service
         userinfo_resp = await self.call_user_info(test_app, access_token)
         assert userinfo_resp['status_code'] == 200
-        assert 'sid' in [*userinfo_resp['body']]
 
         # Mock back channel logout notification and test succesful logout response
-        logout_token = create_logout_token(test_app, override_sid=userinfo_resp['body']['sid'])
+        logout_token = create_logout_token(test_app, override_sid=sid)
 
         await apigee_trace.stop_trace()
 
