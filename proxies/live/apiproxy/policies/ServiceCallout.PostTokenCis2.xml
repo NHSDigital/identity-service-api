@@ -8,7 +8,8 @@
       <FormParams>
           <FormParam name="grant_type">authorization_code</FormParam>
           <FormParam name="code">{request.queryparam.code}</FormParam>
-        <FormParam name="redirect_uri">{identity-service-config.cis2.redirect_uri}</FormParam>
+          <!-- CHANGE REDIRECT_URI TO VAR -->
+        <FormParam name="redirect_uri">https://internal-dev.api.service.nhs.uk/oauth2-pr-256/callback</FormParam>
         <FormParam name="client_secret">{private.apigee.client_secret}</FormParam>
         <FormParam name="client_id">{identity-service-config.cis2.client_id}</FormParam>
       </FormParams>

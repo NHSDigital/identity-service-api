@@ -2,7 +2,8 @@
   <Set>
     <StatusCode>302</StatusCode>
     <Headers>
-      <Header name="Location">{identity-service-config.cis2.authorize_endpoint}?response_type={request.queryparam.response_type}&amp;client_id={identity-service-config.cis2.client_id}&amp;redirect_uri={identity-service-config.cis2.redirect_uri}&amp;scope=openid%20nationalrbacaccess&amp;state={apigee.state}&amp;max_age=300</Header>
+    <!-- CHANGE redirect_uri TO A VAR  -->
+      <Header name="Location">{identity-service-config.cis2.authorize_endpoint}?response_type={request.queryparam.response_type}&amp;client_id={identity-service-config.cis2.client_id}&amp;redirect_uri=https://internal-dev.api.service.nhs.uk/oauth2-pr-256/callback&amp;scope=openid%20nationalrbacaccess&amp;state={apigee.state}&amp;max_age=300</Header>
     </Headers>
   </Set>
   <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
