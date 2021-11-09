@@ -119,7 +119,7 @@ async def test_app():
 @pytest.mark.asyncio
 class TestBackChannelLogout:
     """ A test suite for back-channel logout functionality"""
-    async def get_access_token(self, driver):
+    async def get_access_token(self, driver, get_token_body: Optional[bool] = False):
 
         params = urllib.parse.urlencode([(k, v) for k, v in {
             'client_id': self.oauth.client_id,
@@ -147,8 +147,9 @@ class TestBackChannelLogout:
                 'code': code
             }
         )
+        token = token_resp["body"] if get_token_body else token_resp["body"]["access_token"]
 
-        return token_resp["body"]["access_token"], token_resp["body"].get("sid", None)
+        return token, token_resp["body"].get("sid", None)
 
     async def call_user_info(self, app, access_token):
         user_info_resp = await app.oauth.hit_oauth_endpoint(
@@ -180,11 +181,48 @@ class TestBackChannelLogout:
         assert back_channel_resp['status_code'] == 200
 
         # Revoking a token seems to be eventually consistent?
-        sleep(2)
+        await sleep(2)
 
         # Test access token has been revoked
         userinfo_resp = await self.call_user_info(test_app, access_token)
         assert userinfo_resp['status_code'] == 401
+    
+    @pytest.mark.asyncio
+    @pytest.mark.happy_path
+    @pytest.mark.apm_2573
+    async def test_backchannel_logout_user_refresh_token(self, test_app, our_webdriver):
+        token, sid = await self.get_access_token(our_webdriver, get_token_body=True)
+        assert sid
+
+        # Test token can be used to access identity service
+        userinfo_resp = await self.call_user_info(test_app, token['access_token'])
+        assert userinfo_resp['status_code'] == 200
+
+        # refresh token
+        refresh_token_resp = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=token['refresh_token'])
+
+        refresh_userinfo_resp = await self.call_user_info(test_app, refresh_token_resp['body']['access_token'])
+        assert refresh_userinfo_resp['status_code'] == 200
+        
+        # Mock back channel logout notification and test succesful logout response
+        logout_token = create_logout_token(test_app, override_sid=sid)
+
+        back_channel_resp = await test_app.oauth.hit_oauth_endpoint(
+            method="POST",
+            endpoint="backchannel_logout",
+            data={"logout_token": logout_token}
+        )
+        assert back_channel_resp['status_code'] == 200
+
+        # Revoking a token seems to be eventually consistent?
+        await sleep(2)
+
+        # Test access token has been revoked
+        post_userinfo_resp = await self.call_user_info(test_app, token['access_token'])
+        assert post_userinfo_resp['status_code'] == 401
+
+        post_refresh_userinfo_resp = await self.call_user_info(test_app, refresh_token_resp['body']['access_token'])
+        assert post_refresh_userinfo_resp['status_code'] == 401
 
     # Request sends a JWT has missing or invalid claims of the following problems, returns a 400
     @pytest.mark.asyncio
