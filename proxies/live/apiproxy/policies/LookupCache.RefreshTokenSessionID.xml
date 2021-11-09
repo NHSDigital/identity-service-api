@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<LookupCache async="false" continueOnError="false" enabled="true" name="LookupCache.RefreshTokenSessionID">
+    <DisplayName>LookupCache.RefreshTokenSessionID</DisplayName>
+    <Properties/>
+    <CacheKey>
+        <KeyFragment ref="request.formparam.refresh_token"/>
+    </CacheKey>
+    <CacheResource>session-ids</CacheResource>
+    <Scope>Global</Scope>
+    <AssignTo>session.sid</AssignTo>
+</LookupCache>

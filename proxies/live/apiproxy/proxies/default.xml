@@ -771,6 +771,10 @@
                     <Name>RaiseFault.TokenRefreshTimelimitExceeded</Name>
                     <Condition>private.apigee.access_token_age_ms > identity-service-config.cis2.refresh_tokens_validity_ms</Condition>
                 </Step>
+                <Step>
+                    <Name>LookupCache.RefreshTokenSessionID</Name>
+                    <!-- check if a condtion needs to be met for this to occur  -->
+                </Step>
             </Request>
             <Response>
                 <Step>
