@@ -186,6 +186,38 @@ class TestBackChannelLogout:
         userinfo_resp = await self.call_user_info(test_app, access_token)
         assert userinfo_resp['status_code'] == 401
 
+    @pytest.mark.asyncio
+    @pytest.mark.happy_path
+    async def test_backchannel_logout_user_refresh_token(self, test_app, our_webdriver):
+        access_token, sid = await self.get_access_token(our_webdriver)
+        assert sid
+
+        # Test token can be used to access identity servicegit s
+        userinfo_resp = await self.call_user_info(test_app, access_token)
+        assert userinfo_resp['status_code'] == 200
+
+        # refresh token
+        print(access_token['body'])
+        resp = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=access_token['body']['refresh_token'])
+        
+        # Mock back channel logout notification and test succesful logout response
+        logout_token = create_logout_token(test_app, override_sid=sid)
+
+        back_channel_resp = await test_app.oauth.hit_oauth_endpoint(
+            method="POST",
+            endpoint="backchannel_logout",
+            data={"logout_token": logout_token}
+        )
+        assert back_channel_resp['status_code'] == 200
+
+        # Revoking a token seems to be eventually consistent?
+        sleep(2)
+
+        # Test access token has been revoked
+        # make sure that we feed the new access token here
+        userinfo_resp = await self.call_user_info(test_app, access_token)
+        assert userinfo_resp['status_code'] == 401
+
     # Request sends a JWT has missing or invalid claims of the following problems, returns a 400
     @pytest.mark.asyncio
     @pytest.mark.parametrize("claims,status_code,error_message", [
