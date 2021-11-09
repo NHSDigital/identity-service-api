@@ -775,6 +775,10 @@
                     <Name>LookupCache.RefreshTokenSessionID</Name>
                     <!-- check if a condtion needs to be met for this to occur  -->
                 </Step>
+                <Step>
+                    <Name>PopulateCache.LookedUpSessionId</Name>
+                    <Condition>accesstoken.auth_provider = "nhs-cis2"</Condition>
+                </Step>
             </Request>
             <Response>
                 <Step>
