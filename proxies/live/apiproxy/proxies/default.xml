@@ -695,6 +695,10 @@
                     <Name>PopulateCache.SessionId</Name>
                     <Condition>accesstoken.auth_provider = "nhs-cis2"</Condition>
                 </Step>
+                <Step>
+                    <Name>PopulateCache.RefreshTokenSessionId</Name>
+                    <Condition>accesstoken.auth_provider = "nhs-cis2"</Condition>
+                </Step>
             </Request>
             <Response>
                 <Step>
