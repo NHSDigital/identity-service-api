@@ -194,7 +194,7 @@ class TestBackChannelLogout:
         token, sid = await self.get_access_token(our_webdriver, get_token_body=True)
         assert sid
 
-        # Test token can be used to access identity servicegit s
+        # Test token can be used to access identity service
         userinfo_resp = await self.call_user_info(test_app, token['access_token'])
         assert userinfo_resp['status_code'] == 200
 
@@ -212,7 +212,7 @@ class TestBackChannelLogout:
             endpoint="backchannel_logout",
             data={"logout_token": logout_token}
         )
-        # assert back_channel_resp['status_code'] == 200
+        assert back_channel_resp['status_code'] == 200
 
         # Revoking a token seems to be eventually consistent?
         await sleep(2)
