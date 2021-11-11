@@ -1,0 +1,39 @@
+name: Build
+
+on: push
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # This causes all history to be fetched, which is required for autover to work
+
+      - name: Install autover
+        uses: actions-rs/install@v0.1
+        with:
+          create: autover
+          version: latest
+          use-tool-cache: true
+
+      - name: Init autover
+        run: autover fetch
+
+      - name: Set SPEC_VERSION env var
+        run: echo ::set-env name=SPEC_VERSION::v$(autover)
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+
+      # - name: Create release (master only)
+      #   id: create-release
+      #   if: github.ref == 'refs/heads/master'
+      #   uses: actions/create-release@v1
+      #   continue-on-error: true
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     tag_name: ${{ env.SPEC_VERSION }}
+      #     release_name: ${{ env.SPEC_VERSION }}
