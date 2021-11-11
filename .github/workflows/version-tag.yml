@@ -15,7 +15,7 @@ jobs:
       - name: Install autover
         uses: actions-rs/install@v0.1
         with:
-          create: autover
+          crate: autover
           version: latest
           use-tool-cache: true
 
