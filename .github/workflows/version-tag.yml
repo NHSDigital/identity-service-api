@@ -1,10 +1,10 @@
-name: Build
+name: Version Tag
 
 on: push
 
 jobs:
   build:
-    name: build
+    name: tag-version
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
