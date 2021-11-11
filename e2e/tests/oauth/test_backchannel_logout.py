@@ -1,16 +1,17 @@
 import os
 import urllib.parse
 import pytest
+from requests.exceptions import ConnectionError
 from asyncio import sleep
 from time import time
 from typing import Dict, Optional
 from uuid import uuid4
-from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from api_test_utils.oauth_helper import OauthHelper
+from api_test_utils.oauth_helper2 import OAuthProviders, OauthHelper2
 from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
 from api_test_utils.apigee_api_products import ApigeeApiProducts
+from api_test_utils.fixtures import webdriver_session
 from e2e.scripts import config
 
 
@@ -23,17 +24,6 @@ def get_env(variable_name: str) -> str:
         return var
     except KeyError:
         raise RuntimeError(f"Variable is not set, Check {variable_name}.")
-
-
-@pytest.fixture(scope="function")
-def our_webdriver():
-    try:
-        wd = webdriver.Remote(command_executor='http://127.0.0.1:4444/wd/hub', options=webdriver.ChromeOptions())
-    except:
-        raise Exception("Could not connect to Chromedriver, have you ran 'docker-compose up'?")
-    else:
-        yield wd
-    wd.quit()
 
 
 def create_logout_token(
@@ -81,7 +71,7 @@ def create_logout_token(
 
 
 @pytest.fixture(scope="function")
-async def test_app():
+async def test_app(webdriver_session):
     """Programatically create and destroy test app for each test"""
     apigee_product = ApigeeApiProducts()
     await apigee_product.create_new_product()
@@ -103,7 +93,8 @@ async def test_app():
         }
     )
 
-    apigee_app.oauth = OauthHelper(apigee_app.client_id, apigee_app.client_secret, apigee_app.callback_url)
+    apigee_app.oauth = OauthHelper2(apigee_app.client_id, apigee_app.client_secret, apigee_app.callback_url,
+                                    webdriver_session=webdriver_session, identity_provider=OAuthProviders.MOCK)
 
     api_service_name = get_env("SERVICE_NAME")
 
@@ -121,20 +112,8 @@ class TestBackChannelLogout:
     """ A test suite for back-channel logout functionality"""
     async def get_access_token(self, driver, get_token_body: Optional[bool] = False):
 
-        params = urllib.parse.urlencode([(k, v) for k, v in {
-            'client_id': self.oauth.client_id,
-            'redirect_uri': 'https://nhsd-apim-testing-internal-dev.herokuapp.com/callback',
-            'response_type': 'code',
-            'state': str(uuid4())
-        }.items()])
-        authorize_url = f"{self.oauth.base_uri}/authorize?{params}"
-
-        driver.get(authorize_url)
-        username = driver.find_element(By.ID, 'username')
-        username.send_keys('aal3' + Keys.ENTER)
-        driver.implicitly_wait(2)
-
-        code = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(driver.current_url).query))["code"]
+        code = await self.oauth.get_authenticated("aal3")
+        print(code)
 
         token_resp = await self.oauth.hit_oauth_endpoint(
             method="POST",
@@ -162,8 +141,8 @@ class TestBackChannelLogout:
 
     @pytest.mark.asyncio
     @pytest.mark.happy_path
-    async def test_backchannel_logout_happy_path(self, test_app, our_webdriver):
-        access_token, sid = await self.get_access_token(our_webdriver)
+    async def test_backchannel_logout_happy_path(self, test_app):
+        access_token, sid = await self.get_access_token(test_app)
         assert sid
 
         # Test token can be used to access identity service
@@ -329,8 +308,8 @@ class TestBackChannelLogout:
             "Prohibited nonce claim in JWT"
         )
     ])
-    async def test_claims(self, test_app, claims, status_code, error_message, our_webdriver):
-        access_token, _sid = await self.get_access_token(our_webdriver)
+    async def test_claims(self, test_app, claims, status_code, error_message, webdriver_session):
+        access_token, _sid = await self.get_access_token(webdriver_session)
 
         # Test token can be used to access identity service
         userinfo_resp = await self.call_user_info(test_app, access_token)
@@ -351,8 +330,8 @@ class TestBackChannelLogout:
 
     # Request sends JWT that cannot be verified returns a  400
     @pytest.mark.asyncio
-    async def test_invalid_jwt(self, test_app, our_webdriver):
-        access_token, _sid = await self.get_access_token(our_webdriver)
+    async def test_invalid_jwt(self, test_app, webdriver_session):
+        access_token, _sid = await self.get_access_token(webdriver_session)
 
         # Test token can be used to access identity service
         userinfo_resp = await self.call_user_info(test_app, access_token)

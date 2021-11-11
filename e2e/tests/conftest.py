@@ -1,4 +1,5 @@
 import json
+from api_test_utils.oauth_helper2 import OAuthProviders, OauthHelper2
 import pytest
 import asyncio
 from api_test_utils.oauth_helper import OauthHelper
@@ -15,6 +16,10 @@ from e2e.scripts.config import (
     ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
     MOCK_IDP_BASE_URL
 )
+
+pytest_plugins = [
+   "api_test_utils.fixtures",
+]
 
 @pytest.fixture()
 def get_token(request):
@@ -42,6 +47,7 @@ def get_token(request):
             oauth = OauthHelper(
                 test_app.client_id, test_app.client_secret, test_app.callback_url
             )
+            print(oauth.base_uri)
             resp = await oauth.get_token_response(grant_type=grant_type, **kwargs)
         else:
             # Use default test app
@@ -266,7 +272,7 @@ async def _product_with_full_access():
 
 
 @pytest.fixture(scope="session", autouse=True)
-def setup_session(request):
+def setup_session(request, webdriver_session):
     """This fixture is automatically called once at the start of pytest execution.
     The default app created here should be modified by your tests.
     If your test requires specific app config then please create your own using
@@ -293,7 +299,7 @@ def setup_session(request):
         )
     )
 
-    oauth = OauthHelper(app.client_id, app.client_secret, app.callback_url)
+    oauth = OauthHelper2(app.client_id, app.client_secret, app.callback_url, webdriver_session=webdriver_session, identity_provider=OAuthProviders.MOCK)
     for item in request.node.items:
         setattr(item.cls, "oauth", oauth)
 
