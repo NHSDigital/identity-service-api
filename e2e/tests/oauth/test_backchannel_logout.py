@@ -71,7 +71,7 @@ def create_logout_token(
 
 
 @pytest.fixture(scope="function")
-async def test_app(webdriver_session):
+async def test_app():
     """Programatically create and destroy test app for each test"""
     apigee_product = ApigeeApiProducts()
     await apigee_product.create_new_product()
@@ -93,13 +93,12 @@ async def test_app(webdriver_session):
         }
     )
 
-    apigee_app.oauth = OauthHelper2(apigee_app.client_id, apigee_app.client_secret, apigee_app.callback_url,
-                                    webdriver_session=webdriver_session, identity_provider=OAuthProviders.MOCK)
+    apigee_app.oauth = OauthHelper2(apigee_app.client_id, apigee_app.client_secret, apigee_app.callback_url, identity_provider=OAuthProviders.MOCK)
 
     api_service_name = get_env("SERVICE_NAME")
 
     await apigee_product.update_scopes(
-        [f"urn:nhsd:apim:user-nhs-login:P9:{api_service_name}"]
+        ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"]
     )
 
     yield apigee_app
@@ -110,9 +109,9 @@ async def test_app(webdriver_session):
 @pytest.mark.asyncio
 class TestBackChannelLogout:
     """ A test suite for back-channel logout functionality"""
-    async def get_access_token(self, driver, get_token_body: Optional[bool] = False):
+    async def get_access_token(self, test_app, webdriver_session, get_token_body: Optional[bool] = False):
 
-        code = await self.oauth.get_authenticated("aal3")
+        code = await test_app.oauth.get_authenticated("aal3", webdriver_session)
         print(code)
 
         token_resp = await self.oauth.hit_oauth_endpoint(
@@ -141,8 +140,8 @@ class TestBackChannelLogout:
 
     @pytest.mark.asyncio
     @pytest.mark.happy_path
-    async def test_backchannel_logout_happy_path(self, test_app):
-        access_token, sid = await self.get_access_token(test_app)
+    async def test_backchannel_logout_happy_path(self, test_app, webdriver_session):
+        access_token, sid = await self.get_access_token(test_app, webdriver_session)
         assert sid
 
         # Test token can be used to access identity service
@@ -169,8 +168,8 @@ class TestBackChannelLogout:
     @pytest.mark.asyncio
     @pytest.mark.happy_path
     @pytest.mark.apm_2573
-    async def test_backchannel_logout_user_refresh_token(self, test_app, our_webdriver):
-        token, sid = await self.get_access_token(our_webdriver, get_token_body=True)
+    async def test_backchannel_logout_user_refresh_token(self, test_app, webdriver_session):
+        token, sid = await self.get_access_token(test_app, webdriver_session, get_token_body=True)
         assert sid
 
         # Test token can be used to access identity service

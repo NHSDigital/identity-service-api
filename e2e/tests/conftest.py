@@ -1,5 +1,4 @@
 import json
-from api_test_utils.oauth_helper2 import OAuthProviders, OauthHelper2
 import pytest
 import asyncio
 from api_test_utils.oauth_helper import OauthHelper
@@ -272,7 +271,7 @@ async def _product_with_full_access():
 
 
 @pytest.fixture(scope="session", autouse=True)
-def setup_session(request, webdriver_session):
+def setup_session(request):
     """This fixture is automatically called once at the start of pytest execution.
     The default app created here should be modified by your tests.
     If your test requires specific app config then please create your own using
@@ -299,7 +298,7 @@ def setup_session(request, webdriver_session):
         )
     )
 
-    oauth = OauthHelper2(app.client_id, app.client_secret, app.callback_url, webdriver_session=webdriver_session, identity_provider=OAuthProviders.MOCK)
+    oauth = OauthHelper(app.client_id, app.client_secret, app.callback_url)
     for item in request.node.items:
         setattr(item.cls, "oauth", oauth)
 
