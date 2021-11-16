@@ -8,7 +8,7 @@ from typing import Dict, Optional
 from uuid import uuid4
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from api_test_utils.oauth_helper2 import OAuthProviders, OauthHelper2
+from api_test_utils.oauth_helper import OauthHelper
 from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
 from api_test_utils.apigee_api_products import ApigeeApiProducts
 from api_test_utils.fixtures import webdriver_session
@@ -93,7 +93,7 @@ async def test_app():
         }
     )
 
-    apigee_app.oauth = OauthHelper2(apigee_app.client_id, apigee_app.client_secret, apigee_app.callback_url, identity_provider=OAuthProviders.MOCK)
+    apigee_app.oauth = OauthHelper(apigee_app.client_id, apigee_app.client_secret, apigee_app.callback_url)
 
     api_service_name = get_env("SERVICE_NAME")
 
@@ -111,8 +111,7 @@ class TestBackChannelLogout:
     """ A test suite for back-channel logout functionality"""
     async def get_access_token(self, test_app, webdriver_session, get_token_body: Optional[bool] = False):
 
-        code = await test_app.oauth.get_authenticated("aal3", webdriver_session)
-        print(code)
+        code = await self.oauth.get_authenticated_with_mock_auth("aal3", webdriver_session)
 
         token_resp = await self.oauth.hit_oauth_endpoint(
             method="POST",

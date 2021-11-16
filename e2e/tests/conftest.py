@@ -299,6 +299,7 @@ def setup_session(request):
     )
 
     oauth = OauthHelper(app.client_id, app.client_secret, app.callback_url)
+
     for item in request.node.items:
         setattr(item.cls, "oauth", oauth)
 
