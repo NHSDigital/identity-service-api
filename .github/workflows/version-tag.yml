@@ -30,6 +30,9 @@ jobs:
       - name: Set SPEC_VERSION env var
         run: echo SPEC_VERSION=v$(./autover) >> $GITHUB_ENV
 
+      - name: "Debug: print SPEC_VERSION"
+        run: echo $SPEC_VERSION
+
       # - name: Create release (master only)
       #   id: create-release
       #   if: github.ref == 'refs/heads/master'
