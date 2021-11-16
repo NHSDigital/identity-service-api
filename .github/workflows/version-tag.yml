@@ -28,9 +28,7 @@ jobs:
         run: ./autover fetch
 
       - name: Set SPEC_VERSION env var
-        run: echo ::set-env name=SPEC_VERSION::v$(./autover)
-        env:
-          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+        run: echo SPEC_VERSION=v$(./autover) >> $GITHUB_ENV
 
       # - name: Create release (master only)
       #   id: create-release
