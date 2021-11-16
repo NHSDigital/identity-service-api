@@ -12,18 +12,23 @@ jobs:
         with:
           fetch-depth: 0  # This causes all history to be fetched, which is required for autover to work
 
-      - name: Install autover
-        uses: actions-rs/install@v0.1
+      - name: Download autover
+        uses: dsaltares/fetch-gh-release-asset@master
         with:
-          crate: autover
-          version: latest
-          use-tool-cache: true
+          repo: "Sourceless/autover"
+          file: "autover-0.2.0"
+          target: "autover"
+          version: "tags/0.2.0"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Make autover executable
+        run: sudo chmod +x autover
 
       - name: Init autover
-        run: autover fetch
+        run: ./autover fetch
 
       - name: Set SPEC_VERSION env var
-        run: echo ::set-env name=SPEC_VERSION::v$(autover)
+        run: echo ::set-env name=SPEC_VERSION::v$(./autover)
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: true
 
