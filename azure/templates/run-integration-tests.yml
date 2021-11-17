@@ -15,9 +15,22 @@ steps:
   - bash: |
       make install-python
     workingDirectory: $(SERVICE_DIR)
-    condition: ne(variables['poetryCache.cacheRestored'], 'true')
     displayName: poetry install
-    
+
+  - task: s3-cache-action@1
+    inputs:
+      key: 'poetry | ./poetry.lock'
+      location: '.venv'
+      debug: true
+      workingDirectory: $(SERVICE_DIR)/e2e
+    name: poetryCacheTest
+    displayName: cache python dependencies (test)
+
+  - bash: |
+      poetry install
+    workingDirectory: $(SERVICE_DIR)/e2e
+    displayName: poetry install (test)
+
   - template: "azure/components/aws-assume-role.yml@common"
     parameters:
       role: "auto-ops"
@@ -33,7 +46,6 @@ steps:
         secret_ids: []
 
   - bash: |
-
       export OAUTH_BASE_URI="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk"
       export OAUTH_PROXY="$(SERVICE_BASE_PATH)"
       export SERVICE_NAME="$(FULLY_QUALIFIED_SERVICE_NAME)"
@@ -44,7 +56,7 @@ steps:
       make -C e2e ${{ parameters.test_type }}
     workingDirectory: $(SERVICE_DIR)
     displayName: run ${{ parameters.test_type }} tests
-
+    
   - task: PublishTestResults@2
     displayName: publish ${{ parameters.test_type }} test results
     inputs:
