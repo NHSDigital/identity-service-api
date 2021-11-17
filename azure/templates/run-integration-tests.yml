@@ -17,10 +17,19 @@ steps:
     workingDirectory: $(SERVICE_DIR)
     displayName: poetry install
 
+  - task: s3-cache-action@1
+    inputs:
+      key: 'poetry | ./poetry.lock'
+      location: '.venv'
+      debug: true
+      workingDirectory: $(SERVICE_DIR)/e2e
+    name: poetryCache
+    displayName: cache python dependencies (test)
+
   - bash: |
-      make install-python
+      poetry install
     workingDirectory: $(SERVICE_DIR)/e2e
-    displayName: poetry install
+    displayName: poetry install (test)
 
   - template: "azure/components/aws-assume-role.yml@common"
     parameters:
