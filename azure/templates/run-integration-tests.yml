@@ -17,6 +17,11 @@ steps:
     workingDirectory: $(SERVICE_DIR)
     displayName: poetry install
 
+  - bash: |
+      make install-python
+    workingDirectory: $(SERVICE_DIR)/e2e
+    displayName: poetry install
+
   - template: "azure/components/aws-assume-role.yml@common"
     parameters:
       role: "auto-ops"
@@ -42,7 +47,7 @@ steps:
       make -C e2e ${{ parameters.test_type }}
     workingDirectory: $(SERVICE_DIR)
     displayName: run ${{ parameters.test_type }} tests
-
+    
   - task: PublishTestResults@2
     displayName: publish ${{ parameters.test_type }} test results
     inputs:
