@@ -15,9 +15,8 @@ steps:
   - bash: |
       make install-python
     workingDirectory: $(SERVICE_DIR)
-    condition: ne(variables['poetryCache.cacheRestored'], 'true')
     displayName: poetry install
-    
+
   - template: "azure/components/aws-assume-role.yml@common"
     parameters:
       role: "auto-ops"
@@ -33,7 +32,6 @@ steps:
         secret_ids: []
 
   - bash: |
-
       export OAUTH_BASE_URI="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk"
       export OAUTH_PROXY="$(SERVICE_BASE_PATH)"
       export SERVICE_NAME="$(FULLY_QUALIFIED_SERVICE_NAME)"
