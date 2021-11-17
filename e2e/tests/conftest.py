@@ -16,9 +16,6 @@ from e2e.scripts.config import (
     MOCK_IDP_BASE_URL
 )
 
-pytest_plugins = [
-   "api_test_utils.fixtures",
-]
 
 @pytest.fixture()
 def get_token(request):
