@@ -23,7 +23,7 @@ steps:
       location: '.venv'
       debug: true
       workingDirectory: $(SERVICE_DIR)/e2e
-    name: poetryCache
+    name: poetryCacheTest
     displayName: cache python dependencies (test)
 
   - bash: |
