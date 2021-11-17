@@ -1,8 +1,4 @@
-parameters:
-  - name: test_type
-
 steps:
-
   - task: s3-cache-action@1
     inputs:
       key: 'poetry | ./poetry.lock'
@@ -16,20 +12,6 @@ steps:
       make install-python
     workingDirectory: $(SERVICE_DIR)
     displayName: poetry install
-
-  - task: s3-cache-action@1
-    inputs:
-      key: 'poetry | ./poetry.lock'
-      location: '.venv'
-      debug: true
-      workingDirectory: $(SERVICE_DIR)/e2e
-    name: poetryCacheTest
-    displayName: cache python dependencies (test)
-
-  - bash: |
-      poetry install
-    workingDirectory: $(SERVICE_DIR)/e2e
-    displayName: poetry install (test)
 
   - template: "azure/components/aws-assume-role.yml@common"
     parameters:
@@ -53,7 +35,7 @@ steps:
       export ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH="$(Pipeline.Workspace)/secrets/$(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY)"
       export JWT_PRIVATE_KEY_ABSOLUTE_PATH="$(Pipeline.Workspace)/secrets/$(JWT_TESTING_PRIVATE_KEY)"
       export APIGEE_API_TOKEN="$(secret.AccessToken)"
-      make -C e2e ${{ parameters.test_type }}
+      make e2e
     workingDirectory: $(SERVICE_DIR)
     displayName: run ${{ parameters.test_type }} tests
     

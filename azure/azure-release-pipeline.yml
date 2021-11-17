@@ -43,8 +43,6 @@ extends:
       - environment: internal-dev
         post_deploy:
           - template: ./templates/run-integration-tests.yml
-            parameters:
-              test_type: e2e
       - environment: internal-dev-sandbox
       - environment: internal-qa
         depends_on:
