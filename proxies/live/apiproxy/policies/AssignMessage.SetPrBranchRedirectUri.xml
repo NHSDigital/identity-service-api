@@ -1,0 +1,7 @@
+<AssignMessage name='AssignMessage.SetPrBranchRedirectUri'>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <AssignVariable>
+    <Name>identity-service-config.cis2.redirect_uri </Name>
+    <Value>"https://internal-dev.api.service.nhs.uk/{proxy.basepath}/callback"</Value>
+  </AssignVariable>
+</AssignMessage>

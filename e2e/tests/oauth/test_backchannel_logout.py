@@ -109,7 +109,7 @@ async def test_app():
 @pytest.mark.asyncio
 class TestBackChannelLogout:
     """ A test suite for back-channel logout functionality"""
-    async def get_access_token(self, test_app, webdriver_session, get_token_body: Optional[bool] = False):
+    async def get_access_token(self, webdriver_session, get_token_body: Optional[bool] = False):
 
         code = await self.oauth.get_authenticated_with_mock_auth("aal3", webdriver_session)
 
@@ -137,11 +137,11 @@ class TestBackChannelLogout:
 
         return user_info_resp
     
-    @pytest.mark.skip
+    # @pytest.mark.skip
     @pytest.mark.asyncio
     @pytest.mark.happy_path
     async def test_backchannel_logout_happy_path(self, test_app, webdriver_session):
-        access_token, sid = await self.get_access_token(test_app, webdriver_session)
+        access_token, sid = await self.get_access_token(webdriver_session)
         assert sid
 
         # Test token can be used to access identity service
@@ -165,12 +165,12 @@ class TestBackChannelLogout:
         userinfo_resp = await self.call_user_info(test_app, access_token)
         assert userinfo_resp['status_code'] == 401
     
-    @pytest.mark.skip
+    # @pytest.mark.skip
     @pytest.mark.asyncio
-    @pytest.mark.happy_path
+    # @pytest.mark.happy_path
     @pytest.mark.apm_2573
     async def test_backchannel_logout_user_refresh_token(self, test_app, webdriver_session):
-        token, sid = await self.get_access_token(test_app, webdriver_session, get_token_body=True)
+        token, sid = await self.get_access_token(webdriver_session, get_token_body=True)
         assert sid
 
         # Test token can be used to access identity service
@@ -204,7 +204,7 @@ class TestBackChannelLogout:
         assert post_refresh_userinfo_resp['status_code'] == 401
 
     # Request sends a JWT has missing or invalid claims of the following problems, returns a 400
-    @pytest.mark.skip
+    # @pytest.mark.skip
     @pytest.mark.asyncio
     @pytest.mark.parametrize("claims,status_code,error_message", [
         (  # invalid aud claim
@@ -331,7 +331,7 @@ class TestBackChannelLogout:
 
     # Request sends JWT that cannot be verified returns a  400
     @pytest.mark.asyncio
-    @pytest.mark.skip
+    # @pytest.mark.skip
     async def test_invalid_jwt(self, test_app, webdriver_session):
         access_token, _sid = await self.get_access_token(webdriver_session)
 
@@ -354,7 +354,7 @@ class TestBackChannelLogout:
 
     # Requests sends an logout token that does not exist in the session-id cache returns a 501
     @pytest.mark.asyncio
-    @pytest.mark.skip
+    # @pytest.mark.skip
     async def test_sid_not_cached(self, test_app):
         logout_token = create_logout_token(test_app, override_sid="5b8f2499-ad4a-4a7c-b0ac-aaada65bda2b")
 
@@ -368,7 +368,7 @@ class TestBackChannelLogout:
 
     # Requests sends an logout token that does not match the session-id cache returns a 501
     @pytest.mark.asyncio
-    @pytest.mark.skip
+    # @pytest.mark.skip
     async def test_cached_sid_does_not_match(self, test_app):
         claims_non_matching_sid = {
             "aud": "9999999999",

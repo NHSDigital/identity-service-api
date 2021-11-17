@@ -159,6 +159,11 @@
                 <Name>Javascript.UnpackVars</Name>
             </Step>
             <Step>
+                <!-- Because the redirect URI matters to non-simulated idps, we set this on PR branches -->
+                <Name>AssignMessage.SetPrBranchRedirectUri</Name>
+                <Condition>environment.name Equals "internal-dev"</Condition>
+            </Step>
+            <Step>
                 <Name>AssignMessage.setIDPvar</Name>
             </Step>
             <Step>
