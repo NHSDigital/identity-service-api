@@ -222,7 +222,7 @@ async def test_product():
     """Create a test product which can be modified by the test"""
     product = ApigeeApiProducts()
     await product.create_new_product()
-    _set_default_rate_limit(product)
+    await _set_default_rate_limit(product)
     yield product
     await product.destroy_product()
 
@@ -243,7 +243,7 @@ async def test_app(app):
             "spikeArrest": {"enabled": False},
         }
     }
-    app.set_custom_attributes({"ratelimiting": json.dumps(ratelimiting)})
+    await app.set_custom_attributes({"ratelimiting": json.dumps(ratelimiting)})
     yield app
     await app.destroy_app()
 
@@ -267,32 +267,33 @@ async def _product_with_full_access():
     return product
 
 
+@pytest.fixture(scope="session")
+def event_loop():
+    return asyncio.get_event_loop()
+
+
 @pytest.fixture(scope="session", autouse=True)
-def setup_session(request):
+async def setup_session(request):
     """This fixture is automatically called once at the start of pytest execution.
     The default app created here should be modified by your tests.
     If your test requires specific app config then please create your own using
     the fixture test_app"""
-    product = asyncio.run(_product_with_full_access())
+    product = await _product_with_full_access()
     app = ApigeeApiDeveloperApps()
 
     print("\nCreating Default App..")
-    asyncio.run(
-        app.create_new_app(
-            callback_url="https://nhsd-apim-testing-internal-dev.herokuapp.com/callback"
-        )
+    await app.create_new_app(
+        callback_url="https://nhsd-apim-testing-internal-dev.herokuapp.com/callback"
     )
-    asyncio.run(app.add_api_product([product.name]))
+    await app.add_api_product([product.name])
 
     # Set default JWT Testing resource url
-    asyncio.run(
-        app.set_custom_attributes(
-            {
-                "jwks-resource-url": "https://raw.githubusercontent.com/NHSDigital/"
-                "identity-service-jwks/main/jwks/internal-dev/"
-                "9baed6f4-1361-4a8e-8531-1f8426e3aba8.json"
-            }
-        )
+    await app.set_custom_attributes(
+        {
+            "jwks-resource-url": "https://raw.githubusercontent.com/NHSDigital/"
+            "identity-service-jwks/main/jwks/internal-dev/"
+            "9baed6f4-1361-4a8e-8531-1f8426e3aba8.json"
+        }
     )
 
     oauth = OauthHelper(app.client_id, app.client_secret, app.callback_url)
@@ -304,8 +305,8 @@ def setup_session(request):
 
     # Teardown
     print("\nDestroying Default App..")
-    asyncio.run(app.destroy_app())
-    asyncio.run(product.destroy_product())
+    await app.destroy_app()
+    await product.destroy_product()
 
 
 @pytest.fixture(scope="function", autouse=True)
