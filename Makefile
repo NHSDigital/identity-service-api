@@ -52,5 +52,6 @@ release: clean publish build-proxy
 .PHONY: e2e
 e2e:
 	rm -f reports/e2e.xml  > /dev/null || true
+	ls -R
 	poetry run python -m coverage run --source ./e2e --module pytest --reruns 10 -rxs -v --junit-xml=reports/e2e.xml --ignore .venv || true
 	@if [[ ! -f reports/e2e.xml ]]; then echo report not created; exit 1; fi
