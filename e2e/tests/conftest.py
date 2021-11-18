@@ -267,46 +267,46 @@ async def _product_with_full_access():
     return product
 
 
-@pytest.fixture(scope="session")
-def event_loop():
-    return asyncio.get_event_loop()
-
-
 @pytest.fixture(scope="session", autouse=True)
-async def setup_session(request):
+def setup_session(request):
     """This fixture is automatically called once at the start of pytest execution.
     The default app created here should be modified by your tests.
     If your test requires specific app config then please create your own using
     the fixture test_app"""
-    product = await _product_with_full_access()
-    app = ApigeeApiDeveloperApps()
+    async def _setup_session(request):
+        product = await _product_with_full_access()
+        app = ApigeeApiDeveloperApps()
 
-    print("\nCreating Default App..")
-    await app.create_new_app(
-        callback_url="https://nhsd-apim-testing-internal-dev.herokuapp.com/callback"
-    )
-    await app.add_api_product([product.name])
+        print("\nCreating Default App..")
+        await app.create_new_app(
+            callback_url="https://nhsd-apim-testing-internal-dev.herokuapp.com/callback"
+        )
+        await app.add_api_product([product.name])
 
-    # Set default JWT Testing resource url
-    await app.set_custom_attributes(
-        {
-            "jwks-resource-url": "https://raw.githubusercontent.com/NHSDigital/"
-            "identity-service-jwks/main/jwks/internal-dev/"
-            "9baed6f4-1361-4a8e-8531-1f8426e3aba8.json"
-        }
-    )
+        # Set default JWT Testing resource url
+        await app.set_custom_attributes(
+            {
+                "jwks-resource-url": "https://raw.githubusercontent.com/NHSDigital/"
+                "identity-service-jwks/main/jwks/internal-dev/"
+                "9baed6f4-1361-4a8e-8531-1f8426e3aba8.json"
+            }
+        )
 
-    oauth = OauthHelper(app.client_id, app.client_secret, app.callback_url)
+        oauth = OauthHelper(app.client_id, app.client_secret, app.callback_url)
 
-    for item in request.node.items:
-        setattr(item.cls, "oauth", oauth)
+        for item in request.node.items:
+            setattr(item.cls, "oauth", oauth)
 
+        return app, product
+
+    async def _destroy_session(app, product):
+        print("\nDestroying Default App..")
+        await app.destroy_app()
+        await product.destroy_product()
+
+    app, product = asyncio.run(_setup_session(request))
     yield
-
-    # Teardown
-    print("\nDestroying Default App..")
-    await app.destroy_app()
-    await product.destroy_product()
+    asyncio.run(_destroy_session(app, product))
 
 
 @pytest.fixture(scope="function", autouse=True)
