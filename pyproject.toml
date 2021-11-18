@@ -17,6 +17,7 @@ python = "^3.8"
 pytest-rerunfailures = "^10.0"
 beautifulsoup4 = "^4.10.0"
 selenium = "^4.0.0"
+pytest-xdist = {extras = ["psutil"], version = "^2.4.0"}
 
 
 [tool.poetry.dev-dependencies]
