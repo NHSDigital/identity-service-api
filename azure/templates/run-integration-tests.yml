@@ -37,11 +37,11 @@ steps:
       export APIGEE_API_TOKEN="$(secret.AccessToken)"
       make e2e
     workingDirectory: $(SERVICE_DIR)
-    displayName: run ${{ parameters.test_type }} tests
+    displayName: run e2e tests
     
   - task: PublishTestResults@2
-    displayName: publish ${{ parameters.test_type }} test results
+    displayName: publish e2e test results
     inputs:
       testResultsFiles: |
-        $(SERVICE_DIR)/reports/${{ parameters.test_type }}.xml
+        $(SERVICE_DIR)/reports/e2e.xml
       failTaskOnFailedTests: true
