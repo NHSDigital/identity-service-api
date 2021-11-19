@@ -374,6 +374,7 @@ class TestAuthorizationCodeCis2HappyCases:
                 "refresh_count",
                 "refresh_token",
                 "refresh_token_expires_in",
+                "sid",
                 "token_type",
             ],
             data={
@@ -777,6 +778,7 @@ class TestAuthorizationCodeRemoveExternalScopes:
                 "refresh_count",
                 "refresh_token",
                 "refresh_token_expires_in",
+                "sid",
                 "token_type",
             ],
             data={
