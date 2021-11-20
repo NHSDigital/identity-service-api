@@ -34,8 +34,8 @@ def create_logout_token(
 ) -> Dict[str, str]:
     """Creates logout token. To be replaced with Mock OIDC"""
     logout_token_claims = {
-        "aud": "9999999999",
-        "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",
+        "aud": "test-client-1",
+        "iss": "https://dev.api.service.nhs.uk/mock-nhsid-jwks/simulated_auth",
         "sub": "9999999999",
         "iat": int(time()) - 10,
         "jti": str(uuid4()),
