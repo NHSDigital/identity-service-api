@@ -22,6 +22,7 @@ var nonce_claim = context.getVariable(
 if (idp !== "nhs-login") {
   var client_id = context.getVariable("identity-service-config.cis2.client_id");
   var base_url = context.getVariable("identity-service-config.cis2.issuer");
+  var authorize_endpoint = context.getVariable("identity-service-config.cis2.authorize_endpoint")
 }
 // Left here for future implementation for nhs_login
 //else{
@@ -49,17 +50,14 @@ if (iss_claim) {
 }
 
 // Change hardcoded aud and iss when we play APM-2524
-if (aud_claim !== "9999999999") {
+if (aud_claim !== client_id) {
   context.setVariable("claims_validation.error", "invalid_request");
   context.setVariable(
     "claims_validation.error_description",
     "Missing/invalid aud claim in JWT"
   );
   context.setVariable("claims_validation.is_valid", false);
-} else if (
-  iss_claim !==
-  "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc"
-) {
+} else if (iss_claim !== authorize_endpoint) {
   context.setVariable("claims_validation.error", "invalid_request");
   context.setVariable(
     "claims_validation.error_description",
