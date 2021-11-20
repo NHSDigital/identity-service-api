@@ -49,7 +49,6 @@ if (iss_claim) {
   iss_claim = iss_claim.toLowerCase();
 }
 
-// Change hardcoded aud and iss when we play APM-2524
 if (aud_claim !== client_id) {
   context.setVariable("claims_validation.error", "invalid_request");
   context.setVariable(
