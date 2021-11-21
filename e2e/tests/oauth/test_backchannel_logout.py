@@ -35,7 +35,7 @@ def create_logout_token(
     """Creates logout token. To be replaced with Mock OIDC"""
     logout_token_claims = {
         "aud": "test-client-1",
-        "iss": "https://dev.api.service.nhs.uk/mock-nhsid-jwks/simulated_auth",
+        "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock/protocol/openid-connect/auth",
         "sub": "9999999999",
         "iat": int(time()) - 10,
         "jti": str(uuid4()),
