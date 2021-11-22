@@ -49,14 +49,15 @@ class TestOauthEndpoints:
         resp = await self.oauth.get_token_response(grant_type="authorization_code")
 
         assert resp["status_code"] == 200
-        assert sorted(list(resp["body"].keys())) == [
+        assert set(resp["body"].keys()) == {
             "access_token",
             "expires_in",
             "refresh_count",
             "refresh_token",
             "refresh_token_expires_in",
+            "sid",
             "token_type",
-        ]
+        }
 
     @pytest.mark.apm_1618
     @pytest.mark.apm_1475
@@ -554,6 +555,7 @@ class TestOauthEndpoints:
 
     @pytest.mark.apm_1064
     @pytest.mark.errors
+    @pytest.mark.xfail(reason="APM-2521: Endpoint has been deprecated")
     @pytest.mark.callback_endpoint
     @pytest.mark.parametrize("auth_method", [(None)])
     async def test_callback_error_conditions(self, helper, auth_code_nhs_cis2):

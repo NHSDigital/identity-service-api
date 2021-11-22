@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<AccessControl async="false" continueOnError="false" enabled="true" name="AccessControl.VerifyIP">
+  <IPRules noRuleMatchAction = "DENY">
+    <MatchRule action = "ALLOW">
+      <SourceAddress mask="{allowed_ip_1.mask}">{allowed_ip_1.address}</SourceAddress>
+      <SourceAddress mask="{allowed_ip_2.mask}">{allowed_ip_2.address}</SourceAddress>
+     </MatchRule>
+  </IPRules>
+</AccessControl>

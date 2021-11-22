@@ -1,0 +1,15 @@
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.SIDNotFound">
+  <FaultResponse>
+    <Set>
+      <Payload contentType="application/json">
+        {
+          "error" : "not_implemented",
+          "error_description" :"SID not found",
+          "message_id": "{messageid}"
+        }</Payload>
+      <StatusCode>501</StatusCode>
+      <ReasonPhrase>Not Implemented</ReasonPhrase>
+    </Set>
+  </FaultResponse>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</RaiseFault>

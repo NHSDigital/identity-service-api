@@ -1,0 +1,15 @@
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.LogoutFailed">
+  <FaultResponse>
+    <Set>
+      <Payload contentType="application/json">
+        {
+          "error" : "not_implemented",
+          "error_description" :"Logout Failed",
+          "message_id": "{messageid}"
+        }</Payload>
+      <StatusCode>501</StatusCode>
+      <ReasonPhrase>Not Implemented</ReasonPhrase>
+    </Set>
+  </FaultResponse>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</RaiseFault>

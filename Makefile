@@ -48,3 +48,9 @@ _dist_include="pytest.ini poetry.lock poetry.toml pyproject.toml Makefile build/
 release: clean publish build-proxy
 	mkdir -p dist
 	for f in $(_dist_include); do cp -r $$f dist; done
+
+.PHONY: e2e
+e2e:
+	rm -f reports/e2e.xml  > /dev/null || true
+	cd e2e && poetry run python -m pytest -n auto --reruns 3 -rxs -v --junit-xml=../reports/e2e.xml --ignore .venv || true
+	@if [[ ! -f reports/e2e.xml ]]; then echo report not created; exit 1; fi

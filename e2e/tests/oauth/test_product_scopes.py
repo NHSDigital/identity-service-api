@@ -50,7 +50,7 @@ async def test_app_and_product():
     await apigee_product2.destroy_product()
 
 
-@pytest.yield_fixture(scope="class")
+@pytest.fixture(scope="class")
 def event_loop(request):
     loop = asyncio.new_event_loop()
     yield loop
@@ -374,6 +374,7 @@ class TestAuthorizationCodeCis2HappyCases:
                 "refresh_count",
                 "refresh_token",
                 "refresh_token_expires_in",
+                "sid",
                 "token_type",
             ],
             data={
@@ -777,6 +778,7 @@ class TestAuthorizationCodeRemoveExternalScopes:
                 "refresh_count",
                 "refresh_token",
                 "refresh_token_expires_in",
+                "sid",
                 "token_type",
             ],
             data={

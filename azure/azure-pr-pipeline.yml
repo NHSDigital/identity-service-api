@@ -32,8 +32,6 @@ extends:
     service_name: ${{ variables.service_name }}
     short_service_name: ${{ variables.short_service_name }}
     service_base_path: ${{ variables.service_base_path }}
-    product_display_name: ${{ variables.product_display_name }}
-    product_description: ${{ variables.product_description }}
     ping: false
     jinja_templates:
       IDENTITY_PROVIDER_CIS2: cis2
@@ -46,18 +44,27 @@ extends:
       - environment: internal-dev
         post_deploy:
           - template: ./templates/run-integration-tests.yml
-            parameters:
-              test_type: e2e
       - environment: internal-dev
         service_name: ${{ variables.service_name }}-int
         short_service_name: ${{ variables.short_service_name }}-int
-        product_display_name: ${{ variables.product_display_name }} (INT Testing)
         stage_name: internal_dev_int
         service_base_path: ${{ variables.service_base_path }}-int
         jinja_templates:
           IDENTITY_PROVIDER_CIS2: cis2-int
           IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
-          VARIABLES_KVM: identity_service_config_int
+          VARIABLES_KVM: identity_service_config
+          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
+      - environment: internal-dev
+        service_name: ${{ variables.service_name }}-mock
+        short_service_name: ${{ variables.short_service_name }}-mock
+        stage_name: internal_dev_mock
+        service_base_path: ${{ variables.service_base_path }}-mock
+        jinja_templates:
+          IDENTITY_PROVIDER_CIS2: cis2-keycloak
+          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
+          VARIABLES_KVM: identity_service_config_keycloak
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
           NUM_RANDOM_LONG_INTS_FOR_STATE: 4
           RATELIMITING: ${{ variables.ratelimiting }}

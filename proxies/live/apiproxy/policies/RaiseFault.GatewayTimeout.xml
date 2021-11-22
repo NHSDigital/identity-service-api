@@ -1,0 +1,19 @@
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.GatewayTimeout">
+<!--This was created as part of the cis2 BackChannel Logout work.
+    The documentation states a 504 should be returned when downstream logouts have failed.
+    We are (currently) not sending anything downstream and so this has no implementation 
+    But has been added and left here for future use if needed.-->
+  <FaultResponse>
+    <Set>
+      <Payload contentType="application/json">
+        {
+          "error" : "gateway_timeout",
+          "error_description" :"The local logout successed but some downstream logouts have failed",
+          "message_id": "{messageid}"
+        }</Payload>
+      <StatusCode>504</StatusCode>
+      <ReasonPhrase>Gateway Timeout</ReasonPhrase>
+    </Set>
+  </FaultResponse>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</RaiseFault>

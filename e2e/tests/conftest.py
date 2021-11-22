@@ -16,6 +16,7 @@ from e2e.scripts.config import (
     MOCK_IDP_BASE_URL
 )
 
+
 @pytest.fixture()
 def get_token(request):
     """Get an access or refresh token
@@ -42,6 +43,7 @@ def get_token(request):
             oauth = OauthHelper(
                 test_app.client_id, test_app.client_secret, test_app.callback_url
             )
+            print(oauth.base_uri)
             resp = await oauth.get_token_response(grant_type=grant_type, **kwargs)
         else:
             # Use default test app
@@ -220,7 +222,7 @@ async def test_product():
     """Create a test product which can be modified by the test"""
     product = ApigeeApiProducts()
     await product.create_new_product()
-    _set_default_rate_limit(product)
+    await _set_default_rate_limit(product)
     yield product
     await product.destroy_product()
 
@@ -241,7 +243,7 @@ async def test_app(app):
             "spikeArrest": {"enabled": False},
         }
     }
-    app.set_custom_attributes({"ratelimiting": json.dumps(ratelimiting)})
+    await app.set_custom_attributes({"ratelimiting": json.dumps(ratelimiting)})
     yield app
     await app.destroy_app()
 
@@ -249,8 +251,8 @@ async def test_app(app):
 async def _product_with_full_access():
     product = ApigeeApiProducts()
     await product.create_new_product()
-    _set_default_rate_limit(product)
-    product.update_scopes(
+    await _set_default_rate_limit(product)
+    await product.update_scopes(
         [
             "personal-demographics-service:USER-RESTRICTED",
             "urn:nhsd:apim:app:level3:",
@@ -271,38 +273,40 @@ def setup_session(request):
     The default app created here should be modified by your tests.
     If your test requires specific app config then please create your own using
     the fixture test_app"""
-    product = asyncio.run(_product_with_full_access())
-    app = ApigeeApiDeveloperApps()
+    async def _setup_session(request):
+        product = await _product_with_full_access()
+        app = ApigeeApiDeveloperApps()
 
-    print("\nCreating Default App..")
-    asyncio.run(
-        app.create_new_app(
+        print("\nCreating Default App..")
+        await app.create_new_app(
             callback_url="https://nhsd-apim-testing-internal-dev.herokuapp.com/callback"
         )
-    )
-    asyncio.run(app.add_api_product([product.name]))
+        await app.add_api_product([product.name])
 
-    # Set default JWT Testing resource url
-    asyncio.run(
-        app.set_custom_attributes(
+        # Set default JWT Testing resource url
+        await app.set_custom_attributes(
             {
                 "jwks-resource-url": "https://raw.githubusercontent.com/NHSDigital/"
                 "identity-service-jwks/main/jwks/internal-dev/"
                 "9baed6f4-1361-4a8e-8531-1f8426e3aba8.json"
             }
         )
-    )
 
-    oauth = OauthHelper(app.client_id, app.client_secret, app.callback_url)
-    for item in request.node.items:
-        setattr(item.cls, "oauth", oauth)
+        oauth = OauthHelper(app.client_id, app.client_secret, app.callback_url)
 
+        for item in request.node.items:
+            setattr(item.cls, "oauth", oauth)
+
+        return app, product
+
+    async def _destroy_session(app, product):
+        print("\nDestroying Default App..")
+        await app.destroy_app()
+        await product.destroy_product()
+
+    app, product = asyncio.run(_setup_session(request))
     yield
-
-    # Teardown
-    print("\nDestroying Default App..")
-    asyncio.run(app.destroy_app())
-    asyncio.run(product.destroy_product())
+    asyncio.run(_destroy_session(app, product))
 
 
 @pytest.fixture(scope="function", autouse=True)

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<PopulateCache async="false" continueOnError="false" enabled="true" name="PopulateCache.SessionId">
+<PopulateCache async="false" continueOnError="false" enabled="true" name="PopulateCache.LookedUpSessionId">
     <CacheKey>
-        <KeyFragment ref="jwt.DecodeJWT.FromExternalIdToken.decoded.claim.sid" />
+        <KeyFragment ref="session.sid" />
     </CacheKey>
     <CacheResource>session-ids</CacheResource>
     <Scope>Global</Scope>
     <ExpirySettings>
         <TimeoutInSec ref="identity-service-config.cis2.access_token_expiry_ms" />
     </ExpirySettings>
-    <Source>oauthv2accesstoken.OAuthV2.GenerateAccessToken.access_token</Source>
+    <Source>oauthv2accesstoken.OAuthV2.GenerateRefreshToken.access_token</Source>
 </PopulateCache>

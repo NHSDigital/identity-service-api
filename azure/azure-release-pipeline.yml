@@ -30,8 +30,6 @@ extends:
     service_name: ${{ variables.service_name }}
     short_service_name: ${{ variables.short_service_name }}
     service_base_path: ${{ variables.service_base_path }}
-    product_display_name: ${{ variables.product_display_name }}
-    product_description: ${{ variables.product_description }}
     enable_monitoring: true
     enable_status_monitoring: false
     jinja_templates:
@@ -45,8 +43,6 @@ extends:
       - environment: internal-dev
         post_deploy:
           - template: ./templates/run-integration-tests.yml
-            parameters:
-              test_type: e2e
       - environment: internal-dev-sandbox
       - environment: internal-qa
         depends_on:

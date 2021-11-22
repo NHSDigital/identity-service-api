@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PopulateCache async="false" continueOnError="false" enabled="true" name="PopulateCache.RevokedSessionID">
+    <DisplayName>PopulateCache.RevokedSessionID</DisplayName>
+    <Properties/>
+    <CacheKey>
+        <KeyFragment ref="jwt.DecodeJWT.LogoutToken.decoded.claim.sid"/>
+    </CacheKey>
+    <CacheResource>revoked-session-ids</CacheResource>
+    <Scope>Exclusive</Scope>
+    <ExpirySettings>
+        <TimeoutInSec>3600</TimeoutInSec>
+    </ExpirySettings>
+    <Source>system.time</Source>
+</PopulateCache>
