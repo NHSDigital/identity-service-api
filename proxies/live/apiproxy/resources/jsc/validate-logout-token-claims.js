@@ -22,12 +22,11 @@ var nonce_claim = context.getVariable(
 if (idp !== "nhs-login") {
   var client_id = context.getVariable("identity-service-config.cis2.client_id");
   var issuer = context.getVariable("identity-service-config.cis2.issuer");
-  var authorize_endpoint = context.getVariable("identity-service-config.cis2.authorize_endpoint")
 }
 // Left here for future implementation for nhs_login
 //else{
 //    var client_id = context.getVariable("identity-service-config.nhs_login.client_id");
-//    var base_url = context.getVariable("identity-service-config.nhs_login.issuer");
+//    var issuer = context.getVariable("identity-service-config.nhs_login.issuer");
 //}
 
 function eventsCheck(str) {
