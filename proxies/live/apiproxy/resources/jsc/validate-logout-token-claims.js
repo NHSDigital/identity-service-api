@@ -21,7 +21,7 @@ var nonce_claim = context.getVariable(
 
 if (idp !== "nhs-login") {
   var client_id = context.getVariable("identity-service-config.cis2.client_id");
-  var issuer = context.getVariable("identity-service-config.cis2.issuer").toLowerCase();
+  var issuer = context.getVariable("identity-service-config.cis2.issuer");
 }
 // Left here for future implementation for nhs_login
 //else{
@@ -46,6 +46,10 @@ if (aud_claim !== null) {
 
 if (iss_claim) {
   iss_claim = iss_claim.toLowerCase();
+}
+
+if (issuer) {
+  issuer = issuer.toLowerCase();
 }
 
 if (aud_claim !== client_id) {
