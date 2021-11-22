@@ -21,7 +21,7 @@ var nonce_claim = context.getVariable(
 
 if (idp !== "nhs-login") {
   var client_id = context.getVariable("identity-service-config.cis2.client_id");
-  var base_url = context.getVariable("identity-service-config.cis2.issuer");
+  var issuer = context.getVariable("identity-service-config.cis2.issuer");
   var authorize_endpoint = context.getVariable("identity-service-config.cis2.authorize_endpoint")
 }
 // Left here for future implementation for nhs_login
@@ -56,7 +56,7 @@ if (aud_claim !== client_id) {
     "Missing/invalid aud claim in JWT"
   );
   context.setVariable("claims_validation.is_valid", false);
-} else if (iss_claim !== authorize_endpoint) {
+} else if (iss_claim !== issuer) {
   context.setVariable("claims_validation.error", "invalid_request");
   context.setVariable(
     "claims_validation.error_description",
