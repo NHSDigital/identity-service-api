@@ -34,8 +34,8 @@ def create_logout_token(
 ) -> Dict[str, str]:
     """Creates logout token. To be replaced with Mock OIDC"""
     logout_token_claims = {
-        "aud": "9999999999",
-        "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",
+        "aud": "test-client-1",
+        "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock/protocol/openid-connect/auth",
         "sub": "9999999999",
         "iat": int(time()) - 10,
         "jti": str(uuid4()),
@@ -140,6 +140,7 @@ class TestBackChannelLogout:
     @pytest.mark.xfail
     @pytest.mark.asyncio
     @pytest.mark.happy_path
+    # This is inconsistent due to Apigee problems
     async def test_backchannel_logout_happy_path(self, test_app, webdriver_session):
         access_token, sid = await self.get_access_token(webdriver_session)
         assert sid
@@ -169,6 +170,7 @@ class TestBackChannelLogout:
     @pytest.mark.asyncio
     @pytest.mark.happy_path
     @pytest.mark.apm_2573
+    # This is inconsistent due to Apigee problems 
     async def test_backchannel_logout_user_refresh_token(self, test_app, webdriver_session):
         token, sid = await self.get_access_token(webdriver_session, get_token_body=True)
         assert sid
@@ -210,7 +212,7 @@ class TestBackChannelLogout:
         (  # invalid aud claim
             {
                 "aud": "invalid_aud_claim",
-                "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",
+                "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock/protocol/openid-connect/auth",
                 "sub": "9999999999",
                 "iat": int(time()) - 10,
                 "jti": str(uuid4()),
@@ -222,7 +224,7 @@ class TestBackChannelLogout:
         ),
         (  # missing aud claim
             {
-                "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",
+                "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock/protocol/openid-connect/auth",
                 "sub": "9999999999",
                 "iat": int(time()) - 10,
                 "jti": str(uuid4()),
@@ -234,7 +236,7 @@ class TestBackChannelLogout:
         ),
         (  # invalid iss claim
             {
-                "aud": "9999999999",
+                "aud": "test-client-1",
                 "iss": "invalid_iss_claim",
                 "sub": "9999999999",
                 "iat": int(time()) - 10,
@@ -247,7 +249,7 @@ class TestBackChannelLogout:
         ),
         (  # missing iss claim
             {
-                "aud": "9999999999",
+                "aud": "test-client-1",
                 "sub": "9999999999",
                 "iat": int(time()) - 10,
                 "jti": str(uuid4()),
@@ -259,8 +261,8 @@ class TestBackChannelLogout:
         ),
         (  # missing sid claim
             {
-                "aud": "9999999999",
-                "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",
+                "aud": "test-client-1",
+                "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock/protocol/openid-connect/auth",
                 "sub": "9999999999",
                 "iat": int(time()) - 10,
                 "jti": str(uuid4()),
@@ -271,8 +273,8 @@ class TestBackChannelLogout:
         ),
         (  # invalid events claim
             {
-                "aud": "9999999999",
-                "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",
+                "aud": "test-client-1",
+                "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock/protocol/openid-connect/auth",
                 "sub": "9999999999",
                 "iat": int(time()) - 10,
                 "jti": str(uuid4()),
@@ -284,8 +286,8 @@ class TestBackChannelLogout:
         ),
         (  # missing events claim
             {
-                "aud": "9999999999",
-                "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",
+                "aud": "test-client-1",
+                "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock/protocol/openid-connect/auth",
                 "sub": "9999999999",
                 "iat": int(time()) - 10,
                 "jti": str(uuid4()),
@@ -296,8 +298,8 @@ class TestBackChannelLogout:
         ),
         (  # present nonce claim
             {
-                "aud": "9999999999",
-                "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",
+                "aud": "test-client-1",
+                "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock/protocol/openid-connect/auth",
                 "sub": "9999999999",
                 "iat": int(time()) - 10,
                 "jti": str(uuid4()),
@@ -371,8 +373,8 @@ class TestBackChannelLogout:
     @pytest.mark.xfail
     async def test_cached_sid_does_not_match(self, test_app):
         claims_non_matching_sid = {
-            "aud": "9999999999",
-            "iss": "https://am.nhsdev.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/oidc",
+            "aud": "test-client-1",
+            "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock/protocol/openid-connect/auth",
             "sub": "9999999999",
             "iat": int(time()) - 10,
             "jti": str(uuid4()),
