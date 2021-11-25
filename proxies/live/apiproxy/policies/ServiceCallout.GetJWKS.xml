@@ -10,5 +10,5 @@
       <Enabled>true</Enabled>
     </SSLInfo>
     <Path>{identity-service-config.cis2.jwks_path}</Path>
-</HTTPTargetConnection>
+  </HTTPTargetConnection>
 </ServiceCallout>
