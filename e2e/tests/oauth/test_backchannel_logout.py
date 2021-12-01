@@ -137,7 +137,7 @@ class TestBackChannelLogout:
 
         return user_info_resp
     
-    @pytest.mark.xfail
+    # @pytest.mark.xfail
     @pytest.mark.asyncio
     @pytest.mark.happy_path
     # This is inconsistent due to Apigee problems

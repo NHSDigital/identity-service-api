@@ -4,6 +4,7 @@
     <Set>
       <Headers>
           <Header name="Content-Type">application/x-www-form-urlencoded</Header>
+          <Header name="User-Agent">APIM</Header>
       </Headers>
       <FormParams>
           <FormParam name="grant_type">authorization_code</FormParam>
