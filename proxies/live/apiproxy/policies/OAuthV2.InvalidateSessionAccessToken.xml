@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<OAuthV2 async="false" continueOnError="false" enabled="true" name="OAuthV2.InvalidateSessionAccessToken">
+<OAuthV2 async="false" continueOnError="true" enabled="true" name="OAuthV2.InvalidateSessionAccessToken">
     <DisplayName>OAuthV2.InvalidateSessionAccessToken</DisplayName>
     <ExternalAuthorization>false</ExternalAuthorization>
     <Operation>InvalidateToken</Operation>

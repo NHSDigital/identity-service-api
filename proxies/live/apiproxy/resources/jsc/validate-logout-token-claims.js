@@ -48,6 +48,10 @@ if (iss_claim) {
   iss_claim = iss_claim.toLowerCase();
 }
 
+if (issuer) {
+  issuer = issuer.toLowerCase();
+}
+
 if (aud_claim !== client_id) {
   context.setVariable("claims_validation.error", "invalid_request");
   context.setVariable(
