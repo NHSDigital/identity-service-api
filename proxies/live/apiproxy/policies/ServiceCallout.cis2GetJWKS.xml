@@ -2,7 +2,7 @@
   <Response>jwks_callout_response</Response>
   <!-- This is the default (55 seconds). Including it to make explicit. -->
   <Timeout>55000</Timeout>
-    <Request>
+  <Request>
     <Set>
       <Headers>
         <Header name="User-Agent">{request.header.User-Agent}</Header>
@@ -18,5 +18,5 @@
       <Enabled>true</Enabled>
     </SSLInfo>
     <Path>{jwksPath}</Path>
-</HTTPTargetConnection>
+  </HTTPTargetConnection>
 </ServiceCallout>
