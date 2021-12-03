@@ -8,7 +8,7 @@
                 <Header name="accept">*/*</Header>
                 <Header name="accept-encoding">gzip, deflate, br</Header>
                 <Header name="cache-control">no-cache</Header>
-                <Header name="user-agent">APIM</Header>
+                <Header name="user-agent">{request.header.User-Agent}</Header>
             </Headers>
             <FormParams>
                 <FormParam name="grant_type">authorization_code</FormParam>
