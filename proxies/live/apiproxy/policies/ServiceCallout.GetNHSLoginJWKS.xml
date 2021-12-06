@@ -6,7 +6,7 @@
   <Request>
     <Set>
       <Headers>
-        <Header name="User-Agent">{request.header.User-Agent}</Header>
+        <Header name="User-Agent">APIM</Header>
       </Headers>
     </Set>
     <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
