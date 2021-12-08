@@ -104,6 +104,18 @@ extends:
       - environment: sandbox # required for hello-world https://portal.developer.nhs.uk/docs/hello-world-sandbox/1/routes/hello/application/get
       - environment: int
       - environment: int
+        service_name: ${{ variables.service_name }}-mock
+        short_service_name: ${{ variables.short_service_name }}-mock
+        stage_name: int_mock
+        service_base_path: ${{ variables.service_base_path }}-mock
+        jinja_templates:
+          IDENTITY_PROVIDER_CIS2: cis2-keycloak
+          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
+          VARIABLES_KVM: identity_service_config_keycloak
+          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
+      - environment: int
         stage_name: int_no_smartcard
         fully_qualified_service_name: identity-service-int-no-smartcard
         service_base_path: oauth2-no-smartcard
