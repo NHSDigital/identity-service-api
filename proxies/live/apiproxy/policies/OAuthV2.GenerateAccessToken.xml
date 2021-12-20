@@ -2,9 +2,9 @@
 <OAuthV2 async="false" continueOnError="false" enabled="true" name="OAuthV2.GenerateAccessToken">
     <Operation>GenerateAccessToken</Operation>
     <RedirectUri>request.formparam.redirect_uri</RedirectUri>
-    <!-- 10 minutes: -->
+    <!-- default if ref cannot be found is set at 10 minutes -->
     <ExpiresIn ref="identity-service-config.cis2.access_token_expiry_ms">600000</ExpiresIn>
-    <!-- 12 hours: -->
+    <!-- default if ref cannot be found is set at 12 hours -->
     <RefreshTokenExpiresIn ref="identity-service-config.cis2.refresh_token_expiry_ms">43200000</RefreshTokenExpiresIn>
     <Code>request.formparam.code</Code>
     <SupportedGrantTypes>
