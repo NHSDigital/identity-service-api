@@ -720,7 +720,7 @@ class TestOauthEndpoints:
         # Given
         expected_status_code = 400
         expected_error = 'invalid_request'
-        expected_error_description = 'We only support userinfo for Combined Auth integrations, and currently only for NHS CIS2 authentications - https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/user-restricted-restful-apis-nhs-cis2-combined-authentication-and-authorisation'
+        expected_error_description = 'The Userinfo endpoint is only supported for Combined Auth integrations. Currently this is only for NHS CIS2 authentications - for more guidance see https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/user-restricted-restful-apis-nhs-cis2-combined-authentication-and-authorisation'
 
         # When
         resp = await get_exchange_code_nhs_login_token(self.oauth)
@@ -740,7 +740,7 @@ class TestOauthEndpoints:
         # Given
         expected_status_code = 400
         expected_error = 'invalid_request'
-        expected_error_description = 'We only support userinfo for Combined Auth integrations, and currently only for NHS CIS2 authentications - https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/user-restricted-restful-apis-nhs-cis2-combined-authentication-and-authorisation'
+        expected_error_description = 'The Userinfo endpoint is only supported for Combined Auth integrations. Currently this is only for NHS CIS2 authentications - for more guidance see https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/user-restricted-restful-apis-nhs-cis2-combined-authentication-and-authorisation'
 
         # When
         jwt = self.oauth.create_jwt(kid="test-1")
