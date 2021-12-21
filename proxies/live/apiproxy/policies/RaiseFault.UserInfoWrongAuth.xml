@@ -1,0 +1,15 @@
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.UserInfoWrongAuth">
+  <FaultResponse>
+    <Set>
+      <Payload contentType="application/json">
+        {
+          "error" : "invalid_request",
+          "error_description" :"The Userinfo endpoint is only supported for Combined Auth integrations. Currently this is only for NHS CIS2 authentications - for more guidance see https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/user-restricted-restful-apis-nhs-cis2-combined-authentication-and-authorisation",
+          "message_id": "{messageid}"
+        }</Payload>
+      <StatusCode>400</StatusCode>
+      <ReasonPhrase>Bad Request</ReasonPhrase>
+    </Set>
+  </FaultResponse>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</RaiseFault>

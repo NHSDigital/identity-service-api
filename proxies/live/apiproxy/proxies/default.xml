@@ -919,7 +919,7 @@
                     <Name>Javascript.CheckApigeeAccessTokenAttributes</Name>
                 </Step>
                 <Step>
-                    <Name>RaiseFault.NotFound</Name>
+                    <Name>RaiseFault.UserInfoWrongAuth</Name>
                     <Condition>idTokenIssuer Equals "nhsLogin" or InvalidIdTokenIssuer Equals "true" or accesstoken.external_access_token Equals null</Condition>
                 </Step>
                 <Step>

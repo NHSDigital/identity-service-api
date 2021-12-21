@@ -695,7 +695,7 @@ class TestOauthEndpoints:
     @pytest.mark.errors
     async def test_userinfo_cis2_exchanged_token(self):
         # Given
-        expected_status_code = 404
+        expected_status_code = 400
 
         # When
         id_token_jwt = self.oauth.create_id_token_jwt()
@@ -718,9 +718,9 @@ class TestOauthEndpoints:
 
     async def test_userinfo_nhs_login_exchanged_token(self, get_exchange_code_nhs_login_token):
         # Given
-        expected_status_code = 404
+        expected_status_code = 400
         expected_error = 'invalid_request'
-        expected_error_description = 'Not Found'
+        expected_error_description = 'The Userinfo endpoint is only supported for Combined Auth integrations. Currently this is only for NHS CIS2 authentications - for more guidance see https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/user-restricted-restful-apis-nhs-cis2-combined-authentication-and-authorisation'
 
         # When
         resp = await get_exchange_code_nhs_login_token(self.oauth)
@@ -738,9 +738,9 @@ class TestOauthEndpoints:
 
     async def test_userinfo_client_credentials_token(self):
         # Given
-        expected_status_code = 404
+        expected_status_code = 400
         expected_error = 'invalid_request'
-        expected_error_description = 'Not Found'
+        expected_error_description = 'The Userinfo endpoint is only supported for Combined Auth integrations. Currently this is only for NHS CIS2 authentications - for more guidance see https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/user-restricted-restful-apis-nhs-cis2-combined-authentication-and-authorisation'
 
         # When
         jwt = self.oauth.create_jwt(kid="test-1")
