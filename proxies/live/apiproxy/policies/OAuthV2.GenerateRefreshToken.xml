@@ -3,6 +3,6 @@
   <GenerateResponse enabled="false"/>
   <!-- default if ref cannot be found is set at 10 minutes -->
   <ExpiresIn ref="identity-service-config.cis2.access_token_expiry_ms">600000</ExpiresIn>
-  <!--  default if ref cannot be found is set at 12 hours -->
-  <RefreshTokenExpiresIn ref="identity-service-config.cis2.refresh_token_expiry_ms">43200000</RefreshTokenExpiresIn>
+  <!--  default if ref cannot be found is set at 1 hour (minimum expected) -->
+  <RefreshTokenExpiresIn ref="apigee.refresh_token_expiry_ms">3600000</RefreshTokenExpiresIn>
 </OAuthV2>
