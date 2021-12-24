@@ -742,6 +742,9 @@
                     <Name>RaiseFault.MissingRefreshToken</Name>
                     <Condition>request.formparam.refresh_token = null</Condition>
                 </Step>
+                <Step>
+                    <Name>Javascript.CheckApigeeAccessTokenAttributes</Name>
+                </Step>
                 <!-- Next 5 steps allow optional REDUCTION of access_token_expiry, refresh_token_expiry, and refresh_token_validity KVM values
               using _access_token_expiry_ms/_refresh_token_expiry_ms/_refresh_tokens_validity_ms (respectively) form params -->
                 <Step>
