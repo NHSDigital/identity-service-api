@@ -550,6 +550,9 @@
                 <Step>
                     <Name>OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes</Name>
                 </Step>
+                <Step>
+                    <Name>PopulateCache.RefreshAuthProvider</Name>
+                </Step>
             </Request>
             <Response>
                 <Step>
@@ -704,6 +707,9 @@
                     <Name>PopulateCache.RefreshTokenSessionId</Name>
                     <Condition>accesstoken.auth_provider = "nhs-cis2"</Condition>
                 </Step>
+                <Step>
+                    <Name>PopulateCache.RefreshAuthProvider</Name>
+                </Step>
             </Request>
             <Response>
                 <Step>
@@ -743,7 +749,7 @@
                     <Condition>request.formparam.refresh_token = null</Condition>
                 </Step>
                 <Step>
-                    <Name>Javascript.CheckApigeeAccessTokenAttributes</Name>
+                    <Name>LookupCache.RefreshAuthProvider</Name>
                 </Step>
                 <!-- Next 5 steps allow optional REDUCTION of access_token_expiry, refresh_token_expiry, and refresh_token_validity KVM values
               using _access_token_expiry_ms/_refresh_token_expiry_ms/_refresh_tokens_validity_ms (respectively) form params -->
@@ -781,11 +787,9 @@
                 </Step>
                 <Step>
                     <Name>LookupCache.RefreshTokenSessionID</Name>
-                    <!-- check if a condtion needs to be met for this to occur  -->
                 </Step>
                 <Step>
                     <Name>PopulateCache.LookedUpSessionId</Name>
-                    <!-- check if a condtion needs to be met for this to occur  -->
                 </Step>
             </Request>
             <Response>
