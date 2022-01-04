@@ -8,5 +8,6 @@ if (authProvider !== null && authProvider === "nhs-cis2") {
     var refreshTokenDefaultValidityMs = context.getVariable('identity-service-config.nhs_login.refresh_tokens_validity_ms');
 }
 
+context.setVariable('apigee.auth_provider', authProvider);
 context.setVariable('apigee.refresh_token_expiry_ms', refreshTokenDefaultMs);
 context.setVariable('apigee.refresh_tokens_validity_ms', refreshTokenDefaultValidityMs);

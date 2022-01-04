@@ -550,9 +550,6 @@
                 <Step>
                     <Name>OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes</Name>
                 </Step>
-                <Step>
-                    <Name>PopulateCache.RefreshAuthProvider</Name>
-                </Step>
             </Request>
             <Response>
                 <Step>
@@ -787,9 +784,11 @@
                 </Step>
                 <Step>
                     <Name>LookupCache.RefreshTokenSessionID</Name>
+                    <Condition>(apigee.auth_provider != null) and (apigee.auth_provider = nhs-cis2)</Condition>
                 </Step>
                 <Step>
                     <Name>PopulateCache.LookedUpSessionId</Name>
+                    <Condition>(apigee.auth_provider != null) and (apigee.auth_provider = nhs-cis2)</Condition>
                 </Step>
             </Request>
             <Response>
