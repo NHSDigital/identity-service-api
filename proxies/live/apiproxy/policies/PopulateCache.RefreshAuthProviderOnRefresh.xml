@@ -7,5 +7,5 @@
     <ExpirySettings>
         <TimeoutInSec ref="apigee.refresh_token_expiry_ms" />
     </ExpirySettings>
-    <Source>splunk.auth.provider</Source>
+    <Source>session.auth_provider</Source>
 </PopulateCache>
