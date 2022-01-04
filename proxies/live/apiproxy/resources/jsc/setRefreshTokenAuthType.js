@@ -1,4 +1,4 @@
-const authProvider = context.getVariable('apigee.access_token.auth_provider');
+const authProvider = context.getVariable('oauthv2refreshtoken.GetOAuthV2Info.RefreshTokenAttributes.accesstoken.auth_provider');
 
 if (authProvider !== null && authProvider === "nhs-cis2") {
     var refreshTokenDefaultMs = context.getVariable('identity-service-config.cis2.refresh_token_expiry_ms');
