@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PopulateCache async="false" continueOnError="false" enabled="true" name="PopulateCache.RefreshAuthProviderOnRefresh">
+    <CacheKey>
+        <KeyFragment ref="oauthv2accesstoken.OAuthV2.GenerateRefreshToken.refresh_token" />
+    </CacheKey>
+    <Scope>Global</Scope>
+    <ExpirySettings>
+        <TimeoutInSec ref="apigee.refresh_token_expiry_ms" />
+    </ExpirySettings>
+    <Source>splunk.auth.provider</Source>
+</PopulateCache>
