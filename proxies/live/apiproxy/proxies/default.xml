@@ -707,9 +707,6 @@
                     <Name>PopulateCache.RefreshTokenSessionId</Name>
                     <Condition>accesstoken.auth_provider = "nhs-cis2"</Condition>
                 </Step>
-                <Step>
-                    <Name>PopulateCache.RefreshAuthProvider</Name>
-                </Step>
             </Request>
             <Response>
                 <Step>
@@ -751,9 +748,6 @@
                 <Step>
                     <Name>GetOAuthV2Info.RefreshTokenAttributes</Name>
                 </Step>
-                <!-- <Step>
-                    <Name>LookupCache.RefreshAuthProvider</Name>
-                </Step> -->
                 <Step>
                     <Name>Javascript.SetRefreshTokenAuthType</Name>
                 </Step>
@@ -791,9 +785,6 @@
                     <Name>RaiseFault.TokenRefreshTimelimitExceeded</Name>
                     <Condition>private.apigee.access_token_age_ms > apigee.refresh_tokens_validity_ms</Condition>
                 </Step>
-                <!-- <Step>
-                    <Name>PopulateCache.RefreshAuthProviderOnRefresh</Name>
-                </Step> -->
                 <Step>
                     <Name>LookupCache.RefreshTokenSessionID</Name>
                 </Step>
