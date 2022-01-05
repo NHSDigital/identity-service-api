@@ -742,6 +742,12 @@
                     <Name>RaiseFault.MissingRefreshToken</Name>
                     <Condition>request.formparam.refresh_token = null</Condition>
                 </Step>
+                <Step>
+                    <Name>GetOAuthV2Info.RefreshTokenAttributes</Name>
+                </Step>
+                <Step>
+                    <Name>Javascript.SetRefreshTokenAuthType</Name>
+                </Step>
                 <!-- Next 5 steps allow optional REDUCTION of access_token_expiry, refresh_token_expiry, and refresh_token_validity KVM values
               using _access_token_expiry_ms/_refresh_token_expiry_ms/_refresh_tokens_validity_ms (respectively) form params -->
                 <Step>
@@ -774,15 +780,15 @@
                 </Step>
                 <Step>
                     <Name>RaiseFault.TokenRefreshTimelimitExceeded</Name>
-                    <Condition>private.apigee.access_token_age_ms > identity-service-config.cis2.refresh_tokens_validity_ms</Condition>
+                    <Condition>private.apigee.access_token_age_ms > apigee.refresh_tokens_validity_ms</Condition>
                 </Step>
                 <Step>
                     <Name>LookupCache.RefreshTokenSessionID</Name>
-                    <!-- check if a condtion needs to be met for this to occur  -->
+                    <Condition>(apigee.auth_provider != null) and (apigee.auth_provider = nhs-cis2)</Condition>
                 </Step>
                 <Step>
                     <Name>PopulateCache.LookedUpSessionId</Name>
-                    <!-- check if a condtion needs to be met for this to occur  -->
+                    <Condition>(apigee.auth_provider != null) and (apigee.auth_provider = nhs-cis2)</Condition>
                 </Step>
             </Request>
             <Response>

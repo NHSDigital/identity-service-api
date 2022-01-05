@@ -1,8 +1,8 @@
 <OAuthV2 name="OAuthV2.GenerateRefreshToken">
   <Operation>RefreshAccessToken</Operation>
   <GenerateResponse enabled="false"/>
-  <!-- 10 minutes: -->
+  <!-- default if ref cannot be found is set at 10 minutes -->
   <ExpiresIn ref="identity-service-config.cis2.access_token_expiry_ms">600000</ExpiresIn>
-  <!-- 10 hours: -->
-  <RefreshTokenExpiresIn ref="identity-service-config.cis2.refresh_token_expiry_ms">36000000</RefreshTokenExpiresIn>
+  <!--  default if ref cannot be found is set at 1 hour (minimum expected) -->
+  <RefreshTokenExpiresIn ref="apigee.refresh_token_expiry_ms">3600000</RefreshTokenExpiresIn>
 </OAuthV2>
