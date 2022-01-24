@@ -135,10 +135,10 @@ class TestOauthTokens:
             }
         )
 
-        assert resp['status_code'] == 400
+        assert resp['status_code'] == 415
         assert resp['body'] == {
             "error": "invalid_request",
-            "error_description": "grant_type is missing"
+            "error_description": "Content-Type header must be application/x-www-urlencoded"
         }
 
     @pytest.mark.apm_1010
