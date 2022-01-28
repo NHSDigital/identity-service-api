@@ -340,17 +340,6 @@ class TestOauthEndpoints:
     @pytest.mark.parametrize(
         "request_data, expected_response",
         [
-            # condition 1: no data provided
-            (
-                {"data": {}},
-                {
-                    "status_code": 400,
-                    "body": {
-                        "error": "invalid_request",
-                        "error_description": "grant_type is missing",
-                    },
-                },
-            ),
             # condition 2: invalid grant type
             (
                 {

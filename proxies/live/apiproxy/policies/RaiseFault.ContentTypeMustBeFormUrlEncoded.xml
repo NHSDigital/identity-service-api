@@ -1,0 +1,14 @@
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.ContentTypeMustBeFormUrlEncoded">
+  <FaultResponse>
+    <Set>
+      <Headers/>
+      <Payload contentType="application/json">{
+  "error": "invalid_request",
+  "error_description": "Content-Type header must be application/x-www-urlencoded",
+  "message_id": "{messageid}"
+}</Payload>
+      <StatusCode>415</StatusCode>
+    </Set>
+  </FaultResponse>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</RaiseFault>
