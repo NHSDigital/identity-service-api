@@ -23,15 +23,15 @@ function json_tryparse(raw) {
 const cis2HealthcheckContent = json_tryparse(context.getVariable('cis2HealthcheckResponse.content'));
 const nhsLoginHealthcheckContent = json_tryparse(context.getVariable('nhsLoginHealthcheckResponse.content'));
 
-const cis2HealthcheckStatus = (cis2HealthCheckStatusCode/100 === 2) ? "pass" : "fail";
+const cis2HealthcheckStatus = (cis2HealthcheckStatusCode/100 === 2) ? "pass" : "fail";
 const nhsLoginHealthcheckStatus = (nhsLoginHealthchecktatusCode/100 === 2) ? "pass" : "fail";
 
-const cis2Timeout = (healthcheck_status_code === null && HealthCheckFailed) ? "true" : "false";
-const nhsLoginTimeout = (healthcheck_status_code === null && HealthCheckFailed) ? "true" : "false";
+const cis2Timeout = (cis2HealthcheckStatusCode === null && HealthCheckFailed) ? "true" : "false";
+const nhsLoginTimeout = (nhsLoginHealthchecktatusCode === null && HealthCheckFailed) ? "true" : "false";
 
 const final_status = (cis2HealthcheckStatus === "pass" && nhsLoginHealthcheckStatus === "pass" ) ? "pass" : "fail";
 
-{% raw %}
+
 const resp = {
     "status" : final_status,
     "version" : "{{ DEPLOYED_VERSION }}" ,
@@ -55,7 +55,6 @@ const resp = {
         }
     }
 };
-{% endraw %}
 context.setVariable("status.response", JSON.stringify(resp));
 context.setVariable("response.content", JSON.stringify(resp));
 context.setVariable("response.header.Content-Type", "application/json");
