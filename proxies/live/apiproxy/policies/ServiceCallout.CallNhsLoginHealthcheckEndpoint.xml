@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ServiceCallout async="false" continueOnError="true" enabled="true" name="ServiceCallout.CallNhsLoginHealthcheckEndpoint">
+    <DisplayName>ServiceCallout.CallNhsLoginHealthcheckEndpoint</DisplayName>
+    <Properties/>
+    <Request clearPayload="true" variable="nhsLoginHealthCheckRequest">
+        <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
+        <Set>
+            <Verb>GET</Verb>
+        </Set>
+    </Request>
+    <Response>nhsLoginHealthcheckResponse</Response>
+    <HTTPTargetConnection>
+        <SSLInfo>
+            <Enabled>true</Enabled>
+        </SSLInfo>
+        <URL>https://mocktarget.apigee.net</URL>
+    </HTTPTargetConnection>
+    <Timeout>20000</Timeout>
+</ServiceCallout>

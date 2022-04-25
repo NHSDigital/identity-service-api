@@ -191,6 +191,30 @@
             </Response>
             <Condition>(proxy.pathsuffix MatchesPath "/_ping") and ((request.verb = "GET") or (request.verb = "HEAD"))</Condition>
         </Flow>
+        <Flow name="StatusEndpoint">
+        <Request>
+            <Step>
+            <Condition>request.header.apikey = null or private.common.status-endpoint-api-key != request.header.apikey</Condition>
+            <Name>RaiseFault.401Unauthorized</Name>
+            </Step>
+            <Step>
+            <Name>KeyValueMapOperations.GetSecureVariables</Name>
+            </Step>
+            <Step>
+            <Name>ServiceCallout.CallCis2HealthcheckEndpoint</Name>
+            </Step>
+            <Step>
+            <Name>ServiceCallout.CallNhsLoginHealthcheckEndpoint</Name>
+            </Step>
+        </Request>
+        <Response>
+            <Step>
+            <Name>javascript.SetStatusResponse</Name>
+            </Step>
+        </Response>
+        <Condition>(proxy.pathsuffix MatchesPath "/_status") and ((request.verb = "GET") or (request.verb = "HEAD"))
+        </Condition>
+        </Flow>
         <Flow name="Flow.GetAuthorization">
             <Description>OAuth Authorization Endpoint</Description>
             <Request>
@@ -1019,6 +1043,9 @@
     </HTTPProxyConnection>
     <RouteRule name="NoRoutePing">
         <Condition>(proxy.pathsuffix MatchesPath "/_ping") and ((request.verb = "GET") or (request.verb = "HEAD"))</Condition>
+    </RouteRule>
+    <RouteRule name="NoRouteStatus">
+        <Condition>(proxy.pathsuffix MatchesPath "/_status") and ((request.verb = "GET") or (request.verb = "HEAD"))</Condition>
     </RouteRule>
     <RouteRule name="userinfoRoute">
         <Condition>(proxy.pathsuffix MatchesPath "/userinfo") and (request.verb = "GET")</Condition>
