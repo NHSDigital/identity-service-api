@@ -1,4 +1,4 @@
-<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.Unauthorized">
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.InvalidStatusEndpointApiKey">
   <Properties/>
   <FaultResponse>
       <Set>
