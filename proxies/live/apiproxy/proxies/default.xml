@@ -195,7 +195,7 @@
         <Request>
             <Step>
             <Condition>request.header.apikey = null or private.common.status-endpoint-api-key != request.header.apikey</Condition>
-            <Name>RaiseFault.401Unauthorized</Name>
+            <Name>RaiseFault.InvalidStatusEndpointApiKey</Name>
             </Step>
             <Step>
             <Name>KeyValueMapOperations.GetSecureVariables</Name>

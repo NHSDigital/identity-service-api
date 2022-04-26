@@ -6,7 +6,7 @@
           <Payload contentType="application/json">
             {
               "error" : "Access Denied",
-              "error_description" :"Invalid status monitoring api key",
+              "error_description" :"Invalid api key for _status monitoring endpoint",
               "message_id": "{messageid}"
             }
           </Payload>
