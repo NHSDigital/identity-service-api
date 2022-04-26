@@ -29,24 +29,24 @@ const nhsLoginHealthcheckStatus = (nhsLoginHealthchecktatusCode/100 === 2) ? "pa
 const cis2Timeout = (cis2HealthcheckStatusCode === null && HealthCheckFailed) ? "true" : "false";
 const nhsLoginTimeout = (nhsLoginHealthchecktatusCode === null && HealthCheckFailed) ? "true" : "false";
 
-const final_status = (cis2HealthcheckStatus === "pass" && nhsLoginHealthcheckStatus === "pass" ) ? "pass" : "fail";
+const finalStatus = (cis2HealthcheckStatus === "pass" && nhsLoginHealthcheckStatus === "pass" ) ? "pass" : "fail";
 
 
 const resp = {
-    "status" : final_status,
+    "status" : finalStatus,
     "version" : "{{ DEPLOYED_VERSION }}" ,
     "revision" : apiproxyRevision,
     "releaseId" : "{{ RELEASE_RELEASEID }}",
     "commitId": "{{ SOURCE_COMMIT_ID }}",
     "checks" : {
-        "cis2-healthcheck" : {
+        "nhs-cis2" : {
             "status": cis2HealthcheckStatus,
             "timeout" : cis2Timeout,
             "responseCode" : cis2HealthcheckStatusCode,
             "outcome": cis2HealthcheckContent,
             "links" : {"self": cis2HealthcheckRequestUrl}
         },
-        "nhsLogin-healthcheck" : {
+        "nhs-login" : {
             "status": nhsLoginHealthcheckStatus,
             "timeout" : nhsLoginTimeout,
             "responseCode" : nhsLoginHealthchecktatusCode,
