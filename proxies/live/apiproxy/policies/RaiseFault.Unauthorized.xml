@@ -3,7 +3,13 @@
   <FaultResponse>
       <Set>
           <Headers/>
-          <Payload contentType="text/plain"/>
+          <Payload contentType="application/json">
+            {
+              "error" : "Access Denied",
+              "error_description" :"Invalid status monitoring api key",
+              "message_id": "{messageid}"
+            }
+          </Payload>
           <StatusCode>401</StatusCode>
           <ReasonPhrase>Unauthorized</ReasonPhrase>
       </Set>
