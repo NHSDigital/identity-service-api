@@ -1,13 +1,10 @@
 from e2e.scripts.config import (
     OAUTH_URL,
-    ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
-    MOCK_IDP_BASE_URL
+    STATUS_ENDPOINT_API_KEY,
 )
 from e2e.scripts.response_bank import BANK
 import pytest
 import random
-from time import time
-
 
 @pytest.mark.asyncio
 class TestOauthEndpoints:
@@ -662,11 +659,22 @@ class TestOauthEndpoints:
     async def test_ping(self, helper):
         assert await helper.send_request_and_check_output(
             expected_status_code=200,
-            expected_response=["version", "revision", "releaseId", "commitId"],
             function=self.oauth.hit_oauth_endpoint,
+            expected_response=["version", "revision", "releaseId", "commitId"],
             method="GET",
             endpoint="_ping",
         )
+
+    async def test_status(self, helper):
+        assert await helper.send_request_and_check_output(
+            expected_status_code=200,
+            function=self.oauth.hit_oauth_endpoint,
+            expected_response=["status", "version", "revision", "releaseId", "commitId", "checks"],
+            method="GET",
+            endpoint="_status",
+            headers={"apikey": f"{STATUS_ENDPOINT_API_KEY}"}
+        )
+
 
     @pytest.mark.aea_756
     @pytest.mark.happy_path
