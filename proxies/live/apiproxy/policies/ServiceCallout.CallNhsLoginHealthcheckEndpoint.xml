@@ -13,7 +13,7 @@
         <SSLInfo>
             <Enabled>true</Enabled>
         </SSLInfo>
-        <URL>https://mocktarget.apigee.net</URL>
+        <URL>https://{identity-service-config.nhs_login.health_check_endpoint}</URL>
     </HTTPTargetConnection>
     <Timeout>20000</Timeout>
 </ServiceCallout>
