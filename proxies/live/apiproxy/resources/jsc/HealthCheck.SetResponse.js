@@ -29,7 +29,7 @@ const nhsLoginHealthcheckStatus = (nhsLoginHealthchecktatusCode/100 === 2) ? "pa
 const cis2Timeout = (cis2HealthcheckStatusCode === null && HealthCheckFailed) ? "true" : "false";
 const nhsLoginTimeout = (nhsLoginHealthchecktatusCode === null && HealthCheckFailed) ? "true" : "false";
 
-let finalStatus;
+var finalStatus;
 if (cis2HealthcheckStatus === "pass" && nhsLoginHealthcheckStatus === "pass") {
     finalStatus = "pass";
 } else if (cis2HealthcheckStatus !== nhsLoginHealthcheckStatus) {
