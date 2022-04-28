@@ -29,8 +29,14 @@ const nhsLoginHealthcheckStatus = (nhsLoginHealthchecktatusCode/100 === 2) ? "pa
 const cis2Timeout = (cis2HealthcheckStatusCode === null && HealthCheckFailed) ? "true" : "false";
 const nhsLoginTimeout = (nhsLoginHealthchecktatusCode === null && HealthCheckFailed) ? "true" : "false";
 
-const finalStatus = (cis2HealthcheckStatus === "pass" && nhsLoginHealthcheckStatus === "pass" ) ? "pass" : "fail";
-
+let finalStatus;
+if (cis2HealthcheckStatus === "pass" && nhsLoginHealthcheckStatus === "pass") {
+    finalStatus = "pass";
+} else if (cis2HealthcheckStatus !== nhsLoginHealthcheckStatus) {
+    finalStatus = "warn";
+} else {
+    finalStatus = "fail";
+}
 
 const resp = {
     "status" : finalStatus,
@@ -55,6 +61,7 @@ const resp = {
         }
     }
 };
+
 context.setVariable("status.response", JSON.stringify(resp));
 context.setVariable("response.content", JSON.stringify(resp));
 context.setVariable("response.header.Content-Type", "application/json");
