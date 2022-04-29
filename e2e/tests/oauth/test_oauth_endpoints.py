@@ -1,13 +1,10 @@
 from e2e.scripts.config import (
     OAUTH_URL,
-    ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
-    MOCK_IDP_BASE_URL
+    STATUS_ENDPOINT_API_KEY,
 )
 from e2e.scripts.response_bank import BANK
 import pytest
 import random
-from time import time
-
 
 @pytest.mark.asyncio
 class TestOauthEndpoints:
@@ -662,11 +659,48 @@ class TestOauthEndpoints:
     async def test_ping(self, helper):
         assert await helper.send_request_and_check_output(
             expected_status_code=200,
-            expected_response=["version", "revision", "releaseId", "commitId"],
             function=self.oauth.hit_oauth_endpoint,
+            expected_response=["version", "revision", "releaseId", "commitId"],
             method="GET",
             endpoint="_ping",
         )
+
+    @pytest.mark.parametrize("test_case", [
+        {
+            # Condition 1 Happy path
+            "expected_status_code": 200,
+            "expected_response": ["status", "version", "revision", "releaseId", "commitId", "checks"],
+            "headers":{"apikey": f"{STATUS_ENDPOINT_API_KEY}"}
+        },
+        {
+            # Condition 2 invalid api key
+            "expected_status_code": 401,
+            "expected_response": {
+                "error": "Access Denied",
+                "error_description": "Invalid api key for _status monitoring endpoint"
+            },
+            "headers": {"apikey": "invalid"}
+        },
+        {
+            # Condition 3 invalid api key header
+            "expected_status_code": 401,
+            "expected_response": {
+                "error": "Access Denied",
+                "error_description": "Invalid api key for _status monitoring endpoint"
+            },
+            "headers": {"invalid": "invalid"}
+        }
+    ])
+    async def test_status(self, helper, test_case):
+        assert await helper.send_request_and_check_output(
+            expected_status_code=test_case["expected_status_code"],
+            function=self.oauth.hit_oauth_endpoint,
+            expected_response=test_case["expected_response"],
+            method="GET",
+            endpoint="_status",
+            headers=test_case["headers"]
+        )
+
 
     @pytest.mark.aea_756
     @pytest.mark.happy_path

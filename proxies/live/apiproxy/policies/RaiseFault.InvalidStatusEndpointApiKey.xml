@@ -1,0 +1,18 @@
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.InvalidStatusEndpointApiKey">
+  <Properties/>
+  <FaultResponse>
+      <Set>
+          <Headers/>
+          <Payload contentType="application/json">
+            {
+              "error" : "Access Denied",
+              "error_description" :"Invalid api key for _status monitoring endpoint",
+              "message_id": "{messageid}"
+            }
+          </Payload>
+          <StatusCode>401</StatusCode>
+          <ReasonPhrase>Unauthorized</ReasonPhrase>
+      </Set>
+  </FaultResponse>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</RaiseFault>
