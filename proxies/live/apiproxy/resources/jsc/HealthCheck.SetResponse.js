@@ -26,8 +26,8 @@ const nhsLoginHealthcheckContent = json_tryparse(context.getVariable('nhsLoginHe
 const cis2HealthcheckStatus = (cis2HealthcheckStatusCode/100 === 2) ? "pass" : "fail";
 const nhsLoginHealthcheckStatus = (nhsLoginHealthchecktatusCode/100 === 2) ? "pass" : "fail";
 
-const cis2Timeout = (cis2HealthcheckStatusCode === null && HealthCheckFailed) ? "true" : "false";
-const nhsLoginTimeout = (nhsLoginHealthchecktatusCode === null && HealthCheckFailed) ? "true" : "false";
+const cis2Timeout = (cis2HealthcheckStatusCode === null && cis2HealthcheckFailed) ? "true" : "false";
+const nhsLoginTimeout = (nhsLoginHealthchecktatusCode === null && nhsLoginHealthcheckFailed) ? "true" : "false";
 
 var finalStatus;
 if (cis2HealthcheckStatus === "pass" && nhsLoginHealthcheckStatus === "pass") {
