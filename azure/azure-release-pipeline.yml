@@ -67,7 +67,7 @@ extends:
         service_base_path: ${{ variables.service_base_path }}-int
         jinja_templates:
           IDENTITY_PROVIDER_CIS2: cis2-int
-          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
+          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login-int
           VARIABLES_KVM: identity_service_config_int
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
           NUM_RANDOM_LONG_INTS_FOR_STATE: 4
