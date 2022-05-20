@@ -7,7 +7,7 @@
     <!-- 1 hour -->
     <ExpiresIn ref="identity-service-config.cis2.access_token_expiry_ms">3600000</ExpiresIn>
     <SupportedGrantTypes>
-        <GrantType>client_credentials</GrantType>
+        <GrantType>password</GrantType>
     </SupportedGrantTypes>
     <GrantType>request.formparam.grant_type</GrantType>
     <GenerateResponse enabled="false"/>
