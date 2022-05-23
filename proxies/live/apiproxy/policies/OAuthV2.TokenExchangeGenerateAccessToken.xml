@@ -15,7 +15,5 @@
         <Attribute name="id_token-subject" display="true"/>
         <Attribute name="id_token-issuer" display="true"/>
         <Attribute name="grant_type" display="true">urn:ietf:params:oauth:grant-type:token-exchange</Attribute>
-        <Attribute name="password" display="true">urn:ietf:params:oauth:password:token-exchange</Attribute>
-        <Attribute name="username" display="true">urn:ietf:params:oauth:username:token-exchange</Attribute>
     </Attributes>
 </OAuthV2>

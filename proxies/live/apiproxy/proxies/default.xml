@@ -583,6 +583,9 @@
                     <Name>AssignMessage.SetIssuerUri</Name>
                 </Step>
                 <Step>
+                    <Name>AssignMessage.ChangeGrantTypeToPassword</Name>
+                </Step>
+                <Step>
                     <Name>OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes</Name>
                 </Step>
             </Request>
