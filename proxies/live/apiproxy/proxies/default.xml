@@ -559,11 +559,8 @@
                     <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan identity-service-config.cis2.access_token_expiry_ms)</Condition>
                 </Step>
                 <!-- grant type needs changing from Token Exchange because apigee doesn't support it !-->
-                <!--<Step>
-                    <Name>AssignMessage.ChangeGrantTypeToClientCrentials</Name>
-                </Step>-->
                 <Step>
-                    <Name>AssignMessage.ChangeGrantTypeToPassword</Name>
+                    <Name>AssignMessage.SetGrantTypeToPassword</Name>
                 </Step>
                 <!-- An access token is generated to fetch all the scopes for filtering -->
                 <Step>
@@ -582,8 +579,9 @@
                 <Step>
                     <Name>AssignMessage.SetIssuerUri</Name>
                 </Step>
+                <!-- Password grant type requires password and username, so must be assigned before each token exchange -->
                 <Step>
-                    <Name>AssignMessage.ChangeGrantTypeToPassword</Name>
+                    <Name>AssignMessage.SetGrantTypeToPassword</Name>
                 </Step>
                 <Step>
                     <Name>OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes</Name>

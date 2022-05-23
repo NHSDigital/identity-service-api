@@ -7,6 +7,8 @@
         "access_token": "{oauthv2accesstoken.OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes.access_token}",
         "expires_in": "{oauthv2accesstoken.OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes.expires_in}",
         "refresh_token": "{oauthv2accesstoken.OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes.refresh_token}",
+        "refresh_token_expires_in": "{oauthv2accesstoken.OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes.refresh_token_expires_in}",
+        "refresh_count": "{oauthv2accesstoken.OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes.refresh_count}",
         "token_type": "Bearer",
         "issued_token_type": "urn:ietf:params:oauth:token-type:access_token"
       }
