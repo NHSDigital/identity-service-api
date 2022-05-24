@@ -579,10 +579,6 @@
                 <Step>
                     <Name>AssignMessage.SetIssuerUri</Name>
                 </Step>
-                <!-- Password grant type requires password and username, so must be assigned before each token exchange -->
-                <Step>
-                    <Name>AssignMessage.SetGrantTypeToPassword</Name>
-                </Step>
                 <Step>
                     <Name>OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes</Name>
                 </Step>

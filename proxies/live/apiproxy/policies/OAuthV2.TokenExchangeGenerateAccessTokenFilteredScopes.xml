@@ -13,6 +13,8 @@
         <GrantType>password</GrantType>
     </SupportedGrantTypes>
     <GrantType>request.formparam.grant_type</GrantType>
+    <PassWord>request.formparam.password</PassWord>
+    <UserName>request.formparam.username</UserName>
     <GenerateResponse enabled="false"/>
     <Attributes>
         <Attribute name="id_token-subject" ref="jwt.VerifyJWT.SubjectToken.claim.subject" display="true"/>
