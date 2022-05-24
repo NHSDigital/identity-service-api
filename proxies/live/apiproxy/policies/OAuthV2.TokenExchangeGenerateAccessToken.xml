@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <OAuthV2 async="false" continueOnError="false" enabled="true" name="OAuthV2.TokenExchangeGenerateAccessToken">
     <DisplayName>OAuthV2.TokenExchangeGenerateAccessToken</DisplayName>
-    <!-- This policy generates an OAuth 2.0 access token using the client_credentials grant type
+    <!-- This policy generates an OAuth 2.0 access token using the passwords grant type
          because token exchange isn't supported -->
     <Operation>GenerateAccessToken</Operation>
     <!-- 1 hour -->

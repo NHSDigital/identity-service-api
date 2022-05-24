@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <OAuthV2 async="false" continueOnError="false" enabled="true" name="OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes">
     <DisplayName>OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes</DisplayName>
-    <!-- This policy generates an OAuth 2.0 access token using the client_credentials grant type
+    <!-- This policy generates an OAuth 2.0 access token using the passwords grant type
          because token exchange isn't supported -->
     <Operation>GenerateAccessToken</Operation>
     <Scope>apigee.user_restricted_scopes</Scope>
     <!-- 10 minutes -->
     <ExpiresIn ref="identity-service-config.cis2.access_token_expiry_ms">600000</ExpiresIn>
-    <!-- 1 hour -->
+    <!-- 12 hour -->
     <RefreshTokenExpiresIn ref="identity-service-config.cis2.refresh_token_expiry_ms">43200000</RefreshTokenExpiresIn>
     <SupportedGrantTypes>
         <GrantType>password</GrantType>
