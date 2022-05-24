@@ -1,4 +1,5 @@
-from e2e.scripts.config import MOCK_IDP_BASE_URL
+import requests
+from e2e.scripts.config import HELLO_WORLD_API_URL
 from e2e.scripts import config
 import pytest
 from api_test_utils.oauth_helper import OauthHelper
@@ -458,9 +459,9 @@ class TestAuthorizationCodeCis2ErrorCases:
         await test_product.update_scopes(product_1_scopes)
         await test_product2.update_scopes(product_2_scopes)
 
-        state = await auth_code_nhs_cis2.get_state(self.oauth, test_app)        
+        state = await auth_code_nhs_cis2.get_state(self.oauth, test_app)
 
-        # Make simulated auth request to authenticate and Make initial callback request       
+        # Make simulated auth request to authenticate and Make initial callback request
         auth_code = await auth_code_nhs_cis2.make_auth_request(self.oauth, state)
         await auth_code_nhs_cis2.make_callback_request(self.oauth, state, auth_code)
         response = auth_code_nhs_cis2.response
@@ -1084,7 +1085,7 @@ class TestAuthorizationCodeNhsLoginHappyCases:
 
         callback_url = await test_app.get_callback_url()
 
-        
+
         state = await auth_code_nhs_login.get_state(self.oauth, test_app)
 
         auth_code = await auth_code_nhs_login.make_auth_request(self.oauth, state)
@@ -1164,7 +1165,7 @@ class TestAuthorizationCodeNhsLoginErrorCases:
         await test_product.update_scopes(product_1_scopes)
         await test_product2.update_scopes(product_2_scopes)
 
-        
+
         state = await auth_code_nhs_login.get_state(self.oauth, test_app)
 
 
@@ -1177,3 +1178,63 @@ class TestAuthorizationCodeNhsLoginErrorCases:
         assert expected_status_code == response["status_code"]
         assert expected_error == response["body"]["error"]
         assert expected_error_description == response["body"]["error_description"]
+
+@pytest.mark.asyncio
+class TestAmb1135:
+
+    @pytest.mark.parametrize(
+        "product_1_scopes, product_2_scopes",
+        [
+            # Scenario 1: one product with valid scope
+            (
+                ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                [],
+            )
+        ]
+    )
+
+    async def test_amb1135(self, get_token_cis2_token_exchange, test_app_and_product, get_token):
+        print("###############")
+        print(get_token_cis2_token_exchange)
+        self.oauth.get_token_response()
+
+        test_product, test_product2, test_app = test_app_and_product
+        token = get_token_cis2_token_exchange
+        print(token)
+        access_token = token['body']['access_token']
+        resp = requests.get(HELLO_WORLD_API_URL, headers={"Authorization": f"Bearer {access_token}"})
+
+        refresh_token = token['body']['refresh_token']
+
+
+        # get another access token using refresh token
+
+        new_token = await get_token(test_app=test_app, grant_type="refresh_token", refresh_token=refresh_token)
+        refresh_token2 = new_token["refresh_token"]
+        new_token2 = await get_token(test_app=test_app, grant_type="refresh_token", refresh_token=refresh_token2, timeout=500000)
+        print('\n')
+        print("TOKEN1 \n", new_token)
+        print("TOKEN2 \n", new_token2)
+        print(resp)
+
+    @pytest.mark.debug
+    async def test_amb1135_token_exchange(self):
+
+        id_token_jwt = self.oauth.create_id_token_jwt()
+        client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
+        resp = await self.oauth.get_token_response(grant_type='token_exchange', _jwt=client_assertion_jwt,
+                                                   id_token_jwt=id_token_jwt)
+        access_token = resp['body']['access_token']
+        refresh_token = resp['body']['refresh_token']
+
+        print("FIRST RESPONSE\n", resp)
+        req = requests.get(f"{HELLO_WORLD_API_URL}", headers={"Authorization": f"Bearer {access_token}"})
+        print(req)
+
+        resp2 = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=refresh_token)
+        print(resp2)
+        access_token2 = resp2['access_token']
+        req2 = requests.get(f"{HELLO_WORLD_API_URL}", headers={"Authorization": f"Bearer {access_token2}"})
+        print(req2)
+
+
