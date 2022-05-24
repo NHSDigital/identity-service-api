@@ -1,5 +1,4 @@
-import requests
-from e2e.scripts.config import HELLO_WORLD_API_URL
+from e2e.scripts.config import MOCK_IDP_BASE_URL
 from e2e.scripts import config
 import pytest
 from api_test_utils.oauth_helper import OauthHelper
@@ -459,9 +458,9 @@ class TestAuthorizationCodeCis2ErrorCases:
         await test_product.update_scopes(product_1_scopes)
         await test_product2.update_scopes(product_2_scopes)
 
-        state = await auth_code_nhs_cis2.get_state(self.oauth, test_app)
+        state = await auth_code_nhs_cis2.get_state(self.oauth, test_app)        
 
-        # Make simulated auth request to authenticate and Make initial callback request
+        # Make simulated auth request to authenticate and Make initial callback request       
         auth_code = await auth_code_nhs_cis2.make_auth_request(self.oauth, state)
         await auth_code_nhs_cis2.make_callback_request(self.oauth, state, auth_code)
         response = auth_code_nhs_cis2.response
@@ -1085,7 +1084,7 @@ class TestAuthorizationCodeNhsLoginHappyCases:
 
         callback_url = await test_app.get_callback_url()
 
-
+        
         state = await auth_code_nhs_login.get_state(self.oauth, test_app)
 
         auth_code = await auth_code_nhs_login.make_auth_request(self.oauth, state)
@@ -1165,7 +1164,7 @@ class TestAuthorizationCodeNhsLoginErrorCases:
         await test_product.update_scopes(product_1_scopes)
         await test_product2.update_scopes(product_2_scopes)
 
-
+        
         state = await auth_code_nhs_login.get_state(self.oauth, test_app)
 
 
