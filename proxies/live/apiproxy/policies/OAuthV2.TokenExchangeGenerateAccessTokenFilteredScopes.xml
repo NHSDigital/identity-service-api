@@ -10,7 +10,7 @@
     <!-- 1 hour
     <RefreshTokenExpiresIn ref="identity-service-config.cis2.refresh_token_expiry_ms">3600000</RefreshTokenExpiresIn> -->
     <!-- <12 hour> -->
-    <RefreshTokenExpiresIn ref="identity-service-config.cis2.refresh_token_expiry_ms">43200000</RefreshTokenExpiresIn> -->
+    <RefreshTokenExpiresIn>43200000</RefreshTokenExpiresIn>
     <SupportedGrantTypes>
         <GrantType>password</GrantType>
     </SupportedGrantTypes>
