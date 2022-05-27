@@ -1,6 +1,7 @@
 import pytest
 from time import sleep
 from e2e.scripts.config import HELLO_WORLD_API_URL, MOCK_IDP_BASE_URL
+import requests
 
 
 @pytest.mark.asyncio
@@ -230,3 +231,79 @@ class TestOauthTokens:
                 "NHSD-Session-URID": "ROLD-ID",
             },
         )
+
+
+    async def test_cis2_token_exchange_access_tokens_valid(self):
+        """
+        Fetch new access token and refresh token pair using a refresh token that was
+        generated via token exchange
+        """
+
+        # Generate access token using token-exchange
+        id_token_jwt = self.oauth.create_id_token_jwt()
+        client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
+        resp = await self.oauth.get_token_response(grant_type='token_exchange', _jwt=client_assertion_jwt,
+                                                   id_token_jwt=id_token_jwt)
+
+        access_token = resp['body']['access_token']
+        refresh_token = resp['body']['refresh_token']
+
+        assert bool(access_token) is True
+        assert bool(refresh_token) is True
+
+        # Make request using access token
+        req = requests.get(f"{HELLO_WORLD_API_URL}", headers={"Authorization": f"Bearer {access_token}"})
+        assert req.status_code == 200
+
+        # Get new access token using refresh token
+        resp2 = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=refresh_token)
+        access_token2 = resp2['body']['access_token']
+        assert bool(access_token2) is True
+
+        # Make request using new access token
+        req2 = requests.get(f"{HELLO_WORLD_API_URL}", headers={"Authorization": f"Bearer {access_token2}"})
+        assert req2.status_code == 200
+
+    async def test_cis2_token_exchange_refresh_token_become_invalid(self):
+        """
+        Fetch a new access token, refresh token pair.
+        Ensure the original refresh token is invalid
+        """
+        # Generate access token using token-exchange
+        id_token_jwt = self.oauth.create_id_token_jwt()
+        client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
+        resp = await self.oauth.get_token_response(grant_type='token_exchange', _jwt=client_assertion_jwt,
+                                                   id_token_jwt=id_token_jwt)
+
+        access_token = resp['body']['access_token']
+        refresh_token = resp['body']['refresh_token']
+
+        assert bool(access_token) is True
+        assert bool(refresh_token) is True
+
+        # Get new access token using refresh token
+        resp2 = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=refresh_token)
+        access_token2 = resp2['body']['access_token']
+        assert bool(access_token2) is True
+
+        # try to use the original refresh token to get another access token
+        resp3 = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=refresh_token)
+        assert resp3['status code'] == 401
+
+    @pytest.mark.debug
+    async def test_token_by_password(self):
+        """
+        Test that request for token using password grant type is rejected.
+        """
+        form_data = {
+            "client_id": self.oauth.client_id,
+            "client_secret": self.oauth.client_secret,
+            "grant_type": 'password',
+            "username":'username',
+            "password": "password"
+        }
+        resp = await self.oauth.get_token_response(grant_type='password', data=form_data)
+
+        assert resp['status_code'] == 400
+
+
