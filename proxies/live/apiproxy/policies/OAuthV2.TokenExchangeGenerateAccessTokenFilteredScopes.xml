@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <OAuthV2 async="false" continueOnError="false" enabled="true" name="OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes">
     <DisplayName>OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes</DisplayName>
-    <!-- This policy generates an OAuth 2.0 access token using the client_credentials grant type
+    <!-- This policy generates an OAuth 2.0 access token using the password grant type
          because token exchange isn't supported -->
     <Operation>GenerateAccessToken</Operation>
     <Scope>apigee.user_restricted_scopes</Scope>
+    <!-- 10 minutes -->
+    <ExpiresIn ref="identity-service-config.cis2.access_token_expiry_ms">600000</ExpiresIn>
     <!-- 1 hour -->
-    <ExpiresIn ref="identity-service-config.cis2.access_token_expiry_ms">3600000</ExpiresIn>
+    <RefreshTokenExpiresIn ref="identity-service-config.cis2.refresh_token_expiry_ms">3600000</RefreshTokenExpiresIn>
     <SupportedGrantTypes>
-        <GrantType>client_credentials</GrantType>
+        <GrantType>password</GrantType>
     </SupportedGrantTypes>
     <GrantType>request.formparam.grant_type</GrantType>
+    <PassWord>request.formparam.password</PassWord>
+    <UserName>request.formparam.username</UserName>
     <GenerateResponse enabled="false"/>
     <Attributes>
         <Attribute name="id_token-subject" ref="jwt.VerifyJWT.SubjectToken.claim.subject" display="true"/>
@@ -23,5 +27,6 @@
         <Attribute name="auth_level" ref="splunk.auth.level" display="true"/>
         <Attribute name="auth_user_id" ref="splunk.auth.user_id" display="true"/>
         <Attribute name="issuer" ref="issuerUri" display="false"/>
+        <Attribute name="_first_issued" ref="system.timestamp" display="false"/>
     </Attributes>
 </OAuthV2>

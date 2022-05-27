@@ -298,14 +298,14 @@
         <Flow name="Flow.PostTokenInvalidMediaType">
           <Request>
             <Step>
-              <!-- The <Condition> check for all PostToken* flows read a request.formparam.* variable. 
+              <!-- The <Condition> check for all PostToken* flows read a request.formparam.* variable.
                    Requests in the wrong format (e.g. JSON) produce a hard-to-understand error message.
                    Our docs say to set the header Content-Type: application/x-www-formurlencoded.
                    For better user error messages, we enforce that here.-->
               <Name>RaiseFault.ContentTypeMustBeFormUrlEncoded</Name>
             </Step>
           </Request>
-          <Condition>((proxy.pathsuffix MatchesPath "/token") and  (request.verb Equals "POST") and (request.header.Content-Type != "application/x-www-form-urlencoded"))</Condition>          
+          <Condition>((proxy.pathsuffix MatchesPath "/token") and  (request.verb Equals "POST") and (request.header.Content-Type != "application/x-www-form-urlencoded"))</Condition>
         </Flow>
         <Flow name="Flow.PostTokenClientCredentials">
             <Description>OAuth Token Endpoint - Client Credentials</Description>
@@ -560,7 +560,7 @@
                 </Step>
                 <!-- grant type needs changing from Token Exchange because apigee doesn't support it !-->
                 <Step>
-                    <Name>AssignMessage.ChangeGrantTypeToClientCrentials</Name>
+                    <Name>AssignMessage.SetGrantTypeToPassword</Name>
                 </Step>
                 <!-- An access token is generated to fetch all the scopes for filtering -->
                 <Step>
