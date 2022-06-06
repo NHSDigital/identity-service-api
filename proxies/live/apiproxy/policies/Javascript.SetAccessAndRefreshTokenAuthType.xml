@@ -1,3 +1,0 @@
-<Javascript async="false" continueOnError="false" enabled="true" timeLimit="200" name="Javascript.SetAccessAndRefreshTokenAuthType">
-  <ResourceURL>jsc://setAccessAndRefreshTokenAuthType.js</ResourceURL>
-</Javascript>
