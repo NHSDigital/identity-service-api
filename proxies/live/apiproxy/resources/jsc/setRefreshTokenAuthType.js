@@ -1,6 +1,7 @@
-const authProvider = context.getVariable('oauthv2refreshtoken.GetOAuthV2Info.RefreshTokenAttributes.accesstoken.auth_provider');
+const authProvider = context.getVariable('apigee.auth_provider');
 
-if (authProvider !== null && authProvider === "nhs-cis2") {
+// authProvider = nhs-cis2 in refresh token flow. authProvider = nhsCis2 in token exchange flow
+if (authProvider !== null && (authProvider === "nhs-cis2" || authProvider === "nhsCis2" ) ) {
     var refreshTokenDefaultMs = context.getVariable('identity-service-config.cis2.refresh_token_expiry_ms');
     var refreshTokenDefaultValidityMs = context.getVariable('identity-service-config.cis2.refresh_tokens_validity_ms');
 } else {
@@ -8,6 +9,5 @@ if (authProvider !== null && authProvider === "nhs-cis2") {
     var refreshTokenDefaultValidityMs = context.getVariable('identity-service-config.nhs_login.refresh_tokens_validity_ms');
 }
 
-context.setVariable('apigee.auth_provider', authProvider);
 context.setVariable('apigee.refresh_token_expiry_ms', refreshTokenDefaultMs);
 context.setVariable('apigee.refresh_tokens_validity_ms', refreshTokenDefaultValidityMs);

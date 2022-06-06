@@ -5,7 +5,9 @@
          because token exchange isn't supported -->
     <Operation>GenerateAccessToken</Operation>
     <!-- 1 hour -->
-    <ExpiresIn ref="apigee.access_token_expiry_ms">3600000</ExpiresIn>
+    <!-- cis2 ref used for both nhs login and cis2 as there is no dedicated access_token_expiry_ms config value for nhs login.
+         Both have expiry of 10 mins.-->
+    <ExpiresIn ref="identity-service-config.cis2.access_token_expiry_ms">3600000</ExpiresIn>
     <SupportedGrantTypes>
         <GrantType>password</GrantType>
     </SupportedGrantTypes>
