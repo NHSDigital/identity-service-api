@@ -552,6 +552,9 @@
                 <Step>
                     <Name>VerifyJWT.SubjectToken</Name>
                 </Step>
+                <Step>
+                    <Name>Javascript.SetAccessAndRefreshTokenAuthType</Name>
+                </Step>
                 <!-- Next step allows optional REDUCTION of access_token_expiry KVM values
             using _access_token_expiry_ms form param -->
                 <Step>
