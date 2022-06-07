@@ -5,9 +5,9 @@ var InvalidIdTokenIssuer = false;
 if(issuer === null || issuer === '' ) {
     InvalidIdTokenIssuer = true;
 } else if (issuer.includes('NHSIdentity') || issuer.includes('cis2-mock') || issuer.includes('secure')) {
-    idTokenIssuer = 'nhsCis2'; 
+    idTokenIssuer = 'nhs-cis2';
 } else if (issuer.includes('signin.nhs.uk') || issuer.includes('login.nhs.uk')) {
-    idTokenIssuer = 'nhsLogin';
+    idTokenIssuer = 'nhs-login';
 } else {
     InvalidIdTokenIssuer = true;
 }

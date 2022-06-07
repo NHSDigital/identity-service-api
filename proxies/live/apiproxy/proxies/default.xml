@@ -535,11 +535,11 @@
                 </Step>
                 <Step>
                     <Name>ServiceCallout.cis2GetJWKS</Name>
-                    <Condition>jwks = null Or jwks_kid_found = false and idTokenIssuer Equals "nhsCis2"</Condition>
+                    <Condition>jwks = null Or jwks_kid_found = false and idTokenIssuer Equals "nhs-cis2"</Condition>
                 </Step>
                 <Step>
                     <Name>ServiceCallout.nhsLoginGetJWKS</Name>
-                    <Condition>jwks = null Or jwks_kid_found = false and idTokenIssuer Equals "nhsLogin"</Condition>
+                    <Condition>jwks = null Or jwks_kid_found = false and idTokenIssuer Equals "nhs-login"</Condition>
                 </Step>
                 <Step>
                     <Name>PopulateCache.TokenExchangeJWKS</Name>
@@ -967,7 +967,7 @@
                 </Step>
                 <Step>
                     <Name>RaiseFault.UserInfoWrongAuth</Name>
-                    <Condition>idTokenIssuer Equals "nhsLogin" or InvalidIdTokenIssuer Equals "true" or accesstoken.external_access_token Equals null</Condition>
+                    <Condition>idTokenIssuer Equals "nhs-login" or InvalidIdTokenIssuer Equals "true" or accesstoken.external_access_token Equals null</Condition>
                 </Step>
                 <Step>
                     <Name>AssignMessage.SetAuthorizationHeader</Name>
