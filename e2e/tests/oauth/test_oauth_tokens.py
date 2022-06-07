@@ -286,16 +286,18 @@ class TestTokenExchangeTokens:
         access_token = resp['body']['access_token']
         refresh_token = resp['body']['refresh_token']
 
-        assert bool(access_token) is True
-        assert bool(refresh_token) is True
+        assert access_token
+        assert refresh_token
         assert resp['body']['expires_in'] == '599'
         assert resp['body']['refresh_token_expires_in'] == '3599'
 
         # Get new access token using refresh token to ensure valid
         resp2 = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=refresh_token)
         access_token2 = resp2['body']['access_token']
+        refresh_token2 = resp2['body']['refresh_token']
 
-        assert bool(access_token2) is True
+        assert access_token2
+        assert refresh_token2
 
 
     async def test_cis2_token_exchange_access_tokens_valid(self):
@@ -312,8 +314,8 @@ class TestTokenExchangeTokens:
         access_token = resp['body']['access_token']
         refresh_token = resp['body']['refresh_token']
 
-        assert bool(access_token) is True
-        assert bool(refresh_token) is True
+        assert access_token
+        assert refresh_token
         assert resp['body']['expires_in'] == '599'
         assert resp['body']['refresh_token_expires_in'] == '3599'
 
@@ -345,13 +347,13 @@ class TestTokenExchangeTokens:
         access_token = resp['body']['access_token']
         refresh_token = resp['body']['refresh_token']
 
-        assert bool(access_token) is True
-        assert bool(refresh_token) is True
+        assert access_token
+        assert refresh_token
 
         # Get new access token using refresh token
         resp2 = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=refresh_token)
         access_token2 = resp2['body']['access_token']
-        assert bool(access_token2) is True
+        assert access_token2
 
         # try to use the original refresh token to get another access token
         resp3 = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=refresh_token)
