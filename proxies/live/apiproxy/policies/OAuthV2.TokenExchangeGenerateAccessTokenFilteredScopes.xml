@@ -6,9 +6,7 @@
     <Operation>GenerateAccessToken</Operation>
     <Scope>apigee.user_restricted_scopes</Scope>
     <!-- 10 minutes -->
-    <!-- cis2 ref used for both nhs login and cis2 as there is no dedicated access_token_expiry_ms config value for nhs login.
-         Both have expiry of 10 mins.-->
-    <ExpiresIn ref="identity-service-config.cis2.access_token_expiry_ms">600000</ExpiresIn>
+    <ExpiresIn ref="apigee.access_token_expiry_ms">600000</ExpiresIn>
     <!-- 1 hour -->
     <RefreshTokenExpiresIn ref="apigee.refresh_token_expiry_ms">3600000</RefreshTokenExpiresIn>
     <SupportedGrantTypes>

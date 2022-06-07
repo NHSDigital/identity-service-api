@@ -556,13 +556,13 @@
                     <Name>Javascript.SetTokenExchangeAuthProvider</Name>
                 </Step>
                 <Step>
-                    <Name>Javascript.SetRefreshTokenAuthType</Name>
+                    <Name>Javascript.SetDefaultAccessAndRefreshTokenTimes</Name>
                 </Step>
                 <!-- Next step allows optional REDUCTION of access_token_expiry KVM values
             using _access_token_expiry_ms form param -->
                 <Step>
-                    <Name>AssignMessage.AccessTokenExpiryOverride</Name>
-                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan identity-service-config.cis2.access_token_expiry_ms)</Condition>
+                    <Name>AssignMessage.AccessTokenExpiryOverrideAuthType</Name>
+                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
                 </Step>
                 <!-- grant type needs changing from Token Exchange because apigee doesn't support it !-->
                 <Step>
@@ -787,13 +787,13 @@
                     <Name>Javascript.SetRefreshTokenAuthProvider</Name>
                 </Step>
                 <Step>
-                    <Name>Javascript.SetRefreshTokenAuthType</Name>
+                    <Name>Javascript.SetDefaultAccessAndRefreshTokenTimes</Name>
                 </Step>
                 <!-- Next 5 steps allow optional REDUCTION of access_token_expiry, refresh_token_expiry, and refresh_token_validity KVM values
               using _access_token_expiry_ms/_refresh_token_expiry_ms/_refresh_tokens_validity_ms (respectively) form params -->
                 <Step>
-                    <Name>AssignMessage.AccessTokenExpiryOverride</Name>
-                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan  identity-service-config.cis2.access_token_expiry_ms)</Condition>
+                    <Name>AssignMessage.AccessTokenExpiryOverrideAuthType</Name>
+                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
                 </Step>
                 <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
                 <Step>
