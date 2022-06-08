@@ -520,6 +520,9 @@
                     <Name>DecodeJWT.FromSubjectTokenFormParam</Name>
                 </Step>
                 <Step>
+                    <Name>Javascript.SelectIdTokenFieldsTokenExchange</Name>
+                </Step>
+                <Step>
                     <Name>Javascript.SelectIdTokenIssuer</Name>
                 </Step>
                 <Step>
@@ -551,9 +554,6 @@
                 </Step>
                 <Step>
                     <Name>VerifyJWT.SubjectToken</Name>
-                </Step>
-                <Step>
-                    <Name>Javascript.SetTokenExchangeAuthProvider</Name>
                 </Step>
                 <Step>
                     <Name>Javascript.SetDefaultAccessAndRefreshTokenTimes</Name>
@@ -710,11 +710,23 @@
                 <Step>
                     <Name>DecodeJWT.FromExternalIdToken</Name>
                 </Step>
+
+                <!-- Setting apigee.auth_provider. Selecting access and refresh token times based on provider -->
+                <Step>
+                    <Name>Javascript.SelectIdTokenFieldsAuthCode</Name>
+                </Step>
+                <Step>
+                    <Name>Javascript.SelectIdTokenIssuer</Name>
+                </Step>
+                <Step>
+                    <Name>Javascript.SetDefaultAccessAndRefreshTokenTimes</Name>
+                </Step>
+
                 <!-- Next 3 steps allow optional REDUCTION of access_token_expiry and refresh_token_expiry  KVM values
                 using _access_token_expiry_ms/_refresh_token_expiry_ms (respectively) form params -->
                 <Step>
-                    <Name>AssignMessage.AccessTokenExpiryOverride</Name>
-                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan identity-service-config.cis2.access_token_expiry_ms)</Condition>
+                    <Name>AssignMessage.AccessTokenExpiryOverrideAuthType</Name>
+                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
                 </Step>
                 <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
                 <Step>
@@ -784,6 +796,7 @@
                     <Name>GetOAuthV2Info.RefreshTokenAttributes</Name>
                 </Step>
                 <Step>
+                    <!-- TODO: see if this policy needs to be updated to use idTokenIssuer?(if i remove use of apigee.auth_provider) -->
                     <Name>Javascript.SetRefreshTokenAuthProvider</Name>
                 </Step>
                 <Step>

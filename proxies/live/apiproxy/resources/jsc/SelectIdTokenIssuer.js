@@ -1,6 +1,6 @@
-var exp = context.getVariable('jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.exp');
-var iss = context.getVariable('jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.iss');
-var aud = context.getVariable('jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.aud');
+var exp = context.getVariable('idtoken_decoded_claim_exp');
+var iss = context.getVariable('idtoken_decoded_claim_iss');
+var aud = context.getVariable('idtoken_decoded_claim_aud');
 
 var nhsLoginIssuer = context.getVariable('identity-service-config.nhs_login.issuer');
 var cis2Issuer = context.getVariable('identity-service-config.cis2.issuer');
@@ -31,6 +31,8 @@ if (iss == cis2Issuer) {
 
 context.setVariable('isError', isError)
 context.setVariable('idTokenIssuer', idTokenIssuer);
+// same as idtokenissuer - todo: see if can set to one.
+context.setVariable("apigee.auth_provider", idTokenIssuer);
 context.setVariable('jwksPath', jwksPath);
 
 if (isError) {
