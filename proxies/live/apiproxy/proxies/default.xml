@@ -796,7 +796,6 @@
                     <Name>GetOAuthV2Info.RefreshTokenAttributes</Name>
                 </Step>
                 <Step>
-                    <!-- TODO: see if this policy needs to be updated to use idTokenIssuer?(if i remove use of apigee.auth_provider) -->
                     <Name>Javascript.SetRefreshTokenAuthProvider</Name>
                 </Step>
                 <Step>

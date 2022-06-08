@@ -31,7 +31,8 @@ if (iss == cis2Issuer) {
 
 context.setVariable('isError', isError)
 context.setVariable('idTokenIssuer', idTokenIssuer);
-// same as idtokenissuer - todo: see if can set to one.
+// Depending on the flow, auth_provider can be set via ID token or refresh token.
+// This variable is used in SetDefaultAccessAndRefreshTokenTimes to conditionally choose nhs login or cis2 access and refresh token expiry times
 context.setVariable("apigee.auth_provider", idTokenIssuer);
 context.setVariable('jwksPath', jwksPath);
 
