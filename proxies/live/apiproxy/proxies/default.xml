@@ -796,7 +796,7 @@
                     <Name>GetOAuthV2Info.RefreshTokenAttributes</Name>
                 </Step>
                 <Step>
-                    <Name>Javascript.SetRefreshTokenAuthProvider</Name>
+                    <Name>AssignMessage.SetRefreshTokenAuthProvider</Name>
                 </Step>
                 <Step>
                     <Name>Javascript.SetDefaultAccessAndRefreshTokenTimes</Name>
