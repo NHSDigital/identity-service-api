@@ -1,5 +1,6 @@
 <AssignMessage name="AssignMessage.SelectIdTokenFieldsTokenExchange">
-  <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
+<!-- ignore unresolved here as missing fields handled by selectIdTokenIssuer -->
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
   <AssignVariable>
     <Name>idtoken_decoded_claim_exp</Name>
     <Ref>jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.exp</Ref>
