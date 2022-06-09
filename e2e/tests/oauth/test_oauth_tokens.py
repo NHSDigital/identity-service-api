@@ -326,7 +326,9 @@ class TestTokenExchangeTokens:
         # Get new access token using refresh token to ensure valid
         resp2 = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=refresh_token)
         access_token2 = resp2['body']['access_token']
-        assert bool(access_token2) is True
+        refresh_token2 = resp2['body']['refresh_token']
+        assert access_token2
+        assert refresh_token2
 
         # Make request using new access token to ensure valid
         req2 = requests.get(f"{HELLO_WORLD_API_URL}", headers={"Authorization": f"Bearer {access_token2}"})
@@ -360,7 +362,7 @@ class TestTokenExchangeTokens:
         assert resp3['status_code'] == 401
 
 
-    async def test_token_by_password(self):
+    async def test_rejects_token_request_by_password(self):
         """
         Test that request for token using password grant type is rejected.
         """
