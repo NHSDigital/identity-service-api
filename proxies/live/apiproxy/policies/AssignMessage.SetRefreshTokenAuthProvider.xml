@@ -1,0 +1,8 @@
+<AssignMessage name="AssignMessage.SetRefreshTokenAuthProvider">
+<!-- Ignore as unresolved variable due to invalid refresh token handled by GenerateRefreshToken -->
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <AssignVariable>
+    <Name>apigee.auth_provider</Name>
+    <Ref>oauthv2refreshtoken.GetOAuthV2Info.RefreshTokenAttributes.accesstoken.auth_provider</Ref>
+  </AssignVariable>
+</AssignMessage>

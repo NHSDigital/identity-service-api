@@ -1,0 +1,17 @@
+<AssignMessage name="AssignMessage.SelectIdTokenFieldsAuthCode">
+  <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
+  <AssignVariable>
+    <Name>idtoken_decoded_claim_exp</Name>
+    <Ref>jwt.DecodeJWT.FromExternalIdToken.decoded.claim.exp</Ref>
+  </AssignVariable>
+
+  <AssignVariable>
+    <Name>idtoken_decoded_claim_iss</Name>
+    <Ref>jwt.DecodeJWT.FromExternalIdToken.decoded.claim.iss</Ref>
+  </AssignVariable>
+
+  <AssignVariable>
+    <Name>idtoken_decoded_claim_aud</Name>
+    <Ref>jwt.DecodeJWT.FromExternalIdToken.decoded.claim.aud</Ref>
+  </AssignVariable>
+</AssignMessage>

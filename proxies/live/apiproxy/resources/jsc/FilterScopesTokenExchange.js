@@ -1,12 +1,12 @@
 var api_product_scopes = String(context.getVariable('original_scope'));
 var idTokenIssuer = context.getVariable('idTokenIssuer');
-if (idTokenIssuer == "nhsCis2") {
+if (idTokenIssuer == "nhs-cis2") {
     var id_token_acr = context.getVariable('jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.acr');
-    id_token_acr = ':' + id_token_acr.slice(0, 4).toLowerCase() + ':';   
+    id_token_acr = ':' + id_token_acr.slice(0, 4).toLowerCase() + ':';
 }
 else {
     var id_token_acr = context.getVariable('jwt.DecodeJWT.FromSubjectTokenFormParam.decoded.claim.identity_proofing_level');
-    id_token_acr = ':' + id_token_acr.slice(0, 2) + ':'; 
+    id_token_acr = ':' + id_token_acr.slice(0, 2) + ':';
 }
 
 

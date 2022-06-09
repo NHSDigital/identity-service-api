@@ -1,0 +1,7 @@
+<AssignMessage name="AssignMessage.AccessTokenExpiryOverrideAuthType">
+  <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
+  <AssignVariable>
+    <Name>apigee.access_token_expiry_ms</Name>
+    <Ref>request.formparam._access_token_expiry_ms</Ref>
+  </AssignVariable>
+</AssignMessage>

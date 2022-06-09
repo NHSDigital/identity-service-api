@@ -298,14 +298,14 @@
         <Flow name="Flow.PostTokenInvalidMediaType">
           <Request>
             <Step>
-              <!-- The <Condition> check for all PostToken* flows read a request.formparam.* variable. 
+              <!-- The <Condition> check for all PostToken* flows read a request.formparam.* variable.
                    Requests in the wrong format (e.g. JSON) produce a hard-to-understand error message.
                    Our docs say to set the header Content-Type: application/x-www-formurlencoded.
                    For better user error messages, we enforce that here.-->
               <Name>RaiseFault.ContentTypeMustBeFormUrlEncoded</Name>
             </Step>
           </Request>
-          <Condition>((proxy.pathsuffix MatchesPath "/token") and  (request.verb Equals "POST") and (request.header.Content-Type != "application/x-www-form-urlencoded"))</Condition>          
+          <Condition>((proxy.pathsuffix MatchesPath "/token") and  (request.verb Equals "POST") and (request.header.Content-Type != "application/x-www-form-urlencoded"))</Condition>
         </Flow>
         <Flow name="Flow.PostTokenClientCredentials">
             <Description>OAuth Token Endpoint - Client Credentials</Description>
@@ -520,6 +520,9 @@
                     <Name>DecodeJWT.FromSubjectTokenFormParam</Name>
                 </Step>
                 <Step>
+                    <Name>AssignMessage.SelectIdTokenFieldsTokenExchange</Name>
+                </Step>
+                <Step>
                     <Name>Javascript.SelectIdTokenIssuer</Name>
                 </Step>
                 <Step>
@@ -535,11 +538,11 @@
                 </Step>
                 <Step>
                     <Name>ServiceCallout.cis2GetJWKS</Name>
-                    <Condition>jwks = null Or jwks_kid_found = false and idTokenIssuer Equals "nhsCis2"</Condition>
+                    <Condition>jwks = null Or jwks_kid_found = false and idTokenIssuer Equals "nhs-cis2"</Condition>
                 </Step>
                 <Step>
                     <Name>ServiceCallout.nhsLoginGetJWKS</Name>
-                    <Condition>jwks = null Or jwks_kid_found = false and idTokenIssuer Equals "nhsLogin"</Condition>
+                    <Condition>jwks = null Or jwks_kid_found = false and idTokenIssuer Equals "nhs-login"</Condition>
                 </Step>
                 <Step>
                     <Name>PopulateCache.TokenExchangeJWKS</Name>
@@ -552,15 +555,18 @@
                 <Step>
                     <Name>VerifyJWT.SubjectToken</Name>
                 </Step>
+                <Step>
+                    <Name>Javascript.SetDefaultAccessAndRefreshTokenTimes</Name>
+                </Step>
                 <!-- Next step allows optional REDUCTION of access_token_expiry KVM values
             using _access_token_expiry_ms form param -->
                 <Step>
-                    <Name>AssignMessage.AccessTokenExpiryOverride</Name>
-                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan identity-service-config.cis2.access_token_expiry_ms)</Condition>
+                    <Name>AssignMessage.AccessTokenExpiryOverrideAuthType</Name>
+                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
                 </Step>
                 <!-- grant type needs changing from Token Exchange because apigee doesn't support it !-->
                 <Step>
-                    <Name>AssignMessage.ChangeGrantTypeToClientCrentials</Name>
+                    <Name>AssignMessage.SetGrantTypeToPassword</Name>
                 </Step>
                 <!-- An access token is generated to fetch all the scopes for filtering -->
                 <Step>
@@ -704,11 +710,23 @@
                 <Step>
                     <Name>DecodeJWT.FromExternalIdToken</Name>
                 </Step>
+
+                <!-- Setting apigee.auth_provider. Selecting access and refresh token times based on provider -->
+                <Step>
+                    <Name>AssignMessage.SelectIdTokenFieldsAuthCode</Name>
+                </Step>
+                <Step>
+                    <Name>Javascript.SelectIdTokenIssuer</Name>
+                </Step>
+                <Step>
+                    <Name>Javascript.SetDefaultAccessAndRefreshTokenTimes</Name>
+                </Step>
+
                 <!-- Next 3 steps allow optional REDUCTION of access_token_expiry and refresh_token_expiry  KVM values
                 using _access_token_expiry_ms/_refresh_token_expiry_ms (respectively) form params -->
                 <Step>
-                    <Name>AssignMessage.AccessTokenExpiryOverride</Name>
-                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan identity-service-config.cis2.access_token_expiry_ms)</Condition>
+                    <Name>AssignMessage.AccessTokenExpiryOverrideAuthType</Name>
+                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
                 </Step>
                 <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
                 <Step>
@@ -778,13 +796,16 @@
                     <Name>GetOAuthV2Info.RefreshTokenAttributes</Name>
                 </Step>
                 <Step>
-                    <Name>Javascript.SetRefreshTokenAuthType</Name>
+                    <Name>AssignMessage.SetRefreshTokenAuthProvider</Name>
+                </Step>
+                <Step>
+                    <Name>Javascript.SetDefaultAccessAndRefreshTokenTimes</Name>
                 </Step>
                 <!-- Next 5 steps allow optional REDUCTION of access_token_expiry, refresh_token_expiry, and refresh_token_validity KVM values
               using _access_token_expiry_ms/_refresh_token_expiry_ms/_refresh_tokens_validity_ms (respectively) form params -->
                 <Step>
-                    <Name>AssignMessage.AccessTokenExpiryOverride</Name>
-                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan  identity-service-config.cis2.access_token_expiry_ms)</Condition>
+                    <Name>AssignMessage.AccessTokenExpiryOverrideAuthType</Name>
+                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
                 </Step>
                 <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
                 <Step>
@@ -958,7 +979,7 @@
                 </Step>
                 <Step>
                     <Name>RaiseFault.UserInfoWrongAuth</Name>
-                    <Condition>idTokenIssuer Equals "nhsLogin" or InvalidIdTokenIssuer Equals "true" or accesstoken.external_access_token Equals null</Condition>
+                    <Condition>idTokenIssuer Equals "nhs-login" or InvalidIdTokenIssuer Equals "true" or accesstoken.external_access_token Equals null</Condition>
                 </Step>
                 <Step>
                     <Name>AssignMessage.SetAuthorizationHeader</Name>
