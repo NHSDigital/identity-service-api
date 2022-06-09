@@ -520,7 +520,7 @@
                     <Name>DecodeJWT.FromSubjectTokenFormParam</Name>
                 </Step>
                 <Step>
-                    <Name>Javascript.SelectIdTokenFieldsTokenExchange</Name>
+                    <Name>AssignMessage.SelectIdTokenFieldsTokenExchange</Name>
                 </Step>
                 <Step>
                     <Name>Javascript.SelectIdTokenIssuer</Name>
@@ -713,7 +713,7 @@
 
                 <!-- Setting apigee.auth_provider. Selecting access and refresh token times based on provider -->
                 <Step>
-                    <Name>Javascript.SelectIdTokenFieldsAuthCode</Name>
+                    <Name>AssignMessage.SelectIdTokenFieldsAuthCode</Name>
                 </Step>
                 <Step>
                     <Name>Javascript.SelectIdTokenIssuer</Name>

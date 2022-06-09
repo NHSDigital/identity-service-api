@@ -1,3 +1,0 @@
-<Javascript async="false" continueOnError="false" enabled="true" timeLimit="200" name="Javascript.SetRefreshTokenAuthProvider">
-  <ResourceURL>jsc://setRefreshTokenAuthProvider.js</ResourceURL>
-</Javascript>

@@ -1,3 +1,0 @@
-<Javascript async="false" continueOnError="false" enabled="true" timeLimit="200" name="Javascript.SelectIdTokenFieldsAuthCode">
-  <ResourceURL>jsc://selectIdTokenFieldsAuthCode.js</ResourceURL>
-</Javascript>
