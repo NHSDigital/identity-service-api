@@ -1,6 +1,7 @@
 from uuid import uuid4
 import pytest
 from time import sleep, time
+import sys
 from e2e.scripts.config import HELLO_WORLD_API_URL, ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, MOCK_IDP_BASE_URL
 import requests
 
@@ -299,7 +300,6 @@ class TestTokenExchangeTokens:
         assert access_token2
         assert refresh_token2
 
-
     async def test_cis2_token_exchange_access_tokens_valid(self):
         """
         Using a refresh token that was generated via token exchange, fetch and use
@@ -317,7 +317,7 @@ class TestTokenExchangeTokens:
         assert access_token
         assert refresh_token
         assert resp['body']['expires_in'] == '599'
-        assert resp['body']['refresh_token_expires_in'] == '3599'
+        assert resp['body']['refresh_token_expires_in'] == '43199'
 
         # Make request using access token to ensure valid
         req = requests.get(f"{HELLO_WORLD_API_URL}", headers={"Authorization": f"Bearer {access_token}"})
@@ -333,7 +333,6 @@ class TestTokenExchangeTokens:
         # Make request using new access token to ensure valid
         req2 = requests.get(f"{HELLO_WORLD_API_URL}", headers={"Authorization": f"Bearer {access_token2}"})
         assert req2.status_code == 200
-
 
     async def test_cis2_token_exchange_refresh_token_become_invalid(self):
         """
@@ -361,7 +360,6 @@ class TestTokenExchangeTokens:
         resp3 = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=refresh_token)
         assert resp3['status_code'] == 401
 
-
     async def test_rejects_token_request_by_password(self):
         """
         Test that request for token using password grant type is rejected.
@@ -376,3 +374,61 @@ class TestTokenExchangeTokens:
         resp = await self.oauth.get_token_response(grant_type='password', data=form_data)
 
         assert resp['status_code'] == 400
+
+    @pytest.mark.skip(
+        reason="It is not feasible to run this test each build due to the timeframe required, run manually if needed."
+    )
+    async def test_cis2_refresh_token_valid_after_1_hour(self):
+        """
+        Test that a refresh token received via a CIS2 login is valid after 1 hour (the previous expiry time).
+        Run pytest with the -s arg to display the stdout and show the wait time countdown.
+        """
+        # Generate access token using token-exchange
+        id_token_jwt = self.oauth.create_id_token_jwt()
+        client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
+        resp = await self.oauth.get_token_response(grant_type='token_exchange', _jwt=client_assertion_jwt,
+                                                   id_token_jwt=id_token_jwt)
+
+        refresh_token = resp['body']['refresh_token']
+
+        # Wait 1 hour (the previous refresh token expiry time) and check that the token is still valid
+        for remaining in range(3600, 0, -1):
+            mins, sec = divmod(remaining, 60)
+            sys.stdout.write("\r")
+            sys.stdout.write("{:2d} minutes {:2d} seconds remaining.".format(mins, sec))
+            sleep(1)
+
+        # Get new access token using refresh token
+        resp2 = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=refresh_token)
+        access_token2 = resp2['body']['access_token']
+        assert access_token2
+
+    @pytest.mark.skip(
+        reason="It is not feasible to run this test each build due to the timeframe required, run manually if needed."
+    )
+    async def test_cis2_refresh_token_expires_after_12_hours(self):
+        """
+        Test that a refresh token received via a CIS2 login is valid for up to 12 hours.
+        Run pytest with the -s arg to display the stdout and show the wait time countdown.
+        """
+        # Generate access token using token-exchange
+        id_token_jwt = self.oauth.create_id_token_jwt()
+        client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
+        resp = await self.oauth.get_token_response(grant_type='token_exchange', _jwt=client_assertion_jwt,
+                                                   id_token_jwt=id_token_jwt)
+
+        refresh_token = resp['body']['refresh_token']
+
+        # Wait 12 hours and check that the token has expired
+        for remaining in range(43200, 0, -1):
+            mins, sec = divmod(remaining, 60)
+            hours, mins = divmod(mins, 60)
+            sys.stdout.write("\r")
+            sys.stdout.write("{:2d} hours {:2d} minutes {:2d} seconds remaining.".format(hours, mins, sec))
+            sys.stdout.flush()
+            sleep(1)
+
+        # Get new access token using refresh token
+        resp3 = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=refresh_token)
+        access_token3 = resp3['body']['access_token']
+        assert access_token3
