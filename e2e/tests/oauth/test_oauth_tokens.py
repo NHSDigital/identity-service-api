@@ -429,5 +429,5 @@ class TestTokenExchangeTokens:
             sleep(1)
 
         # Try to use the now expired refresh token to get another access token
-        resp3 = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=refresh_token)
-        assert resp3['status_code'] == 401
+        resp2 = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=refresh_token)
+        assert resp2['status_code'] == 401
