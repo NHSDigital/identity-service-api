@@ -517,9 +517,74 @@ class TestTokenRefreshExpiry:
         assert resp['body']['expires_in'] == '599'
         assert resp['body']['refresh_token_expires_in'] == '43199'
 
-    @pytest.mark.skip(
-        reason="It is not feasible to run this test each build due to the timeframe required, run manually if needed."
-    )
+    # @pytest.mark.skip(
+    #     reason="It is not feasible to run this test each build due to the timeframe required, run manually if needed."
+    # )
+    @pytest.mark.parametrize("auth_flow", ["authorization_code", "token_exchange"])
+    @pytest.mark.parametrize('scope', ['P9', 'P5', 'P0'])
+    async def test_nhs_login_refresh_token_invalid_after_1_hour(self, scope, auth_flow):
+        """
+        Test that a refresh token received via a NHS Login is invalid after 1 hour (existing behaviour).
+        Run pytest with the -s arg to display the stdout and show the wait time countdown.
+        """
+        id_token_claims = {
+            "aud": "tf_-APIM-1",
+            "id_status": "verified",
+            "token_use": "id",
+            "auth_time": 1616600683,
+            "iss": "https://internal-dev.api.service.nhs.uk",
+            "vot": "P9.Cp.Cd",
+            "exp": int(time()) + 600,
+            "iat": int(time()) - 10,
+            "vtm": "https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk",
+            "jti": str(uuid4()),
+            "identity_proofing_level": scope,
+            "nhs_number": "900000000001"
+        }
+        id_token_headers = {
+            "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",
+            "aud": "APIM-1",
+            "kid": "nhs-login",
+            "iss": "https://internal-dev.api.service.nhs.uk",
+            "typ": "JWT",
+            "exp": 1616604574,
+            "iat": 1616600974,
+            "alg": "RS512",
+            "jti": str(uuid4()),
+        }
+
+        with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
+            contents = f.read()
+
+        client_assertion_jwt = self.oauth.create_jwt(kid="test-1")
+        id_token_jwt = self.oauth.create_id_token_jwt(
+            algorithm="RS512",
+            claims=id_token_claims,
+            headers=id_token_headers,
+            signing_key=contents,
+        )
+        resp = await self.oauth.get_token_response(
+            grant_type="token_exchange",
+            _jwt=client_assertion_jwt,
+            id_token_jwt=id_token_jwt,
+        )
+        access_token = resp['body']['access_token']
+        refresh_token = resp['body']['refresh_token']
+
+        # Wait 1 hour (the previous refresh token expiry time) and check that the token is still valid
+        for remaining in range(3600, 0, -1):
+            mins, sec = divmod(remaining, 60)
+            sys.stdout.write("\r")
+            sys.stdout.write("{:2d} minutes {:2d} seconds remaining.".format(mins, sec))
+            sleep(1)
+
+        # Get new access token using refresh token
+        resp2 = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=refresh_token)
+        assert resp2['status_code'] == 401
+
+    # @pytest.mark.skip(
+    #     reason="It is not feasible to run this test each build due to the timeframe required, run manually if needed."
+    # )
     @pytest.mark.parametrize("auth_flow", ["authorization_code", "token_exchange"])
     async def test_cis2_refresh_token_valid_after_1_hour(self, auth_flow):
         """
@@ -546,9 +611,9 @@ class TestTokenRefreshExpiry:
         access_token2 = resp2['body']['access_token']
         assert access_token2
 
-    @pytest.mark.skip(
-        reason="It is not feasible to run this test each build due to the timeframe required, run manually if needed."
-    )
+    # @pytest.mark.skip(
+    #     reason="It is not feasible to run this test each build due to the timeframe required, run manually if needed."
+    # )
     @pytest.mark.parametrize("auth_flow", ["authorization_code", "token_exchange"])
     async def test_cis2_refresh_token_expires_after_12_hours(self, auth_flow):
         """
