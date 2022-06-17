@@ -400,7 +400,7 @@
                 </Step>
                 <Step>
                     <Name>AssignMessage.AccessTokenExpiryOverride</Name>
-                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan identity-service-config.cis2.access_token_expiry_ms)</Condition>
+                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
                 </Step>
                 <Step>
                     <Name>OAuthV2.ClientCredentialsGenerateAccessToken</Name>
