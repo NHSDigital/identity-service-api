@@ -375,10 +375,153 @@ class TestTokenExchangeTokens:
 
         assert resp['status_code'] == 400
 
+
+@pytest.mark.asyncio
+class TestTokenRefreshExpiry:
+    """Test class to confirm refresh tokens expire after the expected amount of time
+    for both separated and combined auth"""
+
+    @pytest.mark.parametrize('scope', ['P9'])#, 'P5', 'P0'])
+    async def test_nhs_login_refresh_tokens_generated_with_expected_expiry_combined_auth(self, scope):
+        """
+        TODO
+        """
+
+        # FIXME - SelectIdTokenIssuer.js is assigning the auth provider incorrectly as CIS2
+        #    (during the PostTokenAuthorizationCode flow), so we're getting a refresh token with
+        #    an expiry time of 1 hour instead of 12.
+        #    ==========================================================================================================
+        #    UPDATE (17/06/22): This is due to no scope var being passed in the request params.
+        #    -
+        #    We need AssignMessage.SetAuthorizationRedirectNHSLogin to pass, which needs the idp value to be nhs-login.
+        #    -
+        #    The default behaviour is to fallback to AssignMessage.SetAuthorizationRedirectCIS2 if no scope is passed,
+        #    so we need to pass a scope param of "nhs-login" with the initial request - this should then get picked up
+        #    by AssignMessage.ExtractExternalScope.
+
+        # We need to build a new ID token for NHS Login since the helper method defaults to CIS2
+        form_data = {
+            "client_id": self.oauth.client_id,
+            "client_secret": self.oauth.client_secret,
+            "grant_type": "authorization_code",
+            "redirect_uri": self.oauth.redirect_uri,
+            "_access_token_expiry_ms": 600000,
+            "code": await self.oauth.get_authenticated_with_simulated_auth(),
+        }
+        params = {"scope": "nhs-login"}
+
+        # resp = await self.oauth.get_token_response(
+        #     grant_type="authorization_code",
+        #     timeout=600000,
+        # )
+
+        resp = await self.oauth.hit_oauth_endpoint("post", "token", data=form_data, params=params)
+
+        access_token = resp['body']['access_token']
+        refresh_token = resp['body']['refresh_token']
+
+        assert access_token
+        assert refresh_token
+        assert resp['body']['expires_in'] == '599'
+        assert resp['body']['refresh_token_expires_in'] == '3599'
+
+    async def test_cis2_refresh_tokens_generated_with_expected_expiry_combined_auth(self):
+        """
+        TODO
+        """
+        resp = await self.oauth.get_token_response(
+            grant_type="authorization_code",
+            timeout=600000,
+        )
+
+        access_token = resp['body']['access_token']
+        refresh_token = resp['body']['refresh_token']
+
+        assert access_token
+        assert refresh_token
+        assert resp['body']['expires_in'] == '599'
+        assert resp['body']['refresh_token_expires_in'] == '43199'
+
+    @pytest.mark.parametrize('scope', ['P9', 'P5', 'P0'])
+    async def test_nhs_login_refresh_tokens_generated_with_expected_expiry_separated_auth(self, scope):
+        """
+        TODO
+        """
+        id_token_claims = {
+            "aud": "tf_-APIM-1",
+            "id_status": "verified",
+            "token_use": "id",
+            "auth_time": 1616600683,
+            "iss": "https://internal-dev.api.service.nhs.uk",
+            "vot": "P9.Cp.Cd",
+            "exp": int(time()) + 600,
+            "iat": int(time()) - 10,
+            "vtm": "https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk",
+            "jti": str(uuid4()),
+            "identity_proofing_level": scope,
+            "nhs_number": "900000000001"
+        }
+        id_token_headers = {
+            "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",
+            "aud": "APIM-1",
+            "kid": "nhs-login",
+            "iss": "https://internal-dev.api.service.nhs.uk",
+            "typ": "JWT",
+            "exp": 1616604574,
+            "iat": 1616600974,
+            "alg": "RS512",
+            "jti": str(uuid4()),
+        }
+
+        with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
+            contents = f.read()
+
+        client_assertion_jwt = self.oauth.create_jwt(kid="test-1")
+        id_token_jwt = self.oauth.create_id_token_jwt(
+            algorithm="RS512",
+            claims=id_token_claims,
+            headers=id_token_headers,
+            signing_key=contents,
+        )
+        resp = await self.oauth.get_token_response(
+            grant_type="token_exchange",
+            _jwt=client_assertion_jwt,
+            id_token_jwt=id_token_jwt,
+        )
+        access_token = resp['body']['access_token']
+        refresh_token = resp['body']['refresh_token']
+
+        assert access_token
+        assert refresh_token
+        assert resp['body']['expires_in'] == '599'
+        assert resp['body']['refresh_token_expires_in'] == '3599'
+
+    async def test_cis2_refresh_tokens_generated_with_expected_expiry_separated_auth(self):
+        """
+        TODO
+        """
+        # Generate access token using token-exchange
+        id_token_jwt = self.oauth.create_id_token_jwt()
+        client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
+        resp = await self.oauth.get_token_response(
+            grant_type="token_exchange",
+            _jwt=client_assertion_jwt,
+            id_token_jwt=id_token_jwt
+        )
+
+        access_token = resp['body']['access_token']
+        refresh_token = resp['body']['refresh_token']
+
+        assert access_token
+        assert refresh_token
+        assert resp['body']['expires_in'] == '599'
+        assert resp['body']['refresh_token_expires_in'] == '43199'
+
     @pytest.mark.skip(
         reason="It is not feasible to run this test each build due to the timeframe required, run manually if needed."
     )
-    async def test_cis2_refresh_token_valid_after_1_hour(self):
+    @pytest.mark.parametrize("auth_flow", ["authorization_code", "token_exchange"])
+    async def test_cis2_refresh_token_valid_after_1_hour(self, auth_flow):
         """
         Test that a refresh token received via a CIS2 login is valid after 1 hour (the previous expiry time).
         Run pytest with the -s arg to display the stdout and show the wait time countdown.
@@ -386,7 +529,7 @@ class TestTokenExchangeTokens:
         # Generate access token using token-exchange
         id_token_jwt = self.oauth.create_id_token_jwt()
         client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
-        resp = await self.oauth.get_token_response(grant_type='token_exchange', _jwt=client_assertion_jwt,
+        resp = await self.oauth.get_token_response(grant_type=auth_flow, _jwt=client_assertion_jwt,
                                                    id_token_jwt=id_token_jwt)
 
         refresh_token = resp['body']['refresh_token']
@@ -406,7 +549,8 @@ class TestTokenExchangeTokens:
     @pytest.mark.skip(
         reason="It is not feasible to run this test each build due to the timeframe required, run manually if needed."
     )
-    async def test_cis2_refresh_token_expires_after_12_hours(self):
+    @pytest.mark.parametrize("auth_flow", ["authorization_code", "token_exchange"])
+    async def test_cis2_refresh_token_expires_after_12_hours(self, auth_flow):
         """
         Test that a refresh token received via a CIS2 login is valid for up to 12 hours.
         Run pytest with the -s arg to display the stdout and show the wait time countdown.
@@ -414,7 +558,7 @@ class TestTokenExchangeTokens:
         # Generate access token using token-exchange
         id_token_jwt = self.oauth.create_id_token_jwt()
         client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
-        resp = await self.oauth.get_token_response(grant_type='token_exchange', _jwt=client_assertion_jwt,
+        resp = await self.oauth.get_token_response(grant_type=auth_flow, _jwt=client_assertion_jwt,
                                                    id_token_jwt=id_token_jwt)
 
         refresh_token = resp['body']['refresh_token']
@@ -430,4 +574,5 @@ class TestTokenExchangeTokens:
 
         # Try to use the now expired refresh token to get another access token
         resp2 = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=refresh_token)
+        print(resp2)
         assert resp2['status_code'] == 401
