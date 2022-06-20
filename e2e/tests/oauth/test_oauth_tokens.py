@@ -406,26 +406,80 @@ class TestTokenExchangeTokens:
         print(resp['body']['expires_in'])
         #assert resp['body']['expires_in'] <= access_token_expiry
 
-    @pytest.mark.debug
+
+   # @pytest.mark.debug
     async def test_by_post_token_exchange_access_token_expiry(self):
         """
         Test that request for token using password grant type is rejected.
-        """ 
+        """
 
         access_token_expiry = "500000"
+
         id_token_jwt = self.oauth.create_id_token_jwt()
         client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
+
         form_data = {
-            "grant_type":'token_exchange',
-            
-          
+            "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+            "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
+            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            "subject_token": id_token_jwt,
+            "client_assertion": client_assertion_jwt,
+            "_access_token_expiry_ms": access_token_expiry
         }
         # Generate access token using token-exchange
-        
-        resp = await self.oauth.get_token_response(grant_type='token_exchange', "_jwt":client_assertion_jwt,
-            "id_token_jwt":id_token_jwtdata=form_data)
+        resp = await self.oauth.hit_oauth_endpoint("post", "token", data=form_data)
+
         print(resp)
         #print(resp['body']['expires_in'])
-        #assert resp['body']['expires_in'] <= access_token_expiry
+        #assert resp['body']['expires_in'] <= access_token_expiry   
+         
+     
+    #@pytest.mark.debug
+    async def test_by_authorisation_code_access_token_expiry(self):
+        """
+        Test that request for token using password grant type is rejected.
+        """
+  
+        access_token_expiry = "500000"
+        form_data = {
+            "client_id": self.oauth.client_id,
+            "client_secret": self.oauth.client_secret,
+            "grant_type": "authorization_code",
+            "redirect_uri": self.oauth.redirect_uri,
+            "code": await self.oauth.get_authenticated_with_simulated_auth(),
+            "_access_token_expiry_ms": access_token_expiry
+        }
+        
+        resp = await self.oauth.get_token_response(grant_type='authorization_code', data=form_data)
+        print(resp)
+       # print(resp['body']['expires_in'])
+        #assert resp['body']['expires_in'] <= access_token_expiry    
 
+
+    @pytest.mark.debug
+    @pytest.mark.usefixtures("set_refresh_token")
+    async def test_by_refresh_token_access_token_expiry(self):
+        """
+        Test that request for token using password grant type is rejected.
+        """
+  
+        access_token_expiry = "500000"
+        
+
+        refresh_token=self.oauth.refresh_token,
+        form_data= {
+                "client_id": self.oauth.client_id,
+                "client_secret": self.oauth.client_secret,
+                "grant_type": "refresh_token",
+                "refresh_token": self.oauth.refresh_token,
+                "_refresh_tokens_validity_ms": 599,
+                "_access_token_expiry_ms": access_token_expiry
+
+            }
+        
+        
+        resp = await self.oauth.get_token_response(grant_type='refresh_token', data=form_data)
+        print(resp)
+       # print(resp['body']['expires_in'])
+        #assert resp['body']['expires_in'] <= access_token_expiry    
         
