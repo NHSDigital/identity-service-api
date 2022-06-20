@@ -3,9 +3,6 @@ import pytest
 from time import sleep, time
 import sys
 from e2e.scripts.config import HELLO_WORLD_API_URL, ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, MOCK_IDP_BASE_URL
-from e2e.scripts.generic_request import GenericRequest as helper
-from urllib import parse, request
-from urllib.parse import urlparse, urlencode
 import requests
 
 @pytest.mark.asyncio
