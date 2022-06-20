@@ -1,8 +1,9 @@
 from uuid import uuid4
 import pytest
 from time import sleep, time
-from e2e.scripts.config import HELLO_WORLD_API_URL, ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, MOCK_IDP_BASE_URL
+from e2e.scripts.config import OAUTH_URL,HELLO_WORLD_API_URL, ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, MOCK_IDP_BASE_URL
 import requests
+
 
 @pytest.mark.asyncio
 class TestOauthTokens:
@@ -376,3 +377,55 @@ class TestTokenExchangeTokens:
         resp = await self.oauth.get_token_response(grant_type='password', data=form_data)
 
         assert resp['status_code'] == 400
+
+   # @pytest.mark.debug
+    async def test_by_client_credentials_access_token_expiry(self):
+        """
+        Test that request for token using password grant type is rejected.
+        """
+        jwt_claims = {
+            'kid': 'test-1',
+            'claims': {
+                "sub": self.oauth.client_id,
+                "iss": self.oauth.client_id,
+                "jti": str(uuid4()),
+                "aud": f"{OAUTH_URL}/token",
+                "exp": int(time()),
+            }
+        }
+
+        access_token_expiry = "500000"
+        form_data = {
+            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            "client_assertion": self.oauth.create_jwt(**jwt_claims),
+            "grant_type": 'client_credentials',
+            "_access_token_expiry_ms": access_token_expiry
+        }
+        resp = await self.oauth.get_token_response(grant_type='client_credentials', data=form_data)
+        print(resp)
+        print(resp['body']['expires_in'])
+        #assert resp['body']['expires_in'] <= access_token_expiry
+
+    @pytest.mark.debug
+    async def test_by_post_token_exchange_access_token_expiry(self):
+        """
+        Test that request for token using password grant type is rejected.
+        """ 
+
+        access_token_expiry = "500000"
+        id_token_jwt = self.oauth.create_id_token_jwt()
+        client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
+        form_data = {
+            "grant_type":'token_exchange',
+            
+          
+        }
+        # Generate access token using token-exchange
+        
+        resp = await self.oauth.get_token_response(grant_type='token_exchange', "_jwt":client_assertion_jwt,
+            "id_token_jwt":id_token_jwtdata=form_data)
+        print(resp)
+        #print(resp['body']['expires_in'])
+        #assert resp['body']['expires_in'] <= access_token_expiry
+
+        
