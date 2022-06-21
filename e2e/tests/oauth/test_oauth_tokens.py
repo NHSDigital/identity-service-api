@@ -1,7 +1,7 @@
 from uuid import uuid4
 import pytest
 from time import sleep, time
-from e2e.scripts.config import OAUTH_URL,HELLO_WORLD_API_URL, ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, MOCK_IDP_BASE_URL
+from e2e.scripts.config import HELLO_WORLD_API_URL, ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH
 import requests
 
 
@@ -217,7 +217,6 @@ class TestOauthTokens:
     async def test_nhs_login_auth_code_flow_happy_path(
         self, helper, auth_code_nhs_login
     ):
-
         response = await auth_code_nhs_login.get_token(self.oauth)
 
         access_token = response["access_token"]
@@ -237,6 +236,7 @@ class TestOauthTokens:
 @pytest.mark.asyncio
 class TestTokenExchangeTokens:
     """Test class to confirm token exchange logic is as expected """
+
     @pytest.mark.parametrize('scope', ['P9', 'P5', 'P0'])
     async def test_nhs_login_token_exchange_access_and_refresh_tokens_generated(self, scope):
         """
@@ -300,7 +300,6 @@ class TestTokenExchangeTokens:
         assert access_token2
         assert refresh_token2
 
-
     async def test_cis2_token_exchange_access_tokens_valid(self):
         """
         Using a refresh token that was generated via token exchange, fetch and use
@@ -335,7 +334,6 @@ class TestTokenExchangeTokens:
         req2 = requests.get(f"{HELLO_WORLD_API_URL}", headers={"Authorization": f"Bearer {access_token2}"})
         assert req2.status_code == 200
 
-
     async def test_cis2_token_exchange_refresh_token_become_invalid(self):
         """
         Fetch a new access token, refresh token pair.
@@ -362,7 +360,6 @@ class TestTokenExchangeTokens:
         resp3 = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=refresh_token)
         assert resp3['status_code'] == 401
 
-
     async def test_rejects_token_request_by_password(self):
         """
         Test that request for token using password grant type is rejected.
@@ -378,100 +375,170 @@ class TestTokenExchangeTokens:
 
         assert resp['status_code'] == 400
 
-
-   # @pytest.mark.debug
-    async def test_by_client_credentials_access_token_expiry(self):
+    @pytest.mark.parametrize('token_expiry_ms', [100000, 500000])
+    async def test_access_token_override_with_client_credentials(self, token_expiry_ms):
         """
-        Test for client credential access token expiry time is less than 10 min(600000ms or 600s)
+        Test for client credential flow access token to be overridden with a time less than 10 min(600000ms or 600s)
         """
-        jwt_claims = {
-            'kid': 'test-1',
-            'claims': {
-                "sub": self.oauth.client_id,
-                "iss": self.oauth.client_id,
-                "jti": str(uuid4()),
-                "aud": f"{OAUTH_URL}/token",
-                "exp": int(time()),
-            }
-        }
-
-        access_token_expiry = "500000"
         form_data = {
             "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-            "client_assertion": self.oauth.create_jwt(**jwt_claims),
+            "client_assertion": self.oauth.create_jwt('test-1'),
             "grant_type": 'client_credentials',
-            "_access_token_expiry_ms": access_token_expiry
+            "_access_token_expiry_ms": token_expiry_ms
         }
+        token_expiry_s = token_expiry_ms / 1000
+
         resp = await self.oauth.get_token_response(grant_type='client_credentials', data=form_data)
-        print(resp)
-        print(resp['body']['expires_in'])
-        assert resp['body']['expires_in'] <= "599"
 
+        assert resp['status_code'] == 200
+        assert token_expiry_s - 5 < int(resp['body']['expires_in']) <= token_expiry_s
 
-    #@pytest.mark.debug
-    async def test_by_post_token_exchange_access_token_expiry(self):
+    @pytest.mark.parametrize('token_expiry_ms', [700000, 1000000])
+    async def test_access_token_override_failure_with_client_credentials(self, token_expiry_ms):
         """
-        Test for token exchange access token expiry time is less than 10 min(600000ms or 600sec).
+        Test for client credential flow access token to NOT be overridden with
+        a time greater than 10 min(600000ms or 600s)
         """
-        access_token_expiry = "200000"
+        form_data = {
+            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            "client_assertion": self.oauth.create_jwt('test-1'),
+            "grant_type": 'client_credentials',
+            "_access_token_expiry_ms": token_expiry_ms
+        }
+        default_expiry_s = 600
+        token_expiry_s = token_expiry_ms / 1000
+
+        resp = await self.oauth.get_token_response(grant_type='client_credentials', data=form_data)
+
+        assert resp['status_code'] == 200
+        assert default_expiry_s - 5 < int(resp['body']['expires_in']) <= token_expiry_s
+
+    @pytest.mark.parametrize('token_expiry_ms', [100000, 500000])
+    async def test_access_token_override_with_token_exchange(self, token_expiry_ms):
+        """
+        Test for token exchange flow access token to be overridden with a time less than 10 min(600000ms or 600s)
+        """
         id_token_jwt = self.oauth.create_id_token_jwt()
         client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
-
         form_data = {
             "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
             "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
             "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
             "subject_token": id_token_jwt,
             "client_assertion": client_assertion_jwt,
-            "_access_token_expiry_ms": access_token_expiry
+            "_access_token_expiry_ms": token_expiry_ms
         }
-        # Generate access token using token-exchange
-        resp = await self.oauth.hit_oauth_endpoint("post", "token", data=form_data)
-        
-        assert resp['body']['expires_in'] <= "599"
-     
+        token_expiry_s = token_expiry_ms / 1000
 
-   # @pytest.mark.debug
-    async def test_by_authorisation_code_access_token_expiry(self):
+        resp = await self.oauth.hit_oauth_endpoint("post", "token", data=form_data)
+
+        assert resp['status_code'] == 200
+        assert token_expiry_s - 5 < int(resp['body']['expires_in']) <= token_expiry_s
+
+    @pytest.mark.parametrize('token_expiry_ms', [700000, 1000000])
+    async def test_access_token_override_failure_with_token_exchange(self, token_expiry_ms):
         """
-        Test for token authorisation code access token expiry time is less than 10 min(600000ms or 600sec).
+        Test for token exchange flow access token to NOT be overridden with a time greater than 10 min(600000ms or 600s)
         """
-  
-        access_token_expiry = "6560000"
+        id_token_jwt = self.oauth.create_id_token_jwt()
+        client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
+        form_data = {
+            "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+            "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
+            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            "subject_token": id_token_jwt,
+            "client_assertion": client_assertion_jwt,
+            "_access_token_expiry_ms": token_expiry_ms
+        }
+        default_expiry_s = 600
+        token_expiry_s = token_expiry_ms / 1000
+
+        resp = await self.oauth.hit_oauth_endpoint("post", "token", data=form_data)
+
+        assert resp['status_code'] == 200
+        assert default_expiry_s - 5 < int(resp['body']['expires_in']) <= token_expiry_s
+
+    @pytest.mark.parametrize('token_expiry_ms', [100000, 500000])
+    async def test_access_token_override_with_authorization_code(self, token_expiry_ms):
+        """
+        Test for authorization code flow access token to be overridden with a time less than 10 min(600000ms or 600s)
+        """
         form_data = {
             "client_id": self.oauth.client_id,
             "client_secret": self.oauth.client_secret,
             "grant_type": "authorization_code",
             "redirect_uri": self.oauth.redirect_uri,
             "code": await self.oauth.get_authenticated_with_simulated_auth(),
-            "_access_token_expiry_ms": access_token_expiry
+            "_access_token_expiry_ms": token_expiry_ms
         }
-        
+        token_expiry_s = token_expiry_ms / 1000
+
         resp = await self.oauth.get_token_response(grant_type='authorization_code', data=form_data)
-               
-        assert resp['body']['expires_in'] <= "599"    
 
+        assert resp['status_code'] == 200
+        assert token_expiry_s - 5 < int(resp['body']['expires_in']) <= token_expiry_s
 
-    @pytest.mark.debug
+    @pytest.mark.parametrize('token_expiry_ms', [700000, 1000000])
+    async def test_access_token_override_failure_with_authorization_code(self, token_expiry_ms):
+        """
+        Test for authorization code flow access token to NOT be overridden with
+        a time greater than 10 min(600000ms or 600s)
+        """
+        form_data = {
+            "client_id": self.oauth.client_id,
+            "client_secret": self.oauth.client_secret,
+            "grant_type": "authorization_code",
+            "redirect_uri": self.oauth.redirect_uri,
+            "code": await self.oauth.get_authenticated_with_simulated_auth(),
+            "_access_token_expiry_ms": token_expiry_ms
+        }
+        default_expiry_s = 600
+        token_expiry_s = token_expiry_ms / 1000
+
+        resp = await self.oauth.get_token_response(grant_type='authorization_code', data=form_data)
+
+        assert resp['status_code'] == 200
+        assert default_expiry_s - 5 < int(resp['body']['expires_in']) <= token_expiry_s
+
     @pytest.mark.usefixtures("set_refresh_token")
-    async def test_by_refresh_token_access_token_expiry(self):
+    @pytest.mark.parametrize('token_expiry_ms', [100000, 500000])
+    async def test_access_token_override_with_refresh_token(self, token_expiry_ms):
         """
-        Test for refresh token access token expiry time is less than 10 min(600000ms or 600sec).
+        Test for refresh token flow access token to be overridden with a time less than 10 min(600000ms or 600s)
         """
-  
-        access_token_expiry = "700000"
-        #refresh_token=self.oauth.refresh_token,
-        form_data= {
-                "client_id": self.oauth.client_id,
-                "client_secret": self.oauth.client_secret,
-                "grant_type": "refresh_token",
-                "refresh_token": self.oauth.refresh_token,
-                "_refresh_tokens_validity_ms": 599,
-                "_access_token_expiry_ms": access_token_expiry
+        form_data = {
+            "client_id": self.oauth.client_id,
+            "client_secret": self.oauth.client_secret,
+            "grant_type": "refresh_token",
+            "refresh_token": self.oauth.refresh_token,
+            "_refresh_tokens_validity_ms": 599,
+            "_access_token_expiry_ms": token_expiry_ms
+        }
+        token_expiry_s = token_expiry_ms / 1000
 
-            }
-            
         resp = await self.oauth.get_token_response(grant_type='refresh_token', data=form_data)
-        
-        assert resp['body']['expires_in'] <= "599"     
-        
+
+        assert resp['status_code'] == 200
+        assert token_expiry_s - 5 < int(resp['body']['expires_in']) <= token_expiry_s
+
+    @pytest.mark.usefixtures("set_refresh_token")
+    @pytest.mark.parametrize('token_expiry_ms', [700000, 1000000])
+    async def test_access_token_override_failure_with_refresh_token(self, token_expiry_ms):
+        """
+        Test for refresh token flow access token to NOT be overridden with a time greater than 10 min(600000ms or 600s)
+        """
+        form_data = {
+            "client_id": self.oauth.client_id,
+            "client_secret": self.oauth.client_secret,
+            "grant_type": "refresh_token",
+            "refresh_token": self.oauth.refresh_token,
+            "_refresh_tokens_validity_ms": 599,
+            "_access_token_expiry_ms": token_expiry_ms
+        }
+        default_expiry_s = 600
+        token_expiry_s = token_expiry_ms / 1000
+
+        resp = await self.oauth.get_token_response(grant_type='refresh_token', data=form_data)
+
+        assert resp['status_code'] == 200
+        assert default_expiry_s - 5 < int(resp['body']['expires_in']) <= token_expiry_s

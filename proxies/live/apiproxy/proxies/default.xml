@@ -393,9 +393,8 @@
                     <!-- Needed because OAuthV2 'GenerateAccessToken' has to have the Client ID and Client Secret in a specific place -->
                     <Name>AssignMessage.SetClientCredentials</Name>
                 </Step>
-                <!-- Next step allows optional REDUCTION of access_token_expiry KVM values
-               using _access_token_expiry_ms form param -->
-               <Step>
+                <!-- Next step allows optional REDUCTION of access_token_expiry KVM values using _access_token_expiry_ms form param -->
+                <Step>
                     <Name>AssignMessage.SetAccessTokenExpiry</Name>
                 </Step>
                 <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
@@ -568,6 +567,9 @@
                 </Step>
                 <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
                 <Step>
+                  <Name>AssignMessage.SetAccessTokenExpiry</Name>
+                </Step>
+                <Step>
                     <Name>JavaScript.CalculateAccessTokenOverride</Name>
                     <Condition>request.formparam._access_token_expiry_ms != null</Condition>
                 </Step>
@@ -721,7 +723,6 @@
                 <Step>
                     <Name>DecodeJWT.FromExternalIdToken</Name>
                 </Step>
-
                 <!-- Setting apigee.auth_provider. Selecting access and refresh token times based on provider -->
                 <Step>
                     <Name>AssignMessage.SelectIdTokenFieldsAuthCode</Name>
@@ -732,7 +733,6 @@
                 <Step>
                     <Name>Javascript.SetDefaultAccessAndRefreshTokenTimes</Name>
                 </Step>
-
                 <!-- Next 3 steps allow optional REDUCTION of access_token_expiry and refresh_token_expiry  KVM values
                 using _access_token_expiry_ms/_refresh_token_expiry_ms (respectively) form params -->
                 <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
