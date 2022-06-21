@@ -501,9 +501,8 @@ class TestTokenRefreshExpiry:
     @pytest.mark.skip(
         reason="It is not feasible to run this test each build due to the timeframe required, run manually if needed."
     )
-    @pytest.mark.parametrize("auth_flow", ["authorization_code", "token_exchange"])
     @pytest.mark.parametrize('scope', ['P9', 'P5', 'P0'])
-    async def test_nhs_login_refresh_token_invalid_after_1_hour(self, scope, auth_flow):
+    async def test_nhs_login_refresh_token_invalid_after_1_hour(self, scope):
         """
         Test that a refresh token received via a NHS Login is invalid after 1 hour (existing behaviour).
         Run pytest with the -s arg to display the stdout and show the wait time countdown.
@@ -569,8 +568,7 @@ class TestTokenRefreshExpiry:
     @pytest.mark.skip(
         reason="It is not feasible to run this test each build due to the timeframe required, run manually if needed."
     )
-    @pytest.mark.parametrize("auth_flow", ["authorization_code", "token_exchange"])
-    async def test_cis2_refresh_token_valid_after_1_hour(self, auth_flow):
+    async def test_cis2_refresh_token_valid_after_1_hour(self):
         """
         Test that a refresh token received via a CIS2 login is valid after 1 hour (the previous expiry time).
         Run pytest with the -s arg to display the stdout and show the wait time countdown.
@@ -578,8 +576,11 @@ class TestTokenRefreshExpiry:
         # Generate access token using token-exchange
         id_token_jwt = self.oauth.create_id_token_jwt()
         client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
-        resp = await self.oauth.get_token_response(grant_type=auth_flow, _jwt=client_assertion_jwt,
-                                                   id_token_jwt=id_token_jwt)
+        resp = await self.oauth.get_token_response(
+            grant_type="token_exchange",
+            _jwt=client_assertion_jwt,
+            id_token_jwt=id_token_jwt
+        )
 
         refresh_token = resp['body']['refresh_token']
 
@@ -602,8 +603,7 @@ class TestTokenRefreshExpiry:
     @pytest.mark.skip(
         reason="It is not feasible to run this test each build due to the timeframe required, run manually if needed."
     )
-    @pytest.mark.parametrize("auth_flow", ["authorization_code", "token_exchange"])
-    async def test_cis2_refresh_token_expires_after_12_hours(self, auth_flow):
+    async def test_cis2_refresh_token_expires_after_12_hours(self):
         """
         Test that a refresh token received via a CIS2 login is valid for up to 12 hours.
         Run pytest with the -s arg to display the stdout and show the wait time countdown.
@@ -611,8 +611,11 @@ class TestTokenRefreshExpiry:
         # Generate access token using token-exchange
         id_token_jwt = self.oauth.create_id_token_jwt()
         client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
-        resp = await self.oauth.get_token_response(grant_type=auth_flow, _jwt=client_assertion_jwt,
-                                                   id_token_jwt=id_token_jwt)
+        resp = await self.oauth.get_token_response(
+            grant_type="token_exchange",
+            _jwt=client_assertion_jwt,
+            id_token_jwt=id_token_jwt
+        )
 
         refresh_token = resp['body']['refresh_token']
 
