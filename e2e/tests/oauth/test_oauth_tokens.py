@@ -378,10 +378,11 @@ class TestTokenExchangeTokens:
 
         assert resp['status_code'] == 400
 
+
    # @pytest.mark.debug
     async def test_by_client_credentials_access_token_expiry(self):
         """
-        Test that request for token using password grant type is rejected.
+        Test for client credential access token expiry time is less than 10 min(600000ms or 600s)
         """
         jwt_claims = {
             'kid': 'test-1',
@@ -404,17 +405,15 @@ class TestTokenExchangeTokens:
         resp = await self.oauth.get_token_response(grant_type='client_credentials', data=form_data)
         print(resp)
         print(resp['body']['expires_in'])
-        #assert resp['body']['expires_in'] <= access_token_expiry
+        assert resp['body']['expires_in'] <= "599"
 
 
-   # @pytest.mark.debug
+    #@pytest.mark.debug
     async def test_by_post_token_exchange_access_token_expiry(self):
         """
-        Test that request for token using password grant type is rejected.
+        Test for token exchange access token expiry time is less than 10 min(600000ms or 600sec).
         """
-
-        access_token_expiry = "500000"
-
+        access_token_expiry = "200000"
         id_token_jwt = self.oauth.create_id_token_jwt()
         client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
 
@@ -428,19 +427,17 @@ class TestTokenExchangeTokens:
         }
         # Generate access token using token-exchange
         resp = await self.oauth.hit_oauth_endpoint("post", "token", data=form_data)
-
-        print(resp)
-        #print(resp['body']['expires_in'])
-        #assert resp['body']['expires_in'] <= access_token_expiry   
-         
+        
+        assert resp['body']['expires_in'] <= "599"
      
-    #@pytest.mark.debug
+
+   # @pytest.mark.debug
     async def test_by_authorisation_code_access_token_expiry(self):
         """
-        Test that request for token using password grant type is rejected.
+        Test for token authorisation code access token expiry time is less than 10 min(600000ms or 600sec).
         """
   
-        access_token_expiry = "500000"
+        access_token_expiry = "6560000"
         form_data = {
             "client_id": self.oauth.client_id,
             "client_secret": self.oauth.client_secret,
@@ -451,22 +448,19 @@ class TestTokenExchangeTokens:
         }
         
         resp = await self.oauth.get_token_response(grant_type='authorization_code', data=form_data)
-        print(resp)
-       # print(resp['body']['expires_in'])
-        #assert resp['body']['expires_in'] <= access_token_expiry    
+               
+        assert resp['body']['expires_in'] <= "599"    
 
 
     @pytest.mark.debug
     @pytest.mark.usefixtures("set_refresh_token")
     async def test_by_refresh_token_access_token_expiry(self):
         """
-        Test that request for token using password grant type is rejected.
+        Test for refresh token access token expiry time is less than 10 min(600000ms or 600sec).
         """
   
-        access_token_expiry = "500000"
-        
-
-        refresh_token=self.oauth.refresh_token,
+        access_token_expiry = "700000"
+        #refresh_token=self.oauth.refresh_token,
         form_data= {
                 "client_id": self.oauth.client_id,
                 "client_secret": self.oauth.client_secret,
@@ -476,10 +470,8 @@ class TestTokenExchangeTokens:
                 "_access_token_expiry_ms": access_token_expiry
 
             }
-        
-        
+            
         resp = await self.oauth.get_token_response(grant_type='refresh_token', data=form_data)
-        print(resp)
-       # print(resp['body']['expires_in'])
-        #assert resp['body']['expires_in'] <= access_token_expiry    
+        
+        assert resp['body']['expires_in'] <= "599"     
         
