@@ -393,8 +393,6 @@ class TestTokenExchangeTokens:
         resp = await self.oauth.get_token_response(grant_type='client_credentials', data=form_data)
 
         assert resp['status_code'] == 200
-        # To make sure resp['body']['expires_in'] returns same value as token_expiry_s
-        #assert token_expiry_s - 5 < int(resp['body']['expires_in']) <= token_expiry_s
         assert int(resp['body']['expires_in']) <= expected_time
     
     @pytest.mark.parametrize("token_expiry_ms, expected_time", [(100000, 100), (500000, 500),(700000, 600), (1000000, 600)])
@@ -417,8 +415,6 @@ class TestTokenExchangeTokens:
         resp = await self.oauth.hit_oauth_endpoint("post", "token", data=form_data)
 
         assert resp['status_code'] == 200
-        # To make sure resp['body']['expires_in'] returns same value as token_expiry_s
-        #assert token_expiry_s - 5 < int(resp['body']['expires_in']) <= token_expiry_s
         assert int(resp['body']['expires_in']) <= expected_time
     
     @pytest.mark.parametrize("token_expiry_ms, expected_time", [(100000, 100), (500000, 500),(700000, 600), (1000000, 600)])
