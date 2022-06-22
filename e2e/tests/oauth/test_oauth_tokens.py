@@ -2,6 +2,8 @@ from uuid import uuid4
 import pytest
 from time import sleep, time
 from e2e.scripts.config import HELLO_WORLD_API_URL, ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH
+import sys
+from e2e.scripts.config import HELLO_WORLD_API_URL, ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, MOCK_IDP_BASE_URL
 import requests
 
 
@@ -317,7 +319,7 @@ class TestTokenExchangeTokens:
         assert access_token
         assert refresh_token
         assert resp['body']['expires_in'] == '599'
-        assert resp['body']['refresh_token_expires_in'] == '3599'
+        assert resp['body']['refresh_token_expires_in'] == '43199'
 
         # Make request using access token to ensure valid
         req = requests.get(f"{HELLO_WORLD_API_URL}", headers={"Authorization": f"Bearer {access_token}"})
@@ -542,3 +544,264 @@ class TestTokenExchangeTokens:
 
         assert resp['status_code'] == 200
         assert default_expiry_s - 5 < int(resp['body']['expires_in']) <= token_expiry_s
+
+@pytest.mark.asyncio
+class TestTokenRefreshExpiry:
+    """Test class to confirm refresh tokens expire after the expected amount of time
+    for both separated and combined auth"""
+
+    @pytest.mark.parametrize('scope', ['P9', 'P5', 'P0'])
+    async def test_nhs_login_refresh_tokens_generated_with_expected_expiry_combined_auth(self, scope):
+        """
+        Test that refresh tokens generated via NHS Login have an expiry time of 1 hour for combined authentication.
+        """
+
+        form_data = {
+            "client_id": self.oauth.client_id,
+            "client_secret": self.oauth.client_secret,
+            "grant_type": "authorization_code",
+            "redirect_uri": self.oauth.redirect_uri,
+            "_access_token_expiry_ms": 600000,
+            "code": await self.oauth.get_authenticated_with_simulated_auth(auth_scope="nhs-login"),
+        }
+        params = {"scope": "nhs-login"}
+        resp = await self.oauth.hit_oauth_endpoint("post", "token", data=form_data, params=params)
+
+        access_token = resp['body']['access_token']
+        refresh_token = resp['body']['refresh_token']
+
+        assert access_token
+        assert refresh_token
+        assert resp['body']['expires_in'] == '599'
+        assert resp['body']['refresh_token_expires_in'] == '3599'
+
+    async def test_cis2_refresh_tokens_generated_with_expected_expiry_combined_auth(self):
+        """
+        Test that refresh tokens generated via CIS2 have an expiry time of 12 hours for combined authentication.
+        """
+        resp = await self.oauth.get_token_response(
+            grant_type="authorization_code",
+            timeout=600000,
+        )
+
+        access_token = resp['body']['access_token']
+        refresh_token = resp['body']['refresh_token']
+
+        assert access_token
+        assert refresh_token
+        assert resp['body']['expires_in'] == '599'
+        assert resp['body']['refresh_token_expires_in'] == '43199'
+
+    @pytest.mark.parametrize('scope', ['P9', 'P5', 'P0'])
+    async def test_nhs_login_refresh_tokens_generated_with_expected_expiry_separated_auth(self, scope):
+        """
+        Test that refresh tokens generated via NHS Login have an expiry time of 1 hour for separated authentication.
+        """
+        id_token_claims = {
+            "aud": "tf_-APIM-1",
+            "id_status": "verified",
+            "token_use": "id",
+            "auth_time": 1616600683,
+            "iss": "https://internal-dev.api.service.nhs.uk",
+            "vot": "P9.Cp.Cd",
+            "exp": int(time()) + 600,
+            "iat": int(time()) - 10,
+            "vtm": "https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk",
+            "jti": str(uuid4()),
+            "identity_proofing_level": scope,
+            "nhs_number": "900000000001"
+        }
+        id_token_headers = {
+            "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",
+            "aud": "APIM-1",
+            "kid": "nhs-login",
+            "iss": "https://internal-dev.api.service.nhs.uk",
+            "typ": "JWT",
+            "exp": 1616604574,
+            "iat": 1616600974,
+            "alg": "RS512",
+            "jti": str(uuid4()),
+        }
+
+        with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
+            contents = f.read()
+
+        client_assertion_jwt = self.oauth.create_jwt(kid="test-1")
+        id_token_jwt = self.oauth.create_id_token_jwt(
+            algorithm="RS512",
+            claims=id_token_claims,
+            headers=id_token_headers,
+            signing_key=contents,
+        )
+        resp = await self.oauth.get_token_response(
+            grant_type="token_exchange",
+            _jwt=client_assertion_jwt,
+            id_token_jwt=id_token_jwt,
+        )
+        access_token = resp['body']['access_token']
+        refresh_token = resp['body']['refresh_token']
+
+        assert access_token
+        assert refresh_token
+        assert resp['body']['expires_in'] == '599'
+        assert resp['body']['refresh_token_expires_in'] == '3599'
+
+    async def test_cis2_refresh_tokens_generated_with_expected_expiry_separated_auth(self):
+        """
+        Test that refresh tokens generated via CIS2 have an expiry time of 12 hours for separated authentication.
+        """
+        # Generate access token using token-exchange
+        id_token_jwt = self.oauth.create_id_token_jwt()
+        client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
+        resp = await self.oauth.get_token_response(
+            grant_type="token_exchange",
+            _jwt=client_assertion_jwt,
+            id_token_jwt=id_token_jwt
+        )
+
+        access_token = resp['body']['access_token']
+        refresh_token = resp['body']['refresh_token']
+
+        assert access_token
+        assert refresh_token
+        assert resp['body']['expires_in'] == '599'
+        assert resp['body']['refresh_token_expires_in'] == '43199'
+
+    @pytest.mark.skip(
+        reason="It is not feasible to run this test each build due to the timeframe required, run manually if needed."
+    )
+    @pytest.mark.parametrize('scope', ['P9', 'P5', 'P0'])
+    async def test_nhs_login_refresh_token_invalid_after_1_hour(self, scope):
+        """
+        Test that a refresh token received via a NHS Login is invalid after 1 hour (existing behaviour).
+        Run pytest with the -s arg to display the stdout and show the wait time countdown.
+        """
+        id_token_claims = {
+            "aud": "tf_-APIM-1",
+            "id_status": "verified",
+            "token_use": "id",
+            "auth_time": 1616600683,
+            "iss": "https://internal-dev.api.service.nhs.uk",
+            "vot": "P9.Cp.Cd",
+            "exp": int(time()) + 600,
+            "iat": int(time()) - 10,
+            "vtm": "https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk",
+            "jti": str(uuid4()),
+            "identity_proofing_level": scope,
+            "nhs_number": "900000000001"
+        }
+        id_token_headers = {
+            "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",
+            "aud": "APIM-1",
+            "kid": "nhs-login",
+            "iss": "https://internal-dev.api.service.nhs.uk",
+            "typ": "JWT",
+            "exp": 1616604574,
+            "iat": 1616600974,
+            "alg": "RS512",
+            "jti": str(uuid4()),
+        }
+
+        with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
+            contents = f.read()
+
+        client_assertion_jwt = self.oauth.create_jwt(kid="test-1")
+        id_token_jwt = self.oauth.create_id_token_jwt(
+            algorithm="RS512",
+            claims=id_token_claims,
+            headers=id_token_headers,
+            signing_key=contents,
+        )
+        resp = await self.oauth.get_token_response(
+            grant_type="token_exchange",
+            _jwt=client_assertion_jwt,
+            id_token_jwt=id_token_jwt,
+        )
+        refresh_token = resp['body']['refresh_token']
+
+        assert refresh_token
+        assert resp['body']['expires_in'] == '599'
+        assert resp['body']['refresh_token_expires_in'] == '3599'
+
+        # Wait 1 hour (the previous refresh token expiry time) and check that the token is still valid
+        for remaining in range(3600, 0, -1):
+            mins, sec = divmod(remaining, 60)
+            sys.stdout.write("\r")
+            sys.stdout.write("{:2d} minutes {:2d} seconds remaining.".format(mins, sec))
+            sleep(1)
+
+        # Get new access token using refresh token
+        resp2 = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=refresh_token)
+        assert resp2['status_code'] == 401
+
+    @pytest.mark.skip(
+        reason="It is not feasible to run this test each build due to the timeframe required, run manually if needed."
+    )
+    async def test_cis2_refresh_token_valid_after_1_hour(self):
+        """
+        Test that a refresh token received via a CIS2 login is valid after 1 hour (the previous expiry time).
+        Run pytest with the -s arg to display the stdout and show the wait time countdown.
+        """
+        # Generate access token using token-exchange
+        id_token_jwt = self.oauth.create_id_token_jwt()
+        client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
+        resp = await self.oauth.get_token_response(
+            grant_type="token_exchange",
+            _jwt=client_assertion_jwt,
+            id_token_jwt=id_token_jwt
+        )
+
+        refresh_token = resp['body']['refresh_token']
+
+        assert refresh_token
+        assert resp['body']['expires_in'] == '599'
+        assert resp['body']['refresh_token_expires_in'] == '43199'
+
+        # Wait 1 hour (the previous refresh token expiry time) and check that the token is still valid
+        for remaining in range(3600, 0, -1):
+            mins, sec = divmod(remaining, 60)
+            sys.stdout.write("\r")
+            sys.stdout.write("{:2d} minutes {:2d} seconds remaining.".format(mins, sec))
+            sleep(1)
+
+        # Get new access token using refresh token
+        resp2 = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=refresh_token)
+        access_token2 = resp2['body']['access_token']
+        assert access_token2
+
+    @pytest.mark.skip(
+        reason="It is not feasible to run this test each build due to the timeframe required, run manually if needed."
+    )
+    async def test_cis2_refresh_token_expires_after_12_hours(self):
+        """
+        Test that a refresh token received via a CIS2 login is valid for up to 12 hours.
+        Run pytest with the -s arg to display the stdout and show the wait time countdown.
+        """
+        # Generate access token using token-exchange
+        id_token_jwt = self.oauth.create_id_token_jwt()
+        client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
+        resp = await self.oauth.get_token_response(
+            grant_type="token_exchange",
+            _jwt=client_assertion_jwt,
+            id_token_jwt=id_token_jwt
+        )
+
+        refresh_token = resp['body']['refresh_token']
+
+        assert refresh_token
+        assert resp['body']['expires_in'] == '599'
+        assert resp['body']['refresh_token_expires_in'] == '43199'
+
+        # Wait 12 hours and check that the token has expired
+        for remaining in range(43200, 0, -1):
+            mins, sec = divmod(remaining, 60)
+            hours, mins = divmod(mins, 60)
+            sys.stdout.write("\r")
+            sys.stdout.write("{:2d} hours {:2d} minutes {:2d} seconds remaining.".format(hours, mins, sec))
+            sys.stdout.flush()
+            sleep(1)
+
+        # Try to use the now expired refresh token to get another access token
+        resp2 = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=refresh_token)
+        print(resp2)
+        assert resp2['status_code'] == 401
