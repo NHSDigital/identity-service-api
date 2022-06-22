@@ -393,11 +393,18 @@
                     <!-- Needed because OAuthV2 'GenerateAccessToken' has to have the Client ID and Client Secret in a specific place -->
                     <Name>AssignMessage.SetClientCredentials</Name>
                 </Step>
-                <!-- Next step allows optional REDUCTION of access_token_expiry KVM values
-               using _access_token_expiry_ms form param -->
+                <Step>
+                    <Name>AssignMessage.SetAccessTokenExpiry</Name>
+                </Step>
+                <!-- Next step allows optional REDUCTION of access_token_expiry KVM values using _access_token_expiry_ms form param -->
+                <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
+                <Step>
+                    <Name>JavaScript.CalculateAccessTokenOverride</Name>
+                    <Condition>request.formparam._access_token_expiry_ms != null</Condition>
+                </Step>
                 <Step>
                     <Name>AssignMessage.AccessTokenExpiryOverride</Name>
-                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan identity-service-config.cis2.access_token_expiry_ms)</Condition>
+                    <Condition>(apigee.can_override_access_token != null) and (apigee.can_override_access_token = true)</Condition>
                 </Step>
                 <Step>
                     <Name>OAuthV2.ClientCredentialsGenerateAccessToken</Name>
@@ -558,11 +565,14 @@
                 <Step>
                     <Name>Javascript.SetDefaultAccessAndRefreshTokenTimes</Name>
                 </Step>
-                <!-- Next step allows optional REDUCTION of access_token_expiry KVM values
-            using _access_token_expiry_ms form param -->
+                <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
                 <Step>
-                    <Name>AssignMessage.AccessTokenExpiryOverrideAuthType</Name>
-                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
+                    <Name>JavaScript.CalculateAccessTokenOverride</Name>
+                    <Condition>request.formparam._access_token_expiry_ms != null</Condition>
+                </Step>
+                <Step>
+                    <Name>AssignMessage.AccessTokenExpiryOverride</Name>
+                    <Condition>(apigee.can_override_access_token != null) and (apigee.can_override_access_token = true)</Condition>
                 </Step>
                 <!-- grant type needs changing from Token Exchange because apigee doesn't support it !-->
                 <Step>
@@ -710,7 +720,6 @@
                 <Step>
                     <Name>DecodeJWT.FromExternalIdToken</Name>
                 </Step>
-
                 <!-- Setting apigee.auth_provider. Selecting access and refresh token times based on provider -->
                 <Step>
                     <Name>AssignMessage.SelectIdTokenFieldsAuthCode</Name>
@@ -721,12 +730,16 @@
                 <Step>
                     <Name>Javascript.SetDefaultAccessAndRefreshTokenTimes</Name>
                 </Step>
-
                 <!-- Next 3 steps allow optional REDUCTION of access_token_expiry and refresh_token_expiry  KVM values
                 using _access_token_expiry_ms/_refresh_token_expiry_ms (respectively) form params -->
+                <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
                 <Step>
-                    <Name>AssignMessage.AccessTokenExpiryOverrideAuthType</Name>
-                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
+                    <Name>JavaScript.CalculateAccessTokenOverride</Name>
+                    <Condition>request.formparam._access_token_expiry_ms != null</Condition>
+                </Step>
+                <Step>
+                    <Name>AssignMessage.AccessTokenExpiryOverride</Name>
+                    <Condition>(apigee.can_override_access_token != null) and (apigee.can_override_access_token = true)</Condition>
                 </Step>
                 <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
                 <Step>
@@ -803,9 +816,14 @@
                 </Step>
                 <!-- Next 5 steps allow optional REDUCTION of access_token_expiry, refresh_token_expiry, and refresh_token_validity KVM values
               using _access_token_expiry_ms/_refresh_token_expiry_ms/_refresh_tokens_validity_ms (respectively) form params -->
+                <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
                 <Step>
-                    <Name>AssignMessage.AccessTokenExpiryOverrideAuthType</Name>
-                    <Condition>(request.formparam._access_token_expiry_ms != null) and (request.formparam._access_token_expiry_ms LesserThan apigee.access_token_expiry_ms)</Condition>
+                    <Name>JavaScript.CalculateAccessTokenOverride</Name>
+                    <Condition>request.formparam._access_token_expiry_ms != null</Condition>
+                </Step>
+                <Step>
+                    <Name>AssignMessage.AccessTokenExpiryOverride</Name>
+                    <Condition>(apigee.can_override_access_token != null) and (apigee.can_override_access_token = true)</Condition>
                 </Step>
                 <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
                 <Step>
