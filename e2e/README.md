@@ -1,6 +1,6 @@
 # Api-Tests
 
-This is a collection of end-to-end test suits to verify the oauth api is working as intended.
+This is a collection of end-to-end test suites to verify the oauth api is working as intended.
 
 * `scripts/` A set of methods, classes and scripts to help facilitate the test cases
 * `scripts/config.py` This contains all the configuration for running the tests.
@@ -24,13 +24,13 @@ Variables required for running non performance tests are listed below:
 (these are all described in the scripts/config.py file).
 
  * `OAUTH_BASE_URI` The base url for the OAuth api
- * `OAUTH_PROXY` Used to build oauth url. If pointing to internal-dev value will be `oauth2`, if pointing to pr, add your pr number as follows `oauth2-pr-{pr number}`
+ * `OAUTH_PROXY` Used to build oauth url. If testing against the internal-dev environment the value will be `oauth2`, if pointing to your PR, add your pr number as follows `oauth2-pr-{pr number}`
  * `JWT_PRIVATE_KEY_ABSOLUTE_PATH`
  * `ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH`
  * `ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH`
  * `SSO_LOGIN_URL=https://login.apigee.com` needed for APIGEE_API_TOKEN
- * ``APIGEE_API_TOKEN=`get_token -u YOUR_APIGEE_USERNAME` `` uses the Apigee [get token](https://docs.apigee.com/api-platform/system-administration/auth-tools#install) utility.
-  * `STATUS_ENDPOINT_API_KEY` value is required if running status endpoint test
+ * ``APIGEE_API_TOKEN=`get_token -u YOUR_APIGEE_USERNAME` ``  uses the Apigee [get token](https://docs.apigee.com/api-platform/system-administration/auth-tools#install) utility.
+  * `STATUS_ENDPOINT_API_KEY` This value is required if running status endpoint test.
 
 ## Running tests
 Test can be either executed using a virtual env and from a terminal/command window or from within an IDE (preferably PyCharm). These are explained below.
@@ -38,9 +38,7 @@ Test can be either executed using a virtual env and from a terminal/command wind
 ### Execute locally
 In order to run the tests, make sure you have a command window or terminal open and activate your virtualenv.
 
-Follow the pytest example command below to begin running your tests
-
-Pytest command examples:
+Follow the pytest example commands below to begin running your tests:
 
 ```shell
 # Runs all tests

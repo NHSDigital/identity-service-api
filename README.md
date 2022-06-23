@@ -26,6 +26,7 @@ The contents of this repository are protected by Crown Copyright (C).
 * [poetry](https://github.com/python-poetry/poetry)
 
 ### Install
+To setup
 ```
 $ make install
 ```
