@@ -6,7 +6,7 @@ This is a collection of end-to-end test suits to verify the oauth api is working
 * `scripts/config.py` This contains all the configuration for running the tests.
 * `performance/` A set of requests to stimulate multiple users on the service
 * `steps/` Reusable steps for a set of test cases
-* `tests/` The tests are defined here (this is also where we execute the tests from)
+* `tests/` The tests are defined here.
 
 We are using pytest as our test runner, you can find out more about pytest by visiting
 the [pytest docs](https://docs.pytest.org/en/latest/).
@@ -15,6 +15,7 @@ the [pytest docs](https://docs.pytest.org/en/latest/).
 * python 3.8
 * [make](http://gnuwin32.sourceforge.net/packages/make.htm) this comes pre-installed on Linux or Mac.
 * Apigee [get token](https://docs.apigee.com/api-platform/system-administration/auth-tools#install) utility.
+* run `make install` from root of project
 
 ### Environment Variables
 Before you can start creating and running tests you need to configure all the required environment variables.

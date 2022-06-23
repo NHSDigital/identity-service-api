@@ -6,7 +6,7 @@ This is a RESTful HL7® FHIR® API specification for the *Identity Service API*.
 
 * `specification/` This [Open API Specification](https://swagger.io/docs/specification/about/) describes the endpoints, methods and messages exchanged by the API. Use it to generate interactive documentation; the contract between the API and its consumers.
 * `scripts/` Utilities helpful to developers of this specification.
-* `apiproxy/` The Apigee API Proxy
+* `proxies/` The Apigee API Proxy
 
 Consumers of the API will find developer documentation on the [NHS Digital Developer Hub](https://emea-demo8-nhsdportal.apigee.io/).
 
@@ -42,8 +42,7 @@ There are `make` commands that alias some of this functionality:
  * `serve` -- Serves a preview of the specification in human-readable format
 
 ### Running tests
-#### End-to-end tests
-To run tests, see e2e folder.
+For detailed instructions see `/e2e`.
 
 ### VS Code Plugins
 
@@ -74,47 +73,12 @@ Speccy does the lifting for the following npm scripts:
 #### Swagger UI
 Swagger UI unfortunately doesn't correctly render `$ref`s in examples, so use `speccy serve` instead.
 
-## Deployment
-
-### Specification
-Update the API Specification and derived documentation in the Portal.
-
-`make deploy-spec` with environment variables:
-
-* `APIGEE_USERNAME`
-* `APIGEE_PASSWORD`
-* `APIGEE_SPEC_ID`
-* `APIGEE_PORTAL_API_ID`
-
-### API Proxy & Sandbox Service
-Redeploy the API Proxy and hosted Sandbox service.
-
-`make deploy-proxy` with environment variables:
-
-* `APIGEE_USERNAME`
-* `APIGEE_PASSWORD`
-* `APIGEE_ORGANIZATION`
-* `APIGEE_ENVIRONMENTS` - Comma-separated list of environments to deploy to (e.g. `test,prod`)
-* `APIGEE_APIPROXY` - Name of the API Proxy for deployment
-* `APIGEE_BASE_PATH` - The proxy's base path (must be unique)
-
-:bulb: Specify your own API Proxy (with base path) for use during development.
-
-#### Platform setup
+### Platform setup
 
 Successful deployment of the API Proxy requires:
 
- 1. A *Target Server* named `ig3`
- 2. A *Key-Value Map* named `pds-variables`, containing:
-    1. Key: `NHSD-ASID`, Value: Accredited System ID (ASID) identifying the API Gateway
+ 1. A *Key-Value Map* named identity_service_variables
+ 2. An encrypted *Key-Value Map* named identity-service-variables-encrypted
 
-:bulb: For Sandbox-running environments (`test`) these need to be present for successful deployment but can be set to empty/dummy values. -->
-
-## Configuration
-
-### Simulated Authentication
-
-Instead of relying on an external Identity Provider to authorize the user, the Identity Service
-can perform its own, simulated, authorization.
-
-See the [setup instructions](./docs/simulated_idp.md).
+The Key-Value maps need to be specified within the [api-management-infrastructure repository](https://github.com/NHSDigital/api-management-infrastructure) to be able to be used with the API proxy.
+:bulb: For Sandbox-running environments (`test`) these need to be present for successful deployment but can be set to empty/dummy values.
