@@ -2,7 +2,7 @@ var exp = context.getVariable('idtoken_decoded_claim_exp');
 var iss = context.getVariable('idtoken_decoded_claim_iss');
 var aud = context.getVariable('idtoken_decoded_claim_aud');
  // TEMPORARY: Hardcoding this to the keycloak internal-dev url for now and see what breaks :TEMPORARY
-var nhsLoginIssuer = "https://identity.ptl.api.platform.nhs.uk/auth/realms/NHS-Login-mock-internal-dev"; //context.getVariable('identity-service-config.nhs_login.issuer');
+var nhsLoginIssuer = "https://identity.ptl.api.platform.nhs.uk/auth/realms/NHS-Login-mock-internal-qa"; //context.getVariable('identity-service-config.nhs_login.issuer');
 var cis2Issuer = context.getVariable('identity-service-config.cis2.issuer');
 
 
