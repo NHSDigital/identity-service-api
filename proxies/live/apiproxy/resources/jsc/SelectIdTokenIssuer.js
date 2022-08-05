@@ -2,6 +2,7 @@ var exp = context.getVariable('idtoken_decoded_claim_exp');
 var iss = context.getVariable('idtoken_decoded_claim_iss');
 var aud = context.getVariable('idtoken_decoded_claim_aud');
 
+var tempConfigLog = context.getVariable('identity-service-config')
 var nhsLoginIssuer = context.getVariable('identity-service-config.nhs_login.issuer');
 var cis2Issuer = context.getVariable('identity-service-config.cis2.issuer');
 
