@@ -18,6 +18,6 @@
     <SSLInfo>
       <Enabled>true</Enabled>
     </SSLInfo>
-    <Path>{identity-service-config.nhs_login.jwks_path}</Path>
+    <Path>/mock-nhsid-jwks/identity-service/nhs-login-jwks</Path> <!--{identity-service-config.nhs_login.jwks_path}</Path>-->
   </HTTPTargetConnection>
 </ServiceCallout>
