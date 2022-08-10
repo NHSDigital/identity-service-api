@@ -26,7 +26,7 @@ if (iss == cis2Issuer) {
     jwksPath = context.getVariable('identity-service-config.cis2.jwks_path');
 } else if (iss == nhsLoginIssuer) {
     idTokenIssuer = 'nhs-login';
-    jwksPath = context.getVariable('identity-service-config.nhs_login.jwks_path');
+    jwksPath = "/auth/realms/cis2-mock/protocol/openid-connect/certs"; //context.getVariable('identity-service-config.nhs_login.jwks_path');
 }
 
 context.setVariable('isError', isError)
