@@ -17,6 +17,6 @@
     <SSLInfo>
       <Enabled>true</Enabled>
     </SSLInfo>
-    <Path>{jwksPath}</Path>
+    <Path>/auth/realms/NHS-Login-mock-internal-dev/protocol/openid-connect/certs</Path>
   </HTTPTargetConnection>
 </ServiceCallout>
