@@ -12,7 +12,7 @@
     <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
   </Request>
   <HTTPTargetConnection>
-    <URL>https://identity.ptl.api.platform.nhs.uk/auth/realms/NHS-Login-mock-internal-qa/protocol/openid-connect/certs</URL>
+    <URL>https://identity.ptl.api.platform.nhs.uk/auth/realms/NHS-Login-mock-int/protocol/openid-connect/certs</URL>
     <LoadBalancer>
       <Server name="{{ IDENTITY_PROVIDER_NHS_LOGIN }}"/>
     </LoadBalancer>
