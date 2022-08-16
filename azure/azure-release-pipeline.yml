@@ -112,7 +112,7 @@ extends:
         service_base_path: ${{ variables.service_base_path }}-mock
         jinja_templates:
           IDENTITY_PROVIDER_CIS2: cis2-keycloak
-          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login-keycloak
+          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
           VARIABLES_KVM: identity_service_config_keycloak
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
           ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
