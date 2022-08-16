@@ -91,8 +91,8 @@ class TestOauthEndpoints:
         """
 
         # Make authorize request to retrieve state2
-        state = await auth_code_nhs_cis2.get_state(self.oauth)        
-        
+        state = await auth_code_nhs_cis2.get_state(self.oauth)
+
         # Make simulated auth request to authenticate and make initial callback request
         auth_code = await auth_code_nhs_cis2.make_auth_request(self.oauth, state)
         auth_code = await auth_code_nhs_cis2.make_callback_request(self.oauth, state, auth_code)
@@ -210,7 +210,7 @@ class TestOauthEndpoints:
     async def test_authorize_unsubscribed_error_condition(
         self, test_product, test_app, helper
     ):
-        await test_product.update_proxies(["hello-world-internal-dev"])
+        await test_product.update_proxies(["canary-api-internal-dev"])
         await test_app.add_api_product([test_product.name])
 
         assert await helper.send_request_and_check_output(
@@ -238,7 +238,7 @@ class TestOauthEndpoints:
     async def test_token_unsubscribed_error_condition(
         self, test_product, test_app, helper
     ):
-        await test_product.update_proxies(["hello-world-internal-dev"])
+        await test_product.update_proxies(["canary-api-internal-dev"])
         await test_app.add_api_product([test_product.name])
 
         assert await helper.send_request_and_check_output(
@@ -545,7 +545,7 @@ class TestOauthEndpoints:
     @pytest.mark.callback_endpoint
     @pytest.mark.parametrize("auth_method", [(None)])
     async def test_callback_error_conditions(self, helper, auth_code_nhs_cis2):
-        
+
         state = await auth_code_nhs_cis2.get_state(self.oauth)
         assert await helper.send_request_and_check_output(
 
@@ -768,7 +768,7 @@ class TestOauthEndpoints:
         # When
         jwt = self.oauth.create_jwt(kid="test-1")
         resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
-        
+
         token = resp["body"]["access_token"]
 
         resp = await self.oauth.hit_oauth_endpoint(
@@ -776,7 +776,7 @@ class TestOauthEndpoints:
             endpoint="userinfo",
             headers={"Authorization": f"Bearer {token}"},
         )
-       
+
 
         # Then
         assert expected_status_code == resp['status_code']
