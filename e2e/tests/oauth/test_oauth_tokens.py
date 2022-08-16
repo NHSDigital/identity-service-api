@@ -18,7 +18,7 @@ class TestOauthTokens:
             verb="GET",
             endpoint=CANARY_API_URL,
             expected_status_code=200,
-            expected_response={"message": "hello user!"},
+            expected_response="Hello user!",
             headers={
                 "Authorization": f"Bearer {self.oauth.access_token}",
                 "NHSD-Session-URID": "ROLD-ID",
@@ -46,34 +46,44 @@ class TestOauthTokens:
     @pytest.mark.apm_801
     @pytest.mark.errors
     @pytest.mark.parametrize(
-        "token",
+        ("token", "expected_response"),
         [
             # Condition 1: Using an invalid token
-            "ThisTokenIsInvalid",
+            ("ThisTokenIsInvalid", {
+                "fault": {
+                    "faultstring": "Invalid Access Token",
+                    "detail": {
+                        "errorcode": "keymanagement.service.invalid_access_token"
+                    }
+                }
+            }),
             # Condition 2: Using an expired token
-            "QjMGgujVxVbCV98omVaOlY1zR8aB",
+            ("QjMGgujVxVbCV98omVaOlY1zR8aB", {
+                "fault": {
+                    "faultstring": "Invalid Access Token",
+                    "detail": {
+                        "errorcode": "keymanagement.service.invalid_access_token"
+                    }
+                }
+            }),
             # Condition 3: Empty token
-            "",
+            ("", {
+                "fault": {
+                    "faultstring": "Invalid access token",
+                    "detail": {
+                        "errorcode": "oauth.v2.InvalidAccessToken"
+                    }
+                }
+            }),
         ],
     )
     @pytest.mark.errors
-    async def test_invalid_access_token(self, token: str, helper):
+    async def test_invalid_access_token(self, token: str, helper, expected_response: dict):
         assert helper.check_endpoint(
             verb="POST",
             endpoint=CANARY_API_URL,
-            expected_status_code=404,
-            expected_response="""
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-            <meta charset="utf-8">
-            <title>Error</title>
-            </head>
-            <body>
-            <pre>Cannot POST /hello/user</pre>
-            </body>
-            </html>
-            """,
+            expected_status_code=401,
+            expected_response=expected_response,
             headers={"Authorization": f"Bearer {token}", "NHSD-Session-URID": ""},
         )
 
@@ -81,19 +91,15 @@ class TestOauthTokens:
         assert helper.check_endpoint(
             verb="POST",
             endpoint=CANARY_API_URL,
-            expected_status_code=404,
-            expected_response="""
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-            <meta charset="utf-8">
-            <title>Error</title>
-            </head>
-            <body>
-            <pre>Cannot POST /hello/user</pre>
-            </body>
-            </html>
-            """,
+            expected_status_code=401,
+            expected_response={"fault":
+                {
+                    "faultstring": "Invalid access token",
+                    "detail": {
+                        "errorcode": "oauth.v2.InvalidAccessToken"
+                    }
+                }
+            },
             headers={"NHSD-Session-URID": ""},
         )
 
@@ -219,14 +225,13 @@ class TestOauthTokens:
         self, helper, auth_code_nhs_login
     ):
         response = await auth_code_nhs_login.get_token(self.oauth)
-
         access_token = response["access_token"]
 
         assert helper.check_endpoint(
             verb="GET",
             endpoint=CANARY_API_URL,
             expected_status_code=200,
-            expected_response={"message": "hello user!"},
+            expected_response="Hello user!",
             headers={
                 "Authorization": f"Bearer {access_token}",
                 "NHSD-Session-URID": "ROLD-ID",
