@@ -1,10 +1,12 @@
+import pytest
+import random
+
 from e2e.scripts.config import (
     OAUTH_URL,
     STATUS_ENDPOINT_API_KEY,
 )
 from e2e.scripts.response_bank import BANK
-import pytest
-import random
+
 
 @pytest.mark.asyncio
 class TestOauthEndpoints:
@@ -91,8 +93,8 @@ class TestOauthEndpoints:
         """
 
         # Make authorize request to retrieve state2
-        state = await auth_code_nhs_cis2.get_state(self.oauth)        
-        
+        state = await auth_code_nhs_cis2.get_state(self.oauth)
+
         # Make simulated auth request to authenticate and make initial callback request
         auth_code = await auth_code_nhs_cis2.make_auth_request(self.oauth, state)
         auth_code = await auth_code_nhs_cis2.make_callback_request(self.oauth, state, auth_code)
@@ -218,8 +220,8 @@ class TestOauthEndpoints:
             expected_response={
                 "error": "access_denied",
                 "error_description": "API Key supplied does not have access to this resource. "
-                "Please check the API Key you are using belongs to an app "
-                "which has sufficient access to access this resource.",
+                                     "Please check the API Key you are using belongs to an app "
+                                     "which has sufficient access to access this resource.",
             },
             function=self.oauth.hit_oauth_endpoint,
             method="GET",
@@ -246,8 +248,8 @@ class TestOauthEndpoints:
             expected_response={
                 "error": "access_denied",
                 "error_description": "API Key supplied does not have access to this resource."
-                " Please check the API Key you are using belongs to an app"
-                " which has sufficient access to access this resource.",
+                                     " Please check the API Key you are using belongs to an app"
+                                     " which has sufficient access to access this resource.",
             },
             function=self.oauth.get_token_response,
             grant_type="authorization_code",
@@ -545,7 +547,7 @@ class TestOauthEndpoints:
     @pytest.mark.callback_endpoint
     @pytest.mark.parametrize("auth_method", [(None)])
     async def test_callback_error_conditions(self, helper, auth_code_nhs_cis2):
-        
+
         state = await auth_code_nhs_cis2.get_state(self.oauth)
         assert await helper.send_request_and_check_output(
 
@@ -670,7 +672,7 @@ class TestOauthEndpoints:
             # Condition 1 Happy path
             "expected_status_code": 200,
             "expected_response": ["status", "version", "revision", "releaseId", "commitId", "checks"],
-            "headers":{"apikey": f"{STATUS_ENDPOINT_API_KEY}"}
+            "headers": {"apikey": f"{STATUS_ENDPOINT_API_KEY}"}
         },
         {
             # Condition 2 invalid api key
@@ -700,7 +702,6 @@ class TestOauthEndpoints:
             endpoint="_status",
             headers=test_case["headers"]
         )
-
 
     @pytest.mark.aea_756
     @pytest.mark.happy_path
@@ -743,7 +744,11 @@ class TestOauthEndpoints:
         # Given
         expected_status_code = 400
         expected_error = 'invalid_request'
-        expected_error_description = 'The Userinfo endpoint is only supported for Combined Auth integrations. Currently this is only for NHS CIS2 authentications - for more guidance see https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/user-restricted-restful-apis-nhs-cis2-combined-authentication-and-authorisation'
+        expected_error_description = 'The Userinfo endpoint is only supported for Combined Auth integrations. ' \
+                                     'Currently this is only for NHS CIS2 authentications - for more guidance see ' \
+                                     'https://digital.nhs.uk/developer/guides-and-documentation/security-and' \
+                                     '-authorisation/user-restricted-restful-apis-nhs-cis2-combined-authentication' \
+                                     '-and-authorisation '
 
         # When
         resp = await get_exchange_code_nhs_login_token(self.oauth)
@@ -753,30 +758,6 @@ class TestOauthEndpoints:
             endpoint="userinfo",
             headers={"Authorization": f"Bearer {token}"},
         )
-
-        # Then
-        assert expected_status_code == resp['status_code']
-        assert expected_error == resp['body']['error']
-        assert expected_error_description == resp['body']['error_description']
-
-    async def test_userinfo_client_credentials_token(self):
-        # Given
-        expected_status_code = 400
-        expected_error = 'invalid_request'
-        expected_error_description = 'The Userinfo endpoint is only supported for Combined Auth integrations. Currently this is only for NHS CIS2 authentications - for more guidance see https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/user-restricted-restful-apis-nhs-cis2-combined-authentication-and-authorisation'
-
-        # When
-        jwt = self.oauth.create_jwt(kid="test-1")
-        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
-        
-        token = resp["body"]["access_token"]
-
-        resp = await self.oauth.hit_oauth_endpoint(
-            method="GET",
-            endpoint="userinfo",
-            headers={"Authorization": f"Bearer {token}"},
-        )
-       
 
         # Then
         assert expected_status_code == resp['status_code']
