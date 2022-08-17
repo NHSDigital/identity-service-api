@@ -4,7 +4,7 @@ from api_test_utils.apigee_api_trace import ApigeeApiTraceDebug
 from time import time
 from uuid import uuid4
 
-from e2e.scripts.config import OAUTH_URL, HELLO_WORLD_API_URL, ENVIRONMENT, ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, MOCK_IDP_BASE_URL
+from e2e.scripts.config import OAUTH_URL, CANARY_API_URL, ENVIRONMENT, ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, MOCK_IDP_BASE_URL
 
 
 @pytest.mark.asyncio
@@ -14,11 +14,11 @@ class TestAttachLoggingFields:
     @pytest.mark.usefixtures('set_access_token')
     async def test_access_token_fields_for_logging_when_using_authorization_code_cis2(self, helper):
         # Given
-        apigee_trace = ApigeeApiTraceDebug(proxy=f"hello-world-{ENVIRONMENT}")
+        apigee_trace = ApigeeApiTraceDebug(proxy=f"canary-api-{ENVIRONMENT}")
 
         # When
         await apigee_trace.start_trace()
-        requests.get(f"{HELLO_WORLD_API_URL}", headers={"Authorization": f"Bearer {self.oauth.access_token}"})
+        requests.get(f"{CANARY_API_URL}", headers={"Authorization": f"Bearer {self.oauth.access_token}"})
 
         # Then
         auth_type = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_type')
@@ -38,7 +38,7 @@ class TestAttachLoggingFields:
     @pytest.mark.parametrize('scope', ['P9', 'P5', 'P0'])
     async def test_access_token_fields_for_logging_when_using_authorization_code_nhs_login(self, scope, helper):
         # Given
-        apigee_trace = ApigeeApiTraceDebug(proxy=f"hello-world-{ENVIRONMENT}")
+        apigee_trace = ApigeeApiTraceDebug(proxy=f"canary-api-{ENVIRONMENT}")
 
         # Make authorize request to retrieve state2
         response = await self.oauth.hit_oauth_endpoint(
@@ -110,7 +110,7 @@ class TestAttachLoggingFields:
         access_token = response['body']['access_token']
         # When
         await apigee_trace.start_trace()
-        requests.get(f"{HELLO_WORLD_API_URL}", headers={"Authorization": f"Bearer {access_token}"})
+        requests.get(f"{CANARY_API_URL}", headers={"Authorization": f"Bearer {access_token}"})
 
         # Then
         auth_type = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_type')
@@ -129,7 +129,7 @@ class TestAttachLoggingFields:
     @pytest.mark.logging
     async def test_access_token_fields_for_logging_when_using_client_credentials(self):
         # Given
-        apigee_trace = ApigeeApiTraceDebug(proxy=f"hello-world-{ENVIRONMENT}")
+        apigee_trace = ApigeeApiTraceDebug(proxy=f"canary-api-{ENVIRONMENT}")
         jwt_claims = {
             'kid': 'test-1',
             'claims': {
@@ -146,7 +146,7 @@ class TestAttachLoggingFields:
 
         # When
         await apigee_trace.start_trace()
-        requests.get(f"{HELLO_WORLD_API_URL}", headers={"Authorization": f"Bearer {access_token}"})
+        requests.get(f"{CANARY_API_URL}", headers={"Authorization": f"Bearer {access_token}"})
 
         # Then
         auth_type = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_type')
@@ -165,7 +165,7 @@ class TestAttachLoggingFields:
     @pytest.mark.logging
     async def test_access_token_fields_for_logging_when_using_token_exchange_cis2(self):
         # Given
-        apigee_trace = ApigeeApiTraceDebug(proxy=f"hello-world-{ENVIRONMENT}")
+        apigee_trace = ApigeeApiTraceDebug(proxy=f"canary-api-{ENVIRONMENT}")
 
         id_token_jwt = self.oauth.create_id_token_jwt()
         client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
@@ -175,7 +175,7 @@ class TestAttachLoggingFields:
 
         # When
         await apigee_trace.start_trace()
-        requests.get(f"{HELLO_WORLD_API_URL}", headers={"Authorization": f"Bearer {access_token}"})
+        requests.get(f"{CANARY_API_URL}", headers={"Authorization": f"Bearer {access_token}"})
 
         # Then
         auth_type = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_type')
@@ -195,7 +195,7 @@ class TestAttachLoggingFields:
     @pytest.mark.parametrize('scope', ['P9', 'P5', 'P0'])
     async def test_access_token_fields_for_logging_when_using_token_exchange_nhs_login(self, scope):
         # Given
-        apigee_trace = ApigeeApiTraceDebug(proxy=f"hello-world-{ENVIRONMENT}")
+        apigee_trace = ApigeeApiTraceDebug(proxy=f"canary-api-{ENVIRONMENT}")
 
         id_token_claims = {
             "aud": "tf_-APIM-1",
@@ -242,7 +242,7 @@ class TestAttachLoggingFields:
 
         # When
         await apigee_trace.start_trace()
-        requests.get(f"{HELLO_WORLD_API_URL}", headers={"Authorization": f"Bearer {access_token}"})
+        requests.get(f"{CANARY_API_URL}", headers={"Authorization": f"Bearer {access_token}"})
 
         # Then
         auth_type = await apigee_trace.get_apigee_variable_from_trace(name='accesstoken.auth_type')

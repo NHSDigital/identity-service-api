@@ -293,7 +293,6 @@ class GenericRequest:
             # Might be HTML
             # We need to get rid of the dynamic state here so we can compare the text to the stored value
             actual_response = sub('<input name="state" type="hidden" value="[a-zA-Z0-9_-]{36}">', "", response.text)
-
             assert actual_response.replace("\n", "").replace(" ", "").strip() == expected_response.replace(
                 "\n", "").replace(" ", "").strip(), f"UNEXPECTED RESPONSE: {actual_response}"
 

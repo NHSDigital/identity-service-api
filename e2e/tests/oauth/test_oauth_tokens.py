@@ -1,9 +1,8 @@
 from uuid import uuid4
 import pytest
 from time import sleep, time
-from e2e.scripts.config import HELLO_WORLD_API_URL, ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH
 import sys
-from e2e.scripts.config import HELLO_WORLD_API_URL, ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, MOCK_IDP_BASE_URL
+from e2e.scripts.config import CANARY_API_URL, ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, MOCK_IDP_BASE_URL
 import requests
 
 
@@ -17,9 +16,9 @@ class TestOauthTokens:
     def test_access_token(self, helper):
         assert helper.check_endpoint(
             verb="GET",
-            endpoint=HELLO_WORLD_API_URL,
+            endpoint=CANARY_API_URL,
             expected_status_code=200,
-            expected_response={"message": "hello user!"},
+            expected_response="Hello user!",
             headers={
                 "Authorization": f"Bearer {self.oauth.access_token}",
                 "NHSD-Session-URID": "ROLD-ID",
@@ -47,54 +46,60 @@ class TestOauthTokens:
     @pytest.mark.apm_801
     @pytest.mark.errors
     @pytest.mark.parametrize(
-        "token",
+        ("token", "expected_response"),
         [
             # Condition 1: Using an invalid token
-            "ThisTokenIsInvalid",
+            ("ThisTokenIsInvalid", {
+                "fault": {
+                    "faultstring": "Invalid Access Token",
+                    "detail": {
+                        "errorcode": "keymanagement.service.invalid_access_token"
+                    }
+                }
+            }),
             # Condition 2: Using an expired token
-            "QjMGgujVxVbCV98omVaOlY1zR8aB",
+            ("QjMGgujVxVbCV98omVaOlY1zR8aB", {
+                "fault": {
+                    "faultstring": "Invalid Access Token",
+                    "detail": {
+                        "errorcode": "keymanagement.service.invalid_access_token"
+                    }
+                }
+            }),
             # Condition 3: Empty token
-            "",
+            ("", {
+                "fault": {
+                    "faultstring": "Invalid access token",
+                    "detail": {
+                        "errorcode": "oauth.v2.InvalidAccessToken"
+                    }
+                }
+            }),
         ],
     )
     @pytest.mark.errors
-    async def test_invalid_access_token(self, token: str, helper):
+    async def test_invalid_access_token(self, token: str, helper, expected_response: dict):
         assert helper.check_endpoint(
             verb="POST",
-            endpoint=HELLO_WORLD_API_URL,
-            expected_status_code=404,
-            expected_response="""
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-            <meta charset="utf-8">
-            <title>Error</title>
-            </head>
-            <body>
-            <pre>Cannot POST /hello/user</pre>
-            </body>
-            </html>
-            """,
+            endpoint=CANARY_API_URL,
+            expected_status_code=401,
+            expected_response=expected_response,
             headers={"Authorization": f"Bearer {token}", "NHSD-Session-URID": ""},
         )
 
     def test_missing_access_token(self, helper):
         assert helper.check_endpoint(
             verb="POST",
-            endpoint=HELLO_WORLD_API_URL,
-            expected_status_code=404,
-            expected_response="""
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-            <meta charset="utf-8">
-            <title>Error</title>
-            </head>
-            <body>
-            <pre>Cannot POST /hello/user</pre>
-            </body>
-            </html>
-            """,
+            endpoint=CANARY_API_URL,
+            expected_status_code=401,
+            expected_response={"fault":
+                {
+                    "faultstring": "Invalid access token",
+                    "detail": {
+                        "errorcode": "oauth.v2.InvalidAccessToken"
+                    }
+                }
+            },
             headers={"NHSD-Session-URID": ""},
         )
 
@@ -109,7 +114,7 @@ class TestOauthTokens:
         # Check token still works after access token has expired
         assert helper.check_endpoint(
             verb="GET",
-            endpoint=HELLO_WORLD_API_URL,
+            endpoint=CANARY_API_URL,
             expected_status_code=401,
             expected_response={
                 "fault": {
@@ -220,14 +225,13 @@ class TestOauthTokens:
         self, helper, auth_code_nhs_login
     ):
         response = await auth_code_nhs_login.get_token(self.oauth)
-
         access_token = response["access_token"]
 
         assert helper.check_endpoint(
             verb="GET",
-            endpoint=HELLO_WORLD_API_URL,
+            endpoint=CANARY_API_URL,
             expected_status_code=200,
-            expected_response={"message": "hello user!"},
+            expected_response="Hello user!",
             headers={
                 "Authorization": f"Bearer {access_token}",
                 "NHSD-Session-URID": "ROLD-ID",
@@ -322,7 +326,7 @@ class TestTokenExchangeTokens:
         assert resp['body']['refresh_token_expires_in'] == '43199'
 
         # Make request using access token to ensure valid
-        req = requests.get(f"{HELLO_WORLD_API_URL}", headers={"Authorization": f"Bearer {access_token}"})
+        req = requests.get(f"{CANARY_API_URL}", headers={"Authorization": f"Bearer {access_token}"})
         assert req.status_code == 200
 
         # Get new access token using refresh token to ensure valid
@@ -333,7 +337,7 @@ class TestTokenExchangeTokens:
         assert refresh_token2
 
         # Make request using new access token to ensure valid
-        req2 = requests.get(f"{HELLO_WORLD_API_URL}", headers={"Authorization": f"Bearer {access_token2}"})
+        req2 = requests.get(f"{CANARY_API_URL}", headers={"Authorization": f"Bearer {access_token2}"})
         assert req2.status_code == 200
 
     async def test_cis2_token_exchange_refresh_token_become_invalid(self):
@@ -380,8 +384,8 @@ class TestTokenExchangeTokens:
     @pytest.mark.parametrize("token_expiry_ms, expected_time", [(100000, 100), (500000, 500),(700000, 600), (1000000, 600)])
     async def test_access_token_override_with_client_credentials(self, token_expiry_ms, expected_time):
         """
-        Test client credential flow access token can be overridden with a time less than 10 min(600000ms or 600s) 
-        and NOT be overridden with a time greater than 10 min(600000ms or 600s)  
+        Test client credential flow access token can be overridden with a time less than 10 min(600000ms or 600s)
+        and NOT be overridden with a time greater than 10 min(600000ms or 600s)
         """
         form_data = {
             "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
@@ -389,12 +393,12 @@ class TestTokenExchangeTokens:
             "grant_type": 'client_credentials',
             "_access_token_expiry_ms": token_expiry_ms
         }
-        
+
         resp = await self.oauth.get_token_response(grant_type='client_credentials', data=form_data)
 
         assert resp['status_code'] == 200
         assert int(resp['body']['expires_in']) <= expected_time
-    
+
     @pytest.mark.parametrize("token_expiry_ms, expected_time", [(100000, 100), (500000, 500),(700000, 600), (1000000, 600)])
     async def test_access_token_override_with_token_exchange(self, token_expiry_ms, expected_time):
         """
@@ -411,24 +415,24 @@ class TestTokenExchangeTokens:
             "client_assertion": client_assertion_jwt,
             "_access_token_expiry_ms": token_expiry_ms
         }
-        
+
         resp = await self.oauth.hit_oauth_endpoint("post", "token", data=form_data)
 
         assert resp['status_code'] == 200
         assert int(resp['body']['expires_in']) <= expected_time
-    
+
     @pytest.mark.parametrize("token_expiry_ms, expected_time", [(100000, 100), (500000, 500),(700000, 600), (1000000, 600)])
     async def test_access_token_override_with_authorization_code(self, token_expiry_ms, expected_time):
         """
         Test authorization code flow access token can be overridden with a time less than 10 min(600000ms or 600s)
         and NOT be overridden with a time greater than 10 min(600000ms or 600s)
         """
-        
+
         resp = await self.oauth.get_token_response(grant_type='authorization_code', timeout=token_expiry_ms)
 
         assert resp['status_code'] == 200
         assert int(resp['body']['expires_in']) <= expected_time
-    
+
     @pytest.mark.usefixtures("set_refresh_token")
     @pytest.mark.parametrize("token_expiry_ms, expected_time", [(100000, 100), (500000, 500),(700000, 600), (1000000, 600)])
     async def test_access_token_override_with_refresh_token(self, token_expiry_ms, expected_time):
@@ -444,12 +448,12 @@ class TestTokenExchangeTokens:
             "_refresh_tokens_validity_ms": 599,
             "_access_token_expiry_ms": token_expiry_ms
         }
-        
+
         resp = await self.oauth.get_token_response(grant_type='refresh_token', data=form_data)
-        
+
         assert resp['status_code'] == 200
         assert int(resp['body']['expires_in']) <= expected_time
-    
+
 @pytest.mark.asyncio
 class TestTokenRefreshExpiry:
     """Test class to confirm refresh tokens expire after the expected amount of time
