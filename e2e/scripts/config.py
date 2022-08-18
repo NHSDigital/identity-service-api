@@ -14,8 +14,8 @@ SERVICE_NAME = environ.get(
     (f'identity-service-{ENVIRONMENT}', OAUTH_PROXY.replace('oauth2', 'identity-service'))["pr" in OAUTH_PROXY]
 )
 
-# Test API (Hello World)
-HELLO_WORLD_API_URL = f"{OAUTH_BASE_URI}/hello-world/hello/user"
+# Test API (Canary API)
+CANARY_API_URL = f"{OAUTH_BASE_URI}/canary-api"
 
 
 # Jwt Keys
