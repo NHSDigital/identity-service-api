@@ -29,7 +29,26 @@ apigee:
 
 {% for ENV in APIGEE_ENVIRONMENTS %}
   - name: {{ ENV.name }}
+{% if ENV.name == 'internal-dev' %}
+    products:
+      - name: identity-service-internal-dev
+        approvalType: auto
+        attributes:
+          - name: access
+            value: private
+        description: Purely for smoketests in internal-dev
+        displayName: Identity Service - (Internal Development)
+        environments: [ "internal-dev" ]
+        proxies:
+          - identity-service-internal-dev
+          - identity-service-mock-internal-dev
+        scopes:
+          - urn:nhsd:apim:user-nhs-id:aal3:identity-service
+          - urn:nhsd:apim:user-nhs-login:p5:identity-service
+          - urn:nhsd:apim:app:level3:identity-service
+{% else %}
     products: []
+{% endif %}
     specs: []
     api_catalog: []
 {% endfor %}
