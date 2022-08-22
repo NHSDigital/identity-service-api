@@ -1,17 +1,14 @@
 import os
-import urllib.parse
 import pytest
-from requests.exceptions import ConnectionError
+
 from asyncio import sleep
 from time import time
 from typing import Dict, Optional
 from uuid import uuid4
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from api_test_utils.oauth_helper import OauthHelper
 from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
 from api_test_utils.apigee_api_products import ApigeeApiProducts
-from api_test_utils.fixtures import webdriver_session
+
 from e2e.scripts import config
 
 
@@ -109,24 +106,13 @@ async def test_app():
 @pytest.mark.asyncio
 class TestBackChannelLogout:
     """ A test suite for back-channel logout functionality"""
-    async def get_access_token(self, webdriver_session, get_token_body: Optional[bool] = False):
+    async def get_access_token(self, get_token_body: Optional[bool] = False):
 
-        code = await self.oauth.get_authenticated_with_mock_auth("aal3", webdriver_session)
+        token_resp = self.oauth.get_authenticated_with_mock_auth("aal3")
 
-        token_resp = await self.oauth.hit_oauth_endpoint(
-            method="POST",
-            endpoint="token",
-            data={
-                'client_id': self.oauth.client_id,
-                'client_secret': self.oauth.client_secret,
-                'grant_type': "authorization_code",
-                'redirect_uri': self.oauth.redirect_uri,
-                'code': code
-            }
-        )
-        token = token_resp["body"] if get_token_body else token_resp["body"]["access_token"]
+        token = token_resp if get_token_body else token_resp["access_token"]
 
-        return token, token_resp["body"].get("sid", None)
+        return token, token_resp.get("sid", None)
 
     async def call_user_info(self, app, access_token):
         user_info_resp = await app.oauth.hit_oauth_endpoint(
@@ -137,12 +123,10 @@ class TestBackChannelLogout:
 
         return user_info_resp
     
-    @pytest.mark.xfail
     @pytest.mark.asyncio
     @pytest.mark.happy_path
-    # This is inconsistent due to Apigee problems
-    async def test_backchannel_logout_happy_path(self, test_app, webdriver_session):
-        access_token, sid = await self.get_access_token(webdriver_session)
+    async def test_backchannel_logout_happy_path(self, test_app):
+        access_token, sid = await self.get_access_token()
         assert sid
 
         # Test token can be used to access identity service
@@ -166,13 +150,10 @@ class TestBackChannelLogout:
         userinfo_resp = await self.call_user_info(test_app, access_token)
         assert userinfo_resp['status_code'] == 401
     
-    @pytest.mark.xfail
     @pytest.mark.asyncio
     @pytest.mark.happy_path
-    @pytest.mark.apm_2573
-    # This is inconsistent due to Apigee problems 
-    async def test_backchannel_logout_user_refresh_token(self, test_app, webdriver_session):
-        token, sid = await self.get_access_token(webdriver_session, get_token_body=True)
+    async def test_backchannel_logout_user_refresh_token(self, test_app):
+        token, sid = await self.get_access_token(get_token_body=True)
         assert sid
 
         # Test token can be used to access identity service
@@ -206,7 +187,6 @@ class TestBackChannelLogout:
         assert post_refresh_userinfo_resp['status_code'] == 401
 
     # Request sends a JWT has missing or invalid claims of the following problems, returns a 400
-    @pytest.mark.xfail
     @pytest.mark.asyncio
     @pytest.mark.parametrize("claims,status_code,error_message", [
         (  # invalid aud claim
@@ -311,8 +291,8 @@ class TestBackChannelLogout:
             "Prohibited nonce claim in JWT"
         )
     ])
-    async def test_claims(self, test_app, claims, status_code, error_message, webdriver_session):
-        access_token, _sid = await self.get_access_token(webdriver_session)
+    async def test_claims(self, test_app, claims, status_code, error_message):
+        access_token, _sid = await self.get_access_token()
 
         # Test token can be used to access identity service
         userinfo_resp = await self.call_user_info(test_app, access_token)
@@ -333,9 +313,8 @@ class TestBackChannelLogout:
 
     # Request sends JWT that cannot be verified returns a  400
     @pytest.mark.asyncio
-    @pytest.mark.xfail
-    async def test_invalid_jwt(self, test_app, webdriver_session):
-        access_token, _sid = await self.get_access_token(webdriver_session)
+    async def test_invalid_jwt(self, test_app):
+        access_token, _sid = await self.get_access_token()
 
         # Test token can be used to access identity service
         userinfo_resp = await self.call_user_info(test_app, access_token)
@@ -356,7 +335,6 @@ class TestBackChannelLogout:
 
     # Requests sends an logout token that does not exist in the session-id cache returns a 501
     @pytest.mark.asyncio
-    @pytest.mark.xfail
     async def test_sid_not_cached(self, test_app):
         logout_token = create_logout_token(test_app, override_sid="5b8f2499-ad4a-4a7c-b0ac-aaada65bda2b")
 
@@ -370,7 +348,6 @@ class TestBackChannelLogout:
 
     # Requests sends an logout token that does not match the session-id cache returns a 501
     @pytest.mark.asyncio
-    @pytest.mark.xfail
     async def test_cached_sid_does_not_match(self, test_app):
         claims_non_matching_sid = {
             "aud": "test-client-1",
