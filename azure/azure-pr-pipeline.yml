@@ -70,3 +70,5 @@ extends:
           RATELIMITING: ${{ variables.ratelimiting }}
         post_deploy:
           - template: ./templates/run-integration-tests.yml
+            parameters:
+              mock_auth: true

@@ -52,5 +52,10 @@ release: clean publish build-proxy
 .PHONY: e2e
 e2e:
 	rm -f reports/e2e.xml  > /dev/null || true
-	cd e2e && poetry run python -m pytest -n auto --reruns 3 -rxs -v --junit-xml=../reports/e2e.xml --ignore .venv || true
+	cd e2e && poetry run python -m pytest -n auto --reruns 3 -rxs -v -m "not mock_auth" --junit-xml=../reports/e2e.xml --ignore .venv || true
+	@if [[ ! -f reports/e2e.xml ]]; then echo report not created; exit 1; fi
+
+e2e-mock:
+	rm -f reports/e2e.xml  > /dev/null || true
+	cd e2e && poetry run python -m pytest -n auto --reruns 3 -rxs -v -m "not simulated_auth" --junit-xml=../reports/e2e.xml --ignore .venv || true
 	@if [[ ! -f reports/e2e.xml ]]; then echo report not created; exit 1; fi

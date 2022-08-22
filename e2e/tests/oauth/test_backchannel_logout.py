@@ -123,6 +123,7 @@ class TestBackChannelLogout:
 
         return user_info_resp
     
+    @pytest.mark.mock_auth
     @pytest.mark.asyncio
     @pytest.mark.happy_path
     async def test_backchannel_logout_happy_path(self, test_app):
@@ -150,6 +151,7 @@ class TestBackChannelLogout:
         userinfo_resp = await self.call_user_info(test_app, access_token)
         assert userinfo_resp['status_code'] == 401
     
+    @pytest.mark.mock_auth
     @pytest.mark.asyncio
     @pytest.mark.happy_path
     async def test_backchannel_logout_user_refresh_token(self, test_app):
@@ -187,6 +189,7 @@ class TestBackChannelLogout:
         assert post_refresh_userinfo_resp['status_code'] == 401
 
     # Request sends a JWT has missing or invalid claims of the following problems, returns a 400
+    @pytest.mark.mock_auth
     @pytest.mark.asyncio
     @pytest.mark.parametrize("claims,status_code,error_message", [
         (  # invalid aud claim
@@ -312,6 +315,7 @@ class TestBackChannelLogout:
         assert back_channel_resp["body"]["error_description"] == error_message
 
     # Request sends JWT that cannot be verified returns a  400
+    @pytest.mark.mock_auth
     @pytest.mark.asyncio
     async def test_invalid_jwt(self, test_app):
         access_token, _sid = await self.get_access_token()
@@ -334,6 +338,7 @@ class TestBackChannelLogout:
         assert back_channel_resp["body"]["error_description"] == "Unable to verify JWT"
 
     # Requests sends an logout token that does not exist in the session-id cache returns a 501
+    @pytest.mark.mock_auth
     @pytest.mark.asyncio
     async def test_sid_not_cached(self, test_app):
         logout_token = create_logout_token(test_app, override_sid="5b8f2499-ad4a-4a7c-b0ac-aaada65bda2b")
@@ -347,6 +352,7 @@ class TestBackChannelLogout:
         assert back_channel_resp["status_code"] == 501
 
     # Requests sends an logout token that does not match the session-id cache returns a 501
+    @pytest.mark.mock_auth
     @pytest.mark.asyncio
     async def test_cached_sid_does_not_match(self, test_app):
         claims_non_matching_sid = {
