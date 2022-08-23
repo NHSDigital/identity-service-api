@@ -12,7 +12,7 @@
   </Get>
   <Get assignTo="private.jwt" index="1">
         <Key>
-            <Parameter>nhs_login_private_key</Parameter>
+            <Parameter>{{ ENCRYPTED_VARIABLES_KVM_KEY_NHS_LOGIN_KEY | default('nhs_login_private_key') }}</Parameter>
         </Key>
     </Get>
 </KeyValueMapOperations>
