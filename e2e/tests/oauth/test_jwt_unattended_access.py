@@ -649,6 +649,7 @@ class TestJwtUnattendedAccess:
                 'error_description': "The JWKS endpoint, for your client_assertion can't be reached"
             }
 
+    @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.token_exchange
     async def test_token_exchange_happy_path(self):
@@ -1010,6 +1011,7 @@ class TestJwtUnattendedAccess:
         assert expected_error_description == resp['body']['error_description']
 
 
+    @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.token_exchange
     async def test_token_exchange_subject_token_missing_aud_claim(self):
@@ -1107,6 +1109,7 @@ class TestJwtUnattendedAccess:
         assert expected_error == resp['body']['error']
         assert expected_error_description == resp['body']['error_description']
 
+    @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.token_exchange
     async def test_nhs_login_happy_path(self):
@@ -1221,6 +1224,7 @@ class TestJwtUnattendedAccess:
         assert expected_error == resp['body']['error']
         assert expected_error_description == resp['body']['error_description']
 
+    @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.token_exchange
     async def test_token_exchange_subject_token_nhs_login_missing_aud_claim(self):

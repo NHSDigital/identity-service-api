@@ -130,7 +130,7 @@ class TestOauthTokens:
             },
         )
 
-    @pytest.mark.apm_1618
+    @pytest.mark.simulated_auth
     @pytest.mark.errors
     async def test_access_token_with_params(self):
         resp = await self.oauth.hit_oauth_endpoint(
@@ -219,6 +219,7 @@ class TestOauthTokens:
             "error_description": "refresh_token is invalid",
         }
 
+    @pytest.mark.simulated_auth
     @pytest.mark.parametrize("auth_method", [("P0"), ("P5"), ("P9")])
     @pytest.mark.authorize_endpoint
     async def test_nhs_login_auth_code_flow_happy_path(
@@ -243,6 +244,7 @@ class TestOauthTokens:
 class TestTokenExchangeTokens:
     """Test class to confirm token exchange logic is as expected """
 
+    @pytest.mark.simulated_auth
     @pytest.mark.parametrize('scope', ['P9', 'P5', 'P0'])
     async def test_nhs_login_token_exchange_access_and_refresh_tokens_generated(self, scope):
         """
@@ -306,6 +308,7 @@ class TestTokenExchangeTokens:
         assert access_token2
         assert refresh_token2
 
+    @pytest.mark.simulated_auth
     async def test_cis2_token_exchange_access_tokens_valid(self):
         """
         Using a refresh token that was generated via token exchange, fetch and use
@@ -340,6 +343,7 @@ class TestTokenExchangeTokens:
         req2 = requests.get(f"{CANARY_API_URL}", headers={"Authorization": f"Bearer {access_token2}"})
         assert req2.status_code == 200
 
+    @pytest.mark.simulated_auth
     async def test_cis2_token_exchange_refresh_token_become_invalid(self):
         """
         Fetch a new access token, refresh token pair.
@@ -399,6 +403,7 @@ class TestTokenExchangeTokens:
         assert resp['status_code'] == 200
         assert int(resp['body']['expires_in']) <= expected_time
 
+    @pytest.mark.simulated_auth
     @pytest.mark.parametrize("token_expiry_ms, expected_time", [(100000, 100), (500000, 500),(700000, 600), (1000000, 600)])
     async def test_access_token_override_with_token_exchange(self, token_expiry_ms, expected_time):
         """
@@ -421,6 +426,7 @@ class TestTokenExchangeTokens:
         assert resp['status_code'] == 200
         assert int(resp['body']['expires_in']) <= expected_time
 
+    @pytest.mark.simulated_auth
     @pytest.mark.parametrize("token_expiry_ms, expected_time", [(100000, 100), (500000, 500),(700000, 600), (1000000, 600)])
     async def test_access_token_override_with_authorization_code(self, token_expiry_ms, expected_time):
         """
@@ -459,6 +465,7 @@ class TestTokenRefreshExpiry:
     """Test class to confirm refresh tokens expire after the expected amount of time
     for both separated and combined auth"""
 
+    @pytest.mark.simulated_auth
     @pytest.mark.parametrize('scope', ['P9', 'P5', 'P0'])
     async def test_nhs_login_refresh_tokens_generated_with_expected_expiry_combined_auth(self, scope):
         """
@@ -484,6 +491,7 @@ class TestTokenRefreshExpiry:
         assert resp['body']['expires_in'] == '599'
         assert resp['body']['refresh_token_expires_in'] == '3599'
 
+    @pytest.mark.simulated_auth
     async def test_cis2_refresh_tokens_generated_with_expected_expiry_combined_auth(self):
         """
         Test that refresh tokens generated via CIS2 have an expiry time of 12 hours for combined authentication.
@@ -501,6 +509,7 @@ class TestTokenRefreshExpiry:
         assert resp['body']['expires_in'] == '599'
         assert resp['body']['refresh_token_expires_in'] == '43199'
 
+    @pytest.mark.simulated_auth
     @pytest.mark.parametrize('scope', ['P9', 'P5', 'P0'])
     async def test_nhs_login_refresh_tokens_generated_with_expected_expiry_separated_auth(self, scope):
         """
@@ -555,6 +564,7 @@ class TestTokenRefreshExpiry:
         assert resp['body']['expires_in'] == '599'
         assert resp['body']['refresh_token_expires_in'] == '3599'
 
+    @pytest.mark.simulated_auth
     async def test_cis2_refresh_tokens_generated_with_expected_expiry_separated_auth(self):
         """
         Test that refresh tokens generated via CIS2 have an expiry time of 12 hours for separated authentication.

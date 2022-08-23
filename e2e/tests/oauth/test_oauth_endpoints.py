@@ -39,7 +39,7 @@ class TestOauthEndpoints:
         assert resp["status_code"] == 200
         # assert resp['body'] == BANK.get(self.name)["response"]
 
-    @pytest.mark.apm_801
+    @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.token_endpoint
     async def test_token_endpoint(self):
@@ -232,7 +232,7 @@ class TestOauthEndpoints:
             },
         )
 
-    @pytest.mark.apm_1631
+    @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.token_endpoint
     async def test_token_unsubscribed_error_condition(
@@ -702,7 +702,7 @@ class TestOauthEndpoints:
         )
 
 
-    @pytest.mark.aea_756
+    @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.usefixtures("set_access_token")
     async def test_userinfo(self, helper):
@@ -739,6 +739,7 @@ class TestOauthEndpoints:
         # Then
         assert expected_status_code == resp["status_code"]
 
+    @pytest.mark.simulated_auth
     async def test_userinfo_nhs_login_exchanged_token(self, get_exchange_code_nhs_login_token):
         # Given
         expected_status_code = 400
