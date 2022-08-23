@@ -59,7 +59,6 @@ def event_loop(request):
 
 @pytest.mark.asyncio
 class TestClientCredentialsHappyCases:
-    @pytest.mark.apm_1701
     @pytest.mark.happy_path
     @pytest.mark.parametrize(
         "product_1_scopes, product_2_scopes, expected_filtered_scopes",
@@ -185,7 +184,6 @@ class TestClientCredentialsHappyCases:
 
 @pytest.mark.asyncio
 class TestClientCredentialsErrorCases:
-    @pytest.mark.apm_1701
     @pytest.mark.errors
     @pytest.mark.parametrize(
         "product_1_scopes, product_2_scopes",
@@ -255,7 +253,7 @@ class TestClientCredentialsErrorCases:
 
 @pytest.mark.asyncio
 class TestAuthorizationCodeCis2HappyCases:
-    @pytest.mark.apm_1701
+    @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.parametrize(
         "product_1_scopes, product_2_scopes, expected_filtered_scopes",
@@ -398,7 +396,7 @@ class TestAuthorizationCodeCis2HappyCases:
 
 @pytest.mark.asyncio
 class TestAuthorizationCodeCis2ErrorCases:
-    @pytest.mark.apm_1701
+    @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.parametrize(
         "product_1_scopes, product_2_scopes",
@@ -473,6 +471,7 @@ class TestAuthorizationCodeCis2ErrorCases:
 
 @pytest.mark.asyncio
 class TestTokenExchangeCis2ErrorCases:
+    @pytest.mark.simulated_auth
     @pytest.mark.token_exchange
     @pytest.mark.errors
     @pytest.mark.parametrize(
@@ -539,6 +538,7 @@ class TestTokenExchangeCis2ErrorCases:
 
 @pytest.mark.asyncio
 class TestTokenExchangeCis2HappyCases:
+    @pytest.mark.simulated_auth
     @pytest.mark.token_exchange
     @pytest.mark.errors
     @pytest.mark.parametrize(
@@ -707,6 +707,7 @@ class TestClientCredentialsRemoveExternalScopes:
 
 @pytest.mark.asyncio
 class TestTokenExchangeRemoveExternalScopes:
+    @pytest.mark.simulated_auth
     @pytest.mark.parametrize(
         "external_scope",
         [
@@ -742,6 +743,7 @@ class TestTokenExchangeRemoveExternalScopes:
 
 @pytest.mark.asyncio
 class TestAuthorizationCodeRemoveExternalScopes:
+    @pytest.mark.simulated_auth
     @pytest.mark.parametrize(
         "external_scope",
         [
@@ -794,6 +796,7 @@ class TestAuthorizationCodeRemoveExternalScopes:
 
 @pytest.mark.asyncio
 class TestTokenExchangeNhsLoginHappyCases:
+    @pytest.mark.simulated_auth
     @pytest.mark.token_exchange
     @pytest.mark.errors
     @pytest.mark.parametrize(
@@ -915,6 +918,7 @@ class TestTokenExchangeNhsLoginHappyCases:
 
 @pytest.mark.asyncio
 class TestTokenExchangeNhsLoginErrorCases:
+    @pytest.mark.simulated_auth
     @pytest.mark.token_exchange
     @pytest.mark.errors
     @pytest.mark.parametrize(
@@ -980,6 +984,7 @@ class TestTokenExchangeNhsLoginErrorCases:
 
 @pytest.mark.asyncio
 class TestAuthorizationCodeNhsLoginHappyCases:
+    @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.parametrize(
         "product_1_scopes, product_2_scopes, expected_filtered_scopes",
@@ -1104,6 +1109,7 @@ class TestAuthorizationCodeNhsLoginHappyCases:
 
 @pytest.mark.asyncio
 class TestAuthorizationCodeNhsLoginErrorCases:
+    @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.parametrize(
         "product_1_scopes, product_2_scopes",
