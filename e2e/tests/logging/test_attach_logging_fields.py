@@ -9,6 +9,7 @@ from e2e.scripts.config import OAUTH_URL, CANARY_API_URL, ENVIRONMENT, ID_TOKEN_
 
 @pytest.mark.asyncio
 class TestAttachLoggingFields:
+    @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.logging
     @pytest.mark.usefixtures('set_access_token')

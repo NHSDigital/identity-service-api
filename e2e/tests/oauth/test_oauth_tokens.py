@@ -10,7 +10,7 @@ import requests
 class TestOauthTokens:
     """ A test suite to confirm Oauth tokens error responses are as expected"""
 
-    @pytest.mark.apm_801
+    @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.usefixtures("set_access_token")
     def test_access_token(self, helper):
@@ -25,7 +25,7 @@ class TestOauthTokens:
             },
         )
 
-    @pytest.mark.apm_801
+    @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.usefixtures("set_refresh_token")
     async def test_refresh_token(self):
@@ -103,7 +103,7 @@ class TestOauthTokens:
             headers={"NHSD-Session-URID": ""},
         )
 
-    @pytest.mark.apm_801
+    @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.usefixtures("set_access_token")
     def test_access_token_does_expire(self, helper):
@@ -152,7 +152,7 @@ class TestOauthTokens:
             "error_description": "Content-Type header must be application/x-www-urlencoded",
         }
 
-    @pytest.mark.apm_1010
+    @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.usefixtures("set_refresh_token")
     async def test_refresh_token_does_expire(self):
@@ -167,7 +167,7 @@ class TestOauthTokens:
             "error_description": "refresh token refresh period has expired",
         }
 
-    @pytest.mark.apm_1010
+    @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.usefixtures("set_refresh_token")
     async def test_refresh_tokens_validity_expires(self):
@@ -190,7 +190,7 @@ class TestOauthTokens:
             "error_description": "refresh token refresh period has expired",
         }
 
-    @pytest.mark.apm_1475
+    @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.usefixtures("set_refresh_token")
     async def test_re_use_of_refresh_token(self):
@@ -439,6 +439,7 @@ class TestTokenExchangeTokens:
         assert resp['status_code'] == 200
         assert int(resp['body']['expires_in']) <= expected_time
 
+    @pytest.mark.simulated_auth
     @pytest.mark.usefixtures("set_refresh_token")
     @pytest.mark.parametrize("token_expiry_ms, expected_time", [(100000, 100), (500000, 500),(700000, 600), (1000000, 600)])
     async def test_access_token_override_with_refresh_token(self, token_expiry_ms, expected_time):

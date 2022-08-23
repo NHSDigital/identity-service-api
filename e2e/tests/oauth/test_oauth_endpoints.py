@@ -715,6 +715,7 @@ class TestOauthEndpoints:
             headers={"Authorization": f"Bearer {self.oauth.access_token}"},
         )
 
+    @pytest.mark.simulated_auth
     @pytest.mark.errors
     async def test_userinfo_cis2_exchanged_token(self):
         # Given
