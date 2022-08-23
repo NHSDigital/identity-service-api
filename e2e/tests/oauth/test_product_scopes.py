@@ -152,13 +152,13 @@ class TestClientCredentialsHappyCases:
         expected_filtered_scopes,
         test_app_and_product,
     ):
-        test_product, test_product2, test_app = test_app_and_product
+        test_product, test_product2, test_application = test_app_and_product
         apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME)
 
         await test_product.update_scopes(product_1_scopes)
         await test_product2.update_scopes(product_2_scopes)
 
-        jwt = self.oauth.create_jwt(kid="test-1", client_id=test_app.client_id)
+        jwt = self.oauth.create_jwt(kid="test-1", client_id=test_application.client_id)
         await apigee_trace.start_trace()
         resp = await self.oauth.get_token_response(
             grant_type="client_credentials", _jwt=jwt
@@ -231,7 +231,7 @@ class TestClientCredentialsErrorCases:
     def test_error_application_restricted_scope_combination(
         self, product_1_scopes, product_2_scopes, test_app_and_product, event_loop
     ):
-        test_product, test_product2, test_app = test_app_and_product
+        test_product, test_product2, test_application = test_app_and_product
 
         event_loop.run_until_complete(test_product.update_scopes(product_1_scopes))
         event_loop.run_until_complete(test_product2.update_scopes(product_2_scopes))
@@ -239,7 +239,7 @@ class TestClientCredentialsErrorCases:
         resp = event_loop.run_until_complete(
             self.oauth.get_token_response(
                 grant_type="client_credentials",
-                _jwt=self.oauth.create_jwt(kid="test-1", client_id=test_app.client_id),
+                _jwt=self.oauth.create_jwt(kid="test-1", client_id=test_application.client_id),
             )
         )
 
@@ -348,14 +348,14 @@ class TestAuthorizationCodeCis2HappyCases:
         test_app_and_product,
         helper,
     ):
-        test_product, test_product2, test_app = test_app_and_product
+        test_product, test_product2, test_application = test_app_and_product
 
         await test_product.update_scopes(product_1_scopes)
         await test_product2.update_scopes(product_2_scopes)
         apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME)
 
-        callback_url = await test_app.get_callback_url()
-        oauth = OauthHelper(test_app.client_id, test_app.client_secret, callback_url)
+        callback_url = await test_application.get_callback_url()
+        oauth = OauthHelper(test_application.client_id, test_application.client_secret, callback_url)
 
         apigee_trace.add_trace_filter(
             header_name="Auto-Test-Header", header_value="flow-callback"
@@ -376,8 +376,8 @@ class TestAuthorizationCodeCis2HappyCases:
                 "token_type",
             ],
             data={
-                "client_id": test_app.get_client_id(),
-                "client_secret": test_app.get_client_secret(),
+                "client_id": test_application.get_client_id(),
+                "client_secret": test_application.get_client_secret(),
                 "redirect_uri": callback_url,
                 "grant_type": "authorization_code",
                 "code": await oauth.get_authenticated_with_simulated_auth(),
@@ -445,7 +445,7 @@ class TestAuthorizationCodeCis2ErrorCases:
     async def test_cis2_error_user_restricted_scope_combination(
         self, product_1_scopes, product_2_scopes, test_app_and_product, helper, auth_code_nhs_cis2
     ):
-        test_product, test_product2, test_app = test_app_and_product
+        test_product, test_product2, test_application = test_app_and_product
 
         # Given
         expected_status_code = 401
@@ -456,7 +456,7 @@ class TestAuthorizationCodeCis2ErrorCases:
         await test_product.update_scopes(product_1_scopes)
         await test_product2.update_scopes(product_2_scopes)
 
-        state = await auth_code_nhs_cis2.get_state(self.oauth, test_app)        
+        state = await auth_code_nhs_cis2.get_state(self.oauth, test_application)        
 
         # Make simulated auth request to authenticate and Make initial callback request       
         auth_code = await auth_code_nhs_cis2.make_auth_request(self.oauth, state)
@@ -678,12 +678,12 @@ class TestClientCredentialsRemoveExternalScopes:
         self, test_app_and_product, external_scope
     ):
         product_scope = ["urn:nhsd:apim:app:level3:personal-demographics"]
-        test_product, test_product2, test_app = test_app_and_product
+        test_product, test_product2, test_application = test_app_and_product
 
         await test_product.update_scopes(product_scope)
         await test_product2.update_scopes(product_scope)
 
-        jwt = self.oauth.create_jwt(kid="test-1", client_id=test_app.client_id)
+        jwt = self.oauth.create_jwt(kid="test-1", client_id=test_application.client_id)
 
         data = {
             "scope": external_scope,
@@ -761,14 +761,14 @@ class TestAuthorizationCodeRemoveExternalScopes:
         self, test_app_and_product, helper, external_scope
     ):
         product_scope = ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"]
-        test_product, test_product2, test_app = test_app_and_product
+        test_product, test_product2, test_application = test_app_and_product
 
         await test_product.update_scopes(product_scope)
         await test_product2.update_scopes(product_scope)
 
-        callback_url = await test_app.get_callback_url()
+        callback_url = await test_application.get_callback_url()
 
-        oauth = OauthHelper(test_app.client_id, test_app.client_secret, callback_url)
+        oauth = OauthHelper(test_application.client_id, test_application.client_secret, callback_url)
 
         assert helper.check_endpoint(
             verb="POST",
@@ -785,8 +785,8 @@ class TestAuthorizationCodeRemoveExternalScopes:
             ],
             data={
                 "scope": external_scope,
-                "client_id": test_app.get_client_id(),
-                "client_secret": test_app.get_client_secret(),
+                "client_id": test_application.get_client_id(),
+                "client_secret": test_application.get_client_secret(),
                 "redirect_uri": callback_url,
                 "grant_type": "authorization_code",
                 "code": await oauth.get_authenticated_with_simulated_auth(),
@@ -1081,16 +1081,16 @@ class TestAuthorizationCodeNhsLoginHappyCases:
         helper,
         auth_code_nhs_login,
     ):
-        test_product, test_product2, test_app = test_app_and_product
+        test_product, test_product2, test_application = test_app_and_product
 
         await test_product.update_scopes(product_1_scopes)
         await test_product2.update_scopes(product_2_scopes)
         apigee_trace = ApigeeApiTraceDebug(proxy=config.SERVICE_NAME)
 
-        callback_url = await test_app.get_callback_url()
+        callback_url = await test_application.get_callback_url()
 
         
-        state = await auth_code_nhs_login.get_state(self.oauth, test_app)
+        state = await auth_code_nhs_login.get_state(self.oauth, test_application)
 
         auth_code = await auth_code_nhs_login.make_auth_request(self.oauth, state)
 
@@ -1158,7 +1158,7 @@ class TestAuthorizationCodeNhsLoginErrorCases:
     async def test_nhs_login_user_restricted_error_scope_combination(
         self, product_1_scopes, product_2_scopes, test_app_and_product, helper, auth_code_nhs_login
     ):
-        test_product, test_product2, test_app = test_app_and_product
+        test_product, test_product2, test_application = test_app_and_product
 
         expected_status_code = 401
         expected_error = "unauthorized_client"
@@ -1171,7 +1171,7 @@ class TestAuthorizationCodeNhsLoginErrorCases:
         await test_product2.update_scopes(product_2_scopes)
 
         
-        state = await auth_code_nhs_login.get_state(self.oauth, test_app)
+        state = await auth_code_nhs_login.get_state(self.oauth, test_application)
 
 
         # Make simulated auth request to authenticate and  Make initial callback request

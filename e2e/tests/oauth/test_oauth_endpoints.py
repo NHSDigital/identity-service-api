@@ -208,10 +208,10 @@ class TestOauthEndpoints:
         )
 
     async def test_authorize_unsubscribed_error_condition(
-        self, test_product, test_app, helper
+        self, test_product, test_application, helper
     ):
         await test_product.update_proxies(["canary-api-internal-dev"])
-        await test_app.add_api_product([test_product.name])
+        await test_application.add_api_product([test_product.name])
 
         assert await helper.send_request_and_check_output(
             expected_status_code=401,
@@ -225,8 +225,8 @@ class TestOauthEndpoints:
             method="GET",
             endpoint="authorize",
             params={
-                "client_id": test_app.client_id,
-                "redirect_uri": test_app.callback_url,
+                "client_id": test_application.client_id,
+                "redirect_uri": test_application.callback_url,
                 "response_type": "code",
                 "state": random.getrandbits(32),
             },
@@ -236,10 +236,10 @@ class TestOauthEndpoints:
     @pytest.mark.errors
     @pytest.mark.token_endpoint
     async def test_token_unsubscribed_error_condition(
-        self, test_product, test_app, helper
+        self, test_product, test_application, helper
     ):
         await test_product.update_proxies(["canary-api-internal-dev"])
-        await test_app.add_api_product([test_product.name])
+        await test_application.add_api_product([test_product.name])
 
         assert await helper.send_request_and_check_output(
             expected_status_code=401,
@@ -252,9 +252,9 @@ class TestOauthEndpoints:
             function=self.oauth.get_token_response,
             grant_type="authorization_code",
             data={
-                "client_id": test_app.client_id,
-                "client_secret": test_app.client_secret,
-                "redirect_uri": test_app.callback_url,
+                "client_id": test_application.client_id,
+                "client_secret": test_application.client_secret,
+                "redirect_uri": test_application.callback_url,
                 "grant_type": "authorization_code",
                 "code": await self.oauth.get_authenticated_with_simulated_auth(),
             },

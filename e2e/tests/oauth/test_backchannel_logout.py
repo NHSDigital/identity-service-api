@@ -1,15 +1,11 @@
 import os
 import pytest
+import requests
+import jwt
 
-from asyncio import sleep
-from time import time
+from time import time, sleep
 from typing import Dict, Optional
 from uuid import uuid4
-from api_test_utils.oauth_helper import OauthHelper
-from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
-from api_test_utils.apigee_api_products import ApigeeApiProducts
-
-from e2e.scripts import config
 
 
 def get_env(variable_name: str) -> str:
@@ -24,7 +20,6 @@ def get_env(variable_name: str) -> str:
 
 
 def create_logout_token(
-    test_app: ApigeeApiDeveloperApps,
     override_claims: Optional[Dict[str, str]] = None,
     override_kid: Optional[str] = None,
     override_sid: Optional[str] = None,
@@ -51,146 +46,130 @@ def create_logout_token(
 
     if override_sid:
         logout_token_claims['sid'] = override_sid
-
+    
     id_token_private_key_path = get_env("ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH")
 
     with open(id_token_private_key_path, "r") as f:
         contents = f.read()
-
-    logout_token_jwt = test_app.oauth.create_id_token_jwt(
+    
+    logout_token_jwt = jwt.encode(
+        logout_token_claims,
+        contents,
         algorithm="RS512",
-        claims=logout_token_claims,
-        headers=logout_token_headers,
-        signing_key=contents,
+        headers=logout_token_headers
     )
 
     return logout_token_jwt
 
 
-@pytest.fixture(scope="function")
-async def test_app():
-    """Programatically create and destroy test app for each test"""
-    apigee_product = ApigeeApiProducts()
-    await apigee_product.create_new_product()
-    await apigee_product.update_proxies([config.SERVICE_NAME])
-
-    apigee_app = ApigeeApiDeveloperApps()
-
-    await apigee_product.update_ratelimits(
-        quota=60000,
-        quota_interval="1",
-        quota_time_unit="minute",
-        rate_limit="1000ps",
-    )
-
-    await apigee_app.setup_app(
-        api_products=[apigee_product.name],
-        custom_attributes={
-            "jwks-resource-url": "https://internal-dev.api.service.nhs.uk/mock-nhsid-jwks/identity-service/nhs-cis2-jwks"
-        }
-    )
-
-    apigee_app.oauth = OauthHelper(apigee_app.client_id, apigee_app.client_secret, apigee_app.callback_url)
-
-    api_service_name = get_env("SERVICE_NAME")
-
-    await apigee_product.update_scopes(
-        ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"]
-    )
-
-    yield apigee_app
-
-    await apigee_app.destroy_app()
-
-
 @pytest.mark.asyncio
 class TestBackChannelLogout:
     """ A test suite for back-channel logout functionality"""
-    async def get_access_token(self, get_token_body: Optional[bool] = False):
-
-        token_resp = self.oauth.get_authenticated_with_mock_auth("aal3")
-
-        token = token_resp if get_token_body else token_resp["access_token"]
-
-        return token, token_resp.get("sid", None)
-
-    async def call_user_info(self, app, access_token):
-        user_info_resp = await app.oauth.hit_oauth_endpoint(
-            method="GET",
-            endpoint="userinfo",
-            headers={"Authorization": f"Bearer {access_token}"}
-        )
-
-        return user_info_resp
     
     @pytest.mark.mock_auth
-    @pytest.mark.asyncio
     @pytest.mark.happy_path
-    async def test_backchannel_logout_happy_path(self, test_app):
-        access_token, sid = await self.get_access_token()
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
+    def test_backchannel_logout_happy_path(self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url):
+        access_token = _nhsd_apim_auth_token_data["access_token"]
+        sid = _nhsd_apim_auth_token_data["sid"]
         assert sid
 
         # Test token can be used to access identity service
-        userinfo_resp = await self.call_user_info(test_app, access_token)
-        assert userinfo_resp['status_code'] == 200
+        userinfo_resp = requests.get(
+            nhsd_apim_proxy_url + "/userinfo", headers={"Authorization": f"Bearer {access_token}"}
+        )
+        assert userinfo_resp.status_code == 200
 
         # Mock back channel logout notification and test succesful logout response
-        logout_token = create_logout_token(test_app, override_sid=sid)
+        logout_token = create_logout_token(override_sid=sid)
 
-        back_channel_resp = await test_app.oauth.hit_oauth_endpoint(
-            method="POST",
-            endpoint="backchannel_logout",
+        back_channel_resp = requests.post(
+            nhsd_apim_proxy_url + "/backchannel_logout",
             data={"logout_token": logout_token}
         )
-        assert back_channel_resp['status_code'] == 200
+        assert back_channel_resp.status_code == 200
 
         # Revoking a token seems to be eventually consistent?
-        await sleep(2)
+        sleep(2)
 
         # Test access token has been revoked
-        userinfo_resp = await self.call_user_info(test_app, access_token)
-        assert userinfo_resp['status_code'] == 401
+        userinfo_resp = requests.get(
+            nhsd_apim_proxy_url + "/userinfo", headers={"Authorization": f"Bearer {access_token}"}
+        )
+        assert userinfo_resp.status_code == 401
     
     @pytest.mark.mock_auth
-    @pytest.mark.asyncio
     @pytest.mark.happy_path
-    async def test_backchannel_logout_user_refresh_token(self, test_app):
-        token, sid = await self.get_access_token(get_token_body=True)
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
+    def test_backchannel_logout_user_refresh_token(self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url, _test_app_credentials):
+        access_token = _nhsd_apim_auth_token_data["access_token"]
+        sid = _nhsd_apim_auth_token_data["sid"]
         assert sid
 
         # Test token can be used to access identity service
-        userinfo_resp = await self.call_user_info(test_app, token['access_token'])
-        assert userinfo_resp['status_code'] == 200
+        userinfo_resp = requests.get(
+            nhsd_apim_proxy_url + "/userinfo", headers={"Authorization": f"Bearer {access_token}"}
+        )
+        assert userinfo_resp.status_code == 200
 
         # refresh token
-        refresh_token_resp = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=token['refresh_token'])
+        refresh_token_resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data={
+                "client_id": _test_app_credentials["consumerKey"],
+                "client_secret": _test_app_credentials["consumerSecret"],
+                "refresh_token": _nhsd_apim_auth_token_data["refresh_token"],
+                "grant_type": "refresh_token",
+            }
+        )
+        refreshed_access_token = refresh_token_resp.json()["access_token"]
 
-        refresh_userinfo_resp = await self.call_user_info(test_app, refresh_token_resp['body']['access_token'])
-        assert refresh_userinfo_resp['status_code'] == 200
+        refresh_userinfo_resp = requests.get(
+            nhsd_apim_proxy_url + "/userinfo", headers={"Authorization": f"Bearer {refreshed_access_token}"}
+        )
+        assert refresh_userinfo_resp.status_code == 200
         
         # Mock back channel logout notification and test succesful logout response
-        logout_token = create_logout_token(test_app, override_sid=sid)
+        logout_token = create_logout_token(override_sid=sid)
 
-        back_channel_resp = await test_app.oauth.hit_oauth_endpoint(
-            method="POST",
-            endpoint="backchannel_logout",
+        back_channel_resp = requests.post(
+            nhsd_apim_proxy_url + "/backchannel_logout",
             data={"logout_token": logout_token}
         )
-        assert back_channel_resp['status_code'] == 200
+        assert back_channel_resp.status_code == 200
 
         # Revoking a token seems to be eventually consistent?
-        await sleep(2)
+        sleep(2)
 
         # Test access token has been revoked
-        post_userinfo_resp = await self.call_user_info(test_app, token['access_token'])
-        assert post_userinfo_resp['status_code'] == 401
+        post_userinfo_resp = requests.get(
+            nhsd_apim_proxy_url + "/userinfo", headers={"Authorization": f"Bearer {access_token}"}
+        )
+        assert post_userinfo_resp.status_code == 401
 
-        post_refresh_userinfo_resp = await self.call_user_info(test_app, refresh_token_resp['body']['access_token'])
-        assert post_refresh_userinfo_resp['status_code'] == 401
+        post_refresh_userinfo_resp = requests.get(
+            nhsd_apim_proxy_url + "/userinfo", headers={"Authorization": f"Bearer {refreshed_access_token}"}
+        )
+        assert post_refresh_userinfo_resp.status_code == 401
 
     # Request sends a JWT has missing or invalid claims of the following problems, returns a 400
     @pytest.mark.mock_auth
-    @pytest.mark.asyncio
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
     @pytest.mark.parametrize("claims,status_code,error_message", [
         (  # invalid aud claim
             {
@@ -294,84 +273,67 @@ class TestBackChannelLogout:
             "Prohibited nonce claim in JWT"
         )
     ])
-    async def test_claims(self, test_app, claims, status_code, error_message):
-        access_token, _sid = await self.get_access_token()
+    def test_claims(self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url, claims, status_code, error_message):
+        access_token = _nhsd_apim_auth_token_data["access_token"]
 
         # Test token can be used to access identity service
-        userinfo_resp = await self.call_user_info(test_app, access_token)
-        assert userinfo_resp['status_code'] == 200
+        userinfo_resp = requests.get(
+            nhsd_apim_proxy_url + "/userinfo", headers={"Authorization": f"Bearer {access_token}"}
+        )
+        assert userinfo_resp.status_code == 200
 
         # Mock back channel logout notification with overridden claims
-        logout_token = create_logout_token(test_app, override_claims=claims)
+        logout_token = create_logout_token(override_claims=claims)
 
         # Submit logout token to back-channel logout endpoint
-        back_channel_resp = await test_app.oauth.hit_oauth_endpoint(
-            method="POST",
-            endpoint="backchannel_logout",
+        back_channel_resp = requests.post(
+            nhsd_apim_proxy_url + "/backchannel_logout",
             data={"logout_token": logout_token}
         )
 
-        assert back_channel_resp["status_code"] == status_code
-        assert back_channel_resp["body"]["error_description"] == error_message
+        assert back_channel_resp.status_code == status_code
+        assert back_channel_resp.json()["error_description"] == error_message
 
     # Request sends JWT that cannot be verified returns a  400
     @pytest.mark.mock_auth
-    @pytest.mark.asyncio
-    async def test_invalid_jwt(self, test_app):
-        access_token, _sid = await self.get_access_token()
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
+    async def test_invalid_jwt(self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url):
+        access_token = _nhsd_apim_auth_token_data["access_token"]
 
         # Test token can be used to access identity service
-        userinfo_resp = await self.call_user_info(test_app, access_token)
-        assert userinfo_resp['status_code'] == 200
+        userinfo_resp = requests.get(
+            nhsd_apim_proxy_url + "/userinfo", headers={"Authorization": f"Bearer {access_token}"}
+        )
+        assert userinfo_resp.status_code == 200
 
         # Mock back channel logout notification and test with invalid kid
-        logout_token = create_logout_token(test_app, override_kid="invalid_kid",
-                                           override_sid="5b8f2499-ad4a-4a7c-b0ac-aaada65bda2b")
+        logout_token = create_logout_token(
+            override_kid="invalid_kid",
+            override_sid="5b8f2499-ad4a-4a7c-b0ac-aaada65bda2b"
+        )
 
-        back_channel_resp = await test_app.oauth.hit_oauth_endpoint(
-            method="POST",
-            endpoint="backchannel_logout",
+        back_channel_resp = requests.post(
+            nhsd_apim_proxy_url + "/backchannel_logout",
             data={"logout_token": logout_token}
         )
 
-        assert back_channel_resp["status_code"] == 400
-        assert back_channel_resp["body"]["error_description"] == "Unable to verify JWT"
+        assert back_channel_resp.status_code == 400
+        assert back_channel_resp.json()["error_description"] == "Unable to verify JWT"
 
     # Requests sends an logout token that does not exist in the session-id cache returns a 501
     @pytest.mark.mock_auth
-    @pytest.mark.asyncio
-    async def test_sid_not_cached(self, test_app):
-        logout_token = create_logout_token(test_app, override_sid="5b8f2499-ad4a-4a7c-b0ac-aaada65bda2b")
+    @pytest.mark.parametrize("sid", ["5b8f2499-ad4a-4a7c-b0ac-aaada65bda2b", "12a5019c-17e1-4977-8f42-65a12843ea02"])
+    def test_sid_not_cached(self, nhsd_apim_proxy_url, sid):
+        logout_token = create_logout_token(override_sid=sid)
 
-        back_channel_resp = await test_app.oauth.hit_oauth_endpoint(
-            method="POST",
-            endpoint="backchannel_logout",
+        back_channel_resp = requests.post(
+            nhsd_apim_proxy_url + "/backchannel_logout",
             data={"logout_token": logout_token}
         )
 
-        assert back_channel_resp["status_code"] == 501
-
-    # Requests sends an logout token that does not match the session-id cache returns a 501
-    @pytest.mark.mock_auth
-    @pytest.mark.asyncio
-    async def test_cached_sid_does_not_match(self, test_app):
-        claims_non_matching_sid = {
-            "aud": "test-client-1",
-            "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock",
-            "sub": "9999999999",
-            "iat": int(time()) - 10,
-            "jti": str(uuid4()),
-            "sid": "12a5019c-17e1-4977-8f42-65a12843ea02",
-            "events": {"http://schemas.openid.net/event/backchannel-logout": {}}
-        }
-
-        # Mock back channel logout notification and test with different sid
-        logout_token = create_logout_token(test_app, override_claims=claims_non_matching_sid)
-
-        back_channel_resp = await test_app.oauth.hit_oauth_endpoint(
-            method="POST",
-            endpoint="backchannel_logout",
-            data={"logout_token": logout_token}
-        )
-
-        assert back_channel_resp["status_code"] == 501
+        assert back_channel_resp.status_code == 501
