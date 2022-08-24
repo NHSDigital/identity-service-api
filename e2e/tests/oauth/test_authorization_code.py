@@ -18,20 +18,18 @@ import sys
 @pytest.mark.asyncio
 class TestAuthorizationCode:
     """ A test suit to test the token exchange flow """
-    def _update_secrets(self, request):
-        if request.get("claims", None):
-            if request["claims"].get("sub", None) == "/replace_me":
-                request["claims"]['sub'] = self.oauth.client_id
-
-            if request["claims"].get("iss", None) == "/replace_me":
-                request["claims"]['iss'] = self.oauth.client_id
-        else:
-            if request.get("sub", None) == "/replace_me":
-                request['sub'] = self.oauth.client_id
-            if request.get("iis", None) == "/replace_me":
-                request["iis"] = self.oauth.client_id
 
 ############# OAUTH ENDPOINTS ###########
+    def _update_secrets(self, request):
+        key = ("params", "data")[request.get("params", None) is None]
+        if request[key].get("client_id", None) == "/replace_me":
+            request[key]["client_id"] = self.oauth.client_id
+
+        if request[key].get("client_secret", None) == "/replace_me":
+            request[key]["client_secret"] = self.oauth.client_secret
+
+        if request[key].get("redirect_uri", None) == "/replace_me":
+            request[key]["redirect_uri"] = self.oauth.redirect_uri
 
     @pytest.mark.happy_path
     @pytest.mark.authorize_endpoint
@@ -118,9 +116,6 @@ class TestAuthorizationCode:
             params={"code": auth_code, "client_id": "some-client-id", "state": state},
         )
 
-    @pytest.mark.apm_801
-    @pytest.mark.apm_990
-    @pytest.mark.apm_1475
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
     @pytest.mark.parametrize(
@@ -269,7 +264,6 @@ class TestAuthorizationCode:
             },
         )
 
-    @pytest.mark.apm_1475
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
     @pytest.mark.parametrize(
