@@ -1,13 +1,22 @@
-from e2e.scripts.config import OAUTH_URL, ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH
+from e2e.scripts.config import (
+    OAUTH_URL,
+    STATUS_ENDPOINT_API_KEY,
+    ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
+    CANARY_API_URL
+)
+from e2e.scripts.response_bank import BANK
 import pytest
 from uuid import uuid4
-from time import time
+from time import time, sleep
 from random import choice
 from string import ascii_letters
+import random
+import requests
+import sys
 
 
 @pytest.mark.asyncio
-class TestClientCredentials:
+class TestClientCredentialsJWT:
     """ A test suit to test the client credentials flow """
     def _update_secrets(self, request):
         if request.get("claims", None):
@@ -21,7 +30,9 @@ class TestClientCredentials:
                 request['sub'] = self.oauth.client_id
             if request.get("iis", None) == "/replace_me":
                 request["iis"] = self.oauth.client_id
-    
+
+############## JWT ###############
+
     @pytest.mark.happy_path
     async def test_successful_jwt_token_response(self):
         jwt = self.oauth.create_jwt(kid="test-1")
@@ -648,3 +659,31 @@ class TestClientCredentials:
                 'error': 'public_key error',
                 'error_description': "The JWKS endpoint, for your client_assertion can't be reached"
             }
+
+############# OAUTH ENDPOINTS ###########
+
+    async def test_userinfo_client_credentials_token(self):
+        # Given
+        expected_status_code = 400
+        expected_error = 'invalid_request'
+        expected_error_description = 'The Userinfo endpoint is only supported for Combined Auth integrations. Currently this is only for NHS CIS2 authentications - for more guidance see https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/user-restricted-restful-apis-nhs-cis2-combined-authentication-and-authorisation'
+
+        # When
+        jwt = self.oauth.create_jwt(kid="test-1")
+        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
+
+        token = resp["body"]["access_token"]
+
+        resp = await self.oauth.hit_oauth_endpoint(
+            method="GET",
+            endpoint="userinfo",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+
+        # Then
+        assert expected_status_code == resp['status_code']
+        assert expected_error == resp['body']['error']
+        assert expected_error_description == resp['body']['error_description']
+
+############## OAUTH TOKENS ###############
