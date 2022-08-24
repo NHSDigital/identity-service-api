@@ -22,6 +22,33 @@ class TestTokenExchange:
             if request.get("iis", None) == "/replace_me":
                 request["iis"] = self.oauth.client_id
 
+    @pytest.mark.simulated_auth
+    @pytest.mark.happy_path
+    @pytest.mark.token_exchange
+    async def test_token_exchange_happy_path(self):
+        # Given
+        expected_status_code = 200
+        expected_expires_in = '599'
+        expected_token_type = 'Bearer'
+        expected_issued_token_type = 'urn:ietf:params:oauth:token-type:access_token'
+
+        id_token_jwt = self.oauth.create_id_token_jwt()
+        client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
+
+        # When
+        resp = await self.oauth.get_token_response(
+            grant_type="token_exchange",
+            _jwt=client_assertion_jwt,
+            id_token_jwt=id_token_jwt
+        )
+
+        # Then
+        assert expected_status_code == resp['status_code'], resp['body']
+        assert 'access_token' in resp['body']
+        assert expected_expires_in == resp['body']['expires_in']
+        assert expected_token_type == resp['body']['token_type']
+        assert expected_issued_token_type == resp['body']['issued_token_type']
+
     @pytest.mark.errors
     @pytest.mark.token_exchange
     async def test_token_exchange_invalid_client_assertion_type(self):

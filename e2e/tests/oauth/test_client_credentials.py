@@ -21,6 +21,17 @@ class TestClientCredentials:
                 request['sub'] = self.oauth.client_id
             if request.get("iis", None) == "/replace_me":
                 request["iis"] = self.oauth.client_id
+    
+    @pytest.mark.happy_path
+    async def test_successful_jwt_token_response(self):
+        jwt = self.oauth.create_jwt(kid="test-1")
+        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
+
+        assert resp['status_code'] == 200
+        assert resp['body'].get('expires_in') == '599', f"UNEXPECTED 'expires_in' {resp.get('expires_in')} {resp['body']}"
+
+        assert list(resp['body'].keys()) == ['access_token', 'expires_in', 'token_type', 'issued_at'], \
+            f'UNEXPECTED RESPONSE: {list(resp["body"].keys())}'
 
     @pytest.mark.apm_1521
     @pytest.mark.errors
@@ -441,17 +452,6 @@ class TestClientCredentials:
         assert helper.check_response(
             resp, 400, {'error': 'invalid_request', 'error_description': 'Non-unique jti claim in JWT'})
 
-    @pytest.mark.happy_path
-    async def test_successful_jwt_token_response(self):
-        jwt = self.oauth.create_jwt(kid="test-1")
-        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
-
-        assert resp['status_code'] == 200
-        assert resp['body'].get('expires_in') == '599', f"UNEXPECTED 'expires_in' {resp.get('expires_in')} {resp['body']}"
-
-        assert list(resp['body'].keys()) == ['access_token', 'expires_in', 'token_type', 'issued_at'], \
-            f'UNEXPECTED RESPONSE: {list(resp["body"].keys())}'
-
     @pytest.mark.errors
     async def test_invalid_client_assertion_type(self, helper):
 
@@ -648,30 +648,3 @@ class TestClientCredentials:
                 'error': 'public_key error',
                 'error_description': "The JWKS endpoint, for your client_assertion can't be reached"
             }
-
-    @pytest.mark.simulated_auth
-    @pytest.mark.happy_path
-    @pytest.mark.token_exchange
-    async def test_token_exchange_happy_path(self):
-        # Given
-        expected_status_code = 200
-        expected_expires_in = '599'
-        expected_token_type = 'Bearer'
-        expected_issued_token_type = 'urn:ietf:params:oauth:token-type:access_token'
-
-        id_token_jwt = self.oauth.create_id_token_jwt()
-        client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
-
-        # When
-        resp = await self.oauth.get_token_response(
-            grant_type="token_exchange",
-            _jwt=client_assertion_jwt,
-            id_token_jwt=id_token_jwt
-        )
-
-        # Then
-        assert expected_status_code == resp['status_code'], resp['body']
-        assert 'access_token' in resp['body']
-        assert expected_expires_in == resp['body']['expires_in']
-        assert expected_token_type == resp['body']['token_type']
-        assert expected_issued_token_type == resp['body']['issued_token_type']
