@@ -687,3 +687,21 @@ class TestClientCredentialsJWT:
         assert expected_error_description == resp['body']['error_description']
 
 ############## OAUTH TOKENS ###############
+
+    @pytest.mark.parametrize("token_expiry_ms, expected_time", [(100000, 100), (500000, 500),(700000, 600), (1000000, 600)])
+    async def test_access_token_override_with_client_credentials(self, token_expiry_ms, expected_time):
+        """
+        Test client credential flow access token can be overridden with a time less than 10 min(600000ms or 600s)
+        and NOT be overridden with a time greater than 10 min(600000ms or 600s)
+        """
+        form_data = {
+            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            "client_assertion": self.oauth.create_jwt('test-1'),
+            "grant_type": 'client_credentials',
+            "_access_token_expiry_ms": token_expiry_ms
+        }
+
+        resp = await self.oauth.get_token_response(grant_type='client_credentials', data=form_data)
+
+        assert resp['status_code'] == 200
+        assert int(resp['body']['expires_in']) <= expected_time
