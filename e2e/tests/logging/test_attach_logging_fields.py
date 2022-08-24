@@ -9,6 +9,7 @@ from e2e.scripts.config import OAUTH_URL, CANARY_API_URL, ENVIRONMENT, ID_TOKEN_
 
 @pytest.mark.asyncio
 class TestAttachLoggingFields:
+    @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.logging
     @pytest.mark.usefixtures('set_access_token')
@@ -33,6 +34,7 @@ class TestAttachLoggingFields:
         assert auth_provider == 'nhs-cis2'
         assert auth_user_id == '787807429511'
 
+    @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.logging
     @pytest.mark.parametrize('scope', ['P9', 'P5', 'P0'])
@@ -161,6 +163,7 @@ class TestAttachLoggingFields:
         assert auth_provider == 'apim'
         assert auth_user_id == ''
 
+    @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.logging
     async def test_access_token_fields_for_logging_when_using_token_exchange_cis2(self):
@@ -190,6 +193,7 @@ class TestAttachLoggingFields:
         assert auth_level == 'aal3'
         assert auth_user_id == '787807429511'
 
+    @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.logging
     @pytest.mark.parametrize('scope', ['P9', 'P5', 'P0'])

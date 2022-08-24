@@ -44,6 +44,7 @@ class TestSplunkLoggingFields:
         auth_user = auth["user"]
         assert auth_user["user_id"] == ""  # user_id is unknown when hitting /authorize
 
+    @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.logging
     async def test_splunk_fields_for_callback_endpoint_for_cis2(self, helper):
@@ -110,6 +111,7 @@ class TestSplunkLoggingFields:
         auth_user = auth["user"]
         assert auth_user["user_id"] == "787807429511"
 
+    @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.logging
     async def test_splunk_fields_for_callback_endpoint_for_nhs_login(self, helper):

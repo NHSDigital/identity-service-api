@@ -622,10 +622,10 @@ class TestJwtUnattendedAccess:
         assert resp['body'] == {'error': 'invalid_request', 'error_description': 'Malformed JWT in client_assertion'}
 
     @pytest.mark.errors
-    async def test_no_jwks_resource_url_set(self, test_product, test_app):
-        await test_app.add_api_product([test_product.name])
+    async def test_no_jwks_resource_url_set(self, test_product, test_application):
+        await test_application.add_api_product([test_product.name])
 
-        jwt = self.oauth.create_jwt(kid='test-1', client_id=test_app.client_id)
+        jwt = self.oauth.create_jwt(kid='test-1', client_id=test_application.client_id)
         resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
 
         assert resp['status_code'] == 403
@@ -636,11 +636,11 @@ class TestJwtUnattendedAccess:
             }
 
     @pytest.mark.errors
-    async def test_invalid_jwks_resource_url(self, test_product, test_app):
-        await test_app.add_api_product([test_product.name])
-        await test_app.set_custom_attributes(attributes={"jwks-resource-url": "http://invalid_url"})
+    async def test_invalid_jwks_resource_url(self, test_product, test_application):
+        await test_application.add_api_product([test_product.name])
+        await test_application.set_custom_attributes(attributes={"jwks-resource-url": "http://invalid_url"})
 
-        jwt = self.oauth.create_jwt(kid='test-1', client_id=test_app.client_id)
+        jwt = self.oauth.create_jwt(kid='test-1', client_id=test_application.client_id)
         resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
 
         assert resp['status_code'] == 403
@@ -649,6 +649,7 @@ class TestJwtUnattendedAccess:
                 'error_description': "The JWKS endpoint, for your client_assertion can't be reached"
             }
 
+    @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.token_exchange
     async def test_token_exchange_happy_path(self):
@@ -1010,6 +1011,7 @@ class TestJwtUnattendedAccess:
         assert expected_error_description == resp['body']['error_description']
 
 
+    @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.token_exchange
     async def test_token_exchange_subject_token_missing_aud_claim(self):
@@ -1107,6 +1109,7 @@ class TestJwtUnattendedAccess:
         assert expected_error == resp['body']['error']
         assert expected_error_description == resp['body']['error_description']
 
+    @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.token_exchange
     async def test_nhs_login_happy_path(self):
@@ -1221,6 +1224,7 @@ class TestJwtUnattendedAccess:
         assert expected_error == resp['body']['error']
         assert expected_error_description == resp['body']['error_description']
 
+    @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.token_exchange
     async def test_token_exchange_subject_token_nhs_login_missing_aud_claim(self):
@@ -1388,7 +1392,7 @@ class TestJwtUnattendedAccess:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    async def test_token_exchange_invalid_jwks_resource_url(self, test_product, test_app):
+    async def test_token_exchange_invalid_jwks_resource_url(self, test_product, test_application):
         # Given
         expected_status_code = 403
         expected_error = 'public_key error'
@@ -1396,10 +1400,10 @@ class TestJwtUnattendedAccess:
 
         id_token_jwt = self.oauth.create_id_token_jwt()
 
-        await test_app.add_api_product([test_product.name])
-        await test_app.set_custom_attributes(attributes={"jwks-resource-url": "http://invalid_url"})
+        await test_application.add_api_product([test_product.name])
+        await test_application.set_custom_attributes(attributes={"jwks-resource-url": "http://invalid_url"})
 
-        client_assertion_jwt = self.oauth.create_jwt(kid='test-1', client_id=test_app.client_id)
+        client_assertion_jwt = self.oauth.create_jwt(kid='test-1', client_id=test_application.client_id)
 
         # When
         resp = await self.oauth.get_token_response(
@@ -1415,7 +1419,7 @@ class TestJwtUnattendedAccess:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    async def test_token_exchange_no_jwks_resource_url_set(self, test_product, test_app):
+    async def test_token_exchange_no_jwks_resource_url_set(self, test_product, test_application):
         # Given
         expected_status_code = 403
         expected_error = 'public_key error'
@@ -1424,8 +1428,8 @@ class TestJwtUnattendedAccess:
 
         id_token_jwt = self.oauth.create_id_token_jwt()
 
-        await test_app.add_api_product([test_product.name])
-        client_assertion_jwt = self.oauth.create_jwt(kid='test-1', client_id=test_app.client_id)
+        await test_application.add_api_product([test_product.name])
+        client_assertion_jwt = self.oauth.create_jwt(kid='test-1', client_id=test_application.client_id)
 
         # When
         resp = await self.oauth.get_token_response(

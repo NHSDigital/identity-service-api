@@ -1,3 +1,8 @@
+parameters:
+  - name: mock_auth
+    type: boolean
+    default: false
+
 steps:
   - task: s3-cache-action@1
     inputs:
@@ -35,10 +40,27 @@ steps:
       export ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH="$(Pipeline.Workspace)/secrets/$(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY)"
       export JWT_PRIVATE_KEY_ABSOLUTE_PATH="$(Pipeline.Workspace)/secrets/$(JWT_TESTING_PRIVATE_KEY)"
       export APIGEE_API_TOKEN="$(secret.AccessToken)"
+      export APIGEE_ACCESS_TOKEN="$(secret.AccessToken)"
       export STATUS_ENDPOINT_API_KEY="$(status-endpoint-api-key)"
       make e2e
     workingDirectory: $(SERVICE_DIR)
     displayName: run e2e tests
+    condition: eq('${{ parameters.mock_auth }}', 'false')
+  
+  - bash: |
+      export OAUTH_BASE_URI="https://$(APIGEE_ENVIRONMENT).api.service.nhs.uk"
+      export OAUTH_PROXY="$(SERVICE_BASE_PATH)"
+      export SERVICE_NAME="$(FULLY_QUALIFIED_SERVICE_NAME)"
+      export ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH="$(Pipeline.Workspace)/secrets/$(ID_TOKEN_TESTING_PRIVATE_KEY)"
+      export ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH="$(Pipeline.Workspace)/secrets/$(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY)"
+      export JWT_PRIVATE_KEY_ABSOLUTE_PATH="$(Pipeline.Workspace)/secrets/$(JWT_TESTING_PRIVATE_KEY)"
+      export APIGEE_API_TOKEN="$(secret.AccessToken)"
+      export APIGEE_ACCESS_TOKEN="$(secret.AccessToken)"
+      export STATUS_ENDPOINT_API_KEY="$(status-endpoint-api-key)"
+      make e2e-mock
+    workingDirectory: $(SERVICE_DIR)
+    displayName: run mock auth e2e tests
+    condition: eq('${{ parameters.mock_auth }}', 'true')
     
   - task: PublishTestResults@2
     displayName: publish e2e test results
