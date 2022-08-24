@@ -18,7 +18,7 @@ from e2e.scripts.config import (
     PROXY_NAME
 )
 
-
+######### pytest-nhsd-apim fixtures ############
 @pytest.fixture(scope="session")
 def nhsd_apim_api_name():
     return API_NAME
@@ -27,6 +27,8 @@ def nhsd_apim_api_name():
 @pytest.fixture(scope="session")
 def nhsd_apim_proxy_name():
     return PROXY_NAME
+
+################################################
 
 @pytest.fixture()
 def get_token(request):
