@@ -1,16 +1,11 @@
 from e2e.scripts.config import (
     OAUTH_URL,
-    STATUS_ENDPOINT_API_KEY,
     ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
     CANARY_API_URL
 )
-from e2e.scripts.response_bank import BANK
 import pytest
 from uuid import uuid4
 from time import time, sleep
-from random import choice
-from string import ascii_letters
-import random
 import requests
 import sys
 
@@ -18,6 +13,7 @@ import sys
 @pytest.mark.asyncio
 class TestTokenExchange:
     """ A test suit to test the token exchange flow """
+
     def _update_secrets(self, request):
         if request.get("claims", None):
             if request["claims"].get("sub", None) == "/replace_me":
@@ -31,7 +27,7 @@ class TestTokenExchange:
             if request.get("iis", None) == "/replace_me":
                 request["iis"] = self.oauth.client_id
 
-############## JWT ###############
+    # ############# JWT ###############
 
     @pytest.mark.simulated_auth
     @pytest.mark.happy_path
@@ -394,7 +390,6 @@ class TestTokenExchange:
         assert expected_error == resp['body']['error']
         assert expected_error_description == resp['body']['error_description']
 
-
     @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.token_exchange
@@ -468,7 +463,7 @@ class TestTokenExchange:
             'azp': '969567331415.apps.national',
             'auth_time': 1610559802,
             'realm': '/NHSIdentity/Healthcare',
-            #'exp': int(time()) + 600,
+            # 'exp': int(time()) + 600,
             'tokenType': 'JWTToken',
             'iat': int(time()) - 10
         }
@@ -512,7 +507,7 @@ class TestTokenExchange:
             'vot': 'P9.Cp.Cd',
             'exp': int(time()) + 600,
             'iat': int(time()) - 10,
-            'vtm' : 'https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk',
+            'vtm': 'https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk',
             'jti': 'b68ddb28-e440-443d-8725-dfe0da330118',
             "identity_proofing_level": "P9"
         }
@@ -532,7 +527,8 @@ class TestTokenExchange:
             contents = f.read()
 
         client_assertion_jwt = self.oauth.create_jwt(kid="test-1")
-        id_token_jwt = self.oauth.create_id_token_jwt(algorithm='RS512',claims=id_token_claims, headers = id_token_headers, signing_key=contents)
+        id_token_jwt = self.oauth.create_id_token_jwt(algorithm='RS512', claims=id_token_claims,
+                                                      headers=id_token_headers, signing_key=contents)
 
         # When
         resp = await self.oauth.get_token_response(
@@ -546,7 +542,7 @@ class TestTokenExchange:
             }
         )
 
-    #     # Then
+        #     # Then
         assert expected_status_code == resp['status_code'], resp['body']
         assert 'access_token' in resp['body']
         assert expected_expires_in == resp['body']['expires_in']
@@ -570,7 +566,7 @@ class TestTokenExchange:
             'vot': 'P9.Cp.Cd',
             'exp': int(time()) + 600,
             'iat': int(time()) - 10,
-            'vtm' : 'https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk',
+            'vtm': 'https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk',
             'jti': 'b68ddb28-e440-443d-8725-dfe0da330118'
         }
         id_token_headers = {
@@ -589,7 +585,8 @@ class TestTokenExchange:
             contents = f.read()
 
         client_assertion_jwt = self.oauth.create_jwt(kid="test-1")
-        id_token_jwt = self.oauth.create_id_token_jwt(algorithm='RS512',claims=id_token_claims, headers = id_token_headers, signing_key=contents)
+        id_token_jwt = self.oauth.create_id_token_jwt(algorithm='RS512', claims=id_token_claims,
+                                                      headers=id_token_headers, signing_key=contents)
 
         # When
         resp = await self.oauth.get_token_response(
@@ -626,7 +623,7 @@ class TestTokenExchange:
             'vot': 'P9.Cp.Cd',
             'exp': int(time()) + 600,
             'iat': int(time()) - 10,
-            'vtm' : 'https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk',
+            'vtm': 'https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk',
             'jti': 'b68ddb28-e440-443d-8725-dfe0da330118'
         }
         id_token_headers = {
@@ -645,7 +642,8 @@ class TestTokenExchange:
             contents = f.read()
 
         client_assertion_jwt = self.oauth.create_jwt(kid="test-1")
-        id_token_jwt = self.oauth.create_id_token_jwt(algorithm='RS512',claims=id_token_claims, headers = id_token_headers, signing_key=contents)
+        id_token_jwt = self.oauth.create_id_token_jwt(algorithm='RS512', claims=id_token_claims,
+                                                      headers=id_token_headers, signing_key=contents)
 
         # When
         resp = await self.oauth.get_token_response(
@@ -681,7 +679,7 @@ class TestTokenExchange:
             'vot': 'P9.Cp.Cd',
             # 'exp': int(time()) + 600,
             'iat': int(time()) - 10,
-            'vtm' : 'https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk',
+            'vtm': 'https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk',
             'jti': 'b68ddb28-e440-443d-8725-dfe0da330118'
         }
         id_token_headers = {
@@ -700,7 +698,8 @@ class TestTokenExchange:
             contents = f.read()
 
         client_assertion_jwt = self.oauth.create_jwt(kid="test-1")
-        id_token_jwt = self.oauth.create_id_token_jwt(algorithm='RS512',claims=id_token_claims, headers = id_token_headers, signing_key=contents)
+        id_token_jwt = self.oauth.create_id_token_jwt(algorithm='RS512', claims=id_token_claims,
+                                                      headers=id_token_headers, signing_key=contents)
 
         # When
         resp = await self.oauth.get_token_response(
@@ -736,7 +735,7 @@ class TestTokenExchange:
             'vot': 'P9.Cp.Cd',
             'exp': int(time()) + 600,
             'iat': int(time()) - 10,
-            'vtm' : 'https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk',
+            'vtm': 'https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk',
             'jti': 'b68ddb28-e440-443d-8725-dfe0da330118'
         }
         id_token_headers = {
@@ -755,7 +754,8 @@ class TestTokenExchange:
             contents = f.read()
 
         client_assertion_jwt = self.oauth.create_jwt(kid="test-1")
-        id_token_jwt = self.oauth.create_id_token_jwt(algorithm='RS512',claims=id_token_claims, headers = id_token_headers, signing_key=contents)
+        id_token_jwt = self.oauth.create_id_token_jwt(algorithm='RS512', claims=id_token_claims,
+                                                      headers=id_token_headers, signing_key=contents)
 
         # When
         resp = await self.oauth.get_token_response(
@@ -827,7 +827,7 @@ class TestTokenExchange:
         assert expected_error == resp['body']['error']
         assert expected_error_description == resp['body']['error_description']
 
-############# OAUTH ENDPOINTS ###########
+    # ############ OAUTH ENDPOINTS ###########
 
     @pytest.mark.simulated_auth
     @pytest.mark.errors
@@ -859,7 +859,11 @@ class TestTokenExchange:
         # Given
         expected_status_code = 400
         expected_error = 'invalid_request'
-        expected_error_description = 'The Userinfo endpoint is only supported for Combined Auth integrations. Currently this is only for NHS CIS2 authentications - for more guidance see https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/user-restricted-restful-apis-nhs-cis2-combined-authentication-and-authorisation'
+        expected_error_description = 'The Userinfo endpoint is only supported for Combined Auth integrations. ' \
+                                     'Currently this is only for NHS CIS2 authentications - for more guidance see ' \
+                                     'https://digital.nhs.uk/developer/guides-and-documentation/security-and' \
+                                     '-authorisation/user-restricted-restful-apis-nhs-cis2-combined-authentication' \
+                                     '-and-authorisation'
 
         # When
         resp = await get_exchange_code_nhs_login_token(self.oauth)
@@ -875,14 +879,12 @@ class TestTokenExchange:
         assert expected_error == resp['body']['error']
         assert expected_error_description == resp['body']['error_description']
 
-############## OAUTH TOKENS ###############
+    # ############# OAUTH TOKENS ###############
 
     @pytest.mark.simulated_auth
-    @pytest.mark.parametrize("auth_method", [("P0"), ("P5"), ("P9")])
+    @pytest.mark.parametrize("auth_method", ["P0", "P5", "P9"])
     @pytest.mark.authorize_endpoint
-    async def test_nhs_login_auth_code_flow_happy_path(
-        self, helper, auth_code_nhs_login
-    ):
+    async def test_nhs_login_auth_code_flow_happy_path(self, helper, auth_code_nhs_login):
         response = await auth_code_nhs_login.get_token(self.oauth)
         access_token = response["access_token"]
 
@@ -1038,7 +1040,8 @@ class TestTokenExchange:
 
         assert resp['status_code'] == 400
 
-    @pytest.mark.parametrize("token_expiry_ms, expected_time", [(100000, 100), (500000, 500),(700000, 600), (1000000, 600)])
+    @pytest.mark.parametrize("token_expiry_ms, expected_time",
+                             [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)])
     async def test_access_token_override_with_client_credentials(self, token_expiry_ms, expected_time):
         """
         Test client credential flow access token can be overridden with a time less than 10 min(600000ms or 600s)
@@ -1057,7 +1060,8 @@ class TestTokenExchange:
         assert int(resp['body']['expires_in']) <= expected_time
 
     @pytest.mark.simulated_auth
-    @pytest.mark.parametrize("token_expiry_ms, expected_time", [(100000, 100), (500000, 500),(700000, 600), (1000000, 600)])
+    @pytest.mark.parametrize("token_expiry_ms, expected_time",
+                             [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)])
     async def test_access_token_override_with_token_exchange(self, token_expiry_ms, expected_time):
         """
         Test token exchange flow access token can be overridden with a time less than 10 min(600000ms or 600s)
@@ -1147,7 +1151,8 @@ class TestTokenExchange:
         assert resp2['status_code'] == 401
 
     @pytest.mark.simulated_auth
-    @pytest.mark.parametrize("token_expiry_ms, expected_time", [(100000, 100), (500000, 500),(700000, 600), (1000000, 600)])
+    @pytest.mark.parametrize("token_expiry_ms, expected_time",
+                             [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)])
     async def test_access_token_override_with_authorization_code(self, token_expiry_ms, expected_time):
         """
         Test authorization code flow access token can be overridden with a time less than 10 min(600000ms or 600s)
@@ -1161,7 +1166,8 @@ class TestTokenExchange:
 
     @pytest.mark.simulated_auth
     @pytest.mark.usefixtures("set_refresh_token")
-    @pytest.mark.parametrize("token_expiry_ms, expected_time", [(100000, 100), (500000, 500),(700000, 600), (1000000, 600)])
+    @pytest.mark.parametrize("token_expiry_ms, expected_time",
+                             [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)])
     async def test_access_token_override_with_refresh_token(self, token_expiry_ms, expected_time):
         """
         Test refresh token flow access token can be overridden with a time less than 10 min(600000ms or 600s)
