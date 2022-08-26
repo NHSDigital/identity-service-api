@@ -1,6 +1,6 @@
 import pytest
 from uuid import uuid4
-from time import time
+from time import time, sleep
 import requests
 import jwt
 
@@ -17,9 +17,11 @@ def set_jwks_resource_url(_apigee_edge_session, _apigee_app_base_url, _create_te
     original_jwks_resource_url = get_resp.json()["value"]
 
     if new_jwks_resource_url is not None:
-        post_resp = _apigee_edge_session.post(url + '/jwks-resource-url', json={"name": "jwks-resource-url", "value": new_jwks_resource_url})
-
-        assert post_resp.json()["value"] == new_jwks_resource_url
+        app_url = original_jwks_resource_url
+        while app_url != new_jwks_resource_url:
+            post_resp = _apigee_edge_session.post(url + '/jwks-resource-url', json={"name": "jwks-resource-url", "value": new_jwks_resource_url})
+            assert post_resp.json()["value"] == new_jwks_resource_url
+            app_url = _apigee_edge_session.get(url + '/jwks-resource-url').json()["value"]
     else:
         delete_resp = _apigee_edge_session.delete(url + '/jwks-resource-url')
         assert delete_resp.status_code == 200
@@ -28,8 +30,10 @@ def set_jwks_resource_url(_apigee_edge_session, _apigee_app_base_url, _create_te
 
     jwks_attribute = {"name": "jwks-resource-url", "value": original_jwks_resource_url}
     if new_jwks_resource_url is not None:
-        post_resp2 = _apigee_edge_session.post(url + '/jwks-resource-url', json=jwks_attribute)
-        assert post_resp2.json()["value"] == original_jwks_resource_url
+        while app_url != original_jwks_resource_url:
+            post_resp2 = _apigee_edge_session.post(url + '/jwks-resource-url', json=jwks_attribute)
+            assert post_resp2.json()["value"] == original_jwks_resource_url
+            app_url = _apigee_edge_session.get(url + '/jwks-resource-url').json()["value"]
     else:
         post_resp2 = _apigee_edge_session.post(url, json={"attribute": [jwks_attribute]})
         assert jwks_attribute in post_resp2.json()["attribute"]
@@ -45,13 +49,14 @@ def claims(_test_app_credentials, nhsd_apim_proxy_url):
     }
     return claims
 
-@pytest.mark.asyncio
+
 class TestClientCredentialsJWT:
     """ A test suit to test the client credentials flow """
 
     @pytest.mark.happy_path
-    @pytest.mark.nhsd_apim_authorization(access="application", level="level3")
-    async def test_successful_jwt_token_response(self, _nhsd_apim_auth_token_data):
+    @pytest.mark.nhsd_apim_authorization(access="application", level="level3", force_new_token=True)
+    def test_successful_jwt_token_response(self, _nhsd_apim_auth_token_data):
+        print(_nhsd_apim_auth_token_data['access_token'])
         assert "access_token" in _nhsd_apim_auth_token_data.keys()
         assert "issued_at" in _nhsd_apim_auth_token_data.keys()
         assert _nhsd_apim_auth_token_data["expires_in"] == "599"
@@ -71,7 +76,7 @@ class TestClientCredentialsJWT:
             ("HS512"),
         ],
     )
-    async def test_incorrect_jwt_algorithm(
+    def test_incorrect_jwt_algorithm(
         self, claims, nhsd_apim_proxy_url, _jwt_keys, algorithm
     ):
         expected_status_code = 400
@@ -177,7 +182,7 @@ class TestClientCredentialsJWT:
             ),
         ],
     )
-    async def test_invalid_claims(
+    def test_invalid_claims(
         self,
         claims,
         _jwt_keys,
@@ -254,7 +259,7 @@ class TestClientCredentialsJWT:
             ),
         ],
     )
-    async def test_missing_claims(
+    def test_missing_claims(
         self,
         claims,
         _jwt_keys,
@@ -287,7 +292,7 @@ class TestClientCredentialsJWT:
         assert body == expected_response
 
     @pytest.mark.errors
-    async def test_reusing_same_jti(self, claims, _jwt_keys, nhsd_apim_proxy_url):
+    def test_reusing_same_jti(self, claims, _jwt_keys, nhsd_apim_proxy_url):
         claims["jti"] = "6cd46139-af51-4f78-b850-74fcdf70c75b"
         additional_headers = {"kid": "test-1"}
         client_assertion = jwt.encode(
@@ -355,7 +360,7 @@ class TestClientCredentialsJWT:
             ),
         ],
     )
-    async def test_invalid_payload(
+    def test_invalid_payload(
         self,
         claims,
         _jwt_keys,
@@ -418,7 +423,7 @@ class TestClientCredentialsJWT:
             ),
         ],
     )
-    async def test_missing_data_in_payload(
+    def test_missing_data_in_payload(
         self,
         claims,
         _jwt_keys,
@@ -471,7 +476,7 @@ class TestClientCredentialsJWT:
             ),
         ],
     )
-    async def test_kid(
+    def test_kid(
         self,
         claims,
         _jwt_keys,
@@ -501,77 +506,11 @@ class TestClientCredentialsJWT:
         del body["message_id"]
         assert body == expected_response
 
-    @pytest.mark.errors
-    @pytest.mark.jwks_resource_url(None)
-    async def test_no_jwks_resource_url_set(
-        self,
-        set_jwks_resource_url,
-        claims,
-        _jwt_keys,
-        nhsd_apim_proxy_url,
-    ):
-        additional_headers = {"kid": "test-1"}
-        client_assertion = jwt.encode(
-            claims,
-            _jwt_keys["private_key_pem"],
-            algorithm="RS512",
-            headers=additional_headers,
-        )
-
-        data = {
-            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-            "client_assertion": client_assertion,
-            "grant_type": "client_credentials",
-        }
-
-        resp = requests.post(nhsd_apim_proxy_url + "/token", data=data)
-        body = resp.json()
-        assert resp.status_code == 403
-        assert "message_id" in body.keys()  # We assert the key but not he value for message_id
-        del body["message_id"]
-        assert body == {
-                            "error": "public_key error",
-                            "error_description": "You need to register a public key to use this authentication method"
-                            " - please contact support to configure",
-                        }
-
-    @pytest.mark.errors
-    @pytest.mark.jwks_resource_url("https://google.com")
-    async def test_invalid_jwks_resource_url(
-        self,
-        set_jwks_resource_url,
-        claims,
-        _jwt_keys,
-        nhsd_apim_proxy_url,
-    ):
-        additional_headers = {"kid": "test-1"}
-        client_assertion = jwt.encode(
-            claims,
-            _jwt_keys["private_key_pem"],
-            algorithm="RS512",
-            headers=additional_headers,
-        )
-
-        data = {
-            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-            "client_assertion": client_assertion,
-            "grant_type": "client_credentials",
-        }
-
-        resp = requests.post(nhsd_apim_proxy_url + "/token", data=data)
-        body = resp.json()
-        assert resp.status_code == 403
-        assert "message_id" in body.keys()  # We assert the key but not he value for message_id
-        del body["message_id"]
-        assert body == {
-                            "error": "public_key error",
-                            "error_description": "The JWKS endpoint, for your client_assertion can't be reached",
-                        }
 
     ############# OAUTH ENDPOINTS ###########
 
     @pytest.mark.nhsd_apim_authorization(access="application", level="level3")
-    async def test_userinfo_client_credentials_token(
+    def test_userinfo_client_credentials_token(
         self, nhsd_apim_proxy_url, nhsd_apim_auth_headers,
     ):
         expected_status_code = 400
@@ -597,7 +536,7 @@ class TestClientCredentialsJWT:
         "token_expiry_ms, expected_time",
         [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)],
     )
-    async def test_access_token_override_with_client_credentials(
+    def test_access_token_override_with_client_credentials(
         self, claims, _jwt_keys, nhsd_apim_proxy_url, token_expiry_ms, expected_time
     ):
         additional_headers = {"kid": "test-1"}
@@ -620,3 +559,72 @@ class TestClientCredentialsJWT:
         body = resp.json()
         assert resp.status_code == 200
         assert int(body["expires_in"]) <= expected_time
+
+    @pytest.mark.errors
+    @pytest.mark.flaky(reruns=15, reruns_delay=10)
+    @pytest.mark.jwks_resource_url(None)
+    def test_no_jwks_resource_url_set(
+        self,
+        set_jwks_resource_url,
+        claims,
+        _jwt_keys,
+        nhsd_apim_proxy_url,
+        test_app
+    ):
+        additional_headers = {"kid": "test-1"}
+        client_assertion = jwt.encode(
+            claims,
+            _jwt_keys["private_key_pem"],
+            algorithm="RS512",
+            headers=additional_headers,
+        )
+
+        data = {
+            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            "client_assertion": client_assertion,
+            "grant_type": "client_credentials",
+        }
+        resp = requests.post(nhsd_apim_proxy_url + "/token", data=data)
+        body = resp.json()
+        assert resp.status_code == 403
+        assert "message_id" in body.keys()  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
+                            "error": "public_key error",
+                            "error_description": "You need to register a public key to use this authentication method"
+                            " - please contact support to configure",
+                        }
+
+    @pytest.mark.errors
+    @pytest.mark.flaky(reruns=15, reruns_delay=10)
+    @pytest.mark.jwks_resource_url("https://google.com")
+    def test_invalid_jwks_resource_url(
+        self,
+        set_jwks_resource_url,
+        claims,
+        _jwt_keys,
+        nhsd_apim_proxy_url,
+        test_app
+    ):
+        additional_headers = {"kid": "test-1"}
+        client_assertion = jwt.encode(
+            claims,
+            _jwt_keys["private_key_pem"],
+            algorithm="RS512",
+            headers=additional_headers,
+        )
+
+        data = {
+            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            "client_assertion": client_assertion,
+            "grant_type": "client_credentials",
+        }
+        resp = requests.post(nhsd_apim_proxy_url + "/token", data=data)
+        body = resp.json()
+        assert resp.status_code == 403
+        assert "message_id" in body.keys()  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
+                            "error": "public_key error",
+                            "error_description": "The JWKS endpoint, for your client_assertion can't be reached",
+                        }
