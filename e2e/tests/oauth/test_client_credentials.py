@@ -535,8 +535,6 @@ class TestClientCredentialsJWT:
         del body["message_id"]
         assert body == expected_response
 
-    ############# OAUTH ENDPOINTS ###########
-
     @pytest.mark.nhsd_apim_authorization(access="application", level="level3")
     def test_userinfo_client_credentials_token(
         self, nhsd_apim_proxy_url, nhsd_apim_auth_headers
@@ -560,8 +558,9 @@ class TestClientCredentialsJWT:
         del body["message_id"]
         assert body == expected_response
 
-    ############## OAUTH TOKENS ###############
 
+@pytest.mark.flaky(reruns=15, reruns_delay=10)
+class TestClientCredentialsJWTFlaky:
     @pytest.mark.parametrize(
         "token_expiry_ms, expected_time",
         [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)],
@@ -590,9 +589,6 @@ class TestClientCredentialsJWT:
         assert resp.status_code == 200
         assert int(body["expires_in"]) <= expected_time
 
-
-@pytest.mark.flaky(reruns=15, reruns_delay=10)
-class TestClientCredentialsJWTFlaky:
     # The following tests require to modify the test_app by the pytest-nhsd-apim module
     # Once the app is updated in apigee we still need to retry the test until the app
     # changes propagates inside Apigee and the proxy can pick those changes up.
