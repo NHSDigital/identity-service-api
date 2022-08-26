@@ -558,9 +558,6 @@ class TestClientCredentialsJWT:
         del body["message_id"]
         assert body == expected_response
 
-
-@pytest.mark.flaky(reruns=15, reruns_delay=10)
-class TestClientCredentialsJWTFlaky:
     @pytest.mark.parametrize(
         "token_expiry_ms, expected_time",
         [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)],
@@ -588,6 +585,9 @@ class TestClientCredentialsJWTFlaky:
         body = resp.json()
         assert resp.status_code == 200
         assert int(body["expires_in"]) <= expected_time
+
+@pytest.mark.flaky(reruns=15, reruns_delay=10)
+class TestClientCredentialsJWTFlaky:
 
     # The following tests require to modify the test_app by the pytest-nhsd-apim module
     # Once the app is updated in apigee we still need to retry the test until the app
