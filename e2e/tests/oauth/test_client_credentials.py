@@ -33,7 +33,7 @@ def set_jwks_resource_url(
     else:
         delete_resp = _apigee_edge_session.delete(url + "/jwks-resource-url")
         assert delete_resp.status_code == 200
-
+    sleep(120)
     yield
 
     jwks_attribute = {"name": "jwks-resource-url", "value": original_jwks_resource_url}
@@ -51,6 +51,7 @@ def set_jwks_resource_url(
             url, json={"attribute": [jwks_attribute]}
         )
         assert jwks_attribute in post_resp2.json()["attribute"]
+    sleep(120)
 
 
 @pytest.fixture
@@ -73,7 +74,6 @@ class TestClientCredentialsJWT:
         access="application", level="level3", force_new_token=True
     )
     def test_successful_jwt_token_response(self, _nhsd_apim_auth_token_data):
-        print(_nhsd_apim_auth_token_data["access_token"])
         assert "access_token" in _nhsd_apim_auth_token_data.keys()
         assert "issued_at" in _nhsd_apim_auth_token_data.keys()
         assert _nhsd_apim_auth_token_data["expires_in"] == "599"
@@ -586,13 +586,12 @@ class TestClientCredentialsJWT:
         assert resp.status_code == 200
         assert int(body["expires_in"]) <= expected_time
 
-@pytest.mark.flaky(reruns=15, reruns_delay=10)
-class TestClientCredentialsJWTFlaky:
 
     # The following tests require to modify the test_app by the pytest-nhsd-apim module
     # Once the app is updated in apigee we still need to retry the test until the app
     # changes propagates inside Apigee and the proxy can pick those changes up.
     @pytest.mark.errors
+    @pytest.mark.flaky(reruns=15, reruns_delay=10)
     @pytest.mark.jwks_resource_url(None)
     def test_no_jwks_resource_url_set(
         self, set_jwks_resource_url, claims, _jwt_keys, nhsd_apim_proxy_url
@@ -624,6 +623,7 @@ class TestClientCredentialsJWTFlaky:
         }
 
     @pytest.mark.errors
+    @pytest.mark.flaky(reruns=15, reruns_delay=10)
     @pytest.mark.jwks_resource_url("https://google.com")
     def test_invalid_jwks_resource_url(
         self, set_jwks_resource_url, claims, _jwt_keys, nhsd_apim_proxy_url
