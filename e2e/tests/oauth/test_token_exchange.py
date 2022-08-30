@@ -8,6 +8,19 @@ from uuid import uuid4
 from time import time, sleep
 import requests
 import sys
+import jwt
+
+
+@pytest.fixture
+def claims(_test_app_credentials, nhsd_apim_proxy_url):
+    claims = {
+        "sub": _test_app_credentials["consumerKey"],
+        "iss": _test_app_credentials["consumerKey"],
+        "jti": str(uuid4()),
+        "aud": nhsd_apim_proxy_url + "/token",
+        "exp": int(time()) + 300,  # 5 minutes in the future
+    }
+    return claims
 
 
 @pytest.mark.asyncio
@@ -32,29 +45,34 @@ class TestTokenExchange:
     @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.token_exchange
-    async def test_token_exchange_happy_path(self):
+    async def test_token_exchange_happy_path(self, claims, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url, _test_app_credentials, _jwt_keys, get_token_cis2_token_exchange):
         # Given
         expected_status_code = 200
         expected_expires_in = '599'
         expected_token_type = 'Bearer'
         expected_issued_token_type = 'urn:ietf:params:oauth:token-type:access_token'
 
-        id_token_jwt = self.oauth.create_id_token_jwt()
-        client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
+        expected_response = {"error": "invalid_request",
+                             "error_description": "Invalid 'alg' header in JWT - unsupported JWT algorithm - must be 'RS512'"}
 
         # When
-        resp = await self.oauth.get_token_response(
-            grant_type="token_exchange",
-            _jwt=client_assertion_jwt,
-            id_token_jwt=id_token_jwt
-        )
+        response = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data={"subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
+                  "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                  "client_assertion": get_token_cis2_token_exchange,
+                  "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"})
+        response = response.json()
+
+        assert response.status_code == expected_status_code
+        # assert body == expected_response
 
         # Then
-        assert expected_status_code == resp['status_code'], resp['body']
-        assert 'access_token' in resp['body']
-        assert expected_expires_in == resp['body']['expires_in']
-        assert expected_token_type == resp['body']['token_type']
-        assert expected_issued_token_type == resp['body']['issued_token_type']
+        assert expected_status_code == response['status_code'], response['body']
+        assert 'access_token' in response['body']
+        assert expected_expires_in == response['body']['expires_in']
+        assert expected_token_type == response['body']['token_type']
+        assert expected_issued_token_type == response['body']['issued_token_type']
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
