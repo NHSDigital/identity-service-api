@@ -65,6 +65,13 @@ def claims(_test_app_credentials, nhsd_apim_proxy_url):
     return claims
 
 
+# Some of the following tests require to modify the test_app by the pytest-nhsd-apim 
+# module. Once the app is updated in apigee we still need to retry the test until the app
+# changes propagates inside Apigee and the proxy can pick those changes up.
+# Also because we this integration tests rely in Apigee API (which could be a bit temperamental)
+# We are reruning the tests up to 60 times (no worries, they will pass after not that many retrys
+# however some of them require some extra time hence the amount of reruns.)
+@pytest.mark.flaky(reruns=60, reruns_delay=1)
 class TestClientCredentialsJWT:
     """ A test suit to test the client credentials flow """
 
@@ -585,12 +592,7 @@ class TestClientCredentialsJWT:
         assert resp.status_code == 200
         assert int(body["expires_in"]) <= expected_time
 
-
-    # The following tests require to modify the test_app by the pytest-nhsd-apim module
-    # Once the app is updated in apigee we still need to retry the test until the app
-    # changes propagates inside Apigee and the proxy can pick those changes up.
     @pytest.mark.errors
-    @pytest.mark.flaky(reruns=60, reruns_delay=1)
     @pytest.mark.jwks_resource_url(None)
     def test_no_jwks_resource_url_set(
         self, set_jwks_resource_url, claims, _jwt_keys, nhsd_apim_proxy_url
@@ -622,7 +624,6 @@ class TestClientCredentialsJWT:
         }
 
     @pytest.mark.errors
-    @pytest.mark.flaky(reruns=60, reruns_delay=1)
     @pytest.mark.jwks_resource_url("https://google.com")
     def test_invalid_jwks_resource_url(
         self, set_jwks_resource_url, claims, _jwt_keys, nhsd_apim_proxy_url
