@@ -50,12 +50,30 @@ release: clean publish build-proxy
 	for f in $(_dist_include); do cp -r $$f dist; done
 
 .PHONY: e2e
+# e2e:
+# 	rm -f reports/e2e.xml  > /dev/null || true
+# 	cd e2e && poetry run python -m pytest -n auto --reruns 5 --reruns-delay 2 -rxs -v -m "not mock_auth" --junit-xml=../reports/e2e.xml --ignore .venv || true
+# 	@if [[ ! -f reports/e2e.xml ]]; then echo report not created; exit 1; fi
+
+# e2e-mock:
+# 	rm -f reports/e2e.xml  > /dev/null || true
+# 	cd e2e && poetry run python -m pytest -n auto --reruns 5 --reruns-delay 2 -rxs -v -m "not simulated_auth" --junit-xml=../reports/e2e.xml --ignore .venv || true
+# 	@if [[ ! -f reports/e2e.xml ]]; then echo report not created; exit 1; fi
+
+
+# Test
 e2e:
-	rm -f reports/e2e.xml  > /dev/null || true
-	cd e2e && poetry run python -m pytest -n auto --reruns 5 --reruns-delay 2 -rxs -v -m "not mock_auth" --junit-xml=../reports/e2e.xml --ignore .venv || true
-	@if [[ ! -f reports/e2e.xml ]]; then echo report not created; exit 1; fi
+	rm -f reports/e2e.xml  > /dev/null || true 
+	@for f in  $$(find  e2e/tests  -name "test_*.py") ; do \
+		echo $$f; \
+		PYTEST_ADDOPTS="--color=yes" poetry run pytest --reruns 5 --reruns-delay 2 $$f -m "not mock_auth" || true; \
+	done
 
 e2e-mock:
-	rm -f reports/e2e.xml  > /dev/null || true
-	cd e2e && poetry run python -m pytest -n auto --reruns 5 --reruns-delay 2 -rxs -v -m "not simulated_auth" --junit-xml=../reports/e2e.xml --ignore .venv || true
-	@if [[ ! -f reports/e2e.xml ]]; then echo report not created; exit 1; fi
+	rm -f reports/e2e.xml  > /dev/null || true 
+	@for f in  $$(find  e2e/tests  -name "test_*.py") ; do \
+		echo $$f; \
+		PYTEST_ADDOPTS="--color=yes" poetry run pytest --reruns 5 --reruns-delay 2 $$f -m "not simulated_auth" || true; \
+	done
+
+# poetry run python -m pytest -n auto --reruns 5 --reruns-delay 2 $$f  -m "not simulated_auth" --junit-xml=../reports/e2e.xml --ignore .venv || true; \
