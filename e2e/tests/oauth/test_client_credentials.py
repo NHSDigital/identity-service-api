@@ -194,7 +194,7 @@ class TestClientCredentialsJWT:
                     "error_description": "Invalid exp claim in JWT - JWT has expired",
                 },
                 400,
-                {"exp": int(time()) - 600},
+                {"exp": 0},
             ),
             (
                 # Test exp above 5 min
