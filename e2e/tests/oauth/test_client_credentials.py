@@ -53,7 +53,7 @@ def set_jwks_resource_url(
         assert jwks_attribute in post_resp2.json()["attribute"]
 
 
-@pytest.fixture
+@pytest.fixture()
 def claims(_test_app_credentials, nhsd_apim_proxy_url):
     claims = {
         "sub": _test_app_credentials["consumerKey"],
@@ -194,7 +194,7 @@ class TestClientCredentialsJWT:
                     "error_description": "Invalid exp claim in JWT - JWT has expired",
                 },
                 400,
-                {"exp": 0},
+                {"exp": int(time()) - 20},
             ),
             (
                 # Test exp above 5 min
