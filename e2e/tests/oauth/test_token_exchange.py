@@ -1,5 +1,4 @@
 from e2e.scripts.config import (
-    OAUTH_URL,
     ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
     CANARY_API_URL
 )
@@ -59,19 +58,6 @@ def cis_2_claims():
 @pytest.mark.asyncio
 class TestTokenExchange:
     """ A test suit to test the token exchange flow """
-
-    def _update_secrets(self, request):
-        if request.get("claims", None):
-            if request["claims"].get("sub", None) == "/replace_me":
-                request["claims"]['sub'] = self.oauth.client_id
-
-            if request["claims"].get("iss", None) == "/replace_me":
-                request["claims"]['iss'] = self.oauth.client_id
-        else:
-            if request.get("sub", None) == "/replace_me":
-                request['sub'] = self.oauth.client_id
-            if request.get("iis", None) == "/replace_me":
-                request["iis"] = self.oauth.client_id
 
     # ############# JWT ###############
     @pytest.mark.simulated_auth
@@ -247,7 +233,7 @@ class TestTokenExchange:
 
         claims = {"sub": '',
                   "jti": str(uuid4()),
-                  "aud": f"{OAUTH_URL}/token",
+                  "aud": f"{nhsd_apim_proxy_url}/token",
                   "exp": int(time()) + 5}
 
         with open(config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
