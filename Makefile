@@ -56,12 +56,12 @@ e2e:
 	rm -f reports/e2e.xml  > /dev/null || true 
 	@for f in  $$(find  e2e/tests  -name "test_*.py") ; do \
 		echo $$f; \
-		PYTEST_ADDOPTS="--color=yes" poetry run pytest --reruns 5 --reruns-delay 2 $$f -m "not mock_auth"; \
+		PYTEST_ADDOPTS="--color=yes" poetry run pytest --reruns 10 --reruns-delay 2 $$f -m "not mock_auth"; \
 	done
 
 e2e-mock:
 	rm -f reports/e2e.xml  > /dev/null || true 
 	@for f in  $$(find  e2e/tests  -name "test_*.py") ; do \
 		echo $$f; \
-		PYTEST_ADDOPTS="--color=yes" poetry run pytest --reruns 5 --reruns-delay 2 $$f -m "not simulated_auth"; \
+		PYTEST_ADDOPTS="--color=yes" poetry run pytest --reruns 10 --reruns-delay 2 $$f -m "not simulated_auth"; \
 	done
