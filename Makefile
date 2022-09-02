@@ -49,19 +49,21 @@ release: clean publish build-proxy
 	mkdir -p dist
 	for f in $(_dist_include); do cp -r $$f dist; done
 
+# Test
 .PHONY: e2e e2e-mock
 
-# Test
+pytest := PYTEST_ADDOPTS="--color=yes" poetry run pytest --reruns 5 --reruns-delay 2 $$f --suppress-no-test-exit-code
+
 e2e:
 	rm -f reports/e2e.xml  > /dev/null || true 
 	@for f in  $$(find  e2e/tests  -name "test_*.py") ; do \
 		echo $$f; \
-		PYTEST_ADDOPTS="--color=yes" poetry run pytest --reruns 10 --reruns-delay 2 $$f -m "not mock_auth"; \
+		$(pytest) -m "not mock_auth"; \
 	done
 
 e2e-mock:
 	rm -f reports/e2e.xml  > /dev/null || true 
 	@for f in  $$(find  e2e/tests  -name "test_*.py") ; do \
 		echo $$f; \
-		PYTEST_ADDOPTS="--color=yes" poetry run pytest --reruns 10 --reruns-delay 2 $$f -m "not simulated_auth"; \
+		$(pytest) -m "not simulated_auth"; \
 	done
