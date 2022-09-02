@@ -49,11 +49,18 @@ release: clean publish build-proxy
 	mkdir -p dist
 	for f in $(_dist_include); do cp -r $$f dist; done
 
-# Test
 .PHONY: e2e e2e-mock
 
 pytest := PYTEST_ADDOPTS="--color=yes" poetry run pytest --reruns 5 --reruns-delay 2 $$f --suppress-no-test-exit-code
 
+# Since different fixtures are used in diferent files to create and modify test
+# apps and products, is quite difficult to handle the state of the resources
+# they create in Apigee and the order those resources need to be created or
+# modified by the test. On top of that this tests rely on the Apigee API wich
+# can be a bit temperamental some times presenting an async behaviour due to its
+# internal caching layers. To make testing more stable we run a fresh pytest
+# session for each test file (meaning fresh fixtures) increasing isolation
+# between testing modules.
 e2e:
 	rm -f reports/e2e.xml  > /dev/null || true 
 	@for f in  $$(find  e2e/tests  -name "test_*.py") ; do \
