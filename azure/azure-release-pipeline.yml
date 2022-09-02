@@ -100,7 +100,7 @@ extends:
         service_base_path: ${{ variables.service_base_path }}-mock
         jinja_templates:
           IDENTITY_PROVIDER_CIS2: cis2-keycloak
-          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
+          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login-keycloak
           VARIABLES_KVM: identity_service_config_keycloak
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
           ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
@@ -108,6 +108,18 @@ extends:
           RATELIMITING: ${{ variables.ratelimiting }}
       - environment: dev
       - environment: sandbox # required for hello-world https://portal.developer.nhs.uk/docs/hello-world-sandbox/1/routes/hello/application/get
+      - environment: sandbox
+        service_name: ${{ variables.service_name }}-mock
+        short_service_name: ${{ variables.short_service_name }}-mock
+        stage_name: sandbox_mock
+        service_base_path: ${{ variables.service_base_path }}-mock
+        jinja_templates:
+          IDENTITY_PROVIDER_CIS2: cis2-keycloak
+          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login-keycloak
+          VARIABLES_KVM: identity_service_config_keycloak
+          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
       - environment: int
       - environment: int
         service_name: ${{ variables.service_name }}-mock
