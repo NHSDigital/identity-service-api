@@ -2,7 +2,7 @@
     <Source>ccjwks_callout_response.content</Source>
     <Scope>Application</Scope>
     <CacheKey>
-        <KeyFragment ref="verifyapikey.VerifyAPIKey.FromJWT.client_id"/>
+        <KeyFragment ref="verifyapikey.VerifyAPIKey.FromJWT.jwks-resource-url"/>
         <KeyFragment>ccjwks-scope</KeyFragment>
     </CacheKey>
     <ExpirySettings>

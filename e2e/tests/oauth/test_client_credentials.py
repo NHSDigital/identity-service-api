@@ -1,707 +1,653 @@
-from e2e.scripts.config import (
-    OAUTH_URL,
-    STATUS_ENDPOINT_API_KEY,
-    ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
-    CANARY_API_URL
-)
-from e2e.scripts.response_bank import BANK
 import pytest
 from uuid import uuid4
 from time import time, sleep
-from random import choice
-from string import ascii_letters
-import random
 import requests
-import sys
+import jwt
 
 
-@pytest.mark.asyncio
+@pytest.fixture()
+def set_jwks_resource_url(
+    _apigee_edge_session, _apigee_app_base_url, _create_test_app, request
+):
+
+    mark = request.node.get_closest_marker("jwks_resource_url")
+    if not mark or not mark.args:
+        raise ValueError("Could not find pytest.mark.jwks_resource_url")
+    new_jwks_resource_url = mark.args[0]
+
+    url = _apigee_app_base_url + "/" + _create_test_app["name"] + "/attributes"
+    get_resp = _apigee_edge_session.get(url + "/jwks-resource-url")
+    original_jwks_resource_url = get_resp.json()["value"]
+
+    if new_jwks_resource_url is not None:
+        app_url = original_jwks_resource_url
+        while app_url != new_jwks_resource_url:
+            post_resp = _apigee_edge_session.post(
+                url + "/jwks-resource-url",
+                json={"name": "jwks-resource-url", "value": new_jwks_resource_url},
+            )
+            assert post_resp.json()["value"] == new_jwks_resource_url
+            app_url = _apigee_edge_session.get(url + "/jwks-resource-url").json()[
+                "value"
+            ]
+    else:
+        delete_resp = _apigee_edge_session.delete(url + "/jwks-resource-url")
+        assert delete_resp.status_code == 200
+    sleep(5) # Sleep and let the changes propagate thru Apigee
+    yield
+
+    jwks_attribute = {"name": "jwks-resource-url", "value": original_jwks_resource_url}
+    if new_jwks_resource_url is not None:
+        while app_url != original_jwks_resource_url:
+            post_resp2 = _apigee_edge_session.post(
+                url + "/jwks-resource-url", json=jwks_attribute
+            )
+            assert post_resp2.json()["value"] == original_jwks_resource_url
+            app_url = _apigee_edge_session.get(url + "/jwks-resource-url").json()[
+                "value"
+            ]
+    else:
+        post_resp2 = _apigee_edge_session.post(
+            url, json={"attribute": [jwks_attribute]}
+        )
+        assert jwks_attribute in post_resp2.json()["attribute"]
+    sleep(5) # Sleep and let the changes propagate thru Apigee
+
+@pytest.fixture()
+def claims(_test_app_credentials, nhsd_apim_proxy_url):
+    claims = {
+        "sub": _test_app_credentials["consumerKey"],
+        "iss": _test_app_credentials["consumerKey"],
+        "jti": str(uuid4()),
+        "aud": nhsd_apim_proxy_url + "/token",
+        "exp": int(time()) + 300,  # 5 minutes in the future
+    }
+    return claims
+
+
+# Some of the following tests require to modify the test_app by the
+# pytest-nhsd-apim module. Once the app is updated in apigee we still need to
+# retry the test until the app changes propagates inside Apigee and the proxy
+# can pick those changes so we simply rerun the test a sensible amount of times
+# and hope it will pass.
+@pytest.mark.flaky(reruns=60, reruns_delay=1)
 class TestClientCredentialsJWT:
     """ A test suit to test the client credentials flow """
-    def _update_secrets(self, request):
-        if request.get("claims", None):
-            if request["claims"].get("sub", None) == "/replace_me":
-                request["claims"]['sub'] = self.oauth.client_id
-
-            if request["claims"].get("iss", None) == "/replace_me":
-                request["claims"]['iss'] = self.oauth.client_id
-        else:
-            if request.get("sub", None) == "/replace_me":
-                request['sub'] = self.oauth.client_id
-            if request.get("iis", None) == "/replace_me":
-                request["iis"] = self.oauth.client_id
-
-############## JWT ###############
 
     @pytest.mark.happy_path
-    async def test_successful_jwt_token_response(self):
-        jwt = self.oauth.create_jwt(kid="test-1")
-        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
+    @pytest.mark.nhsd_apim_authorization(
+        access="application", level="level3", force_new_token=True
+    )
+    def test_successful_jwt_token_response(self, _nhsd_apim_auth_token_data):
+        assert "access_token" in _nhsd_apim_auth_token_data.keys()
+        assert "issued_at" in _nhsd_apim_auth_token_data.keys()
+        assert _nhsd_apim_auth_token_data["expires_in"] == "599"
+        assert _nhsd_apim_auth_token_data["token_type"] == "Bearer"
 
-        assert resp['status_code'] == 200
-        assert resp['body'].get('expires_in') == '599', f"UNEXPECTED 'expires_in' {resp.get('expires_in')} {resp['body']}"
-
-        assert list(resp['body'].keys()) == ['access_token', 'expires_in', 'token_type', 'issued_at'], \
-            f'UNEXPECTED RESPONSE: {list(resp["body"].keys())}'
-
-    @pytest.mark.apm_1521
     @pytest.mark.errors
-    async def test_incorrect_jwt_algorithm(self, helper):
-
-        # Given
-        jwt_claims= {
-                        'kid': 'test-1',
-                        'algorithm': 'HS256',
-                     }
+    @pytest.mark.parametrize(
+        "algorithm",
+        [
+            ("RS256"),
+            ("RS384"),
+            ("PS256"),
+            ("PS384"),
+            ("PS512"),
+            ("HS256"),
+            ("HS384"),
+            ("HS512"),
+        ],
+    )
+    def test_incorrect_jwt_algorithm(
+        self, claims, nhsd_apim_proxy_url, _jwt_keys, algorithm
+    ):
+        expected_status_code = 400
         expected_response = {
-                            'error': 'invalid_request',
-                              'error_description': "Invalid 'alg' header in JWT - unsupported JWT algorithm - must be 'RS512'"
-                            }
-        expected_status_code = 400
-
-        self._update_secrets(jwt_claims)
-        jwt = self.oauth.create_jwt(**jwt_claims)
-
-        # When
-        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
-
-        # Then
-        assert helper.check_response(resp, expected_status_code, expected_response)
-
-    @pytest.mark.apm_1521
-    @pytest.mark.errors
-    async def test_invalid_sub_and_iss(self, helper):
-
-        # # Given
-        jwt_claims= {
-                        'kid': 'test-1',
-                        'claims': {
-                            "sub": 'INVALID',
-                            "iss": 'INVALID',
-                            "jti": str(uuid4()),
-                            "aud": f"{OAUTH_URL}/token",
-                            "exp": int(time()) + 10,
-                                }
-                    }
-
-        expected_response = {
-                        'error': 'invalid_request', 
-                        'error_description': 'Invalid iss/sub claims in JWT'
-                        }
-
-        expected_status_code = 401
-
-        self._update_secrets(jwt_claims)
-        jwt = self.oauth.create_jwt(**jwt_claims)
-
-        # When
-        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
-
-        # Then
-        assert helper.check_response(resp, expected_status_code, expected_response)
-
-    @pytest.mark.apm_1521
-    @pytest.mark.errors
-    async def test_invalid_sub_different_to_iss(self, helper):
-
-        # Given
-        jwt_claims={
-                'kid': 'test-1',
-                'claims': {
-                    "sub": 'INVALID',
-                    "iss": "/replace_me",
-                    "jti": str(uuid4()),
-                    "aud": f"{OAUTH_URL}/token",
-                    "exp": int(time()) + 10,
-                }
-            }
-
-        expected_response = {'error': 'invalid_request', 'error_description': 'Missing or non-matching iss/sub claims in JWT'}
-
-        expected_status_code = 400
-
-        self._update_secrets(jwt_claims)
-        jwt = self.oauth.create_jwt(**jwt_claims)
-
-        # When
-        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
-
-        # Then
-        assert helper.check_response(resp, expected_status_code, expected_response)
-
-    @pytest.mark.apm_1521
-    @pytest.mark.errors
-    async def test_invalid_iss_different_to_sub(self, helper):
-
-        # Given
-        jwt_claims={
-                'kid': 'test-1',
-                'claims': {
-                    "sub": "/replace_me",
-                    "iss": 'INVALID',
-                    "jti": str(uuid4()),
-                    "aud": f"{OAUTH_URL}/token",
-                    "exp": int(time()) + 10,
-                }
-            }
-
-        expected_response = {'error': 'invalid_request', 'error_description': 'Missing or non-matching iss/sub claims in JWT'}
-
-        expected_status_code = 400
-
-        self._update_secrets(jwt_claims)
-        jwt = self.oauth.create_jwt(**jwt_claims)
-
-        # When
-        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
-
-        # Then
-        assert helper.check_response(resp, expected_status_code, expected_response)
-
-    @pytest.mark.apm_1521
-    @pytest.mark.errors
-    async def test_missing_sub(self, helper):
-
-        # Given
-        jwt_claims=  {
-                'kid': 'test-1',
-                'claims': {
-                    "iss": "/replace_me",
-                    "jti": str(uuid4()),
-                    "aud": f"{OAUTH_URL}/token",
-                    "exp": int(time()) + 10,
-                }
-            }
-
-        expected_response = {'error': 'invalid_request', 'error_description': 'Missing or non-matching iss/sub claims in JWT'}
-
-        expected_status_code = 400
-
-        self._update_secrets(jwt_claims)
-        jwt = self.oauth.create_jwt(**jwt_claims)
-
-        # When
-        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
-
-        # Then
-        assert helper.check_response(resp, expected_status_code, expected_response)
-
-    @pytest.mark.apm_1521
-    @pytest.mark.errors
-    async def test_missing_iss(self, helper):
-
-        # Given       
-        jwt_claims=  {
-                'kid': 'test-1',
-                'claims': {
-                    "sub": "/replace_me",
-                    "jti": str(uuid4()),
-                    "aud": f"{OAUTH_URL}/token",
-                    "exp": int(time()) + 10,
-                }
-            }
-
-        expected_response = {'error': 'invalid_request', 'error_description': 'Missing or non-matching iss/sub claims in JWT'}
-
-        expected_status_code = 400
-
-        self._update_secrets(jwt_claims)
-        jwt = self.oauth.create_jwt(**jwt_claims)
-
-        # When
-        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
-
-        # Then
-        assert helper.check_response(resp, expected_status_code, expected_response)
-
-    @pytest.mark.apm_1521
-    @pytest.mark.errors
-    async def test_invalid_jti(self, helper):
-
-        # Given  
-        jwt_claims=  {
-                'kid': 'test-1',
-                'claims': {
-                    "sub": "/replace_me",
-                    "iss": "/replace_me",
-                    "jti": 1234567890,
-                    "aud": f"{OAUTH_URL}/token",
-                    "exp": int(time()) + 10,
-                }
-            }
-
-        expected_response = {'error': 'invalid_request', 'error_description': 'Failed to decode JWT'}
-
-        expected_status_code = 400
-
-        self._update_secrets(jwt_claims)
-        jwt = self.oauth.create_jwt(**jwt_claims)
-
-        # When
-        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
-
-        # Then
-        assert helper.check_response(resp, expected_status_code, expected_response)
-
-    @pytest.mark.apm_1521
-    @pytest.mark.errors
-    async def test_missing_jti(self, helper):
-
-        # Given  
-        jwt_claims=   {
-                'kid': 'test-1',
-                'claims': {
-                    "sub": "/replace_me",
-                    "iss": "/replace_me",
-                    "aud": f"{OAUTH_URL}/token",
-                    "exp": int(time()) + 10,
-                }
-            }
-
-        expected_response = {'error': 'invalid_request', 'error_description': 'Missing jti claim in JWT'}
-
-        expected_status_code = 400
-
-        self._update_secrets(jwt_claims)
-        jwt = self.oauth.create_jwt(**jwt_claims)
-
-        # When
-        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
-
-        # Then
-        assert helper.check_response(resp, expected_status_code, expected_response)
-        
-    @pytest.mark.apm_1521
-    @pytest.mark.errors
-    async def test_invalid_aud(self, helper):
-
-        # Given  
-        jwt_claims=    {
-                'kid': 'test-1',
-                'claims': {
-                    "sub": "/replace_me",
-                    "iss": "/replace_me",
-                    "jti": str(uuid4()),
-                    "aud": f"{OAUTH_URL}/token" + 'INVALID',
-                    "exp": int(time()) + 60,
-                }
-            }
-
-        expected_response = {'error': 'invalid_request', 'error_description': 'Missing or invalid aud claim in JWT'}
-
-        expected_status_code = 401
-
-        self._update_secrets(jwt_claims)
-        jwt = self.oauth.create_jwt(**jwt_claims)
-
-        # When
-        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
-
-        # Then
-        assert helper.check_response(resp, expected_status_code, expected_response)
-
-    @pytest.mark.apm_1521
-    @pytest.mark.errors
-    async def test_missing_aud(self, helper):
-
-        # Given  
-        jwt_claims=    {
-                'kid': 'test-1',
-                'claims': {
-                    "sub": "/replace_me",
-                    "iss": "/replace_me",
-                    "jti": str(uuid4()),
-                    "exp": int(time()) + 60,
-                }
-            }
-
-        expected_response = {'error': 'invalid_request', 'error_description': 'Missing or invalid aud claim in JWT'}
-
-        expected_status_code = 401
-
-        self._update_secrets(jwt_claims)
-        jwt = self.oauth.create_jwt(**jwt_claims)
-
-        # When
-        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
-
-        # Then
-        assert helper.check_response(resp, expected_status_code, expected_response)
-
-    @pytest.mark.apm_1521
-    @pytest.mark.errors
-    async def test_invalid_exp(self, helper):
-
-        # Given  
-        jwt_claims=    {
-                'kid': 'test-1',
-                'claims': {
-                    "sub": "/replace_me",
-                    "iss": "/replace_me",
-                    "jti": str(uuid4()),
-                    "aud": f"{OAUTH_URL}/token",
-                    "exp": 'INVALID',
-                }
-            }
-
-        expected_response = {'error': 'invalid_request', 'error_description': 'Failed to decode JWT'}
-
-        expected_status_code = 400
-
-        self._update_secrets(jwt_claims)
-        jwt = self.oauth.create_jwt(**jwt_claims)
-
-        # When
-        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
-
-        # Then
-        assert helper.check_response(resp, expected_status_code, expected_response)
-
-    @pytest.mark.apm_1521
-    @pytest.mark.errors
-    async def test_missing_exp(self, helper):
-
-        # Given  
-        jwt_claims=    {
-                'kid': 'test-1',
-                'claims': {
-                    "sub": "/replace_me",
-                    "iss": "/replace_me",
-                    "jti": str(uuid4()),
-                    "aud": f"{OAUTH_URL}/token",
-                }
-            }
-
-        expected_response = {'error': 'invalid_request', 'error_description': 'Missing exp claim in JWT'}
-
-        expected_status_code = 400
-
-        self._update_secrets(jwt_claims)
-        jwt = self.oauth.create_jwt(**jwt_claims)
-
-        # When
-        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
-
-        # Then
-        assert helper.check_response(resp, expected_status_code, expected_response)
-
-    @pytest.mark.apm_1521
-    @pytest.mark.errors
-    async def test_exp_in_the_past(self, helper):
-
-        # Given  
-        jwt_claims=    {
-                'kid': 'test-1',
-                'claims': {
-                    "sub": "/replace_me",
-                    "iss": "/replace_me",
-                    "jti": str(uuid4()),
-                    "aud": f"{OAUTH_URL}/token",
-                    "exp": int(time()) - 20,
-                }
-            }
-
-        expected_response = {'error': 'invalid_request', 'error_description': 'Invalid exp claim in JWT - JWT has expired'}
-
-        expected_status_code = 400
-
-        self._update_secrets(jwt_claims)
-        jwt = self.oauth.create_jwt(**jwt_claims)
-
-        # When
-        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
-
-        # Then
-        assert helper.check_response(resp, expected_status_code, expected_response)
-
-    @pytest.mark.apm_1521
-    @pytest.mark.errors
-    async def test_exp_far_in_future(self, helper):
-
-        # Given  
-        jwt_claims=    {
-                'kid': 'test-1',
-                'claims': {
-                    "sub": "/replace_me",
-                    "iss": "/replace_me",
-                    "jti": str(uuid4()),
-                    "aud": f"{OAUTH_URL}/token",
-                    "exp": int(time()) + 360,  # this includes the +30 seconds grace
-                }
-            }
-
-        expected_response = {'error': 'invalid_request',
-             'error_description': 'Invalid exp claim in JWT - more than 5 minutes in future'}
-
-        expected_status_code = 400
-
-        self._update_secrets(jwt_claims)
-        jwt = self.oauth.create_jwt(**jwt_claims)
-
-        # When
-        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
-
-        # Then
-        assert helper.check_response(resp, expected_status_code, expected_response)
-
-    @pytest.mark.apm_1521
-    @pytest.mark.errors
-    async def test_reusing_same_jti(self, helper):
-        jwt = self.oauth.create_jwt(claims={
-            "sub": self.oauth.client_id,
-            "iss": self.oauth.client_id,
-            "jti": '6cd46139-af51-4f78-b850-74fcdf70c75b',
-            "aud": f"{OAUTH_URL}/token",
-            "exp": int(time()) + 10,
-        },
-            kid="test-1",
+            "error": "invalid_request",
+            "error_description": "Invalid 'alg' header in JWT - unsupported JWT algorithm - must be 'RS512'",
+        }
+        additional_headers = {"kid": "test-1"}
+        client_assertion = jwt.encode(
+            claims,
+            _jwt_keys["private_key_pem"],
+            algorithm=algorithm,
+            headers=additional_headers,
         )
-        resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
-
-        if resp['status_code'] == 200:
-            resp = await self.oauth.get_token_response(grant_type='client_credentials', _jwt=jwt)
-        assert helper.check_response(
-            resp, 400, {'error': 'invalid_request', 'error_description': 'Non-unique jti claim in JWT'})
-
-    @pytest.mark.errors
-    async def test_invalid_client_assertion_type(self, helper):
-
-        # Given
-        form_data = {
-                "client_assertion_type": "INVALID",
-                "grant_type": "client_credentials",
-            }
-        expected_response = {
-                'error': 'invalid_request',
-                'error_description': "Missing or invalid client_assertion_type - "
-                                     "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
-            }
-        expected_status_code = 400
-
-        jwt = self.oauth.create_jwt(kid="test-1")
-
-        # When
-        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt, data=form_data)
-
-        # Then
-        assert helper.check_response(resp, expected_status_code, expected_response)
-
-    @pytest.mark.errors
-    async def test_missing_client_assertion_type(self, helper):
-
-        # Given
-        form_data = {
-                "grant_type": "client_credentials",
-            }
-        expected_response = {
-                'error': 'invalid_request',
-                'error_description': "Missing or invalid client_assertion_type - "
-                                     "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
-            }
-        expected_status_code = 400
-
-        jwt = self.oauth.create_jwt(kid="test-1")
-
-        # When
-        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt, data=form_data)
-
-        # Then
-        assert helper.check_response(resp, expected_status_code, expected_response)
-
-    @pytest.mark.errors
-    async def test_invalid_client_assertion(self, helper):
-
-        # Given
-        form_data = {
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data={
                 "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-                "client_assertion": "INVALID",
+                "client_assertion": client_assertion,
                 "grant_type": "client_credentials",
-            }
-        expected_response = {'error': 'invalid_request', 'error_description': 'Malformed JWT in client_assertion'}
-        expected_status_code = 400
-
-        jwt = self.oauth.create_jwt(kid="test-1")
-
-        # When
-        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt, data=form_data)
-
-        # Then
-        assert helper.check_response(resp, expected_status_code, expected_response)
+            },
+        )
+        body = resp.json()
+        assert resp.status_code == expected_status_code
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == expected_response
 
     @pytest.mark.errors
-    async def test_missing_client_assertion(self, helper):
-
-        # Given
-        form_data = {
+    @pytest.mark.parametrize(
+        "expected_response,expected_status_code,replaced_claims",
+        [
+            (  # Test invalid sub and iss claims
+                {
+                    "error": "invalid_request",
+                    "error_description": "Invalid iss/sub claims in JWT",
+                },
+                401,
+                {"sub": "invalid", "iss": "invalid"},
+            ),
+            (
+                # Test sub different to iss
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing or non-matching iss/sub claims in JWT",
+                },
+                400,
+                {"sub": "invalid"},
+            ),
+            (
+                # Test iss different to sub
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing or non-matching iss/sub claims in JWT",
+                },
+                400,
+                {"iss": "invalid"},
+            ),
+            (
+                # Test invalid jti
+                {
+                    "error": "invalid_request",
+                    "error_description": "Failed to decode JWT",
+                },
+                400,
+                {"jti": 1234567890},
+            ),
+            (
+                # Test invalid aud
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing or invalid aud claim in JWT",
+                },
+                401,
+                {"aud": "invalid"},
+            ),
+            (
+                # Test invalid exp
+                {
+                    "error": "invalid_request",
+                    "error_description": "Failed to decode JWT",
+                },
+                400,
+                {"exp": "invalid"},
+            ),
+            (
+                # Test exp in the past
+                {
+                    "error": "invalid_request",
+                    "error_description": "Invalid exp claim in JWT - JWT has expired",
+                },
+                400,
+                {"exp": int(time()) - 20},
+            ),
+            (
+                # Test exp above 5 min
+                {
+                    "error": "invalid_request",
+                    "error_description": "Invalid exp claim in JWT - more than 5 minutes in future",
+                },
+                400,
+                {"exp": int(time()) + 360},
+            ),
+        ],
+    )
+    def test_invalid_claims(
+        self,
+        claims,
+        _jwt_keys,
+        nhsd_apim_proxy_url,
+        expected_response,
+        expected_status_code,
+        replaced_claims,
+    ):
+        claims = {**claims, **replaced_claims}
+        additional_headers = {"kid": "test-1"}
+        client_assertion = jwt.encode(
+            claims,
+            _jwt_keys["private_key_pem"],
+            algorithm="RS512",
+            headers=additional_headers,
+        )
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data={
                 "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                "client_assertion": client_assertion,
                 "grant_type": "client_credentials",
-            }
-        expected_response = {'error': 'invalid_request', 'error_description': 'Missing client_assertion'}
-        expected_status_code = 400
-
-        jwt = self.oauth.create_jwt(kid="test-1")
-
-        # When
-        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt, data=form_data)
-
-        # Then
-        assert helper.check_response(resp, expected_status_code, expected_response)
+            },
+        )
+        body = resp.json()
+        assert resp.status_code == expected_status_code
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == expected_response
 
     @pytest.mark.errors
-    async def test_invalid_grant_type(self, helper):
-
-        # Given
-        form_data = {
+    @pytest.mark.parametrize(
+        "expected_response,expected_status_code,missing_claims",
+        [
+            (  # Test missing sub
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing or non-matching iss/sub claims in JWT",
+                },
+                400,
+                {"sub"},
+            ),
+            (  # Test missing iss
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing or non-matching iss/sub claims in JWT",
+                },
+                400,
+                {"iss"},
+            ),
+            (  # Test missing jti
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing jti claim in JWT",
+                },
+                400,
+                {"jti"},
+            ),
+            (  # Test missing aud
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing or invalid aud claim in JWT",
+                },
+                401,
+                {"aud"},
+            ),
+            (  # Test missing exp
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing exp claim in JWT",
+                },
+                400,
+                {"exp"},
+            ),
+        ],
+    )
+    def test_missing_claims(
+        self,
+        claims,
+        _jwt_keys,
+        nhsd_apim_proxy_url,
+        expected_response,
+        expected_status_code,
+        missing_claims,
+    ):
+        for key in missing_claims:
+            claims.pop(key)
+        additional_headers = {"kid": "test-1"}
+        client_assertion = jwt.encode(
+            claims,
+            _jwt_keys["private_key_pem"],
+            algorithm="RS512",
+            headers=additional_headers,
+        )
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data={
                 "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-                "grant_type": "INVALID",
-            }
-        expected_response = {'error': 'unsupported_grant_type', 'error_description': 'grant_type is invalid'}
-        expected_status_code = 400
-
-        jwt = self.oauth.create_jwt(kid="test-1")
-
-        # When
-        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt, data=form_data)
-
-        # Then
-        assert helper.check_response(resp, expected_status_code, expected_response)
+                "client_assertion": client_assertion,
+                "grant_type": "client_credentials",
+            },
+        )
+        body = resp.json()
+        assert resp.status_code == expected_status_code
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == expected_response
 
     @pytest.mark.errors
-    async def test_missing_grant_type(self, helper):
-
-        # Given
-        form_data = {
+    def test_reusing_same_jti(self, claims, _jwt_keys, nhsd_apim_proxy_url):
+        claims["jti"] = "6cd46139-af51-4f78-b850-74fcdf70c75b"
+        additional_headers = {"kid": "test-1"}
+        client_assertion = jwt.encode(
+            claims,
+            _jwt_keys["private_key_pem"],
+            algorithm="RS512",
+            headers=additional_headers,
+        )
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data={
                 "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-            }
-        expected_response = {
-                'error': 'invalid_request',
-                'error_description': 'grant_type is missing'
-            }
-        expected_status_code = 400
-
-        jwt = self.oauth.create_jwt(kid="test-1")
-
-        # When
-        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt, data=form_data)
-
-        # Then
-        assert helper.check_response(resp, expected_status_code, expected_response)
-
-    @pytest.mark.errors
-    async def test_invalid_kid(self, helper):
-
-        # Given
-        jwt_headers = {
-                'kid': 'INVALID'
-            }
-        expected_response = {'error': 'invalid_request', 'error_description': "Invalid 'kid' header in JWT - no matching public key"}
-        expected_status_code = 401
-
-        jwt = self.oauth.create_jwt(**jwt_headers)
-
-        # When
-        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
-
-        # Then
-        assert helper.check_response(resp, expected_status_code, expected_response)
-
-    @pytest.mark.errors
-    async def test_missing_kid(self, helper):
-
-        # Given
-        jwt_headers = {
-                'kid': None
-            }
-        expected_response = {'error': 'invalid_request', 'error_description': "Missing 'kid' header in JWT"}
-        expected_status_code = 400
-
-        jwt = self.oauth.create_jwt(**jwt_headers)
-
-        # When
-        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
-
-        # Then
-        assert helper.check_response(resp, expected_status_code, expected_response)
-
-    @pytest.mark.skip("Fails in the pipeline")
-    async def test_manipulated_jwt_json(self):
-        jwt = self.oauth.create_jwt(kid='test-1')
-        chars = choice(ascii_letters) + choice(ascii_letters)
-
-        resp = await self.oauth.get_token_response(grant_type="client_credentials", _jwt=f"{jwt[:-2]}{chars}")
-        assert resp['status_code'] == 400
-        assert resp['body'] == {'error': 'invalid_request', 'error_description': 'Malformed JWT in client_assertion'}
-
-    @pytest.mark.errors
-    async def test_no_jwks_resource_url_set(self, test_product, test_application):
-        await test_application.add_api_product([test_product.name])
-
-        jwt = self.oauth.create_jwt(kid='test-1', client_id=test_application.client_id)
-        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
-
-        assert resp['status_code'] == 403
-        assert resp['body'] == {
-                'error': 'public_key error',
-                'error_description': "You need to register a public key to use this authentication method"
-                                     " - please contact support to configure"
-            }
-
-    @pytest.mark.errors
-    async def test_invalid_jwks_resource_url(self, test_product, test_application):
-        await test_application.add_api_product([test_product.name])
-        await test_application.set_custom_attributes(attributes={"jwks-resource-url": "http://invalid_url"})
-
-        jwt = self.oauth.create_jwt(kid='test-1', client_id=test_application.client_id)
-        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
-
-        assert resp['status_code'] == 403
-        assert resp['body'] == {
-                'error': 'public_key error',
-                'error_description': "The JWKS endpoint, for your client_assertion can't be reached"
-            }
-
-############# OAUTH ENDPOINTS ###########
-
-    async def test_userinfo_client_credentials_token(self):
-        # Given
-        expected_status_code = 400
-        expected_error = 'invalid_request'
-        expected_error_description = 'The Userinfo endpoint is only supported for Combined Auth integrations. Currently this is only for NHS CIS2 authentications - for more guidance see https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/user-restricted-restful-apis-nhs-cis2-combined-authentication-and-authorisation'
-
-        # When
-        jwt = self.oauth.create_jwt(kid="test-1")
-        resp = await self.oauth.get_token_response("client_credentials", _jwt=jwt)
-
-        token = resp["body"]["access_token"]
-
-        resp = await self.oauth.hit_oauth_endpoint(
-            method="GET",
-            endpoint="userinfo",
-            headers={"Authorization": f"Bearer {token}"},
+                "client_assertion": client_assertion,
+                "grant_type": "client_credentials",
+            },
         )
 
+        assert resp.status_code == 200
 
-        # Then
-        assert expected_status_code == resp['status_code']
-        assert expected_error == resp['body']['error']
-        assert expected_error_description == resp['body']['error_description']
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data={
+                "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                "client_assertion": client_assertion,
+                "grant_type": "client_credentials",
+            },
+        )
 
-############## OAUTH TOKENS ###############
-
-    @pytest.mark.parametrize("token_expiry_ms, expected_time", [(100000, 100), (500000, 500),(700000, 600), (1000000, 600)])
-    async def test_access_token_override_with_client_credentials(self, token_expiry_ms, expected_time):
-        """
-        Test client credential flow access token can be overridden with a time less than 10 min(600000ms or 600s)
-        and NOT be overridden with a time greater than 10 min(600000ms or 600s)
-        """
-        form_data = {
-            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-            "client_assertion": self.oauth.create_jwt('test-1'),
-            "grant_type": 'client_credentials',
-            "_access_token_expiry_ms": token_expiry_ms
+        body = resp.json()
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
+            "error": "invalid_request",
+            "error_description": "Non-unique jti claim in JWT",
         }
 
-        resp = await self.oauth.get_token_response(grant_type='client_credentials', data=form_data)
+    @pytest.mark.errors
+    @pytest.mark.parametrize(
+        "expected_response,expected_status_code,data_override",
+        [
+            (  # Test invalid client_assertion_type
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing or invalid client_assertion_type - "
+                    "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                },
+                400,
+                {"client_assertion_type": "invalid"},
+            ),
+            (  # Test invalid client_assertion
+                {
+                    "error": "invalid_request",
+                    "error_description": "Malformed JWT in client_assertion",
+                },
+                400,
+                {"client_assertion": "invalid"},
+            ),
+            (  # Test invalid grant_type
+                {
+                    "error": "unsupported_grant_type",
+                    "error_description": "grant_type is invalid",
+                },
+                400,
+                {"grant_type": "invalid"},
+            ),
+        ],
+    )
+    def test_invalid_payload(
+        self,
+        claims,
+        _jwt_keys,
+        nhsd_apim_proxy_url,
+        expected_response,
+        expected_status_code,
+        data_override,
+    ):
+        additional_headers = {"kid": "test-1"}
+        client_assertion = jwt.encode(
+            claims,
+            _jwt_keys["private_key_pem"],
+            algorithm="RS512",
+            headers=additional_headers,
+        )
 
-        assert resp['status_code'] == 200
-        assert int(resp['body']['expires_in']) <= expected_time
+        data = {
+            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            "client_assertion": client_assertion,
+            "grant_type": "client_credentials",
+        }
+
+        data = {**data, **data_override}
+
+        resp = requests.post(nhsd_apim_proxy_url + "/token", data=data)
+        body = resp.json()
+        assert resp.status_code == expected_status_code
+        assert "message_id" in body.keys()
+        del body["message_id"]  # We dont assert message_id as it is a random value.
+        assert body == expected_response
+
+    @pytest.mark.errors
+    @pytest.mark.parametrize(
+        "expected_response,expected_status_code,data_missing",
+        [
+            (  # Test missing client_assertion_type
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing or invalid client_assertion_type - "
+                    "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                },
+                400,
+                {"client_assertion_type"},
+            ),
+            (  # Test missing client_assertion_type
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing client_assertion",
+                },
+                400,
+                {"client_assertion"},
+            ),
+            (  # Test missing grant_type
+                {
+                    "error": "invalid_request",
+                    "error_description": "grant_type is missing",
+                },
+                400,
+                {"grant_type"},
+            ),
+        ],
+    )
+    def test_missing_data_in_payload(
+        self,
+        claims,
+        _jwt_keys,
+        nhsd_apim_proxy_url,
+        expected_response,
+        expected_status_code,
+        data_missing,
+    ):
+        additional_headers = {"kid": "test-1"}
+        client_assertion = jwt.encode(
+            claims,
+            _jwt_keys["private_key_pem"],
+            algorithm="RS512",
+            headers=additional_headers,
+        )
+
+        data = {
+            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            "client_assertion": client_assertion,
+            "grant_type": "client_credentials",
+        }
+        for key in data_missing:
+            data.pop(key)
+        resp = requests.post(nhsd_apim_proxy_url + "/token", data=data)
+        body = resp.json()
+        assert resp.status_code == expected_status_code
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == expected_response
+
+    @pytest.mark.errors
+    @pytest.mark.parametrize(
+        "expected_response,expected_status_code,headers",
+        [
+            (  # Test invalid kid
+                {
+                    "error": "invalid_request",
+                    "error_description": "Invalid 'kid' header in JWT - no matching public key",
+                },
+                401,
+                {"kid": "invalid"},
+            ),
+            (  # Test missing kid
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing 'kid' header in JWT",
+                },
+                400,
+                {},
+            ),
+        ],
+    )
+    def test_kid(
+        self,
+        claims,
+        _jwt_keys,
+        nhsd_apim_proxy_url,
+        expected_response,
+        expected_status_code,
+        headers,
+    ):
+        additional_headers = headers
+        client_assertion = jwt.encode(
+            claims,
+            _jwt_keys["private_key_pem"],
+            algorithm="RS512",
+            headers=additional_headers,
+        )
+
+        data = {
+            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            "client_assertion": client_assertion,
+            "grant_type": "client_credentials",
+        }
+
+        resp = requests.post(nhsd_apim_proxy_url + "/token", data=data)
+        body = resp.json()
+        assert resp.status_code == expected_status_code
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == expected_response
+
+    @pytest.mark.nhsd_apim_authorization(access="application", level="level3")
+    def test_userinfo_client_credentials_token(
+        self, nhsd_apim_proxy_url, nhsd_apim_auth_headers
+    ):
+        expected_status_code = 400
+        expected_response = {
+            "error": "invalid_request",
+            "error_description": "The Userinfo endpoint is only supported for Combined Auth integrations. "
+            "Currently this is only for NHS CIS2 authentications - for more guidance see "
+            "https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/"
+            "user-restricted-restful-apis-nhs-cis2-combined-authentication-and-authorisation",
+        }
+        resp = requests.get(
+            nhsd_apim_proxy_url + "/userinfo", headers=nhsd_apim_auth_headers
+        )
+        body = resp.json()
+        assert expected_status_code == resp.status_code
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == expected_response
+
+    @pytest.mark.parametrize(
+        "token_expiry_ms, expected_time",
+        [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)],
+    )
+    def test_access_token_override_with_client_credentials(
+        self, claims, _jwt_keys, nhsd_apim_proxy_url, token_expiry_ms, expected_time
+    ):
+        additional_headers = {"kid": "test-1"}
+        client_assertion = jwt.encode(
+            claims,
+            _jwt_keys["private_key_pem"],
+            algorithm="RS512",
+            headers=additional_headers,
+        )
+
+        data = {
+            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            "client_assertion": client_assertion,
+            "grant_type": "client_credentials",
+            "_access_token_expiry_ms": token_expiry_ms,
+        }
+
+        resp = requests.post(nhsd_apim_proxy_url + "/token", data=data)
+
+        body = resp.json()
+        assert resp.status_code == 200
+        assert int(body["expires_in"]) <= expected_time
+
+    @pytest.mark.errors
+    @pytest.mark.jwks_resource_url(None)
+    def test_no_jwks_resource_url_set(
+        self, set_jwks_resource_url, claims, _jwt_keys, nhsd_apim_proxy_url
+    ):
+        additional_headers = {"kid": "test-1"}
+        client_assertion = jwt.encode(
+            claims,
+            _jwt_keys["private_key_pem"],
+            algorithm="RS512",
+            headers=additional_headers,
+        )
+
+        data = {
+            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            "client_assertion": client_assertion,
+            "grant_type": "client_credentials",
+        }
+        resp = requests.post(nhsd_apim_proxy_url + "/token", data=data)
+        body = resp.json()
+        assert resp.status_code == 403
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
+            "error": "public_key error",
+            "error_description": "You need to register a public key to use this authentication method"
+            " - please contact support to configure",
+        }
+
+    @pytest.mark.errors
+    @pytest.mark.jwks_resource_url("https://google.com")
+    def test_invalid_jwks_resource_url(
+        self, set_jwks_resource_url, claims, _jwt_keys, nhsd_apim_proxy_url
+    ):
+        additional_headers = {"kid": "test-1"}
+        client_assertion = jwt.encode(
+            claims,
+            _jwt_keys["private_key_pem"],
+            algorithm="RS512",
+            headers=additional_headers,
+        )
+
+        data = {
+            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            "client_assertion": client_assertion,
+            "grant_type": "client_credentials",
+        }
+        resp = requests.post(nhsd_apim_proxy_url + "/token", data=data)
+        body = resp.json()
+        assert resp.status_code == 403
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
+            "error": "public_key error",
+            "error_description": "The JWKS endpoint, for your client_assertion can't be reached",
+        }
