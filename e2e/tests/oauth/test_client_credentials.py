@@ -65,12 +65,11 @@ def claims(_test_app_credentials, nhsd_apim_proxy_url):
     return claims
 
 
-# Some of the following tests require to modify the test_app by the pytest-nhsd-apim
-# module. Once the app is updated in apigee we still need to retry the test until the app
-# changes propagates inside Apigee and the proxy can pick those changes up.
-# Also because we this integration tests rely in Apigee API (which could be a bit temperamental)
-# We are reruning the tests up to 60 times (no worries, they will pass after not that many retrys
-# however some of them require some extra time hence the amount of reruns.)
+# Some of the following tests require to modify the test_app by the
+# pytest-nhsd-apim module. Once the app is updated in apigee we still need to
+# retry the test until the app changes propagates inside Apigee and the proxy
+# can pick those changes so we simply rerun the test a sensible amount of times
+# and hope it will pass.
 @pytest.mark.flaky(reruns=60, reruns_delay=1)
 class TestClientCredentialsJWT:
     """ A test suit to test the client credentials flow """
