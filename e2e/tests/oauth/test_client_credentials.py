@@ -1,6 +1,6 @@
 import pytest
 from uuid import uuid4
-from time import time, sleep
+from time import time
 import requests
 import jwt
 
@@ -65,7 +65,7 @@ def claims(_test_app_credentials, nhsd_apim_proxy_url):
     return claims
 
 
-# Some of the following tests require to modify the test_app by the pytest-nhsd-apim 
+# Some of the following tests require to modify the test_app by the pytest-nhsd-apim
 # module. Once the app is updated in apigee we still need to retry the test until the app
 # changes propagates inside Apigee and the proxy can pick those changes up.
 # Also because we this integration tests rely in Apigee API (which could be a bit temperamental)
