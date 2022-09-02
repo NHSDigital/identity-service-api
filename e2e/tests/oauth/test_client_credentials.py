@@ -1,6 +1,6 @@
 import pytest
 from uuid import uuid4
-from time import time
+from time import time, sleep
 import requests
 import jwt
 
@@ -33,7 +33,7 @@ def set_jwks_resource_url(
     else:
         delete_resp = _apigee_edge_session.delete(url + "/jwks-resource-url")
         assert delete_resp.status_code == 200
-
+    sleep(5) # Sleep and let the changes propagate thru Apigee
     yield
 
     jwks_attribute = {"name": "jwks-resource-url", "value": original_jwks_resource_url}
@@ -51,7 +51,7 @@ def set_jwks_resource_url(
             url, json={"attribute": [jwks_attribute]}
         )
         assert jwks_attribute in post_resp2.json()["attribute"]
-
+    sleep(5) # Sleep and let the changes propagate thru Apigee
 
 @pytest.fixture()
 def claims(_test_app_credentials, nhsd_apim_proxy_url):
