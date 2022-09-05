@@ -1,6 +1,6 @@
 import pytest
 from uuid import uuid4
-from time import time, sleep
+from time import time
 import requests
 import jwt
 
@@ -33,7 +33,6 @@ def set_jwks_resource_url(
     else:
         delete_resp = _apigee_edge_session.delete(url + "/jwks-resource-url")
         assert delete_resp.status_code == 200
-    sleep(5) # Sleep and let the changes propagate thru Apigee
     yield
 
     jwks_attribute = {"name": "jwks-resource-url", "value": original_jwks_resource_url}
@@ -51,7 +50,6 @@ def set_jwks_resource_url(
             url, json={"attribute": [jwks_attribute]}
         )
         assert jwks_attribute in post_resp2.json()["attribute"]
-    sleep(5) # Sleep and let the changes propagate thru Apigee
 
 @pytest.fixture()
 def claims(_test_app_credentials, nhsd_apim_proxy_url):
@@ -320,8 +318,17 @@ class TestClientCredentialsJWT:
         assert body == expected_response
 
     @pytest.mark.errors
-    def test_reusing_same_jti(self, claims, _jwt_keys, nhsd_apim_proxy_url):
-        claims["jti"] = "6cd46139-af51-4f78-b850-74fcdf70c75b"
+    @pytest.mark.nhsd_apim_authorization(
+        access="application", level="level3", force_new_token=True
+    )
+    def test_reusing_same_jti(self, _jwt_keys, nhsd_apim_proxy_url, _test_app_credentials):
+        claims = {
+            "sub": _test_app_credentials["consumerKey"],
+            "iss": _test_app_credentials["consumerKey"],
+            "jti": '6cd46139-af51-4f78-b850-74fcdf70c75b',
+            "aud": nhsd_apim_proxy_url + "/token",
+            "exp": int(time()) + 300,  # 5 minutes in the future
+        }
         additional_headers = {"kid": "test-1"}
         client_assertion = jwt.encode(
             claims,
@@ -567,9 +574,19 @@ class TestClientCredentialsJWT:
         "token_expiry_ms, expected_time",
         [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)],
     )
+    @pytest.mark.nhsd_apim_authorization(
+        access="application", level="level3", force_new_token=True
+    )
     def test_access_token_override_with_client_credentials(
-        self, claims, _jwt_keys, nhsd_apim_proxy_url, token_expiry_ms, expected_time
+        self, _jwt_keys, nhsd_apim_proxy_url, token_expiry_ms, expected_time, _test_app_credentials
     ):
+        claims = {
+            "sub": _test_app_credentials["consumerKey"],
+            "iss": _test_app_credentials["consumerKey"],
+            "jti": str(uuid4()),
+            "aud": nhsd_apim_proxy_url + "/token",
+            "exp": int(time()) + 300,  # 5 minutes in the future
+        }
         additional_headers = {"kid": "test-1"}
         client_assertion = jwt.encode(
             claims,
