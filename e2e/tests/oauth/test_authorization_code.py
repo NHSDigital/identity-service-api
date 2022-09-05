@@ -1,17 +1,11 @@
 from e2e.scripts.config import (
     OAUTH_URL,
-    STATUS_ENDPOINT_API_KEY,
-    ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
     CANARY_API_URL
 )
 from e2e.scripts.response_bank import BANK
 import pytest
-from uuid import uuid4
-from time import time, sleep
-from random import choice
-from string import ascii_letters
+from time import sleep
 import random
-import requests
 import sys
 
 
@@ -33,21 +27,33 @@ class TestAuthorizationCode:
 
     @pytest.mark.happy_path
     @pytest.mark.authorize_endpoint
-    async def test_authorize_endpoint(self):
-        resp = await self.oauth.hit_oauth_endpoint(
-            method="GET",
-            endpoint="authorize",
-            params={
-                "client_id": self.oauth.client_id,
-                "redirect_uri": self.oauth.redirect_uri,
-                "response_type": "code",
-                "state": random.getrandbits(32),
-            },
-        )
+    async def test_authorize_endpoint(self, _test_app_credentials):
+        print(_test_app_credentials.keys())
+        # params = {
+        #     "client_id": _test_app_credentials["consumerKey"],
+        #     "redirect_uri": _test_app_credentials["consumerKey"],
+        #     "response_type": "code",
+        #     "state": random.getrandbits(32)
+        # }
+        # resp = await self.oauth.hit_oauth_endpoint(
+        #     method="GET",
+        #     endpoint="authorize",
+        #     params={
+        #         "client_id": self.oauth.client_id,
+        #         "redirect_uri": self.oauth.redirect_uri,
+        #         "response_type": "code",
+        #         "state": random.getrandbits(32),
+        #     },
+        # )
 
-        assert resp["status_code"] == 200
+        # assert resp["status_code"] == 200
+
+        assert True == False
         # assert resp['body'] == BANK.get(self.name)["response"]
 
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.token_endpoint
@@ -65,6 +71,9 @@ class TestAuthorizationCode:
             "token_type",
         }
 
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     @pytest.mark.errors
     @pytest.mark.token_endpoint
     @pytest.mark.authorize_endpoint
@@ -84,7 +93,9 @@ class TestAuthorizationCode:
         assert resp["body"] == ""
         assert resp["headers"].get("Allow", "The Allow Header is Missing") == allow
 
-    @pytest.mark.apm_993
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
     @pytest.mark.parametrize("auth_method", [(None)])
@@ -116,6 +127,9 @@ class TestAuthorizationCode:
             params={"code": auth_code, "client_id": "some-client-id", "state": state},
         )
 
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
     @pytest.mark.parametrize(
@@ -189,6 +203,9 @@ class TestAuthorizationCode:
             params=request_data["params"],
         )
 
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
     async def test_authorize_revoked_app(self, app, helper):
@@ -211,6 +228,9 @@ class TestAuthorizationCode:
             },
         )
 
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     async def test_authorize_unsubscribed_error_condition(
         self, test_product, test_application, helper
     ):
@@ -236,6 +256,9 @@ class TestAuthorizationCode:
             },
         )
 
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.token_endpoint
@@ -264,6 +287,9 @@ class TestAuthorizationCode:
             },
         )
 
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
     @pytest.mark.parametrize(
@@ -334,7 +360,9 @@ class TestAuthorizationCode:
             state=test_case["params"].get("state"),
         )
 
-    @pytest.mark.apm_1618
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     @pytest.mark.errors
     @pytest.mark.token_endpoint
     @pytest.mark.parametrize(
@@ -542,7 +570,9 @@ class TestAuthorizationCode:
             **request_data,
         )
 
-    @pytest.mark.apm_1064
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     @pytest.mark.errors
     @pytest.mark.xfail(reason="APM-2521: Endpoint has been deprecated")
     @pytest.mark.callback_endpoint
@@ -564,7 +594,9 @@ class TestAuthorizationCode:
             },
         )
 
-    @pytest.mark.apm_1475
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     @pytest.mark.errors
     @pytest.mark.token_endpoint
     @pytest.mark.parametrize(
@@ -659,6 +691,9 @@ class TestAuthorizationCode:
             data=test_case["data"],
         )
 
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.usefixtures("set_access_token")
@@ -674,6 +709,9 @@ class TestAuthorizationCode:
 
 ############## OAUTH TOKENS ###############
 
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.usefixtures("set_access_token")
@@ -689,6 +727,9 @@ class TestAuthorizationCode:
             },
         )
 
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.usefixtures("set_refresh_token")
@@ -707,7 +748,9 @@ class TestAuthorizationCode:
             "token_type",
         ]
 
-    @pytest.mark.apm_801
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     @pytest.mark.errors
     @pytest.mark.parametrize(
         ("token", "expected_response"),
@@ -751,6 +794,9 @@ class TestAuthorizationCode:
             headers={"Authorization": f"Bearer {token}", "NHSD-Session-URID": ""},
         )
 
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     def test_missing_access_token(self, helper):
         assert helper.check_endpoint(
             verb="POST",
@@ -767,6 +813,9 @@ class TestAuthorizationCode:
             headers={"NHSD-Session-URID": ""},
         )
 
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.usefixtures("set_access_token")
@@ -794,6 +843,9 @@ class TestAuthorizationCode:
             },
         )
 
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     @pytest.mark.simulated_auth
     @pytest.mark.errors
     async def test_access_token_with_params(self):
@@ -816,6 +868,9 @@ class TestAuthorizationCode:
             "error_description": "Content-Type header must be application/x-www-urlencoded",
         }
 
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.usefixtures("set_refresh_token")
@@ -831,6 +886,9 @@ class TestAuthorizationCode:
             "error_description": "refresh token refresh period has expired",
         }
 
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.usefixtures("set_refresh_token")
@@ -854,6 +912,9 @@ class TestAuthorizationCode:
             "error_description": "refresh token refresh period has expired",
         }
 
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.usefixtures("set_refresh_token")
@@ -883,6 +944,9 @@ class TestAuthorizationCode:
             "error_description": "refresh_token is invalid",
         }
 
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     @pytest.mark.simulated_auth
     @pytest.mark.parametrize('scope', ['P9', 'P5', 'P0'])
     async def test_nhs_login_refresh_tokens_generated_with_expected_expiry_combined_auth(self, scope):
@@ -909,6 +973,9 @@ class TestAuthorizationCode:
         assert resp['body']['expires_in'] == '599'
         assert resp['body']['refresh_token_expires_in'] == '3599'
 
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
     @pytest.mark.simulated_auth
     async def test_cis2_refresh_tokens_generated_with_expected_expiry_combined_auth(self):
         """
@@ -927,6 +994,7 @@ class TestAuthorizationCode:
         assert resp['body']['expires_in'] == '599'
         assert resp['body']['refresh_token_expires_in'] == '43199'
 
+    # TO DO
     @pytest.mark.skip(
         reason="It is not feasible to run this test each build due to the timeframe required, run manually if needed."
     )
