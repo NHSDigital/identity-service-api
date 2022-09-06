@@ -18,7 +18,7 @@ class TestAuthorizationCode:
 
     @pytest.mark.happy_path
     @pytest.mark.authorize_endpoint
-    async def test_authorize_endpoint(
+    def test_authorize_endpoint(
             self,
             nhsd_apim_proxy_url,
             _test_app_credentials,
@@ -46,7 +46,7 @@ class TestAuthorizationCode:
         login_form={"username": "656005750104"},
         force_new_token=True
     )
-    async def test_token_endpoint(self, _nhsd_apim_auth_token_data):
+    def test_token_endpoint(self, _nhsd_apim_auth_token_data):
         assert _nhsd_apim_auth_token_data["expires_in"] == "599"
         assert _nhsd_apim_auth_token_data["token_type"] == "Bearer"
         assert _nhsd_apim_auth_token_data["refresh_count"] == "0"
@@ -71,7 +71,7 @@ class TestAuthorizationCode:
             ("POST", "GET", "/authorize"),
         ],
     )
-    async def test_token_endpoint_http_allowed_methods(
+    def test_token_endpoint_http_allowed_methods(
         self,
         method,
         allowed_method,
@@ -120,81 +120,113 @@ class TestAuthorizationCode:
             params={"code": auth_code, "client_id": "some-client-id", "state": state},
         )
 
-    @pytest.mark.skip(
-        reason="TO REFACTOR"
-    )
+    
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
     @pytest.mark.parametrize(
-        "request_data",
+        "expected_response,expected_status_code,replaced_params",
         [
-            # condition 1: invalid redirect uri
-            {
-                "expected_status_code": 400,
-                "expected_response": {
+            (  # Test invalid redirect_uri
+                {
                     "error": "invalid_request",
                     "error_description": "redirect_uri is invalid",
                 },
-                "params": {
-                    "client_id": "/replace_me",
-                    "redirect_uri": f"/invalid",  # invalid redirect uri
-                    "response_type": "code",
-                    "state": random.getrandbits(32),
-                },
-            },
-            # condition 2: missing redirect uri
-            {
-                "expected_status_code": 400,
-                "expected_response": {
-                    "error": "invalid_request",
-                    "error_description": "redirect_uri is missing",
-                },
-                "params": {
-                    "client_id": "/replace_me",
-                    "response_type": "code",
-                    "state": random.getrandbits(32),
-                },
-            },
-            # condition 3: invalid client id
-            {
-                "expected_status_code": 401,
-                "expected_response": {
+                400,
+                {"redirect_uri": "/invalid"},
+            ),
+            (  # Test invalid client_id
+                {
                     "error": "invalid_request",
                     "error_description": "client_id is invalid",
                 },
-                "params": {
-                    "client_id": "invalid",  # invalid client id
-                    "redirect_uri": "/replace_me",
-                    "response_type": "code",
-                    "state": random.getrandbits(32),
+                401,
+                {"client_id": "invalid"},
+            ),
+        ]
+    )
+    async def test_authorization_invalid_params(
+        self,
+        expected_response,
+        expected_status_code,
+        replaced_params,
+        nhsd_apim_proxy_url,
+        _test_app_credentials,
+        _test_app_callback_url
+    ):
+        params = {
+            "client_id": _test_app_credentials["consumerKey"],
+            "redirect_uri": _test_app_callback_url,
+            "response_type": "code",
+            "state": random.getrandbits(32)
+        }
+        params = {**params, **replaced_params}
+
+        resp = requests.get(
+            nhsd_apim_proxy_url + "/authorize",
+            params
+        )
+
+        body = resp.json()
+        assert resp.status_code == expected_status_code
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == expected_response
+
+    @pytest.mark.errors
+    @pytest.mark.authorize_endpoint
+    @pytest.mark.parametrize(
+        "expected_response,expected_status_code,missing_params",
+        [
+            (  # Test invalid redirect_uri
+                {
+                    "error": "invalid_request",
+                    "error_description": "redirect_uri is missing",
                 },
-            },
-            # condition 4: missing client id
-            {
-                "expected_status_code": 401,
-                "expected_response": {
+                400,
+                {"redirect_uri"},
+            ),
+            (  # Test invalid client_id
+                {
                     "error": "invalid_request",
                     "error_description": "client_id is missing",
                 },
-                "params": {  # not providing client_id
-                    "redirect_uri": "/replace_me",
-                    "response_type": "code",
-                    "state": random.getrandbits(32),
-                },
-            },
-        ],
+                401,
+                {"client_id"},
+            ),
+        ]
     )
-    async def test_authorization_error_conditions(self, request_data: dict, helper):
-        self._update_secrets(request_data)
+    async def test_authorization_missing_params(
+        self,
+        expected_response,
+        expected_status_code,
+        missing_params,
+        nhsd_apim_proxy_url,
+        _test_app_credentials,
+        _test_app_callback_url
+    ):
+        params = {
+            "client_id": _test_app_credentials["consumerKey"],
+            "redirect_uri": _test_app_callback_url,
+            "response_type": "code",
+            "state": random.getrandbits(32)
+        }
+        for key in missing_params:
+            params.pop(key)
 
-        assert await helper.send_request_and_check_output(
-            expected_status_code=request_data["expected_status_code"],
-            expected_response=request_data["expected_response"],
-            function=self.oauth.hit_oauth_endpoint,
-            method="GET",
-            endpoint="authorize",
-            params=request_data["params"],
+        resp = requests.get(
+            nhsd_apim_proxy_url + "/authorize",
+            params
         )
+
+        body = resp.json()
+        assert resp.status_code == expected_status_code
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == expected_response
 
     @pytest.mark.skip(
         reason="TO REFACTOR"
