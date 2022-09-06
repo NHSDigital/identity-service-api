@@ -61,27 +61,30 @@ class TestAuthorizationCode:
             "issued_at"  # Added by pytest_nhsd_apim
         }
 
-    @pytest.mark.skip(
-        reason="TO REFACTOR"
-    )
     @pytest.mark.errors
     @pytest.mark.token_endpoint
     @pytest.mark.authorize_endpoint
     @pytest.mark.parametrize(
-        "method, endpoint",
+        "method, allowed_method, endpoint",
         [
-            ("GET", "token"),
-            ("POST", "authorize"),
+            ("GET", "POST", "/token"),
+            ("POST", "GET", "/authorize"),
         ],
     )
-    async def test_token_endpoint_http_allowed_methods(self, method, endpoint):
-        resp = await self.oauth.hit_oauth_endpoint(method=method, endpoint=endpoint)
+    async def test_token_endpoint_http_allowed_methods(
+        self,
+        method,
+        allowed_method,
+        endpoint,
+        nhsd_apim_proxy_url
+    ):
+        resp = requests.request(
+            method,
+            url=nhsd_apim_proxy_url + endpoint,
+        )
 
-        allow = ("POST", "GET")[method == "POST"]
-
-        assert resp["status_code"] == 405
-        assert resp["body"] == ""
-        assert resp["headers"].get("Allow", "The Allow Header is Missing") == allow
+        assert resp.status_code == 405
+        assert resp.headers["Allow"] == allowed_method
 
     @pytest.mark.skip(
         reason="TO REFACTOR"
