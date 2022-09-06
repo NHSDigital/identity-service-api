@@ -1,55 +1,42 @@
+import sys
+import random
+from time import sleep
+import pytest
+import requests
 from e2e.scripts.config import (
     OAUTH_URL,
     CANARY_API_URL
 )
 from e2e.scripts.response_bank import BANK
-import pytest
-from time import sleep
-import random
-import sys
 
 
 @pytest.mark.asyncio
 class TestAuthorizationCode:
     """ A test suit to test the token exchange flow """
 
-############# OAUTH ENDPOINTS ###########
-    def _update_secrets(self, request):
-        key = ("params", "data")[request.get("params", None) is None]
-        if request[key].get("client_id", None) == "/replace_me":
-            request[key]["client_id"] = self.oauth.client_id
-
-        if request[key].get("client_secret", None) == "/replace_me":
-            request[key]["client_secret"] = self.oauth.client_secret
-
-        if request[key].get("redirect_uri", None) == "/replace_me":
-            request[key]["redirect_uri"] = self.oauth.redirect_uri
+############# OAUTH ENDPOINTS ###########     
 
     @pytest.mark.happy_path
     @pytest.mark.authorize_endpoint
-    async def test_authorize_endpoint(self, _test_app_credentials):
-        print(_test_app_credentials.keys())
-        # params = {
-        #     "client_id": _test_app_credentials["consumerKey"],
-        #     "redirect_uri": _test_app_credentials["consumerKey"],
-        #     "response_type": "code",
-        #     "state": random.getrandbits(32)
-        # }
-        # resp = await self.oauth.hit_oauth_endpoint(
-        #     method="GET",
-        #     endpoint="authorize",
-        #     params={
-        #         "client_id": self.oauth.client_id,
-        #         "redirect_uri": self.oauth.redirect_uri,
-        #         "response_type": "code",
-        #         "state": random.getrandbits(32),
-        #     },
-        # )
+    async def test_authorize_endpoint(
+            self,
+            nhsd_apim_proxy_url,
+            _test_app_credentials,
+            _test_app_callback_url
+    ):
+        params = {
+            "client_id": _test_app_credentials["consumerKey"],
+            "redirect_uri": _test_app_callback_url,
+            "response_type": "code",
+            "state": random.getrandbits(32)
+        }
 
-        # assert resp["status_code"] == 200
+        resp = requests.get(
+            nhsd_apim_proxy_url + "/authorize",
+            params
+        )
 
-        assert True == False
-        # assert resp['body'] == BANK.get(self.name)["response"]
+        assert resp.status_code == 200
 
     @pytest.mark.skip(
         reason="TO REFACTOR"
