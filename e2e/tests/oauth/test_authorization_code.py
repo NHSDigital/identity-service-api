@@ -38,17 +38,19 @@ class TestAuthorizationCode:
 
         assert resp.status_code == 200
 
-    @pytest.mark.skip(
-        reason="TO REFACTOR"
-    )
-    @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.token_endpoint
-    async def test_token_endpoint(self):
-        resp = await self.oauth.get_token_response(grant_type="authorization_code")
-
-        assert resp["status_code"] == 200
-        assert set(resp["body"].keys()) == {
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
+    async def test_token_endpoint(self, _nhsd_apim_auth_token_data):
+        assert _nhsd_apim_auth_token_data["expires_in"] == "599"
+        assert _nhsd_apim_auth_token_data["token_type"] == "Bearer"
+        assert _nhsd_apim_auth_token_data["refresh_count"] == "0"
+        assert set(_nhsd_apim_auth_token_data.keys()) == {
             "access_token",
             "expires_in",
             "refresh_count",
@@ -56,6 +58,7 @@ class TestAuthorizationCode:
             "refresh_token_expires_in",
             "sid",
             "token_type",
+            "issued_at"  # Added by pytest_nhsd_apim
         }
 
     @pytest.mark.skip(
