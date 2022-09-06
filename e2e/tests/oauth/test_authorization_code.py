@@ -49,6 +49,15 @@ def token_data(_test_app_credentials, _test_app_callback_url):
         "code": None  # Should be updated in the test
     }
 
+@pytest.fixture()
+def refresh_token_data(_test_app_credentials, _nhsd_apim_auth_token_data):
+    return {
+        "client_id": _test_app_credentials["consumerKey"],
+        "client_secret": _test_app_credentials["consumerSecret"],
+        "grant_type": "refresh_token",
+        "refresh_token": None  # Should be updated in the test
+    }
+
 
 @pytest.mark.asyncio
 class TestAuthorizationCode:
@@ -302,7 +311,6 @@ class TestAuthorizationCode:
             params={"code": auth_code, "client_id": "some-client-id", "state": state},
         )
 
-    
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
     @pytest.mark.parametrize(
@@ -346,7 +354,7 @@ class TestAuthorizationCode:
             ),
         ]
     )
-    async def test_authorization_param_errors(
+    def test_authorization_param_errors(
         self,
         expected_response,
         expected_status_code,
@@ -524,126 +532,154 @@ class TestAuthorizationCode:
             },
         )
 
-    @pytest.mark.skip(
-        reason="TO REFACTOR"
+    @pytest.mark.happy_path
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
     )
-    @pytest.mark.errors
-    @pytest.mark.xfail(reason="APM-2521: Endpoint has been deprecated")
-    @pytest.mark.callback_endpoint
-    @pytest.mark.parametrize("auth_method", [(None)])
-    async def test_callback_error_conditions(self, helper, auth_code_nhs_cis2):
-
-        state = await auth_code_nhs_cis2.get_state(self.oauth)
-        assert await helper.send_request_and_check_output(
-
-            expected_status_code=401,
-            expected_response="",
-            function=self.oauth.hit_oauth_endpoint,
-            method="GET",
-            endpoint="callback",
-            params={
-                "code": "some-code",
-                "client_id": "invalid-client-id",
-                "state": state
-            },
+    def test_refresh_token(
+        self,
+        nhsd_apim_proxy_url,
+        refresh_token_data,
+        _nhsd_apim_auth_token_data
+    ):
+        refresh_token_data["refresh_token"] = _nhsd_apim_auth_token_data["refresh_token"]
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=refresh_token_data
         )
+        body = resp.json()
 
-    @pytest.mark.skip(
-        reason="TO REFACTOR"
-    )
+        assert resp.status_code == 200
+        assert body["expires_in"] == "599"
+        assert body["token_type"] == "Bearer"
+        assert body["refresh_count"] == "1"
+        assert sorted(list(body.keys())) == [
+            "access_token",
+            "expires_in",
+            "refresh_count",
+            "refresh_token",
+            "refresh_token_expires_in",
+            "token_type"
+        ]
+
     @pytest.mark.errors
-    @pytest.mark.token_endpoint
+    @pytest.mark.authorize_endpoint
     @pytest.mark.parametrize(
-        "test_case",
+        "expected_response,expected_status_code,missing_or_invalid,update_data",
         [
-            # condition 1: missing client id
-            {
-                "expected_status_code": 401,
-                "expected_response": {
+            (  # Test missing client_id
+                {
                     "error": "invalid_request",
                     "error_description": "client_id is missing",
                 },
-                "data": {
-                    "client_secret": "/replace_me",
-                    "grant_type": "refresh_token",
-                },
-            },
-            # condition 2: invalid client_id
-            {
-                "expected_status_code": 401,
-                "expected_response": {
+                401,
+                "missing",
+                {"client_id"},
+            ),
+            (  # Test invalid client_id
+                {
                     "error": "invalid_client",
                     "error_description": "client_id or client_secret is invalid",
                 },
-                "data": {
-                    "client_id": "invalid-client-id",
-                    "client_secret": "/replace_me",
-                    "grant_type": "refresh_token",
-                },
-            },
-            # condition 2: missing client_secret
-            {
-                "expected_status_code": 401,
-                "expected_response": {
+                401,
+                "invalid",
+                {"client_id": "invalid"},
+            ),
+            (  # Test missing client_secret
+                {
                     "error": "invalid_request",
                     "error_description": "client_secret is missing",
                 },
-                "data": {
-                    "client_id": "/replace_me",
-                    "grant_type": "refresh_token",
-                },
-            },
-            # condition 4: invalid client_secret
-            {
-                "expected_status_code": 401,
-                "expected_response": {
+                401,
+                "missing",
+                {"client_secret"},
+            ),
+            (  # Test invalid client_secret
+                {
                     "error": "invalid_client",
                     "error_description": "client_id or client_secret is invalid",
                 },
-                "data": {
-                    "client_id": "/replace_me",
-                    "client_secret": "invalid",
-                    "grant_type": "refresh_token",
-                },
-            },
-            # condition 5: missing refresh_token
-            {
-                "expected_status_code": 400,
-                "expected_response": {
+                401,
+                "invalid",
+                {"client_secret": "invalid"},
+            ),
+            (  # Test missing refresh_token
+                {
                     "error": "invalid_request",
                     "error_description": "refresh_token is missing",
                 },
-                "data": {
-                    "client_id": "/replace_me",
-                    "client_secret": "/replace_me",
-                    "grant_type": "refresh_token",
-                },
-            },
-            # condition 6: invalid refresh_token
-            {
-                "expected_status_code": 401,
-                "expected_response": {
+                400,
+                "missing",
+                {"refresh_token"},
+            ),
+            (  # Test invalid refresh_token
+                {
                     "error": "invalid_grant",
                     "error_description": "refresh_token is invalid",
                 },
-                "data": {
-                    "client_id": "/replace_me",
-                    "client_secret": "/replace_me",
-                    "grant_type": "refresh_token",
-                    "refresh_token": "invalid",
+                401,
+                "invalid",
+                {"refresh_token": "invalid"},
+            ),
+            (  # Test missing grant_type
+                {
+                    "error": "invalid_request",
+                    "error_description": "grant_type is missing",
                 },
-            },
-        ],
+                400,
+                "missing",
+                {"grant_type"},
+            ),
+            (  # Test invalid grant_type
+                {
+                    "error": "unsupported_grant_type",
+                    "error_description": "grant_type is invalid",
+                },
+                400,
+                "invalid",
+                {"grant_type": "invalid"},
+            ),
+        ]
     )
-    async def test_refresh_token_error_conditions(self, test_case: dict, helper):
-        self._update_secrets(test_case)
-        assert await helper.send_request_and_check_output(
-            expected_status_code=test_case["expected_status_code"],
-            expected_response=test_case["expected_response"],
-            function=self.oauth.get_token_response,
-            grant_type="refresh_token",
-            data=test_case["data"],
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
+    def test_refresh_token_error_conditions(
+        self,
+        expected_response,
+        expected_status_code,
+        missing_or_invalid,
+        update_data,
+        nhsd_apim_proxy_url,
+        refresh_token_data,
+        _nhsd_apim_auth_token_data
+    ):
+        refresh_token_data["refresh_token"] = _nhsd_apim_auth_token_data["refresh_token"]
+        if missing_or_invalid == "missing":
+            data = remove_keys(refresh_token_data, update_data)
+        if missing_or_invalid == "invalid":
+            data = replace_keys(refresh_token_data, update_data)
+
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=data
         )
+
+        body = resp.json()
+        assert resp.status_code == expected_status_code
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == expected_response
 
     @pytest.mark.skip(
         reason="TO REFACTOR"
@@ -680,27 +716,6 @@ class TestAuthorizationCode:
                 "NHSD-Session-URID": "ROLD-ID",
             },
         )
-
-    @pytest.mark.skip(
-        reason="TO REFACTOR"
-    )
-    @pytest.mark.simulated_auth
-    @pytest.mark.happy_path
-    @pytest.mark.usefixtures("set_refresh_token")
-    async def test_refresh_token(self):
-        resp = await self.oauth.get_token_response(
-            grant_type="refresh_token", refresh_token=self.oauth.refresh_token
-        )
-
-        assert resp["status_code"] == 200
-        assert sorted(list(resp["body"].keys())) == [
-            "access_token",
-            "expires_in",
-            "refresh_count",
-            "refresh_token",
-            "refresh_token_expires_in",
-            "token_type",
-        ]
 
     @pytest.mark.skip(
         reason="TO REFACTOR"
