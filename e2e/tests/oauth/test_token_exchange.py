@@ -55,6 +55,22 @@ def cis_2_claims():
     return cis2_claims
 
 
+@pytest.fixture
+@pytest.mark.nhsd_apim_authorization({"access": "patient",
+                                      "level": "P0",
+                                      "login_form": {"auth_method": "P0"},
+                                      "authentication": "separate"})
+def claims_nhsd_login(_test_app_credentials, nhsd_apim_proxy_url):
+    claims = {
+        "sub": _test_app_credentials["consumerKey"],
+        "iss": _test_app_credentials["consumerKey"],
+        "jti": str(uuid4()),
+        "aud": nhsd_apim_proxy_url + "/token",
+        "exp": int(time()) + 300,  # 5 minutes in the future
+    }
+    return claims
+
+
 @pytest.mark.asyncio
 class TestTokenExchange:
     """ A test suit to test the token exchange flow """
@@ -1092,10 +1108,14 @@ class TestTokenExchange:
             "exp": int(time()) + 600,
             "iat": int(time()) - 10,
             "vtm": "https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk",
-            "jti": str(uuid4()),
+            "jti": "b68ddb28-e440-443d-8725-dfe0da330118",
             "identity_proofing_level": scope,
-            "nhs_number": "900000000001"
+            "nhs_number": "9482807146",
+            "nonce": "randomnonce",
+            "family_name": "CARTHY",
+
         }
+
         id_token_headers = {
             "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",
             "aud": "APIM-1",
@@ -1105,9 +1125,27 @@ class TestTokenExchange:
             "exp": 1616604574,
             "iat": 1616600974,
             "alg": "RS512",
-            "jti": str(uuid4()),
+            "jti": "b68ddb28-e440-443d-8725-dfe0da330118",
         }
-
+        id_token_nhs_login_claims = {
+            "sub": "8dc9fc1d-c3cb-48e1-ba62-b1532539ab6d",
+            "birthdate": "1939-09-26",
+            "nhs_number": "9482807146",
+            "iss": "https://internal-dev.api.service.nhs.uk",
+            "nonce": "randomnonce",
+            "vtm": "https://auth.aos.signin.nhs.uk/trustmark/auth.aos.signin.nhs.uk",
+            "aud": "java_test_client",
+            "id_status": "verified",
+            "token_use": "id",
+            "surname": "CARTHY",
+            "auth_time": 1617272144,
+            "vot": "P9.Cp.Cd",
+            "identity_proofing_level": "P9",
+            "exp": int(time()) + 6000,
+            "iat": int(time()) - 100,
+            "family_name": "CARTHY",
+            "jti": "b6d6a28e-b0bb-44e3-974f-bb245c0b688a",
+        }
         client_assertion = jwt.encode(claims, _jwt_keys["private_key_pem"],
                                       algorithm="RS512",
                                       headers={'kid': 'test-1'})
@@ -1118,7 +1156,7 @@ class TestTokenExchange:
         id_token_jwt = jwt.encode(payload=id_token_claims,
                                   key=id_token_nhs_login,
                                   algorithm="RS512",
-                                  headers=id_token_headers)
+                                  headers={'kid': 'nhs-login'})
 
         # When
         response = requests.post(
