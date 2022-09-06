@@ -1,8 +1,12 @@
+from http import client
 import sys
 import random
 from time import sleep
 import pytest
 import requests
+from lxml import html
+from urllib import parse
+from urllib.parse import urlparse, parse_qs, urlencode
 from e2e.scripts.config import (
     OAUTH_URL,
     CANARY_API_URL
@@ -10,33 +14,47 @@ from e2e.scripts.config import (
 from e2e.scripts.response_bank import BANK
 
 
+def get_params_from_url(url: str) -> dict:
+    """Returns all the params and param values from a given url as a dictionary"""
+    return dict(parse.parse_qsl(parse.urlsplit(url).query))
+
+
+def remove_keys(data: dict, keys_to_remove: dict) -> dict:
+    """Returns all the params with specified keys removed"""
+    for key in keys_to_remove:
+            data.pop(key)
+    return data
+
+
+def replace_keys(data: dict, keys_to_replace: dict) -> dict:
+    return {**data, **keys_to_replace}
+
+
+@pytest.fixture()
+def authorize_params(_test_app_credentials, _test_app_callback_url):
+    return {
+        "client_id": _test_app_credentials["consumerKey"],
+        "redirect_uri": _test_app_callback_url,
+        "response_type": "code",
+        "state": random.getrandbits(32)
+    }
+
+@pytest.fixture()
+def token_data(_test_app_credentials, _test_app_callback_url):
+    return {
+        "client_id": _test_app_credentials["consumerKey"],
+        "client_secret": _test_app_credentials["consumerSecret"],
+        "redirect_uri": _test_app_callback_url,
+        "grant_type": "authorization_code",
+        "code": None  # Should be updated in the test
+    }
+
+
 @pytest.mark.asyncio
 class TestAuthorizationCode:
     """ A test suit to test the token exchange flow """
 
-############# OAUTH ENDPOINTS ###########     
-
-    @pytest.mark.happy_path
-    @pytest.mark.authorize_endpoint
-    def test_authorize_endpoint(
-            self,
-            nhsd_apim_proxy_url,
-            _test_app_credentials,
-            _test_app_callback_url
-    ):
-        params = {
-            "client_id": _test_app_credentials["consumerKey"],
-            "redirect_uri": _test_app_callback_url,
-            "response_type": "code",
-            "state": random.getrandbits(32)
-        }
-
-        resp = requests.get(
-            nhsd_apim_proxy_url + "/authorize",
-            params
-        )
-
-        assert resp.status_code == 200
+############# OAUTH ENDPOINTS ###########
 
     @pytest.mark.happy_path
     @pytest.mark.token_endpoint
@@ -60,6 +78,170 @@ class TestAuthorizationCode:
             "token_type",
             "issued_at"  # Added by pytest_nhsd_apim
         }
+
+    @pytest.mark.errors
+    @pytest.mark.token_endpoint
+    @pytest.mark.parametrize(
+        "expected_response,expected_status_code,missing_or_invalid,update_data",
+        [
+            (  # Test invalid grant_type
+                {
+                    "error": "unsupported_grant_type",
+                    "error_description": "grant_type is invalid"
+                },
+                400,
+                "invalid",
+                {"grant_type": "invalid"},
+            ),
+            (  # Test missing grant_type
+                {
+                    "error": "invalid_request",
+                    "error_description": "grant_type is missing"
+                },
+                400,
+                "missing",
+                {"grant_type"},
+            ),
+            (  # Test missing client_id
+                {
+                    "error": "invalid_request",
+                    "error_description": "client_id is missing"
+                },
+                401,
+                "missing",
+                {"client_id"},
+            ),
+            (  # Test invalid client_id
+                {
+                    "error": "invalid_client",
+                    "error_description": "client_id or client_secret is invalid"
+                },
+                401,
+                "invalid",
+                {"client_id": "invalid"},
+            ),
+            (  # Test invalid client_secret
+                {
+                    "error": "invalid_client",
+                    "error_description": "client_id or client_secret is invalid"
+                },
+                401,
+                "invalid",
+                {"client_secret": "invalid"},
+            ),
+            (  # Test missing client_secret
+                {
+                    "error": "invalid_request",
+                    "error_description": "client_secret is missing"
+                },
+                401,
+                "missing",
+                {"client_secret"},
+            ),
+            (  # Test invalid redirect_uri
+                {
+                    "error": "invalid_request",
+                    "error_description": "redirect_uri is invalid"
+                },
+                400,
+                "invalid",
+                {"redirect_uri": "invalid"},
+            ),
+            (  # Test missing redirect_uri
+                {
+                    "error": "invalid_request",
+                    "error_description": "redirect_uri is missing"
+                },
+                400,
+                "missing",
+                {"redirect_uri"},
+            ),
+            (  # Test invalid authorization_code
+                {
+                    "error": "invalid_grant",
+                    "error_description": "authorization_code is invalid"
+                },
+                400,
+                "invalid",
+                {"code": "invalid"},
+            ),
+            (  # Test missing authorization_code
+                {
+                    "error": "invalid_request",
+                    "error_description": "authorization_code is missing"
+                },
+                400,
+                "missing",
+                {"code"},
+            )
+        ]
+    )
+    def test_token_error_conditions(
+        self,
+        nhsd_apim_proxy_url,
+        authorize_params,
+        token_data,
+        expected_response,
+        expected_status_code,
+        missing_or_invalid,
+        update_data
+    ):
+        # Log in to Keycloak and get code
+        session = requests.Session()
+        resp = session.get(
+            nhsd_apim_proxy_url + "/authorize",
+            params=authorize_params,
+            verify=False
+        )
+
+        assert resp.status_code == 200
+
+        tree = html.fromstring(resp.content.decode())
+
+        form = tree.get_element_by_id("kc-form-login")
+        url = form.action
+        resp2 = session.post(url, data={"username": "656005750104"})
+
+        qs = urlparse(resp2.history[-1].headers["Location"]).query
+        auth_code = parse_qs(qs)["code"]
+        if isinstance(auth_code, list):
+            auth_code = auth_code[0]
+
+        token_data["code"] = auth_code
+
+        if missing_or_invalid == "missing":
+            token_data = remove_keys(token_data, update_data)
+        if missing_or_invalid == "invalid":
+            token_data = replace_keys(token_data, update_data)
+
+        # Post to token endpoint
+        resp = session.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=token_data
+        )
+
+        body = resp.json()
+        assert resp.status_code == expected_status_code
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == expected_response
+
+    @pytest.mark.happy_path
+    @pytest.mark.authorize_endpoint
+    def test_authorize_endpoint(
+            self,
+            nhsd_apim_proxy_url,
+            authorize_params
+    ):
+        resp = requests.get(
+            nhsd_apim_proxy_url + "/authorize",
+            authorize_params
+        )
+
+        assert resp.status_code == 200
 
     @pytest.mark.errors
     @pytest.mark.token_endpoint
@@ -124,7 +306,7 @@ class TestAuthorizationCode:
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
     @pytest.mark.parametrize(
-        "expected_response,expected_status_code,replaced_params",
+        "expected_response,expected_status_code,missing_or_invalid,update_params",
         [
             (  # Test invalid redirect_uri
                 {
@@ -132,6 +314,7 @@ class TestAuthorizationCode:
                     "error_description": "redirect_uri is invalid",
                 },
                 400,
+                "invalid",
                 {"redirect_uri": "/invalid"},
             ),
             (  # Test invalid client_id
@@ -140,80 +323,42 @@ class TestAuthorizationCode:
                     "error_description": "client_id is invalid",
                 },
                 401,
+                "invalid",
                 {"client_id": "invalid"},
             ),
-        ]
-    )
-    async def test_authorization_invalid_params(
-        self,
-        expected_response,
-        expected_status_code,
-        replaced_params,
-        nhsd_apim_proxy_url,
-        _test_app_credentials,
-        _test_app_callback_url
-    ):
-        params = {
-            "client_id": _test_app_credentials["consumerKey"],
-            "redirect_uri": _test_app_callback_url,
-            "response_type": "code",
-            "state": random.getrandbits(32)
-        }
-        params = {**params, **replaced_params}
-
-        resp = requests.get(
-            nhsd_apim_proxy_url + "/authorize",
-            params
-        )
-
-        body = resp.json()
-        assert resp.status_code == expected_status_code
-        assert (
-            "message_id" in body.keys()
-        )  # We assert the key but not he value for message_id
-        del body["message_id"]
-        assert body == expected_response
-
-    @pytest.mark.errors
-    @pytest.mark.authorize_endpoint
-    @pytest.mark.parametrize(
-        "expected_response,expected_status_code,missing_params",
-        [
-            (  # Test invalid redirect_uri
+            (  # Test missing redirect_uri
                 {
                     "error": "invalid_request",
                     "error_description": "redirect_uri is missing",
                 },
                 400,
+                "missing",
                 {"redirect_uri"},
             ),
-            (  # Test invalid client_id
+            (  # Test missing client_id
                 {
                     "error": "invalid_request",
                     "error_description": "client_id is missing",
                 },
                 401,
+                "missing",
                 {"client_id"},
             ),
         ]
     )
-    async def test_authorization_missing_params(
+    async def test_authorization_param_errors(
         self,
         expected_response,
         expected_status_code,
-        missing_params,
+        missing_or_invalid,
+        update_params,
         nhsd_apim_proxy_url,
-        _test_app_credentials,
-        _test_app_callback_url
+        authorize_params,
     ):
-        params = {
-            "client_id": _test_app_credentials["consumerKey"],
-            "redirect_uri": _test_app_callback_url,
-            "response_type": "code",
-            "state": random.getrandbits(32)
-        }
-        for key in missing_params:
-            params.pop(key)
+        if missing_or_invalid == "missing":
+            params = remove_keys(authorize_params, update_params)
+        if missing_or_invalid == "invalid":
+            params = replace_keys(authorize_params, update_params)
 
         resp = requests.get(
             nhsd_apim_proxy_url + "/authorize",
@@ -227,6 +372,73 @@ class TestAuthorizationCode:
         )  # We assert the key but not he value for message_id
         del body["message_id"]
         assert body == expected_response
+
+
+    @pytest.mark.errors
+    @pytest.mark.authorize_endpoint
+    @pytest.mark.parametrize(
+        "expected_params,expected_status_code,missing_or_invalid,update_params",
+        [
+            (  # Test missing state
+                {
+                    "error": "invalid_request",
+                    "error_description": "state is missing",
+                },
+                302,
+                "missing",
+                {"state"},
+            ),
+            (  # Test missing response_type
+                {
+                    "error": "invalid_request",
+                    "error_description": "response_type is missing",
+                },
+                302,
+                "missing",
+                {"response_type"},
+            ),
+            (  # Test invalid response_type
+                {
+                    "error": "unsupported_response_type",
+                    "error_description": "response_type is invalid",
+                },
+                302,
+                "invalid",
+                {"response_type": "invalid"},
+            ),
+        ]
+    )
+    def test_authorization_params_redirects_errors(
+        self,
+        expected_params,
+        expected_status_code,
+        missing_or_invalid,
+        update_params,
+        nhsd_apim_proxy_url,
+        _test_app_callback_url,
+        authorize_params
+    ):
+        if missing_or_invalid == "missing":
+            params = remove_keys(authorize_params, update_params)
+        if missing_or_invalid == "invalid":
+            params = replace_keys(authorize_params, update_params)
+        
+        resp = requests.get(
+            nhsd_apim_proxy_url + "/authorize",
+            params,
+            allow_redirects=False
+        )
+
+        assert resp.status_code == expected_status_code
+
+        redirected_url = resp.headers["Location"]
+        assert redirected_url.startswith(_test_app_callback_url)
+
+        redirect_params = get_params_from_url(redirected_url)
+        if "state" in params:
+            expected_params["state"] = str(params["state"])
+        
+        assert redirect_params == expected_params
 
     @pytest.mark.skip(
         reason="TO REFACTOR"
@@ -310,289 +522,6 @@ class TestAuthorizationCode:
                 "grant_type": "authorization_code",
                 "code": await self.oauth.get_authenticated_with_simulated_auth(),
             },
-        )
-
-    @pytest.mark.skip(
-        reason="TO REFACTOR"
-    )
-    @pytest.mark.errors
-    @pytest.mark.authorize_endpoint
-    @pytest.mark.parametrize(
-        "test_case",
-        [
-            # condition 1: missing state
-            {
-                "expected_status_code": 302,
-                "expected_response": "",
-                "expected_params": {
-                    "error": "invalid_request",
-                    "error_description": "state is missing",
-                },
-                "params": {
-                    "client_id": "/replace_me",
-                    "redirect_uri": "/replace_me",
-                    "response_type": "code",
-                },
-            },
-            # condition 2: missing response type
-            {
-                "expected_status_code": 302,
-                "expected_response": "",
-                "expected_params": {
-                    "error": "invalid_request",
-                    "error_description": "response_type is missing",
-                },
-                "params": {
-                    "client_id": "/replace_me",
-                    "redirect_uri": "/replace_me",
-                    "state": random.getrandbits(32),
-                },
-            },
-            # condition 5: invalid response type
-            {
-                "expected_status_code": 302,
-                "expected_response": "",
-                "expected_params": {
-                    "error": "unsupported_response_type",
-                    "error_description": "response_type is invalid",
-                },
-                "params": {
-                    "client_id": "/replace_me",
-                    "redirect_uri": "/replace_me",
-                    "response_type": "invalid",  # invalid response type
-                    "state": random.getrandbits(32),
-                },
-            },
-        ],
-    )
-    async def test_authorization_error_redirects(self, test_case: dict, helper):
-        self._update_secrets(test_case)
-
-        resp = await self.oauth.hit_oauth_endpoint(
-            method="GET",
-            endpoint="authorize",
-            params=test_case["params"],
-            allow_redirects=False,
-        )
-
-        assert resp["status_code"] == test_case["expected_status_code"]
-        assert resp["body"] == test_case["expected_response"]
-
-        helper.check_redirect(
-            response=resp,
-            expected_params=test_case["expected_params"],
-            client_redirect=self.oauth.redirect_uri,
-            state=test_case["params"].get("state"),
-        )
-
-    @pytest.mark.skip(
-        reason="TO REFACTOR"
-    )
-    @pytest.mark.errors
-    @pytest.mark.token_endpoint
-    @pytest.mark.parametrize(
-        "request_data, expected_response",
-        [
-            # condition 2: invalid grant type
-            (
-                {
-                    "headers": {"Content-Type": "application/x-www-form-urlencoded"},
-                    "data": {
-                        "client_id": "/replace_me",
-                        "client_secret": "/replace_me",
-                        "redirect_uri": "/replace_me",
-                        "grant_type": "invalid",
-                    },
-                },
-                {
-                    "status_code": 400,
-                    "body": {
-                        "error": "unsupported_grant_type",
-                        "error_description": "grant_type is invalid",
-                    },
-                },
-            ),
-            # condition 3: missing grant_type
-            (
-                {
-                    "headers": {"Content-Type": "application/x-www-form-urlencoded"},
-                    "data": {
-                        "client_id": "/replace_me",
-                        "client_secret": "/replace_me",
-                        "redirect_uri": "/replace_me",
-                    },
-                },
-                {
-                    "status_code": 400,
-                    "body": {
-                        "error": "invalid_request",
-                        "error_description": "grant_type is missing",
-                    },
-                },
-            ),
-            # condition 4: missing client_id
-            (
-                {
-                    "headers": {"Content-Type": "application/x-www-form-urlencoded"},
-                    "data": {
-                        "client_secret": "/replace_me",
-                        "redirect_uri": "/replace_me",
-                        "grant_type": "authorization_code",
-                    },
-                },
-                {
-                    "status_code": 401,
-                    "body": {
-                        "error": "invalid_request",
-                        "error_description": "client_id is missing",
-                    },
-                },
-            ),
-            # condition 5: invalid client_id
-            (
-                {
-                    "headers": {"Content-Type": "application/x-www-form-urlencoded"},
-                    "data": {
-                        "client_id": "THISisANinvalidCLIENTid12345678",
-                        "client_secret": "/replace_me",
-                        "redirect_uri": "/replace_me",
-                        "grant_type": "authorization_code",
-                    },
-                },
-                {
-                    "status_code": 401,
-                    "body": {
-                        "error": "invalid_client",
-                        "error_description": "client_id or client_secret is invalid",
-                    },
-                },
-            ),
-            # condition 6: invalid client secret
-            (
-                {
-                    "headers": {"Content-Type": "application/x-www-form-urlencoded"},
-                    "data": {
-                        "client_id": "/replace_me",
-                        "client_secret": "ThisSecretIsInvalid",
-                        "redirect_uri": "/replace_me",
-                        "grant_type": "authorization_code",
-                    },
-                },
-                {
-                    "status_code": 401,
-                    "body": {
-                        "error": "invalid_client",
-                        "error_description": "client_id or client_secret is invalid",
-                    },
-                },
-            ),
-            # condition 7: missing client secret
-            (
-                {
-                    "headers": {"Content-Type": "application/x-www-form-urlencoded"},
-                    "data": {
-                        "client_id": "/replace_me",
-                        "redirect_uri": "/replace_me",
-                        "grant_type": "authorization_code",
-                    },
-                },
-                {
-                    "status_code": 401,
-                    "body": {
-                        "error": "invalid_request",
-                        "error_description": "client_secret is missing",
-                    },
-                },
-            ),
-            # condition 8: redirect_uri is missing
-            (
-                {
-                    "headers": {"Content-Type": "application/x-www-form-urlencoded"},
-                    "data": {
-                        "client_id": "/replace_me",
-                        "client_secret": "/replace_me",
-                        "grant_type": "authorization_code",
-                    },
-                },
-                {
-                    "status_code": 400,
-                    "body": {
-                        "error": "invalid_request",
-                        "error_description": "redirect_uri is missing",
-                    },
-                },
-            ),
-            # condition 9: redirect_uri is invalid
-            (
-                {
-                    "headers": {"Content-Type": "application/x-www-form-urlencoded"},
-                    "data": {
-                        "client_id": "/replace_me",
-                        "client_secret": "/replace_me",
-                        "redirect_uri": "invalid",
-                        "grant_type": "authorization_code",
-                    },
-                },
-                {
-                    "status_code": 400,
-                    "body": {
-                        "error": "invalid_request",
-                        "error_description": "redirect_uri is invalid",
-                    },
-                },
-            ),
-            # condition 10: authorization code is missing
-            (
-                {
-                    "headers": {"Content-Type": "application/x-www-form-urlencoded"},
-                    "data": {
-                        "client_id": "/replace_me",
-                        "client_secret": "/replace_me",
-                        "redirect_uri": "/replace_me",
-                        "grant_type": "authorization_code",
-                    },
-                },
-                {
-                    "status_code": 400,
-                    "body": {
-                        "error": "invalid_request",
-                        "error_description": "authorization_code is missing",
-                    },
-                },
-            ),
-            # condition 11: authorization code is invalid
-            (
-                {
-                    "headers": {"Content-Type": "application/x-www-form-urlencoded"},
-                    "data": {
-                        "client_id": "/replace_me",
-                        "client_secret": "/replace_me",
-                        "redirect_uri": "/replace_me",
-                        "grant_type": "authorization_code",
-                        "code": "invalid",
-                    },
-                },
-                {
-                    "status_code": 400,
-                    "body": {
-                        "error": "invalid_grant",
-                        "error_description": "authorization_code is invalid",
-                    },
-                },
-            ),
-        ],
-    )
-    async def test_token_error_conditions(
-        self, request_data: dict, expected_response: dict, helper
-    ):
-        self._update_secrets(request_data)
-
-        assert await helper.send_request_and_check_output(
-            expected_status_code=expected_response["status_code"],
-            expected_response=expected_response["body"],
-            function=self.oauth.get_token_response,
-            grant_type="authorization_code",
-            **request_data,
         )
 
     @pytest.mark.skip(

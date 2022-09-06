@@ -51,6 +51,7 @@ def set_jwks_resource_url(
         )
         assert jwks_attribute in post_resp2.json()["attribute"]
 
+
 @pytest.fixture()
 def claims(_test_app_credentials, nhsd_apim_proxy_url):
     claims = {
