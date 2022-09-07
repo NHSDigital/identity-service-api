@@ -699,31 +699,32 @@ class TestAuthorizationCode:
 ############## OAUTH TOKENS ###############
 
     @pytest.mark.skip(
-        reason="TO REFACTOR"
+        reason="TO REFACTOR: Need to subscribe the app to canary"
     )
-    @pytest.mark.simulated_auth
     @pytest.mark.happy_path
-    @pytest.mark.usefixtures("set_access_token")
-    def test_access_token(self, helper):
-        assert helper.check_endpoint(
-            verb="GET",
-            endpoint=CANARY_API_URL,
-            expected_status_code=200,
-            expected_response="Hello user!",
-            headers={
-                "Authorization": f"Bearer {self.oauth.access_token}",
-                "NHSD-Session-URID": "ROLD-ID",
-            },
-        )
-
-    @pytest.mark.skip(
-        reason="TO REFACTOR"
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
     )
+    def test_access_token(self, nhsd_apim_auth_headers):
+        print(CANARY_API_URL)
+        resp = requests.get(
+            CANARY_API_URL,
+            headers=nhsd_apim_auth_headers
+        )
+        body = resp.json()
+
+        assert resp.status_code == 200
+        assert body == "Hello user!"
+
+
     @pytest.mark.errors
     @pytest.mark.parametrize(
         ("token", "expected_response"),
         [
-            # Condition 1: Using an invalid token
+            # Using an invalid token
             ("ThisTokenIsInvalid", {
                 "fault": {
                     "faultstring": "Invalid Access Token",
@@ -732,16 +733,7 @@ class TestAuthorizationCode:
                     }
                 }
             }),
-            # Condition 2: Using an expired token
-            ("QjMGgujVxVbCV98omVaOlY1zR8aB", {
-                "fault": {
-                    "faultstring": "Invalid Access Token",
-                    "detail": {
-                        "errorcode": "keymanagement.service.invalid_access_token"
-                    }
-                }
-            }),
-            # Condition 3: Empty token
+            # Empty token
             ("", {
                 "fault": {
                     "faultstring": "Invalid access token",
@@ -753,33 +745,59 @@ class TestAuthorizationCode:
         ],
     )
     @pytest.mark.errors
-    async def test_invalid_access_token(self, token: str, helper, expected_response: dict):
+    def test_invalid_access_token(self, token, expected_response):
+        resp = requests.get(
+            CANARY_API_URL,
+            headers={"Authorization": f"Bearer {token}"}
+        )
+        body = resp.json()
+
+        assert resp.status_code == 401
+        assert body == expected_response
+
+    @pytest.mark.skip(
+        reason="TO REFACTOR"
+    )
+    @pytest.mark.errors
+    @pytest.mark.parametrize(
+        ("token", "expected_response"),
+        [
+            ("QjMGgujVxVbCV98omVaOlY1zR8aB", {
+                    "fault": {
+                        "faultstring": "Access Token expired",
+                        "detail": {
+                            "errorcode": "keymanagement.service.access_token_expired"
+                        }
+                    }
+                }
+            ),
+        ],
+    )
+    @pytest.mark.errors
+    async def test_expired_access_token(self, token: str, helper, expected_response: dict):
         assert helper.check_endpoint(
             verb="POST",
             endpoint=CANARY_API_URL,
             expected_status_code=401,
             expected_response=expected_response,
-            headers={"Authorization": f"Bearer {token}", "NHSD-Session-URID": ""},
+            headers={"Authorization": f"Bearer {token}"},
         )
 
-    @pytest.mark.skip(
-        reason="TO REFACTOR"
-    )
-    def test_missing_access_token(self, helper):
-        assert helper.check_endpoint(
-            verb="POST",
-            endpoint=CANARY_API_URL,
-            expected_status_code=401,
-            expected_response={"fault":
-                {
-                    "faultstring": "Invalid access token",
-                    "detail": {
-                        "errorcode": "oauth.v2.InvalidAccessToken"
-                    }
-                }
-            },
-            headers={"NHSD-Session-URID": ""},
+    def test_missing_access_token(self):
+        resp = requests.get(
+            CANARY_API_URL,
         )
+        body = resp.json()
+
+        assert resp.status_code == 401
+        assert body == {
+            "fault": {
+                "faultstring": "Invalid access token",
+                "detail": {
+                    "errorcode": "oauth.v2.InvalidAccessToken"
+                }
+            }
+        }
 
     @pytest.mark.skip(
         reason="TO REFACTOR"
