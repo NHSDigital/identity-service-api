@@ -895,28 +895,35 @@ class TestAuthorizationCode:
             "error_description": "refresh token refresh period has expired",
         }
 
-    @pytest.mark.skip(
-        reason="TO REFACTOR"
-    )
-    @pytest.mark.simulated_auth
     @pytest.mark.errors
-    @pytest.mark.usefixtures("set_refresh_token")
-    async def test_refresh_tokens_validity_expires(self):
-        # Set refresh token validity to 0
-        resp = await self.oauth.get_token_response(
-            grant_type="refresh_token",
-            refresh_token=self.oauth.refresh_token,
-            data={
-                "client_id": self.oauth.client_id,
-                "client_secret": self.oauth.client_secret,
-                "grant_type": "refresh_token",
-                "refresh_token": self.oauth.refresh_token,
-                "_refresh_tokens_validity_ms": 0,
-            },
-        )
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
+    def test_refresh_tokens_validity_expires(
+        self,
+        nhsd_apim_proxy_url,
+        refresh_token_data,
+        _nhsd_apim_auth_token_data
+    ):
+        refresh_token_data["refresh_token"] = _nhsd_apim_auth_token_data["refresh_token"]
+        refresh_token_data["_refresh_tokens_validity_ms"] = 0
 
-        assert resp["status_code"] == 401
-        assert resp["body"] == {
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=refresh_token_data
+        )
+        body = resp.json()
+
+        assert resp.status_code == 401
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
             "error": "invalid_grant",
             "error_description": "refresh token refresh period has expired",
         }
