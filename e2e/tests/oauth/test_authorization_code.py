@@ -87,6 +87,7 @@ class TestAuthorizationCode:
             "issued_at"  # Added by pytest_nhsd_apim
         }
 
+    @pytest.mark.mock_auth
     @pytest.mark.errors
     @pytest.mark.token_endpoint
     @pytest.mark.parametrize(
