@@ -928,19 +928,29 @@ class TestAuthorizationCode:
             "error_description": "refresh token refresh period has expired",
         }
 
-    @pytest.mark.skip(
-        reason="TO REFACTOR"
-    )
-    @pytest.mark.simulated_auth
     @pytest.mark.errors
-    @pytest.mark.usefixtures("set_refresh_token")
-    async def test_re_use_of_refresh_token(self):
-        resp = await self.oauth.get_token_response(
-            grant_type="refresh_token", refresh_token=self.oauth.refresh_token
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
+    def test_re_use_of_refresh_token(
+        self,
+        nhsd_apim_proxy_url,
+        refresh_token_data,
+        _nhsd_apim_auth_token_data
+    ):
+        refresh_token_data["refresh_token"] = _nhsd_apim_auth_token_data["refresh_token"]
+
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=refresh_token_data
         )
 
-        assert resp["status_code"] == 200
-        assert sorted(list(resp["body"].keys())) == [
+        assert resp.status_code == 200
+        assert sorted(list(resp.json().keys())) == [
             "access_token",
             "expires_in",
             "refresh_count",
@@ -949,13 +959,19 @@ class TestAuthorizationCode:
             "token_type",
         ]
 
-        # Sending another request with the same refresh token
-        resp = await self.oauth.get_token_response(
-            grant_type="refresh_token", refresh_token=self.oauth.refresh_token
+        resp_two = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=refresh_token_data
         )
+        body = resp_two.json()
 
-        assert resp["status_code"] == 401
-        assert resp["body"] == {
+        assert resp_two.status_code == 401
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
             "error": "invalid_grant",
             "error_description": "refresh_token is invalid",
         }
