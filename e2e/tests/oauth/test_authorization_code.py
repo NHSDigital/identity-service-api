@@ -28,6 +28,30 @@ def remove_keys(data: dict, keys_to_remove: dict) -> dict:
 def replace_keys(data: dict, keys_to_replace: dict) -> dict:
     return {**data, **keys_to_replace}
 
+def get_auth_code(url, authorize_params, username):
+    # Log in to Keycloak and get code
+    session = requests.Session()
+    resp = session.get(
+        url=url,
+        params=authorize_params,
+        verify=False
+    )
+
+    assert resp.status_code == 200
+
+    tree = html.fromstring(resp.content.decode())
+
+    form = tree.get_element_by_id("kc-form-login")
+    url = form.action
+    resp2 = session.post(url, data={"username": username})
+
+    qs = urlparse(resp2.history[-1].headers["Location"]).query
+    auth_code = parse_qs(qs)["code"]
+    if isinstance(auth_code, list):
+        auth_code = auth_code[0]
+    
+    return auth_code
+
 
 @pytest.fixture()
 def authorize_params(_test_app_credentials, _test_app_callback_url):
@@ -195,28 +219,11 @@ class TestAuthorizationCode:
         missing_or_invalid,
         update_data
     ):
-        # Log in to Keycloak and get code
-        session = requests.Session()
-        resp = session.get(
-            nhsd_apim_proxy_url + "/authorize",
-            params=authorize_params,
-            verify=False
+        token_data["code"] = get_auth_code(
+            url=nhsd_apim_proxy_url + "/authorize",
+            authorize_params=authorize_params,
+            username="656005750104"
         )
-
-        assert resp.status_code == 200
-
-        tree = html.fromstring(resp.content.decode())
-
-        form = tree.get_element_by_id("kc-form-login")
-        url = form.action
-        resp2 = session.post(url, data={"username": "656005750104"})
-
-        qs = urlparse(resp2.history[-1].headers["Location"]).query
-        auth_code = parse_qs(qs)["code"]
-        if isinstance(auth_code, list):
-            auth_code = auth_code[0]
-
-        token_data["code"] = auth_code
 
         if missing_or_invalid == "missing":
             token_data = remove_keys(token_data, update_data)
@@ -224,7 +231,7 @@ class TestAuthorizationCode:
             token_data = replace_keys(token_data, update_data)
 
         # Post to token endpoint
-        resp = session.post(
+        resp = requests.post(
             nhsd_apim_proxy_url + "/token",
             headers={"Content-Type": "application/x-www-form-urlencoded"},
             data=token_data
@@ -757,33 +764,47 @@ class TestAuthorizationCode:
         assert resp.status_code == 401
         assert body == expected_response
 
-    @pytest.mark.skip(
-        reason="TO REFACTOR"
-    )
     @pytest.mark.errors
-    @pytest.mark.parametrize(
-        ("token", "expected_response"),
-        [
-            ("QjMGgujVxVbCV98omVaOlY1zR8aB", {
-                    "fault": {
-                        "faultstring": "Access Token expired",
-                        "detail": {
-                            "errorcode": "keymanagement.service.access_token_expired"
-                        }
-                    }
-                }
-            ),
-        ],
-    )
-    @pytest.mark.errors
-    async def test_expired_access_token(self, token: str, helper, expected_response: dict):
-        assert helper.check_endpoint(
-            verb="POST",
-            endpoint=CANARY_API_URL,
-            expected_status_code=401,
-            expected_response=expected_response,
-            headers={"Authorization": f"Bearer {token}"},
+    def test_expired_access_token(
+        self,
+        nhsd_apim_proxy_url,
+        authorize_params,
+        token_data
+    ):
+        token_data["code"] = get_auth_code(
+            url=nhsd_apim_proxy_url + "/authorize",
+            authorize_params=authorize_params,
+            username="656005750104"
         )
+        token_data["_access_token_expiry_ms"] = 5
+
+        # Post to token endpoint
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=token_data
+        )
+
+        token_resp = resp.json()
+        token = token_resp["access_token"]
+
+        sleep(5)
+
+        resp_canary = requests.get(
+            CANARY_API_URL,
+            headers={"Authorization": f"Bearer {token}"}
+        )
+        body = resp_canary.json()
+
+        assert resp_canary.status_code == 401
+        assert body == {
+            "fault": {
+                "faultstring": "Access Token expired",
+                "detail": {
+                    "errorcode": "keymanagement.service.access_token_expired"
+                }
+            }
+        }
 
     def test_missing_access_token(self):
         resp = requests.get(
@@ -801,57 +822,32 @@ class TestAuthorizationCode:
             }
         }
 
-    @pytest.mark.skip(
-        reason="TO REFACTOR"
-    )
-    @pytest.mark.simulated_auth
     @pytest.mark.errors
-    @pytest.mark.usefixtures("set_access_token")
-    def test_access_token_does_expire(self, helper):
-        # Set token fixture is executed
-        # wait until token has expired
-        sleep(5)
-
-        # Check token still works after access token has expired
-        assert helper.check_endpoint(
-            verb="GET",
-            endpoint=CANARY_API_URL,
-            expected_status_code=401,
-            expected_response={
-                "fault": {
-                    "faultstring": "Access Token expired",
-                    "detail": {
-                        "errorcode": "keymanagement.service.access_token_expired"
-                    },
-                }
-            },
-            headers={
-                "Authorization": f"Bearer {self.oauth.access_token}",
-                "NHSD-Session-URID": "",
-            },
+    def test_access_token_with_params(
+        self,
+        nhsd_apim_proxy_url,
+        authorize_params,
+        token_data
+    ):
+        token_data["code"] = get_auth_code(
+            url=nhsd_apim_proxy_url + "/authorize",
+            authorize_params=authorize_params,
+            username="656005750104"
         )
 
-    @pytest.mark.skip(
-        reason="TO REFACTOR"
-    )
-    @pytest.mark.simulated_auth
-    @pytest.mark.errors
-    async def test_access_token_with_params(self):
-        resp = await self.oauth.hit_oauth_endpoint(
-            method="POST",
-            endpoint="token",
-            params={
-                "client_id": self.oauth.client_id,
-                "client_secret": self.oauth.client_secret,
-                "grant_type": "authorization_code",
-                "redirect_uri": self.oauth.redirect_uri,
-                "code": await self.oauth.get_authenticated_with_simulated_auth(),
-                "_access_token_expiry_ms": 5000,
-            },
+        # Post to token endpoint
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            params=token_data
         )
 
-        assert resp["status_code"] == 415
-        assert resp["body"] == {
+        body = resp.json()
+        assert resp.status_code == 415
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
             "error": "invalid_request",
             "error_description": "Content-Type header must be application/x-www-urlencoded",
         }
