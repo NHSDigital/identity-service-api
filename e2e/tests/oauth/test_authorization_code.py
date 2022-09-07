@@ -680,6 +680,7 @@ class TestAuthorizationCode:
         del body["message_id"]
         assert body == expected_response
 
+    @pytest.mark.mock_auth
     @pytest.mark.happy_path
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
