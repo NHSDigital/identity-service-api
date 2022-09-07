@@ -1,4 +1,3 @@
-from http import client
 import sys
 import random
 from time import sleep
@@ -6,7 +5,7 @@ import pytest
 import requests
 from lxml import html
 from urllib import parse
-from urllib.parse import urlparse, parse_qs, urlencode
+from urllib.parse import urlparse, parse_qs
 from e2e.scripts.config import (
     OAUTH_URL,
     CANARY_API_URL
@@ -22,7 +21,7 @@ def get_params_from_url(url: str) -> dict:
 def remove_keys(data: dict, keys_to_remove: dict) -> dict:
     """Returns all the params with specified keys removed"""
     for key in keys_to_remove:
-            data.pop(key)
+        data.pop(key)
     return data
 
 
@@ -381,7 +380,6 @@ class TestAuthorizationCode:
         del body["message_id"]
         assert body == expected_response
 
-
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
     @pytest.mark.parametrize(
@@ -681,21 +679,22 @@ class TestAuthorizationCode:
         del body["message_id"]
         assert body == expected_response
 
-    @pytest.mark.skip(
-        reason="TO REFACTOR"
-    )
-    @pytest.mark.simulated_auth
     @pytest.mark.happy_path
-    @pytest.mark.usefixtures("set_access_token")
-    async def test_userinfo(self, helper):
-        assert await helper.send_request_and_check_output(
-            expected_status_code=200,
-            expected_response=BANK.get(self.name)["response"],
-            function=self.oauth.hit_oauth_endpoint,
-            method="GET",
-            endpoint="userinfo",
-            headers={"Authorization": f"Bearer {self.oauth.access_token}"},
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
+    def test_userinfo(self, nhsd_apim_proxy_url, nhsd_apim_auth_headers):
+        resp = requests.get(
+            nhsd_apim_proxy_url + "/userinfo",
+            headers=nhsd_apim_auth_headers
         )
+        body = resp.json()
+
+        assert resp.status_code == 200
+        assert body == BANK.get(self.name)["response"]
 
 ############## OAUTH TOKENS ###############
 
