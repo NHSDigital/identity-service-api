@@ -1,3 +1,4 @@
+from cgi import test
 import sys
 import random
 from time import sleep
@@ -8,7 +9,8 @@ from urllib import parse
 from urllib.parse import urlparse, parse_qs
 from e2e.scripts.config import (
     OAUTH_URL,
-    CANARY_API_URL
+    CANARY_API_URL,
+    CANARY_PRODUCT_NAME
 )
 from e2e.scripts.response_bank import BANK
 
@@ -27,6 +29,7 @@ def remove_keys(data: dict, keys_to_remove: dict) -> dict:
 
 def replace_keys(data: dict, keys_to_replace: dict) -> dict:
     return {**data, **keys_to_replace}
+
 
 def get_auth_code(url, authorize_params, username):
     # Log in to Keycloak and get code
@@ -49,7 +52,7 @@ def get_auth_code(url, authorize_params, username):
     auth_code = parse_qs(qs)["code"]
     if isinstance(auth_code, list):
         auth_code = auth_code[0]
-    
+
     return auth_code
 
 
@@ -62,6 +65,7 @@ def authorize_params(_test_app_credentials, _test_app_callback_url):
         "state": random.getrandbits(32)
     }
 
+
 @pytest.fixture()
 def token_data(_test_app_credentials, _test_app_callback_url):
     return {
@@ -72,6 +76,7 @@ def token_data(_test_app_credentials, _test_app_callback_url):
         "code": None  # Should be updated in the test
     }
 
+
 @pytest.fixture()
 def refresh_token_data(_test_app_credentials, _nhsd_apim_auth_token_data):
     return {
@@ -80,6 +85,34 @@ def refresh_token_data(_test_app_credentials, _nhsd_apim_auth_token_data):
         "grant_type": "refresh_token",
         "refresh_token": None  # Should be updated in the test
     }
+
+
+def subscribe_app_to_product(
+    _apigee_edge_session, _apigee_app_base_url, credential, app_name, product_name
+):
+    key = credential["consumerKey"]
+    attributes = credential["attributes"]
+    api_products = [product_name]
+    url = f"{_apigee_app_base_url}/{app_name}/keys/{key}"
+
+    for product in credential["apiProducts"]:
+        api_products.append(product["apiproduct"])
+
+    product_data = {
+        "apiProducts": api_products,
+        "attributes": attributes
+    }
+
+    return _apigee_edge_session.post(url, json=product_data)
+
+
+def unsubscribe_product(
+    _apigee_edge_session, _apigee_app_base_url, credential, app_name, product_name
+):
+    key = credential["consumerKey"]
+    url = f"{_apigee_app_base_url}/{app_name}/keys/{key}/apiproducts/{product_name}"
+
+    return _apigee_edge_session.delete(url)
 
 
 @pytest.mark.asyncio
@@ -707,27 +740,63 @@ class TestAuthorizationCode:
 
 ############## OAUTH TOKENS ###############
 
-    @pytest.mark.skip(
-        reason="TO REFACTOR: Need to subscribe the app to canary"
-    )
+    @pytest.mark.nhsd_apim_authorization
     @pytest.mark.happy_path
-    @pytest.mark.nhsd_apim_authorization(
-        access="healthcare_worker",
-        level="aal3",
-        login_form={"username": "656005750104"},
-        force_new_token=True
-    )
-    def test_access_token(self, nhsd_apim_auth_headers):
-        print(CANARY_API_URL)
-        resp = requests.get(
-            CANARY_API_URL,
-            headers=nhsd_apim_auth_headers
+    def test_access_token(
+        self,
+        nhsd_apim_proxy_url,
+        test_app,
+        _test_app_credentials,
+        _apigee_edge_session,
+        _apigee_app_base_url,
+        token_data,
+        authorize_params
+    ):
+        app = test_app()
+        product_resp = subscribe_app_to_product(
+            _apigee_edge_session,
+            _apigee_app_base_url,
+            _test_app_credentials,
+            app["name"],
+            CANARY_PRODUCT_NAME
+        )
+        assert product_resp.status_code == 200
+
+        token_data["code"] = get_auth_code(
+            url=nhsd_apim_proxy_url + "/authorize",
+            authorize_params=authorize_params,
+            username="656005750104"
+        )
+
+        # Post to token endpoint
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data=token_data,
+            headers={"Content-Type": "application/x-www-form-urlencoded"}
         )
         body = resp.json()
-
         assert resp.status_code == 200
-        assert body == "Hello user!"
+        token = body["access_token"]
 
+        # Call Canary
+        canary_resp = requests.get(
+            CANARY_API_URL,
+            headers={"Authorization": f"Bearer {token}"}
+        )
+
+        assert canary_resp.status_code == 200
+        assert canary_resp.text == "Hello user!"
+
+        # Tear down
+        remove_product_resp = unsubscribe_product(
+            _apigee_edge_session,
+            _apigee_app_base_url,
+            _test_app_credentials,
+            app["name"],
+            CANARY_PRODUCT_NAME
+        )
+
+        assert remove_product_resp.status_code == 200
 
     @pytest.mark.errors
     @pytest.mark.parametrize(
@@ -976,88 +1045,64 @@ class TestAuthorizationCode:
             "error_description": "refresh_token is invalid",
         }
 
-    @pytest.mark.skip(
-        reason="TO REFACTOR"
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
     )
-    @pytest.mark.simulated_auth
-    @pytest.mark.parametrize('scope', ['P9', 'P5', 'P0'])
-    async def test_nhs_login_refresh_tokens_generated_with_expected_expiry_combined_auth(self, scope):
-        """
-        Test that refresh tokens generated via NHS Login have an expiry time of 1 hour for combined authentication.
-        """
-
-        form_data = {
-            "client_id": self.oauth.client_id,
-            "client_secret": self.oauth.client_secret,
-            "grant_type": "authorization_code",
-            "redirect_uri": self.oauth.redirect_uri,
-            "_access_token_expiry_ms": 600000,
-            "code": await self.oauth.get_authenticated_with_simulated_auth(auth_scope="nhs-login"),
-        }
-        params = {"scope": "nhs-login"}
-        resp = await self.oauth.hit_oauth_endpoint("post", "token", data=form_data, params=params)
-
-        access_token = resp['body']['access_token']
-        refresh_token = resp['body']['refresh_token']
-
-        assert access_token
-        assert refresh_token
-        assert resp['body']['expires_in'] == '599'
-        assert resp['body']['refresh_token_expires_in'] == '3599'
-
-    @pytest.mark.skip(
-        reason="TO REFACTOR"
-    )
-    @pytest.mark.simulated_auth
-    async def test_cis2_refresh_tokens_generated_with_expected_expiry_combined_auth(self):
+    def test_cis2_refresh_tokens_generated_with_expected_expiry_combined_auth(
+        self,
+        _nhsd_apim_auth_token_data
+    ):
         """
         Test that refresh tokens generated via CIS2 have an expiry time of 12 hours for combined authentication.
         """
-        resp = await self.oauth.get_token_response(
-            grant_type="authorization_code",
-            timeout=600000,
-        )
+        assert _nhsd_apim_auth_token_data["expires_in"] == "599"
+        assert _nhsd_apim_auth_token_data["refresh_token_expires_in"] == "43199"
 
-        access_token = resp['body']['access_token']
-        refresh_token = resp['body']['refresh_token']
-
-        assert access_token
-        assert refresh_token
-        assert resp['body']['expires_in'] == '599'
-        assert resp['body']['refresh_token_expires_in'] == '43199'
-
-    # TO DO
     @pytest.mark.skip(
-        reason="It is not feasible to run this test each build due to the timeframe required, run manually if needed."
+        reason="TO REFACTOR to use Second Gen mock auth once completed. First gen does not work on prs"
     )
-    async def test_cis2_refresh_token_valid_after_1_hour(self):
+    @pytest.mark.parametrize(
+        '_',
+        [
+            pytest.param(
+                None,
+                marks=pytest.mark.nhsd_apim_authorization(
+                    access="patient",
+                    level="P0",
+                    login_form={"auth_method": "P0"},
+                    force_new_token=True
+                ),
+            ),
+            pytest.param(
+                None,
+                marks=pytest.mark.nhsd_apim_authorization(
+                    access="patient",
+                    level="P5",
+                    login_form={"auth_method": "P5"},
+                    force_new_token=True
+                ),
+            ),
+            pytest.param(
+                None,
+                marks=pytest.mark.nhsd_apim_authorization(
+                    access="patient",
+                    level="P9",
+                    login_form={"auth_method": "P9"},
+                    force_new_token=True
+                ),
+            )
+        ]
+    )
+    def test_nhs_login_refresh_tokens_generated_with_expected_expiry_combined_auth(
+        self,
+        _nhsd_apim_auth_token_data,
+        _
+    ):
         """
-        Test that a refresh token received via a CIS2 login is valid after 1 hour (the previous expiry time).
-        Run pytest with the -s arg to display the stdout and show the wait time countdown.
+        Test that refresh tokens generated via NHS Login have an expiry time of 1 hour for combined authentication.
         """
-        # Generate access token using token-exchange
-        id_token_jwt = self.oauth.create_id_token_jwt()
-        client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
-        resp = await self.oauth.get_token_response(
-            grant_type="token_exchange",
-            _jwt=client_assertion_jwt,
-            id_token_jwt=id_token_jwt
-        )
-
-        refresh_token = resp['body']['refresh_token']
-
-        assert refresh_token
-        assert resp['body']['expires_in'] == '599'
-        assert resp['body']['refresh_token_expires_in'] == '43199'
-
-        # Wait 1 hour (the previous refresh token expiry time) and check that the token is still valid
-        for remaining in range(3600, 0, -1):
-            mins, sec = divmod(remaining, 60)
-            sys.stdout.write("\r")
-            sys.stdout.write("{:2d} minutes {:2d} seconds remaining.".format(mins, sec))
-            sleep(1)
-
-        # Get new access token using refresh token
-        resp2 = await self.oauth.get_token_response(grant_type="refresh_token", refresh_token=refresh_token)
-        access_token2 = resp2['body']['access_token']
-        assert access_token2
+        assert _nhsd_apim_auth_token_data["expires_in"] == "599"
+        assert _nhsd_apim_auth_token_data["refresh_token_expires_in"] == "3599"
