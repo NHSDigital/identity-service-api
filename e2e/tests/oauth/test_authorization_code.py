@@ -56,6 +56,34 @@ def get_auth_code(url, authorize_params, username):
     return auth_code
 
 
+def subscribe_app_to_product(
+    _apigee_edge_session, _apigee_app_base_url, credential, app_name, product_name
+):
+    key = credential["consumerKey"]
+    attributes = credential["attributes"]
+    api_products = [product_name]
+    url = f"{_apigee_app_base_url}/{app_name}/keys/{key}"
+
+    for product in credential["apiProducts"]:
+        api_products.append(product["apiproduct"])
+
+    product_data = {
+        "apiProducts": api_products,
+        "attributes": attributes
+    }
+
+    return _apigee_edge_session.post(url, json=product_data)
+
+
+def unsubscribe_product(
+    _apigee_edge_session, _apigee_app_base_url, credential, app_name, product_name
+):
+    key = credential["consumerKey"]
+    url = f"{_apigee_app_base_url}/{app_name}/keys/{key}/apiproducts/{product_name}"
+
+    return _apigee_edge_session.delete(url)
+
+
 @pytest.fixture()
 def authorize_params(_test_app_credentials, _test_app_callback_url):
     return {
@@ -85,34 +113,6 @@ def refresh_token_data(_test_app_credentials, _nhsd_apim_auth_token_data):
         "grant_type": "refresh_token",
         "refresh_token": None  # Should be updated in the test
     }
-
-
-def subscribe_app_to_product(
-    _apigee_edge_session, _apigee_app_base_url, credential, app_name, product_name
-):
-    key = credential["consumerKey"]
-    attributes = credential["attributes"]
-    api_products = [product_name]
-    url = f"{_apigee_app_base_url}/{app_name}/keys/{key}"
-
-    for product in credential["apiProducts"]:
-        api_products.append(product["apiproduct"])
-
-    product_data = {
-        "apiProducts": api_products,
-        "attributes": attributes
-    }
-
-    return _apigee_edge_session.post(url, json=product_data)
-
-
-def unsubscribe_product(
-    _apigee_edge_session, _apigee_app_base_url, credential, app_name, product_name
-):
-    key = credential["consumerKey"]
-    url = f"{_apigee_app_base_url}/{app_name}/keys/{key}/apiproducts/{product_name}"
-
-    return _apigee_edge_session.delete(url)
 
 
 @pytest.mark.asyncio
@@ -492,25 +492,27 @@ class TestAuthorizationCode:
     )
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
-    async def test_authorize_revoked_app(self, app, helper):
-        await app.create_new_app(status="revoked")
-
-        assert await helper.send_request_and_check_output(
-            expected_status_code=401,
-            expected_response={
-                "error": "access_denied",
-                "error_description": "The developer app associated with the API key is not approved or revoked",
-            },
-            function=self.oauth.hit_oauth_endpoint,
-            method="GET",
-            endpoint="authorize",
-            params={
-                "client_id": app.client_id,
-                "redirect_uri": app.callback_url,
-                "response_type": "code",
-                "state": random.getrandbits(32),
-            },
+    def test_authorize_revoked_app(
+        self,
+        nhsd_apim_proxy_url,
+        authorize_params
+    ):
+        resp = requests.get(
+            nhsd_apim_proxy_url + "/authorize",
+            authorize_params,
+            allow_redirects=False
         )
+
+        body = resp.json()
+        assert resp.status_code == 401
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
+            "error": "access_denied",
+            "error_description": "The developer app associated with the API key is not approved or revoked",
+        }
 
     @pytest.mark.skip(
         reason="TO REFACTOR"
