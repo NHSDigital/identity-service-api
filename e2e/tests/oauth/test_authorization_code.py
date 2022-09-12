@@ -1,5 +1,3 @@
-from cgi import test
-import sys
 import random
 from time import sleep
 import pytest
@@ -8,7 +6,6 @@ from lxml import html
 from urllib import parse
 from urllib.parse import urlparse, parse_qs
 from e2e.scripts.config import (
-    OAUTH_URL,
     CANARY_API_URL,
     CANARY_PRODUCT_NAME
 )
@@ -31,7 +28,7 @@ def replace_keys(data: dict, keys_to_replace: dict) -> dict:
     return {**data, **keys_to_replace}
 
 
-def get_auth_code(url, authorize_params, username):
+def get_auth_info(url, authorize_params, username):
     # Log in to Keycloak and get code
     session = requests.Session()
     resp = session.get(
@@ -40,20 +37,21 @@ def get_auth_code(url, authorize_params, username):
         verify=False
     )
 
-    assert resp.status_code == 200
-
     tree = html.fromstring(resp.content.decode())
 
     form = tree.get_element_by_id("kc-form-login")
     url = form.action
     resp2 = session.post(url, data={"username": username})
 
-    qs = urlparse(resp2.history[-1].headers["Location"]).query
-    auth_code = parse_qs(qs)["code"]
-    if isinstance(auth_code, list):
-        auth_code = auth_code[0]
+    return urlparse(resp2.history[-1].headers["Location"]).query
 
-    return auth_code
+
+def get_auth_item(auth_info, item):
+    auth_item = parse_qs(auth_info)[item]
+    if isinstance(auth_item, list):
+        auth_item = auth_item[0]
+
+    return auth_item
 
 
 def subscribe_app_to_product(
@@ -84,6 +82,23 @@ def unsubscribe_product(
     return _apigee_edge_session.delete(url)
 
 
+def change_app_status(
+    _apigee_edge_session,
+    _apigee_app_base_url,
+    app,
+    status,
+):
+    assert status in ["approve", "revoke"]
+    app_name = app["name"]
+    url = f"{_apigee_app_base_url}/{app_name}?action={status}"
+
+    app["status"] = status
+
+    resp = _apigee_edge_session.post(url)
+
+    return resp
+
+
 @pytest.fixture()
 def authorize_params(_test_app_credentials, _test_app_callback_url):
     return {
@@ -106,7 +121,7 @@ def token_data(_test_app_credentials, _test_app_callback_url):
 
 
 @pytest.fixture()
-def refresh_token_data(_test_app_credentials, _nhsd_apim_auth_token_data):
+def refresh_token_data(_test_app_credentials):
     return {
         "client_id": _test_app_credentials["consumerKey"],
         "client_secret": _test_app_credentials["consumerSecret"],
@@ -115,7 +130,12 @@ def refresh_token_data(_test_app_credentials, _nhsd_apim_auth_token_data):
     }
 
 
-@pytest.mark.asyncio
+# Some of the following tests require to modify the test_app by the
+# pytest-nhsd-apim module. Once the app is updated in apigee we still need to
+# retry the test until the app changes propagates inside Apigee and the proxy
+# can pick those changes so we simply rerun the test a sensible amount of times
+# and hope it will pass.
+@pytest.mark.flaky(reruns=60, reruns_delay=1)
 class TestAuthorizationCode:
     """ A test suit to test the token exchange flow """
 
@@ -252,11 +272,12 @@ class TestAuthorizationCode:
         missing_or_invalid,
         update_data
     ):
-        token_data["code"] = get_auth_code(
+        auth_info = get_auth_info(
             url=nhsd_apim_proxy_url + "/authorize",
             authorize_params=authorize_params,
             username="656005750104"
         )
+        token_data["code"] = get_auth_item(auth_info, "code")
 
         if missing_or_invalid == "missing":
             token_data = remove_keys(token_data, update_data)
@@ -317,39 +338,38 @@ class TestAuthorizationCode:
         assert resp.status_code == 405
         assert resp.headers["Allow"] == allowed_method
 
-    @pytest.mark.skip(
-        reason="TO REFACTOR"
-    )
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
-    @pytest.mark.parametrize("auth_method", [(None)])
-    async def test_cache_invalidation(self, helper, auth_code_nhs_cis2):
-        """
-        Test identity cache invalidation after use:
-            * Given i am authorizing
-            * When the first request has succeeded
-            * When using the same state as the first request
-            * Then it should return xxx
-        """
-
-        # Make authorize request to retrieve state2
-        state = await auth_code_nhs_cis2.get_state(self.oauth)
-
-        # Make simulated auth request to authenticate and make initial callback request
-        auth_code = await auth_code_nhs_cis2.make_auth_request(self.oauth, state)
-        auth_code = await auth_code_nhs_cis2.make_callback_request(self.oauth, state, auth_code)
-
-        # Make second callback request with same state value
-        assert helper.check_endpoint(
-            verb="GET",
-            endpoint=f"{OAUTH_URL}/callback",
-            expected_status_code=400,
-            expected_response={
-                "error": "invalid_request",
-                "error_description": "invalid state parameter.",
-            },
-            params={"code": auth_code, "client_id": "some-client-id", "state": state},
+    def test_cache_invalidation(
+        self,
+        nhsd_apim_proxy_url,
+        authorize_params
+    ):
+        # Make authorize request, which includes callback call to retrieve used state
+        auth_info = get_auth_info(
+            url=nhsd_apim_proxy_url + "/authorize",
+            authorize_params=authorize_params,
+            username="656005750104"
         )
+        authorize_params["code"] = get_auth_item(auth_info, "code")
+        authorize_params["state"] = get_auth_item(auth_info, "state")
+
+        resp = requests.get(
+            nhsd_apim_proxy_url + "/callback",
+            authorize_params,
+            allow_redirects=False
+        )
+
+        body = resp.json()
+        assert resp.status_code == 400
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
+            "error": "invalid_request",
+            "error_description": "Invalid state parameter.",
+        }
 
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
@@ -487,16 +507,25 @@ class TestAuthorizationCode:
         
         assert redirect_params == expected_params
 
-    @pytest.mark.skip(
-        reason="TO REFACTOR"
-    )
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
     def test_authorize_revoked_app(
         self,
         nhsd_apim_proxy_url,
-        authorize_params
+        authorize_params,
+        _apigee_edge_session,
+        _apigee_app_base_url,
+        test_app
     ):
+        revoke_app_resp = change_app_status(
+            _apigee_edge_session,
+            _apigee_app_base_url,
+            test_app(),
+            "revoke",
+        )
+
+        assert revoke_app_resp.status_code == 204
+
         resp = requests.get(
             nhsd_apim_proxy_url + "/authorize",
             authorize_params,
@@ -513,6 +542,15 @@ class TestAuthorizationCode:
             "error": "access_denied",
             "error_description": "The developer app associated with the API key is not approved or revoked",
         }
+
+        approve_app_resp = change_app_status(
+            _apigee_edge_session,
+            _apigee_app_base_url,
+            test_app(),
+            "approve",
+        )
+
+        assert approve_app_resp.status_code == 204
 
     @pytest.mark.skip(
         reason="TO REFACTOR"
@@ -742,7 +780,12 @@ class TestAuthorizationCode:
 
 ############## OAUTH TOKENS ###############
 
-    @pytest.mark.nhsd_apim_authorization
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
     @pytest.mark.happy_path
     def test_access_token(
         self,
@@ -764,11 +807,12 @@ class TestAuthorizationCode:
         )
         assert product_resp.status_code == 200
 
-        token_data["code"] = get_auth_code(
+        auth_info = get_auth_info(
             url=nhsd_apim_proxy_url + "/authorize",
             authorize_params=authorize_params,
             username="656005750104"
         )
+        token_data["code"] = get_auth_item(auth_info, "code")
 
         # Post to token endpoint
         resp = requests.post(
@@ -842,11 +886,12 @@ class TestAuthorizationCode:
         authorize_params,
         token_data
     ):
-        token_data["code"] = get_auth_code(
+        auth_info = get_auth_info(
             url=nhsd_apim_proxy_url + "/authorize",
             authorize_params=authorize_params,
             username="656005750104"
         )
+        token_data["code"] = get_auth_item(auth_info, "code")
         token_data["_access_token_expiry_ms"] = 5
 
         # Post to token endpoint
@@ -900,11 +945,12 @@ class TestAuthorizationCode:
         authorize_params,
         token_data
     ):
-        token_data["code"] = get_auth_code(
+        auth_info = get_auth_info(
             url=nhsd_apim_proxy_url + "/authorize",
             authorize_params=authorize_params,
             username="656005750104"
         )
+        token_data["code"] = get_auth_item(auth_info, "code")
 
         # Post to token endpoint
         resp = requests.post(
