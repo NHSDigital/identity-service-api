@@ -55,18 +55,18 @@ def get_auth_item(auth_info, item):
 
 
 def subscribe_app_to_product(
-    _apigee_edge_session, _apigee_app_base_url, credential, app_name, product_name
+    _apigee_edge_session, _apigee_app_base_url, credential, app_name, products
 ):
     key = credential["consumerKey"]
     attributes = credential["attributes"]
-    api_products = [product_name]
     url = f"{_apigee_app_base_url}/{app_name}/keys/{key}"
 
     for product in credential["apiProducts"]:
-        api_products.append(product["apiproduct"])
+        if product["apiproduct"] not in products:
+            products.append(product["apiproduct"])
 
     product_data = {
-        "apiProducts": api_products,
+        "apiProducts": products,
         "attributes": attributes
     }
 
@@ -130,12 +130,6 @@ def refresh_token_data(_test_app_credentials):
     }
 
 
-# Some of the following tests require to modify the test_app by the
-# pytest-nhsd-apim module. Once the app is updated in apigee we still need to
-# retry the test until the app changes propagates inside Apigee and the proxy
-# can pick those changes so we simply rerun the test a sensible amount of times
-# and hope it will pass.
-@pytest.mark.flaky(reruns=60, reruns_delay=1)
 class TestAuthorizationCode:
     """ A test suit to test the token exchange flow """
 
@@ -515,12 +509,15 @@ class TestAuthorizationCode:
         authorize_params,
         _apigee_edge_session,
         _apigee_app_base_url,
-        test_app
+        _create_function_scoped_test_app
     ):
+        authorize_params["client_id"] = _create_function_scoped_test_app["credentials"][0]["consumerKey"]
+        authorize_params["redirect_uri"] = _create_function_scoped_test_app["callbackUrl"]
+
         revoke_app_resp = change_app_status(
             _apigee_edge_session,
             _apigee_app_base_url,
-            test_app(),
+            _create_function_scoped_test_app,
             "revoke",
         )
 
@@ -546,7 +543,7 @@ class TestAuthorizationCode:
         approve_app_resp = change_app_status(
             _apigee_edge_session,
             _apigee_app_base_url,
-            test_app(),
+            _create_function_scoped_test_app,
             "approve",
         )
 
@@ -790,29 +787,43 @@ class TestAuthorizationCode:
     def test_access_token(
         self,
         nhsd_apim_proxy_url,
-        test_app,
-        _test_app_credentials,
+        _create_function_scoped_test_app,
+        _proxy_product_with_scope,
         _apigee_edge_session,
-        _apigee_app_base_url,
-        token_data,
-        authorize_params
+        _apigee_app_base_url
     ):
-        app = test_app()
+        app = _create_function_scoped_test_app
+        credential = app["credentials"][0]
+
         product_resp = subscribe_app_to_product(
             _apigee_edge_session,
             _apigee_app_base_url,
-            _test_app_credentials,
+            credential,
             app["name"],
-            CANARY_PRODUCT_NAME
+            [CANARY_PRODUCT_NAME, _proxy_product_with_scope["name"]]
         )
         assert product_resp.status_code == 200
 
+        params = {
+            "client_id": credential["consumerKey"],
+            "redirect_uri": app["callbackUrl"],
+            "response_type": "code",
+            "state": random.getrandbits(32)
+        }
+
         auth_info = get_auth_info(
             url=nhsd_apim_proxy_url + "/authorize",
-            authorize_params=authorize_params,
+            authorize_params=params,
             username="656005750104"
         )
-        token_data["code"] = get_auth_item(auth_info, "code")
+
+        token_data = {
+            "client_id": credential["consumerKey"],
+            "client_secret": credential["consumerSecret"],
+            "redirect_uri": app["callbackUrl"],
+            "grant_type": "authorization_code",
+            "code": get_auth_item(auth_info, "code")
+        }
 
         # Post to token endpoint
         resp = requests.post(
@@ -837,7 +848,7 @@ class TestAuthorizationCode:
         remove_product_resp = unsubscribe_product(
             _apigee_edge_session,
             _apigee_app_base_url,
-            _test_app_credentials,
+            credential,
             app["name"],
             CANARY_PRODUCT_NAME
         )
