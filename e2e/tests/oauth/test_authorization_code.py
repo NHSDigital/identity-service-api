@@ -1,15 +1,18 @@
-import random
-from time import sleep
 import pytest
 import requests
+import random
+from time import sleep
 from lxml import html
 from urllib import parse
 from urllib.parse import urlparse, parse_qs
+from e2e.scripts.response_bank import BANK
 from e2e.scripts.config import (
     CANARY_API_URL,
     CANARY_PRODUCT_NAME
 )
-from e2e.scripts.response_bank import BANK
+
+
+# Helper Functions
 
 
 def get_params_from_url(url: str) -> dict:
@@ -55,11 +58,15 @@ def get_auth_item(auth_info, item):
 
 
 def subscribe_app_to_product(
-    _apigee_edge_session, _apigee_app_base_url, credential, app_name, products
+    apigee_edge_session,
+    apigee_app_base_url,
+    credential,
+    app_name,
+    products
 ):
     key = credential["consumerKey"]
     attributes = credential["attributes"]
-    url = f"{_apigee_app_base_url}/{app_name}/keys/{key}"
+    url = f"{apigee_app_base_url}/{app_name}/keys/{key}"
 
     for product in credential["apiProducts"]:
         if product["apiproduct"] not in products:
@@ -70,33 +77,39 @@ def subscribe_app_to_product(
         "attributes": attributes
     }
 
-    return _apigee_edge_session.post(url, json=product_data)
+    return apigee_edge_session.post(url, json=product_data)
 
 
 def unsubscribe_product(
-    _apigee_edge_session, _apigee_app_base_url, credential, app_name, product_name
+    apigee_edge_session,
+    apigee_app_base_url,
+    key,
+    app_name,
+    product_name
 ):
-    key = credential["consumerKey"]
-    url = f"{_apigee_app_base_url}/{app_name}/keys/{key}/apiproducts/{product_name}"
+    url = f"{apigee_app_base_url}/{app_name}/keys/{key}/apiproducts/{product_name}"
 
-    return _apigee_edge_session.delete(url)
+    return apigee_edge_session.delete(url)
 
 
 def change_app_status(
-    _apigee_edge_session,
-    _apigee_app_base_url,
+    apigee_edge_session,
+    apigee_app_base_url,
     app,
     status,
 ):
     assert status in ["approve", "revoke"]
     app_name = app["name"]
-    url = f"{_apigee_app_base_url}/{app_name}?action={status}"
+    url = f"{apigee_app_base_url}/{app_name}?action={status}"
 
     app["status"] = status
 
-    resp = _apigee_edge_session.post(url)
+    resp = apigee_edge_session.post(url)
 
     return resp
+
+
+# Fixtures
 
 
 @pytest.fixture()
@@ -130,10 +143,14 @@ def refresh_token_data(_test_app_credentials):
     }
 
 
+# Some of the following tests require to modify the test_app by the
+# pytest-nhsd-apim module. Once the app is updated in apigee we still need to
+# retry the test until the app changes propagates inside Apigee and the proxy
+# can pick those changes so we simply rerun the test a sensible amount of times
+# and hope it will pass.
+@pytest.mark.flaky(reruns=60, reruns_delay=1)
 class TestAuthorizationCode:
     """ A test suit to test the token exchange flow """
-
-############# OAUTH ENDPOINTS ###########
 
     @pytest.mark.happy_path
     @pytest.mark.token_endpoint
@@ -283,6 +300,155 @@ class TestAuthorizationCode:
             nhsd_apim_proxy_url + "/token",
             headers={"Content-Type": "application/x-www-form-urlencoded"},
             data=token_data
+        )
+
+        body = resp.json()
+        assert resp.status_code == expected_status_code
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == expected_response
+
+    @pytest.mark.happy_path
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
+    def test_refresh_token(
+        self,
+        nhsd_apim_proxy_url,
+        refresh_token_data,
+        _nhsd_apim_auth_token_data
+    ):
+        refresh_token_data["refresh_token"] = _nhsd_apim_auth_token_data["refresh_token"]
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=refresh_token_data
+        )
+        body = resp.json()
+
+        assert resp.status_code == 200
+        assert body["expires_in"] == "599"
+        assert body["token_type"] == "Bearer"
+        assert body["refresh_count"] == "1"
+        assert sorted(list(body.keys())) == [
+            "access_token",
+            "expires_in",
+            "refresh_count",
+            "refresh_token",
+            "refresh_token_expires_in",
+            "token_type"
+        ]
+
+    @pytest.mark.errors
+    @pytest.mark.authorize_endpoint
+    @pytest.mark.parametrize(
+        "expected_response,expected_status_code,missing_or_invalid,update_data",
+        [
+            (  # Test missing client_id
+                {
+                    "error": "invalid_request",
+                    "error_description": "client_id is missing",
+                },
+                401,
+                "missing",
+                {"client_id"},
+            ),
+            (  # Test invalid client_id
+                {
+                    "error": "invalid_client",
+                    "error_description": "client_id or client_secret is invalid",
+                },
+                401,
+                "invalid",
+                {"client_id": "invalid"},
+            ),
+            (  # Test missing client_secret
+                {
+                    "error": "invalid_request",
+                    "error_description": "client_secret is missing",
+                },
+                401,
+                "missing",
+                {"client_secret"},
+            ),
+            (  # Test invalid client_secret
+                {
+                    "error": "invalid_client",
+                    "error_description": "client_id or client_secret is invalid",
+                },
+                401,
+                "invalid",
+                {"client_secret": "invalid"},
+            ),
+            (  # Test missing refresh_token
+                {
+                    "error": "invalid_request",
+                    "error_description": "refresh_token is missing",
+                },
+                400,
+                "missing",
+                {"refresh_token"},
+            ),
+            (  # Test invalid refresh_token
+                {
+                    "error": "invalid_grant",
+                    "error_description": "refresh_token is invalid",
+                },
+                401,
+                "invalid",
+                {"refresh_token": "invalid"},
+            ),
+            (  # Test missing grant_type
+                {
+                    "error": "invalid_request",
+                    "error_description": "grant_type is missing",
+                },
+                400,
+                "missing",
+                {"grant_type"},
+            ),
+            (  # Test invalid grant_type
+                {
+                    "error": "unsupported_grant_type",
+                    "error_description": "grant_type is invalid",
+                },
+                400,
+                "invalid",
+                {"grant_type": "invalid"},
+            ),
+        ]
+    )
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
+    def test_refresh_token_error_conditions(
+        self,
+        expected_response,
+        expected_status_code,
+        missing_or_invalid,
+        update_data,
+        nhsd_apim_proxy_url,
+        refresh_token_data,
+        _nhsd_apim_auth_token_data
+    ):
+        refresh_token_data["refresh_token"] = _nhsd_apim_auth_token_data["refresh_token"]
+        if missing_or_invalid == "missing":
+            data = remove_keys(refresh_token_data, update_data)
+        if missing_or_invalid == "invalid":
+            data = replace_keys(refresh_token_data, update_data)
+
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=data
         )
 
         body = resp.json()
@@ -483,7 +649,7 @@ class TestAuthorizationCode:
             params = remove_keys(authorize_params, update_params)
         if missing_or_invalid == "invalid":
             params = replace_keys(authorize_params, update_params)
-        
+
         resp = requests.get(
             nhsd_apim_proxy_url + "/authorize",
             params,
@@ -498,7 +664,7 @@ class TestAuthorizationCode:
         redirect_params = get_params_from_url(redirected_url)
         if "state" in params:
             expected_params["state"] = str(params["state"])
-        
+
         assert redirect_params == expected_params
 
     @pytest.mark.errors
@@ -514,6 +680,7 @@ class TestAuthorizationCode:
         authorize_params["client_id"] = _create_function_scoped_test_app["credentials"][0]["consumerKey"]
         authorize_params["redirect_uri"] = _create_function_scoped_test_app["callbackUrl"]
 
+        # Revoke app
         revoke_app_resp = change_app_status(
             _apigee_edge_session,
             _apigee_app_base_url,
@@ -523,6 +690,7 @@ class TestAuthorizationCode:
 
         assert revoke_app_resp.status_code == 204
 
+        # Attempt to authorize
         resp = requests.get(
             nhsd_apim_proxy_url + "/authorize",
             authorize_params,
@@ -540,222 +708,131 @@ class TestAuthorizationCode:
             "error_description": "The developer app associated with the API key is not approved or revoked",
         }
 
-        approve_app_resp = change_app_status(
-            _apigee_edge_session,
-            _apigee_app_base_url,
-            _create_function_scoped_test_app,
-            "approve",
-        )
-
-        assert approve_app_resp.status_code == 204
-
-    @pytest.mark.skip(
-        reason="TO REFACTOR"
-    )
-    async def test_authorize_unsubscribed_error_condition(
-        self, test_product, test_application, helper
-    ):
-        await test_product.update_proxies(["canary-api-internal-dev"])
-        await test_application.add_api_product([test_product.name])
-
-        assert await helper.send_request_and_check_output(
-            expected_status_code=401,
-            expected_response={
-                "error": "access_denied",
-                "error_description": "API Key supplied does not have access to this resource. "
-                "Please check the API Key you are using belongs to an app "
-                "which has sufficient access to access this resource.",
-            },
-            function=self.oauth.hit_oauth_endpoint,
-            method="GET",
-            endpoint="authorize",
-            params={
-                "client_id": test_application.client_id,
-                "redirect_uri": test_application.callback_url,
-                "response_type": "code",
-                "state": random.getrandbits(32),
-            },
-        )
-
-    @pytest.mark.skip(
-        reason="TO REFACTOR"
-    )
-    @pytest.mark.simulated_auth
-    @pytest.mark.errors
-    @pytest.mark.token_endpoint
-    async def test_token_unsubscribed_error_condition(
-        self, test_product, test_application, helper
-    ):
-        await test_product.update_proxies(["canary-api-internal-dev"])
-        await test_application.add_api_product([test_product.name])
-
-        assert await helper.send_request_and_check_output(
-            expected_status_code=401,
-            expected_response={
-                "error": "access_denied",
-                "error_description": "API Key supplied does not have access to this resource."
-                " Please check the API Key you are using belongs to an app"
-                " which has sufficient access to access this resource.",
-            },
-            function=self.oauth.get_token_response,
-            grant_type="authorization_code",
-            data={
-                "client_id": test_application.client_id,
-                "client_secret": test_application.client_secret,
-                "redirect_uri": test_application.callback_url,
-                "grant_type": "authorization_code",
-                "code": await self.oauth.get_authenticated_with_simulated_auth(),
-            },
-        )
-
-    @pytest.mark.happy_path
-    @pytest.mark.nhsd_apim_authorization(
-        access="healthcare_worker",
-        level="aal3",
-        login_form={"username": "656005750104"},
-        force_new_token=True
-    )
-    def test_refresh_token(
-        self,
-        nhsd_apim_proxy_url,
-        refresh_token_data,
-        _nhsd_apim_auth_token_data
-    ):
-        refresh_token_data["refresh_token"] = _nhsd_apim_auth_token_data["refresh_token"]
-        resp = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-            data=refresh_token_data
-        )
-        body = resp.json()
-
-        assert resp.status_code == 200
-        assert body["expires_in"] == "599"
-        assert body["token_type"] == "Bearer"
-        assert body["refresh_count"] == "1"
-        assert sorted(list(body.keys())) == [
-            "access_token",
-            "expires_in",
-            "refresh_count",
-            "refresh_token",
-            "refresh_token_expires_in",
-            "token_type"
-        ]
-
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
-    @pytest.mark.parametrize(
-        "expected_response,expected_status_code,missing_or_invalid,update_data",
-        [
-            (  # Test missing client_id
-                {
-                    "error": "invalid_request",
-                    "error_description": "client_id is missing",
-                },
-                401,
-                "missing",
-                {"client_id"},
-            ),
-            (  # Test invalid client_id
-                {
-                    "error": "invalid_client",
-                    "error_description": "client_id or client_secret is invalid",
-                },
-                401,
-                "invalid",
-                {"client_id": "invalid"},
-            ),
-            (  # Test missing client_secret
-                {
-                    "error": "invalid_request",
-                    "error_description": "client_secret is missing",
-                },
-                401,
-                "missing",
-                {"client_secret"},
-            ),
-            (  # Test invalid client_secret
-                {
-                    "error": "invalid_client",
-                    "error_description": "client_id or client_secret is invalid",
-                },
-                401,
-                "invalid",
-                {"client_secret": "invalid"},
-            ),
-            (  # Test missing refresh_token
-                {
-                    "error": "invalid_request",
-                    "error_description": "refresh_token is missing",
-                },
-                400,
-                "missing",
-                {"refresh_token"},
-            ),
-            (  # Test invalid refresh_token
-                {
-                    "error": "invalid_grant",
-                    "error_description": "refresh_token is invalid",
-                },
-                401,
-                "invalid",
-                {"refresh_token": "invalid"},
-            ),
-            (  # Test missing grant_type
-                {
-                    "error": "invalid_request",
-                    "error_description": "grant_type is missing",
-                },
-                400,
-                "missing",
-                {"grant_type"},
-            ),
-            (  # Test invalid grant_type
-                {
-                    "error": "unsupported_grant_type",
-                    "error_description": "grant_type is invalid",
-                },
-                400,
-                "invalid",
-                {"grant_type": "invalid"},
-            ),
-        ]
-    )
-    @pytest.mark.nhsd_apim_authorization(
-        access="healthcare_worker",
-        level="aal3",
-        login_form={"username": "656005750104"},
-        force_new_token=True
-    )
-    def test_refresh_token_error_conditions(
+    def test_authorize_unsubscribed_error_condition(
         self,
-        expected_response,
-        expected_status_code,
-        missing_or_invalid,
-        update_data,
         nhsd_apim_proxy_url,
-        refresh_token_data,
-        _nhsd_apim_auth_token_data
+        _create_function_scoped_test_app,
+        _apigee_edge_session,
+        _apigee_app_base_url
     ):
-        refresh_token_data["refresh_token"] = _nhsd_apim_auth_token_data["refresh_token"]
-        if missing_or_invalid == "missing":
-            data = remove_keys(refresh_token_data, update_data)
-        if missing_or_invalid == "invalid":
-            data = replace_keys(refresh_token_data, update_data)
+        # Create app subscribed to no products
+        app = _create_function_scoped_test_app
+        credential = app["credentials"][0]
 
-        resp = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-            data=data
+        # Must be subscribed to product so add product from wrong environment
+        product_resp = subscribe_app_to_product(
+            _apigee_edge_session,
+            _apigee_app_base_url,
+            credential,
+            app["name"],
+            ["canary-api-ref"]
+        )
+        assert product_resp.status_code == 200
+
+        params = {
+            "client_id": credential["consumerKey"],
+            "redirect_uri": app["callbackUrl"],
+            "response_type": "code",
+            "state": random.getrandbits(32)
+        }
+
+        resp = requests.get(
+            nhsd_apim_proxy_url + "/authorize",
+            params,
+            allow_redirects=False
         )
 
         body = resp.json()
-        assert resp.status_code == expected_status_code
+        assert resp.status_code == 401
         assert (
             "message_id" in body.keys()
         )  # We assert the key but not he value for message_id
         del body["message_id"]
-        assert body == expected_response
+        assert body == {
+            "error": "access_denied",
+            "error_description": "API Key supplied does not have access to this resource. "
+            "Please check the API Key you are using belongs to an app "
+            "which has sufficient access to access this resource.",
+        }
+
+    @pytest.mark.errors
+    @pytest.mark.token_endpoint
+    def test_token_unsubscribed_error_condition(
+        self,
+        nhsd_apim_proxy_url,
+        _create_function_scoped_test_app,
+        _apigee_edge_session,
+        _apigee_app_base_url,
+        _proxy_product_with_scope
+    ):
+        # Subscribe app to wrong environment Canary
+        # so that product with wrong identity service associated
+        # Also subscribe app to correct identity service
+        app = _create_function_scoped_test_app
+        credential = app["credentials"][0]
+
+        product_resp = subscribe_app_to_product(
+            _apigee_edge_session,
+            _apigee_app_base_url,
+            credential,
+            app["name"],
+            ["canary-api-ref", _proxy_product_with_scope["name"]]
+        )
+        assert product_resp.status_code == 200
+
+        params = {
+            "client_id": credential["consumerKey"],
+            "redirect_uri": app["callbackUrl"],
+            "response_type": "code",
+            "state": random.getrandbits(32)
+        }
+
+        # Authorize
+        auth_info = get_auth_info(
+            url=nhsd_apim_proxy_url + "/authorize",
+            authorize_params=params,
+            username="656005750104"
+        )
+
+        # Remove correct ideneity service from product
+        remove_product_resp = unsubscribe_product(
+            _apigee_edge_session,
+            _apigee_app_base_url,
+            credential["consumerKey"],
+            app["name"],
+            _proxy_product_with_scope["name"]
+        )
+        assert remove_product_resp.status_code == 200
+
+        token_data = {
+            "client_id": credential["consumerKey"],
+            "client_secret": credential["consumerSecret"],
+            "redirect_uri": app["callbackUrl"],
+            "grant_type": "authorization_code",
+            "code": get_auth_item(auth_info, "code")
+        }
+
+        # Post to token endpoint
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data=token_data,
+            headers={"Content-Type": "application/x-www-form-urlencoded"}
+        )
+
+        body = resp.json()
+        assert resp.status_code == 401
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
+            "error": "access_denied",
+            "error_description": "API Key supplied does not have access to this resource. "
+            "Please check the API Key you are using belongs to an app "
+            "which has sufficient access to access this resource.",
+        }
 
     @pytest.mark.mock_auth
     @pytest.mark.happy_path
@@ -775,8 +852,6 @@ class TestAuthorizationCode:
         assert resp.status_code == 200
         assert body == BANK.get(self.name)["response"]
 
-############## OAUTH TOKENS ###############
-
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
         level="aal3",
@@ -792,6 +867,7 @@ class TestAuthorizationCode:
         _apigee_edge_session,
         _apigee_app_base_url
     ):
+        # Subscribe app to canary and identity service
         app = _create_function_scoped_test_app
         credential = app["credentials"][0]
 
@@ -804,6 +880,7 @@ class TestAuthorizationCode:
         )
         assert product_resp.status_code == 200
 
+        # Authorize
         params = {
             "client_id": credential["consumerKey"],
             "redirect_uri": app["callbackUrl"],
@@ -848,7 +925,7 @@ class TestAuthorizationCode:
         remove_product_resp = unsubscribe_product(
             _apigee_edge_session,
             _apigee_app_base_url,
-            credential,
+            credential["consumerKey"],
             app["name"],
             CANARY_PRODUCT_NAME
         )
@@ -897,13 +974,14 @@ class TestAuthorizationCode:
         authorize_params,
         token_data
     ):
+        # Set short expiry
         auth_info = get_auth_info(
             url=nhsd_apim_proxy_url + "/authorize",
             authorize_params=authorize_params,
             username="656005750104"
         )
         token_data["code"] = get_auth_item(auth_info, "code")
-        token_data["_access_token_expiry_ms"] = 5
+        token_data["_access_token_expiry_ms"] = 4
 
         # Post to token endpoint
         resp = requests.post(
@@ -915,8 +993,10 @@ class TestAuthorizationCode:
         token_resp = resp.json()
         token = token_resp["access_token"]
 
+        # Wait for expiry
         sleep(5)
 
+        # Hit canary with expired token
         resp_canary = requests.get(
             CANARY_API_URL,
             headers={"Authorization": f"Bearer {token}"}
@@ -933,6 +1013,7 @@ class TestAuthorizationCode:
             }
         }
 
+    @pytest.mark.errors
     def test_missing_access_token(self):
         resp = requests.get(
             CANARY_API_URL,
@@ -956,6 +1037,7 @@ class TestAuthorizationCode:
         authorize_params,
         token_data
     ):
+        # Authorize
         auth_info = get_auth_info(
             url=nhsd_apim_proxy_url + "/authorize",
             authorize_params=authorize_params,
@@ -963,7 +1045,7 @@ class TestAuthorizationCode:
         )
         token_data["code"] = get_auth_item(auth_info, "code")
 
-        # Post to token endpoint
+        # Post to token endpoint with params not data
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
             params=token_data
@@ -993,9 +1075,11 @@ class TestAuthorizationCode:
         refresh_token_data,
         _nhsd_apim_auth_token_data
     ):
+        # Set short expiry
         refresh_token_data["refresh_token"] = _nhsd_apim_auth_token_data["refresh_token"]
         refresh_token_data["_refresh_token_expiry_ms"] = 4
 
+        # Refresh token
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
             headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -1004,8 +1088,10 @@ class TestAuthorizationCode:
         refresh_token_resp = resp.json()
         refresh_token_data["refresh_token"] = refresh_token_resp["refresh_token"]
 
+        # Wait for expiry
         sleep(5)
 
+        # Attempt to get new token
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
             headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -1071,6 +1157,7 @@ class TestAuthorizationCode:
     ):
         refresh_token_data["refresh_token"] = _nhsd_apim_auth_token_data["refresh_token"]
 
+        # Refresh token
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
             headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -1087,6 +1174,7 @@ class TestAuthorizationCode:
             "token_type",
         ]
 
+        # Refresh original token
         resp_two = requests.post(
             nhsd_apim_proxy_url + "/token",
             headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -1104,6 +1192,7 @@ class TestAuthorizationCode:
             "error_description": "refresh_token is invalid",
         }
 
+    @pytest.mark.happy_path
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
         level="aal3",
