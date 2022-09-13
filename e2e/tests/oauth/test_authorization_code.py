@@ -178,6 +178,12 @@ class TestAuthorizationCode:
     @pytest.mark.mock_auth
     @pytest.mark.errors
     @pytest.mark.token_endpoint
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
     @pytest.mark.parametrize(
         "expected_response,expected_status_code,missing_or_invalid,update_data",
         [
@@ -498,8 +504,15 @@ class TestAuthorizationCode:
         assert resp.status_code == 405
         assert resp.headers["Allow"] == allowed_method
 
+    @pytest.mark.mock_auth
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
     def test_cache_invalidation(
         self,
         nhsd_apim_proxy_url,
@@ -757,8 +770,15 @@ class TestAuthorizationCode:
             "which has sufficient access to access this resource.",
         }
 
+    @pytest.mark.mock_auth
     @pytest.mark.errors
     @pytest.mark.token_endpoint
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
     def test_token_unsubscribed_error_condition(
         self,
         nhsd_apim_proxy_url,
@@ -852,6 +872,7 @@ class TestAuthorizationCode:
         assert resp.status_code == 200
         assert body == BANK.get(self.name)["response"]
 
+    @pytest.mark.mock_auth
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
         level="aal3",
@@ -956,7 +977,14 @@ class TestAuthorizationCode:
         assert resp.status_code == 401
         assert body == expected_response
 
+    @pytest.mark.mock_auth
     @pytest.mark.errors
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
     def test_expired_access_token(
         self,
         nhsd_apim_proxy_url,
@@ -1019,7 +1047,14 @@ class TestAuthorizationCode:
             }
         }
 
+    @pytest.mark.mock_auth
     @pytest.mark.errors
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
     def test_access_token_with_params(
         self,
         nhsd_apim_proxy_url,
