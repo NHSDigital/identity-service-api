@@ -51,6 +51,7 @@ def set_jwks_resource_url(
         )
         assert jwks_attribute in post_resp2.json()["attribute"]
 
+
 @pytest.fixture()
 def claims(_test_app_credentials, nhsd_apim_proxy_url):
     claims = {
@@ -78,7 +79,7 @@ class TestClientCredentialsJWT:
     )
     def test_successful_jwt_token_response(self, _nhsd_apim_auth_token_data):
         assert "access_token" in _nhsd_apim_auth_token_data.keys()
-        assert "issued_at" in _nhsd_apim_auth_token_data.keys()
+        assert "issued_at" in _nhsd_apim_auth_token_data.keys() # Added by pytest_nhsd_apim
         assert _nhsd_apim_auth_token_data["expires_in"] == "599"
         assert _nhsd_apim_auth_token_data["token_type"] == "Bearer"
 
