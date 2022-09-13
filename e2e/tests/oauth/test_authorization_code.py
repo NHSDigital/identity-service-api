@@ -148,7 +148,7 @@ def refresh_token_data(_test_app_credentials):
 # retry the test until the app changes propagates inside Apigee and the proxy
 # can pick those changes so we simply rerun the test a sensible amount of times
 # and hope it will pass.
-@pytest.mark.flaky(reruns=60, reruns_delay=1)
+# @pytest.mark.flaky(reruns=60, reruns_delay=1)
 class TestAuthorizationCode:
     """ A test suit to test the token exchange flow """
 
@@ -957,6 +957,12 @@ class TestAuthorizationCode:
         assert body == expected_response
 
     @pytest.mark.errors
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
     def test_expired_access_token(
         self,
         nhsd_apim_proxy_url,
