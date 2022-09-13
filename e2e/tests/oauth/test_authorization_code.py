@@ -57,7 +57,7 @@ def get_auth_item(auth_info, item):
     return auth_item
 
 
-def subscribe_app_to_product(
+def subscribe_app_to_products(
     apigee_edge_session,
     apigee_app_base_url,
     credential,
@@ -722,7 +722,7 @@ class TestAuthorizationCode:
         credential = app["credentials"][0]
 
         # Must be subscribed to product so add product from wrong environment
-        product_resp = subscribe_app_to_product(
+        product_resp = subscribe_app_to_products(
             _apigee_edge_session,
             _apigee_app_base_url,
             credential,
@@ -773,7 +773,7 @@ class TestAuthorizationCode:
         app = _create_function_scoped_test_app
         credential = app["credentials"][0]
 
-        product_resp = subscribe_app_to_product(
+        product_resp = subscribe_app_to_products(
             _apigee_edge_session,
             _apigee_app_base_url,
             credential,
@@ -871,7 +871,7 @@ class TestAuthorizationCode:
         app = _create_function_scoped_test_app
         credential = app["credentials"][0]
 
-        product_resp = subscribe_app_to_product(
+        product_resp = subscribe_app_to_products(
             _apigee_edge_session,
             _apigee_app_base_url,
             credential,
@@ -920,17 +920,6 @@ class TestAuthorizationCode:
 
         assert canary_resp.status_code == 200
         assert canary_resp.text == "Hello user!"
-
-        # Tear down
-        remove_product_resp = unsubscribe_product(
-            _apigee_edge_session,
-            _apigee_app_base_url,
-            credential["consumerKey"],
-            app["name"],
-            CANARY_PRODUCT_NAME
-        )
-
-        assert remove_product_resp.status_code == 200
 
     @pytest.mark.errors
     @pytest.mark.parametrize(
