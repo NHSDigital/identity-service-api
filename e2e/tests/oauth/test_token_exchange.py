@@ -8,6 +8,10 @@ from e2e.scripts.config import (
     ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
     CANARY_API_URL
 )
+from e2e.tests.oauth.utils.helpers import (
+    remove_keys,
+    replace_keys
+)
 
 
 @pytest.fixture
@@ -89,14 +93,116 @@ class TestTokenExchange:
         }
 
     @pytest.mark.errors
-    async def test_token_exchange_invalid_client_assertion_type(self, claims, _jwt_keys, nhsd_apim_proxy_url,
-                                                                cis_2_claims):
-        # Given
-        expected_status_code = 400
-        expected_error = 'invalid_request'
-        expected_error_description = "Missing or invalid client_assertion_type - " \
-                                     "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
-
+    @pytest.mark.parametrize(
+        "expected_response,expected_status_code,missing_or_invalid,update_data",
+        [
+            (  # Test invalid client_assertion_type
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing or invalid client_assertion_type - " \
+                                         "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                },
+                400,
+                "invalid",
+                {"client_assertion_type": "invalid"}
+            ),
+            (  # Test missing client_assertion_type
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing or invalid client_assertion_type - " \
+                                         "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                },
+                400,
+                "missing",
+                {"client_assertion_type"}
+            ),
+            (  # Test invalid subject_token_type
+                {
+                    "error": "invalid_request",
+                    "error_description": "missing or invalid subject_token_type - " \
+                                         "must be 'urn:ietf:params:oauth:token-type:id_token'"
+                },
+                400,
+                "invalid",
+                {"subject_token_type": "invalid"}
+            ),
+            (  # Test missing subject_token_type
+                {
+                    "error": "invalid_request",
+                    "error_description": "missing or invalid subject_token_type - " \
+                                         "must be 'urn:ietf:params:oauth:token-type:id_token'"
+                },
+                400,
+                "missing",
+                {"subject_token_type"}
+            ),
+            (  # Test invalid grant_type
+                {
+                    "error": "invalid_request",
+                    "error_description": "grant_type is invalid"
+                },
+                400,
+                "invalid",
+                {"grant_type": "invalid"}
+            ),
+            (  # Test missing grant_type
+                {
+                    "error": "invalid_request",
+                    "error_description": "grant_type is invalid"
+                },
+                400,
+                "missing",
+                {"grant_type"}
+            ),
+            (  # Test invalid subject_token - TO DO - REFACTOR when completing APM-3323
+                {
+                    "error": "invalid_request",
+                    "error_description": "Malformed JWT in client_assertion"
+                },
+                400,
+                "invalid",
+                {"subject_token": "invalid"}
+            ),
+            (  # Test missing subject_token - TO DO - REFACTOR when completing APM-3323
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing client_assertion"
+                },
+                400,
+                "missing",
+                {"subject_token"}
+            ),
+            (  # Test invalid client_assertion
+                {
+                    "error": "invalid_request",
+                    "error_description": "Malformed JWT in client_assertion"
+                },
+                400,
+                "invalid",
+                {"client_assertion": "invalid"}
+            ),
+            (  # Test missing client_assertion
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing client_assertion"
+                },
+                400,
+                "missing",
+                {"client_assertion"}
+            ),
+        ]
+    )
+    def test_token_exchange_form_param_errors(
+        self,
+        expected_response,
+        expected_status_code,
+        missing_or_invalid,
+        update_data,
+        claims,
+        _jwt_keys,
+        nhsd_apim_proxy_url,
+        cis_2_claims
+    ):
         with open(config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
             id_token_private_key = f.read()
 
@@ -109,35 +215,96 @@ class TestTokenExchange:
         headers = ({}, {"kid": kid})[kid is not None]
         id_token_jwt = jwt.encode(cis_2_claims, id_token_private_key, algorithm="RS512", headers=headers)
 
+        token_data = {
+            "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
+            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            "subject_token": id_token_jwt,
+            "client_assertion": client_assertion,
+            "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"
+        }
+        if missing_or_invalid == "missing":
+            token_data = remove_keys(token_data, update_data)
+        if missing_or_invalid == "invalid":
+            token_data = replace_keys(token_data, update_data)
+
         # When
-        response = requests.post(
+        resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data={"subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
-                  "client_assertion_type": "jwt-bearer",
-                  "subject_token": id_token_jwt,
-                  "client_assertion": client_assertion,
-                  "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"})
-        resp = response.json()
+            data=token_data
+        )
 
         # Then
-        assert expected_status_code == response.status_code
-        assert expected_error == resp['error']
-        assert expected_error_description == resp['error_description']
+        body = resp.json()
+        assert resp.status_code == expected_status_code
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == expected_response
 
     @pytest.mark.errors
-    @pytest.mark.token_exchange
-    async def test_token_exchange_invalid_subject_token_type(self, claims, _jwt_keys, nhsd_apim_proxy_url,
-                                                             cis_2_claims):
-        # Given
-        expected_status_code = 400
-        expected_error = 'invalid_request'
-        expected_error_description = "missing or invalid subject_token_type - " \
-                                     "must be 'urn:ietf:params:oauth:token-type:id_token'"
-
+    @pytest.mark.parametrize(
+        "expected_response,expected_status_code,missing_or_invalid,update_headers",
+        [
+            (  # Test missing kid
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing 'kid' header in JWT"
+                },
+                400,
+                "missing",
+                {"kid"}
+            ),
+            (  # Test invalid kid
+                {
+                    "error": "invalid_request",
+                    "error_description": "Invalid 'kid' header in JWT - no matching public key"
+                },
+                401,
+                "invalid",
+                {"kid": "invalid"}
+            ),
+            (  # Test invalid typ
+                {
+                    "error": "invalid_request",
+                    "error_description": "Invalid 'typ' header in JWT - must be 'JWT'"
+                },
+                400,
+                "invalid",
+                {"typ": "invalid"}
+            ),
+            (  # Test None typ
+                {
+                    "error": "invalid_request",
+                    "error_description": "Invalid 'typ' header in JWT - must be 'JWT'"
+                },
+                400,
+                "invalid",
+                {"typ": None}
+            ),
+        ]
+    )
+    def test_token_exchange_client_assertion_header_errors(
+        self,
+        expected_response,
+        expected_status_code,
+        missing_or_invalid,
+        update_headers,
+        claims,
+        _jwt_keys,
+        nhsd_apim_proxy_url,
+        cis_2_claims
+    ):
         with open(config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
             id_token_private_key = f.read()
 
         additional_headers = {"kid": "test-1"}
+
+        if missing_or_invalid == "missing":
+            additional_headers = remove_keys(additional_headers, update_headers)
+        if missing_or_invalid == "invalid":
+            additional_headers = replace_keys(additional_headers, update_headers)
+
         client_assertion = jwt.encode(claims, _jwt_keys["private_key_pem"],
                                       algorithm="RS512",
                                       headers=additional_headers)
@@ -147,91 +314,25 @@ class TestTokenExchange:
         id_token_jwt = jwt.encode(cis_2_claims, id_token_private_key, algorithm="RS512", headers=headers)
 
         # When
-        response = requests.post(
+        resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data={"subject_token_type": "id_token",
-                  "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-                  "subject_token": id_token_jwt,
-                  "client_assertion": client_assertion,
-                  "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"})
-        resp = response.json()
+            data={
+                "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
+                "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                "subject_token": id_token_jwt,
+                "client_assertion": client_assertion,
+                "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"
+            }
+        )
 
         # Then
-        assert expected_status_code == response.status_code
-        assert expected_error == resp['error']
-        assert expected_error_description == resp['error_description']
-
-    @pytest.mark.errors
-    @pytest.mark.token_exchange
-    async def test_token_exchange_claims_assertion_invalid_kid(self, claims, _jwt_keys, nhsd_apim_proxy_url,
-                                                               cis_2_claims):
-        # Given
-        expected_status_code = 400
-        expected_error = 'invalid_request'
-        expected_error_description = "Missing 'kid' header in JWT"
-
-        with open(config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
-            id_token_private_key = f.read()
-
-        additional_headers = {"kid": ''}
-        client_assertion = jwt.encode(claims, _jwt_keys["private_key_pem"],
-                                      algorithm="RS512",
-                                      headers=additional_headers)
-
-        kid = "identity-service-tests-1"
-        headers = ({}, {"kid": kid})[kid is not None]
-        id_token_jwt = jwt.encode(cis_2_claims, id_token_private_key, algorithm="RS512", headers=headers)
-
-        # When
-        response = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data={"subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
-                  "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-                  "subject_token": id_token_jwt,
-                  "client_assertion": client_assertion,
-                  "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"})
-        resp = response.json()
-
-        # Then
-        assert expected_status_code == response.status_code
-        assert expected_error == resp['error']
-        assert expected_error_description == resp['error_description']
-
-    @pytest.mark.errors
-    @pytest.mark.token_exchange
-    async def test_token_exchange_claims_assertion_invalid_typ_header(self, claims, _jwt_keys, nhsd_apim_proxy_url,
-                                                                      cis_2_claims):
-        # Given
-        expected_status_code = 400
-        expected_error = 'invalid_request'
-        expected_error_description = "Invalid 'typ' header in JWT - must be 'JWT'"
-
-        with open(config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
-            id_token_private_key = f.read()
-
-        additional_headers = {'kid': 'test-1', 'typ': 'invalid'}
-        client_assertion = jwt.encode(claims, _jwt_keys["private_key_pem"],
-                                      algorithm="RS512",
-                                      headers=additional_headers)
-
-        kid = "identity-service-tests-1"
-        headers = ({}, {"kid": kid})[kid is not None]
-        id_token_jwt = jwt.encode(cis_2_claims, id_token_private_key, algorithm="RS512", headers=headers)
-
-        # When
-        response = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data={"subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
-                  "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-                  "subject_token": id_token_jwt,
-                  "client_assertion": client_assertion,
-                  "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"})
-        resp = response.json()
-
-        # Then
-        assert expected_status_code == response.status_code
-        assert expected_error == resp['error']
-        assert expected_error_description == resp['error_description']
+        body = resp.json()
+        assert resp.status_code == expected_status_code
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == expected_response
 
     @pytest.mark.errors
     @pytest.mark.token_exchange

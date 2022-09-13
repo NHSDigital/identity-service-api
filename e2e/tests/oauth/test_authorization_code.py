@@ -10,6 +10,10 @@ from e2e.scripts.config import (
     CANARY_API_URL,
     CANARY_PRODUCT_NAME
 )
+from e2e.tests.oauth.utils.helpers import (
+    remove_keys,
+    replace_keys
+)
 
 
 # Helper Functions
@@ -18,17 +22,6 @@ from e2e.scripts.config import (
 def get_params_from_url(url: str) -> dict:
     """Returns all the params and param values from a given url as a dictionary"""
     return dict(parse.parse_qsl(parse.urlsplit(url).query))
-
-
-def remove_keys(data: dict, keys_to_remove: dict) -> dict:
-    """Returns all the params with specified keys removed"""
-    for key in keys_to_remove:
-        data.pop(key)
-    return data
-
-
-def replace_keys(data: dict, keys_to_replace: dict) -> dict:
-    return {**data, **keys_to_replace}
 
 
 def get_auth_info(url, authorize_params, username):
