@@ -18,6 +18,7 @@ SERVICE_NAME = environ.get(
 API_NAME="identity-service"
 
 # Test API (Canary API)
+CANARY_PRODUCT_NAME = f"canary-api-{ENVIRONMENT}"
 CANARY_API_URL = f"{OAUTH_BASE_URI}/canary-api"
 
 
