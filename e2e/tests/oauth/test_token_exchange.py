@@ -1,14 +1,13 @@
+import pytest
+import requests
+import jwt
+from uuid import uuid4
+from time import time
+from e2e.scripts import config
 from e2e.scripts.config import (
     ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
     CANARY_API_URL
 )
-import pytest
-from uuid import uuid4
-from time import time, sleep
-import requests
-import sys
-import jwt
-from e2e.scripts import config
 
 
 @pytest.fixture
@@ -21,19 +20,18 @@ from e2e.scripts import config
     }
 )
 def claims(_test_app_credentials, nhsd_apim_proxy_url):
-    claims = {
+    return {
         "sub": _test_app_credentials["consumerKey"],
         "iss": _test_app_credentials["consumerKey"],
         "jti": str(uuid4()),
         "aud": nhsd_apim_proxy_url + "/token",
         "exp": int(time()) + 300,  # 5 minutes in the future
     }
-    return claims
 
 
 @pytest.fixture
 def cis_2_claims():
-    cis2_claims = {
+    return {
         "at_hash": "tf_-lqpq36lwO7WmSBIJ6Q",
         "sub": "787807429511",
         "auditTrackingId": "91f694e6-3749-42fd-90b0-c3134b0d98f6-1546391",
@@ -52,41 +50,45 @@ def cis_2_claims():
         "exp": int(time()) + 300,
         "tokenType": "JWTToken",
         "iat": int(time()) - 100}
-    return cis2_claims
 
 
 @pytest.fixture
 def claims_nhsd_login(_test_app_credentials, nhsd_apim_proxy_url):
-    claims = {
+    return {
         "sub": _test_app_credentials["consumerKey"],
         "iss": _test_app_credentials["consumerKey"],
         "jti": str(uuid4()),
         "aud": nhsd_apim_proxy_url + "/token",
         "exp": int(time()) + 300,  # 5 minutes in the future
     }
-    return claims
 
 
-@pytest.mark.asyncio
 class TestTokenExchange:
     """ A test suit to test the token exchange flow """
 
-    # ############# JWT ###############
-    # @pytest.mark.simulated_auth
-    # @pytest.mark.token_exchange
+    @pytest.mark.happy_path
     @pytest.mark.nhsd_apim_authorization(
         {"access": "healthcare_worker",
          "level": "aal3",
          "login_form": {"username": "aal3"},
          "authentication": "separate"})
-    def test_healthcare_work_user_token_exchange_happy_path(self, nhsd_apim_proxy_url, _nhsd_apim_auth_token_data):
-        assert "access_token" in _nhsd_apim_auth_token_data.keys()
-        assert "issued_at" in _nhsd_apim_auth_token_data.keys()
+    def test_cis2_token_exchange_happy_path(self, _nhsd_apim_auth_token_data):
         assert _nhsd_apim_auth_token_data["expires_in"] == "599"
         assert _nhsd_apim_auth_token_data["token_type"] == "Bearer"
+        assert _nhsd_apim_auth_token_data["refresh_count"] == "0"
+        assert _nhsd_apim_auth_token_data["issued_token_type"] == "urn:ietf:params:oauth:token-type:access_token"
+        assert set(_nhsd_apim_auth_token_data.keys()) == {
+            "access_token",
+            "expires_in",
+            "refresh_count",
+            "refresh_token",
+            "refresh_token_expires_in",
+            "token_type",
+            "issued_token_type",
+            "issued_at"  # Added by pytest_nhsd_apim
+        }
 
     @pytest.mark.errors
-    @pytest.mark.token_exchange
     async def test_token_exchange_invalid_client_assertion_type(self, claims, _jwt_keys, nhsd_apim_proxy_url,
                                                                 cis_2_claims):
         # Given
@@ -962,6 +964,7 @@ class TestTokenExchange:
 
     # ############ OAUTH ENDPOINTS ###########
 
+# TO DO - use pytest marker for token
     @pytest.mark.simulated_auth
     async def test_userinfo_nhs_login_exchanged_token(self, _jwt_keys, nhsd_apim_proxy_url, claims):
         # Given
