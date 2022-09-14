@@ -44,7 +44,9 @@ apigee:
           - identity-service-mock-internal-dev
         scopes:
           - urn:nhsd:apim:user-nhs-cis2:aal3:identity-service
+          - urn:nhsd:apim:user-nhs-login:P0:identity-service
           - urn:nhsd:apim:user-nhs-login:P5:identity-service
+          - urn:nhsd:apim:user-nhs-login:P9:identity-service
           - urn:nhsd:apim:app:level3:identity-service
 {% else %}
     products: []
