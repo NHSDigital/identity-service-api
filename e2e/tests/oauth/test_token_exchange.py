@@ -5,6 +5,7 @@ from uuid import uuid4
 from time import time
 from e2e.scripts import config
 from e2e.scripts.config import (
+    ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH,
     ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
     CANARY_API_URL
 )
@@ -12,6 +13,35 @@ from e2e.tests.oauth.utils.helpers import (
     remove_keys,
     replace_keys
 )
+
+
+def create_client_assertion(claims, private_key, additional_headers={"kid": "test-1"}):
+    return jwt.encode(
+        claims,
+        private_key,
+        algorithm="RS512",
+        headers=additional_headers
+    )
+
+
+def create_subject_token(claims, kid="identity-service-tests-1"):
+    with open(ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
+        id_token_private_key = f.read()
+
+    headers = ({}, {"kid": kid})[kid is not None]
+    return jwt.encode(claims, id_token_private_key, algorithm="RS512", headers=headers)
+
+
+def create_nhs_login_subject_token(claims, headers):
+    with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
+        id_token_nhs_login = f.read()
+
+    return jwt.encode(
+        payload=claims,
+        key=id_token_nhs_login,
+        algorithm="RS512",
+        headers=headers
+    )
 
 
 @pytest.fixture
@@ -46,6 +76,47 @@ def cis2_subject_token_claims():
         "exp": int(time()) + 300,
         "tokenType": "JWTToken",
         "iat": int(time()) - 100}
+
+
+@pytest.fixture
+def nhs_login_id_token():
+    return {
+        "headers": {
+            "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",
+            "aud": "APIM-1",
+            "kid": "nhs-login",
+            "iss": "https://internal-dev.api.service.nhs.uk",
+            "typ": "JWT",
+            "exp": 1616604574,
+            "iat": 1616600974,
+            "alg": "RS512",
+            "jti": "b68ddb28-e440-443d-8725-dfe0da330118"
+        },
+        "claims": {
+            'aud': 'tf_-APIM-1',
+            'id_status': 'verified',
+            'token_use': 'id',
+            'auth_time': 1616600683,
+            'iss': 'https://internal-dev.api.service.nhs.uk',
+            'vot': 'P9.Cp.Cd',
+            'exp': int(time()) + 600,
+            'iat': int(time()) - 10,
+            'vtm': 'https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk',
+            'jti': 'b68ddb28-e440-443d-8725-dfe0da330118',
+            "identity_proofing_level": "P9"
+        }
+    }
+
+
+@pytest.fixture
+def token_data():
+    return {
+        "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
+        "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+        "subject_token": None,  # Should be replaced in test
+        "client_assertion": None,  # Should be replaced in test
+        "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"
+    }
 
 
 class TestTokenExchange:
@@ -182,27 +253,12 @@ class TestTokenExchange:
         claims,
         _jwt_keys,
         nhsd_apim_proxy_url,
-        cis2_subject_token_claims
+        cis2_subject_token_claims,
+        token_data
     ):
-        with open(config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
-            id_token_private_key = f.read()
+        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data["subject_token"] = create_subject_token(cis2_subject_token_claims)
 
-        additional_headers = {"kid": "test-1"}
-        client_assertion = jwt.encode(claims, _jwt_keys["private_key_pem"],
-                                      algorithm="RS512",
-                                      headers=additional_headers)
-
-        kid = "identity-service-tests-1"
-        headers = ({}, {"kid": kid})[kid is not None]
-        id_token_jwt = jwt.encode(cis2_subject_token_claims, id_token_private_key, algorithm="RS512", headers=headers)
-
-        token_data = {
-            "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
-            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-            "subject_token": id_token_jwt,
-            "client_assertion": client_assertion,
-            "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"
-        }
         if missing_or_invalid == "missing":
             token_data = remove_keys(token_data, update_data)
         if missing_or_invalid == "invalid":
@@ -274,11 +330,9 @@ class TestTokenExchange:
         claims,
         _jwt_keys,
         nhsd_apim_proxy_url,
-        cis2_subject_token_claims
+        cis2_subject_token_claims,
+        token_data
     ):
-        with open(config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
-            id_token_private_key = f.read()
-
         additional_headers = {"kid": "test-1"}
 
         if missing_or_invalid == "missing":
@@ -286,24 +340,17 @@ class TestTokenExchange:
         if missing_or_invalid == "invalid":
             additional_headers = replace_keys(additional_headers, update_headers)
 
-        client_assertion = jwt.encode(claims, _jwt_keys["private_key_pem"],
-                                      algorithm="RS512",
-                                      headers=additional_headers)
-
-        kid = "identity-service-tests-1"
-        headers = ({}, {"kid": kid})[kid is not None]
-        id_token_jwt = jwt.encode(cis2_subject_token_claims, id_token_private_key, algorithm="RS512", headers=headers)
+        token_data["client_assertion"] = create_client_assertion(
+            claims,
+            _jwt_keys["private_key_pem"],
+            additional_headers=additional_headers
+        )
+        token_data["subject_token"] = create_subject_token(cis2_subject_token_claims)
 
         # When
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data={
-                "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
-                "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-                "subject_token": id_token_jwt,
-                "client_assertion": client_assertion,
-                "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"
-            }
+            data=token_data
         )
 
         # Then
@@ -402,34 +449,21 @@ class TestTokenExchange:
         claims,
         _jwt_keys,
         nhsd_apim_proxy_url,
-        cis2_subject_token_claims
+        cis2_subject_token_claims,
+        token_data
     ):
-        with open(config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
-            id_token_private_key = f.read()
-
         if missing_or_invalid == "missing":
             claims = remove_keys(claims, update_claims)
         if missing_or_invalid == "invalid":
             claims = replace_keys(claims, update_claims)
 
-        client_assertion = jwt.encode(claims, _jwt_keys["private_key_pem"],
-                                      algorithm="RS512",
-                                      headers={"kid": "test-1"})
-
-        kid = "identity-service-tests-1"
-        headers = ({}, {"kid": kid})[kid is not None]
-        id_token_jwt = jwt.encode(cis2_subject_token_claims, id_token_private_key, algorithm="RS512", headers=headers)
+        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data["subject_token"] = create_subject_token(cis2_subject_token_claims)
 
         # When
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data={
-                "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
-                "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-                "subject_token": id_token_jwt,
-                "client_assertion": client_assertion,
-                "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"
-            }
+            data=token_data
         )
 
         # Then
@@ -448,51 +482,37 @@ class TestTokenExchange:
         _jwt_keys,
         nhsd_apim_proxy_url,
         cis2_subject_token_claims,
-        claims
+        claims,
+        token_data
     ):
-        # Given
-        expected_status_code = 400
-        expected_error = 'invalid_request'
-        expected_error_description = "Non-unique jti claim in JWT"
-
-        additional_headers = {'kid': 'test-1'}
-        client_assertion = jwt.encode(claims, _jwt_keys["private_key_pem"],
-                                      algorithm="RS512",
-                                      headers=additional_headers)
-
-        with open(config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
-            id_token_private_key = f.read()
-
-        kid = "identity-service-tests-1"
-        headers = ({}, {"kid": kid})[kid is not None]
-        id_token_jwt = jwt.encode(cis2_subject_token_claims, id_token_private_key, algorithm="RS512", headers=headers)
+        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data["subject_token"] = create_subject_token(cis2_subject_token_claims)
 
         # When
         response = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data={"subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
-                  "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-                  "subject_token": id_token_jwt,
-                  "client_assertion": client_assertion,
-                  "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"})
+            data=token_data
+        )
         resp = response.json()
 
         assert 200 == response.status_code
         assert 'access_token' in resp['issued_token_type']
 
-        response = requests.post(
+        resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data={"subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
-                  "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-                  "subject_token": id_token_jwt,
-                  "client_assertion": client_assertion,
-                  "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"})
-        resp = response.json()
+            data=token_data
+        )
 
-        # Then
-        assert expected_status_code == response.status_code
-        assert expected_error == resp['error']
-        assert expected_error_description == resp['error_description']
+        body = resp.json()
+        assert resp.status_code == 400
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
+            "error": "invalid_request",
+            "error_description": "Non-unique jti claim in JWT"
+        }
 
     @pytest.mark.errors
     @pytest.mark.parametrize(
@@ -545,34 +565,21 @@ class TestTokenExchange:
         claims,
         _jwt_keys,
         nhsd_apim_proxy_url,
-        cis2_subject_token_claims
+        cis2_subject_token_claims,
+        token_data
     ):
-        with open(config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
-            id_token_private_key = f.read()
-
-        client_assertion = jwt.encode(claims, _jwt_keys["private_key_pem"],
-                                      algorithm="RS512",
-                                      headers={"kid": "test-1"})
-
         if missing_or_invalid == "missing":
             cis2_subject_token_claims = remove_keys(cis2_subject_token_claims, update_claims)
         if missing_or_invalid == "invalid":
             cis2_subject_token_claims = replace_keys(cis2_subject_token_claims, update_claims)
 
-        kid = "identity-service-tests-1"
-        headers = ({}, {"kid": kid})[kid is not None]
-        id_token_jwt = jwt.encode(cis2_subject_token_claims, id_token_private_key, algorithm="RS512", headers=headers)
+        token_data["subject_token"] = create_subject_token(cis2_subject_token_claims)
+        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
 
         # When
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data={
-                "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
-                "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-                "subject_token": id_token_jwt,
-                "client_assertion": client_assertion,
-                "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"
-            }
+            data=token_data
         )
 
         # Then
@@ -585,316 +592,119 @@ class TestTokenExchange:
         assert body == expected_response
 
     @pytest.mark.simulated_auth
-    @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason="Skipped for now. Needs further investigation.")
-    async def test_nhs_login_happy_path(self, _nhsd_apim_auth_token_data, _jwt_keys, nhsd_apim_proxy_url):
-        # Given
-        assert "access_token" in _nhsd_apim_auth_token_data.keys()
-        assert "issued_at" in _nhsd_apim_auth_token_data.keys()
-        assert _nhsd_apim_auth_token_data["expires_in"] == "599"
-        assert _nhsd_apim_auth_token_data["token_type"] == "Bearer"
-        expected_status_code = 200
-        expected_expires_in = '599'
-        expected_token_type = 'Bearer'
-        expected_issued_token_type = 'urn:ietf:params:oauth:token-type:access_token'
+    def test_nhs_login_happy_path(self, claims, _jwt_keys, nhsd_apim_proxy_url, nhs_login_id_token, token_data):
+        id_token_claims = nhs_login_id_token["claims"]
+        id_token_headers = nhs_login_id_token["headers"]
 
-        id_token_claims = {
-            'aud': 'tf_-APIM-1',
-            'id_status': 'verified',
-            'token_use': 'id',
-            'auth_time': 1616600683,
-            'iss': 'https://internal-dev.api.service.nhs.uk',
-            'vot': 'P9.Cp.Cd',
-            'exp': int(time()) + 600,
-            'iat': int(time()) - 10,
-            'vtm': 'https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk',
-            'jti': 'b68ddb28-e440-443d-8725-dfe0da330118',
-            "identity_proofing_level": "P9"
-        }
-        id_token_headers = {
-            "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",
-            "aud": "APIM-1",
-            "kid": "nhs-login",
-            "iss": "https://internal-dev.api.service.nhs.uk",
-            "typ": "JWT",
-            "exp": 1616604574,
-            "iat": 1616600974,
-            "alg": "RS512",
-            "jti": "b68ddb28-e440-443d-8725-dfe0da330118"
-        }
-
-        additional_headers = {'kid': 'test-1'}
-        client_assertion = jwt.encode(claims, _jwt_keys["private_key_pem"],
-                                      algorithm="RS512",
-                                      headers=additional_headers)
-
-        with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
-            id_token_nhs_login = f.read()
-
-        id_token_jwt = jwt.encode(payload=id_token_claims,
-                                  key=id_token_nhs_login,
-                                  algorithm="RS512",
-                                  headers=id_token_headers)
+        token_data["subject_token"] = create_nhs_login_subject_token(id_token_claims, id_token_headers)
+        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
 
         # When
-        response = requests.post(
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data=token_data
+        )
+        body = resp.json()
+
+        assert resp.status_code == 200
+        assert body["expires_in"] == "599"
+        assert body["token_type"] == "Bearer"
+        assert body["refresh_count"] == "0"
+        assert body["issued_token_type"] == "urn:ietf:params:oauth:token-type:access_token"
+        assert set(body.keys()) == {
+            "access_token",
+            "expires_in",
+            "refresh_count",
+            "refresh_token",
+            "refresh_token_expires_in",
+            "token_type",
+            "issued_token_type"
+        }
+
+    @pytest.mark.errors
+    @pytest.mark.parametrize(
+        "expected_response,expected_status_code,missing_or_invalid,update_claims",
+        [
+            (  # Test invalid iss
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing or non-matching iss/sub claims in JWT"
+                },
+                400,
+                "invalid",
+                {"iss": "invalid"}
+            ),
+            (  # Test missing iss
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing or non-matching iss/sub claims in JWT"
+                },
+                400,
+                "missing",
+                {"iss"}
+            ),
+            (  # Test missing aud
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing aud claim in JWT"
+                },
+                400,
+                "missing",
+                {"aud"}
+            ),
+            (  # Test missing exp
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing exp claim in JWT"
+                },
+                400,
+                "missing",
+                {"exp"}
+            ),
+        ]
+    )
+    def test_token_exchange_nhs_login_subject_token_claims_errors(
+        self,
+        expected_response,
+        expected_status_code,
+        missing_or_invalid,
+        update_claims,
+        claims,
+        _jwt_keys,
+        nhsd_apim_proxy_url,
+        nhs_login_id_token
+    ):
+        client_assertion = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+
+        id_token_claims = nhs_login_id_token["claims"]
+        id_token_headers = nhs_login_id_token["headers"]
+
+        if missing_or_invalid == "missing":
+            id_token_claims = remove_keys(id_token_claims, update_claims)
+        if missing_or_invalid == "invalid":
+            id_token_claims = replace_keys(id_token_claims, update_claims)
+
+        id_token_jwt = create_nhs_login_subject_token(id_token_claims, id_token_headers)
+
+        # When
+        resp = requests.post(
             nhsd_apim_proxy_url + "/token",
             data={"subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
                   "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
                   "subject_token": id_token_jwt,
                   "client_assertion": client_assertion,
                   "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"})
-        resp = response.json()
-        print(resp)
-        #     # Then
-        assert expected_status_code == response.status_code
-        assert 'access_token' in resp['body']
-        assert expected_expires_in == resp['body']['expires_in']
-        assert expected_token_type == resp['body']['token_type']
-        assert expected_issued_token_type == resp['body']['issued_token_type']
-
-    @pytest.mark.errors
-    @pytest.mark.token_exchange
-    async def test_token_exchange_subject_token_nhs_login_missing_iss_claim(self, _jwt_keys, nhsd_apim_proxy_url,
-                                                                            claims):
-        # Given
-        expected_status_code = 400
-        expected_error = 'invalid_request'
-        expected_error_description = "Missing or non-matching iss/sub claims in JWT"
-
-        id_token_claims = {
-            'aud': 'tf_-APIM-1',
-            'id_status': 'verified',
-            'token_use': 'id',
-            'auth_time': 1616600683,
-            'vot': 'P9.Cp.Cd',
-            'exp': int(time()) + 600,
-            'iat': int(time()) - 10,
-            'vtm': 'https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk',
-            'jti': 'b68ddb28-e440-443d-8725-dfe0da330118'
-        }
-        id_token_headers = {
-            "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",
-            "aud": "APIM-1",
-            "kid": "nhs-login",
-            "iss": "https://internal-dev.api.service.nhs.uk",
-            "typ": "JWT",
-            "exp": 1616604574,
-            "iat": 1616600974,
-            "alg": "RS512",
-            "jti": "b68ddb28-e440-443d-8725-dfe0da330118"
-        }
-
-        additional_headers = {'kid': 'test-1'}
-        client_assertion = jwt.encode(claims, _jwt_keys["private_key_pem"],
-                                      algorithm="RS512",
-                                      headers=additional_headers)
-
-        with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
-            id_token_nhs_login = f.read()
-
-        id_token_jwt = jwt.encode(payload=id_token_claims,
-                                  key=id_token_nhs_login,
-                                  algorithm="RS512",
-                                  headers=id_token_headers)
-
-        # When
-        response = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data={"subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
-                  "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-                  "subject_token": id_token_jwt,
-                  "client_assertion": client_assertion,
-                  "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"})
-        resp = response.json()
+        body = resp.json()
 
         # Then
-        assert expected_status_code == response.status_code
-        assert expected_error == resp['error']
-        assert expected_error_description == resp['error_description']
-
-    @pytest.mark.simulated_auth
-    @pytest.mark.errors
-    @pytest.mark.token_exchange
-    async def test_token_exchange_subject_token_nhs_login_missing_aud_claim(self, _jwt_keys, nhsd_apim_proxy_url,
-                                                                            claims):
-        # Given
-        expected_status_code = 400
-        expected_error = 'invalid_request'
-        expected_error_description = "Missing aud claim in JWT"
-
-        id_token_claims = {
-            'id_status': 'verified',
-            'token_use': 'id',
-            'auth_time': 1616600683,
-            'iss': 'https://internal-dev.api.service.nhs.uk',
-            'vot': 'P9.Cp.Cd',
-            'exp': int(time()) + 600,
-            'iat': int(time()) - 10,
-            'vtm': 'https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk',
-            'jti': 'b68ddb28-e440-443d-8725-dfe0da330118'
-        }
-        id_token_headers = {
-            "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",
-            "aud": "APIM-1",
-            "kid": "nhs-login",
-            "iss": "https://internal-dev.api.service.nhs.uk",
-            "typ": "JWT",
-            "exp": 1616604574,
-            "iat": 1616600974,
-            "alg": "RS512",
-            "jti": "b68ddb28-e440-443d-8725-dfe0da330118"
-        }
-
-        additional_headers = {'kid': 'test-1'}
-        client_assertion = jwt.encode(claims, _jwt_keys["private_key_pem"],
-                                      algorithm="RS512",
-                                      headers=additional_headers)
-
-        with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
-            id_token_nhs_login = f.read()
-
-        id_token_jwt = jwt.encode(payload=id_token_claims,
-                                  key=id_token_nhs_login,
-                                  algorithm="RS512",
-                                  headers=id_token_headers)
-
-        # When
-        response = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data={"subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
-                  "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-                  "subject_token": id_token_jwt,
-                  "client_assertion": client_assertion,
-                  "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"})
-        resp = response.json()
-
-        # Then
-        assert expected_status_code == response.status_code
-        assert expected_error == resp['error']
-        assert expected_error_description == resp['error_description']
-
-    @pytest.mark.errors
-    @pytest.mark.token_exchange
-    async def test_token_exchange_subject_token_nhs_login_missing_exp_claim(self, _jwt_keys, nhsd_apim_proxy_url,
-                                                                            claims):
-        # Given
-        expected_status_code = 400
-        expected_error = 'invalid_request'
-        expected_error_description = "Missing exp claim in JWT"
-
-        id_token_claims = {
-            'aud': 'tf_-APIM-1',
-            'id_status': 'verified',
-            'token_use': 'id',
-            'auth_time': 1616600683,
-            'iss': 'https://internal-dev.api.service.nhs.uk',
-            'vot': 'P9.Cp.Cd',
-            'iat': int(time()) - 10,
-            'vtm': 'https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk',
-            'jti': 'b68ddb28-e440-443d-8725-dfe0da330118'
-        }
-        id_token_headers = {
-            "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",
-            "aud": "APIM-1",
-            "kid": "nhs-login",
-            "iss": "https://internal-dev.api.service.nhs.uk",
-            "typ": "JWT",
-            "exp": 1616604574,
-            "iat": 1616600974,
-            "alg": "RS512",
-            "jti": "b68ddb28-e440-443d-8725-dfe0da330118"
-        }
-
-        additional_headers = {'kid': 'test-1'}
-        client_assertion = jwt.encode(claims, _jwt_keys["private_key_pem"],
-                                      algorithm="RS512",
-                                      headers=additional_headers)
-
-        with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
-            id_token_nhs_login = f.read()
-
-        id_token_jwt = jwt.encode(payload=id_token_claims,
-                                  key=id_token_nhs_login,
-                                  algorithm="RS512",
-                                  headers=id_token_headers)
-
-        # When
-        response = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data={"subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
-                  "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-                  "subject_token": id_token_jwt,
-                  "client_assertion": client_assertion,
-                  "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"})
-        resp = response.json()
-
-        # Then
-        assert expected_status_code == response.status_code
-        assert expected_error == resp['error']
-        assert expected_error_description == resp['error_description']
-
-    @pytest.mark.errors
-    @pytest.mark.token_exchange
-    async def test_token_exchange_subject_token_nhs_login_invalid_iss_claim(self, _jwt_keys, nhsd_apim_proxy_url,
-                                                                            claims):
-        # Given
-        expected_status_code = 400
-        expected_error = 'invalid_request'
-        expected_error_description = "Missing or non-matching iss/sub claims in JWT"
-
-        id_token_claims = {
-            'aud': 'tf_-APIM-1',
-            'id_status': 'verified',
-            'token_use': 'id',
-            'auth_time': 1616600683,
-            'iss': 'invalidIss',
-            'vot': 'P9.Cp.Cd',
-            'exp': int(time()) + 600,
-            'iat': int(time()) - 10,
-            'vtm': 'https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk',
-            'jti': 'b68ddb28-e440-443d-8725-dfe0da330118'
-        }
-        id_token_headers = {
-            "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",
-            "aud": "APIM-1",
-            "kid": "nhs-login",
-            "iss": "InvalidIss",
-            "typ": "JWT",
-            "exp": 1616604574,
-            "iat": 1616600974,
-            "alg": "RS512",
-            "jti": "b68ddb28-e440-443d-8725-dfe0da330118"
-        }
-
-        additional_headers = {'kid': 'test-1'}
-        client_assertion = jwt.encode(claims, _jwt_keys["private_key_pem"],
-                                      algorithm="RS512",
-                                      headers=additional_headers)
-
-        with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
-            id_token_nhs_login = f.read()
-
-        id_token_jwt = jwt.encode(payload=id_token_claims,
-                                  key=id_token_nhs_login,
-                                  algorithm="RS512",
-                                  headers=id_token_headers)
-
-        # When
-        response = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data={"subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
-                  "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-                  "subject_token": id_token_jwt,
-                  "client_assertion": client_assertion,
-                  "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"})
-        resp = response.json()
-
-        # Then
-        assert expected_status_code == response.status_code
-        assert expected_error == resp['error']
-        assert expected_error_description == resp['error_description']
+        body = resp.json()
+        assert resp.status_code == expected_status_code
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == expected_response
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
