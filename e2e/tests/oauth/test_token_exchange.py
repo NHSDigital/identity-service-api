@@ -1180,30 +1180,6 @@ class TestTokenExchange:
         assert int(body['expires_in']) <= expected_time
 
     @pytest.mark.simulated_auth
-    @pytest.mark.usefixtures("set_refresh_token")
-    @pytest.mark.parametrize("token_expiry_ms, expected_time",
-                             [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)])
-    @pytest.mark.skip(reason="Skipped for now. Needs further investigation.")
-    async def test_access_token_override_with_refresh_token(self, token_expiry_ms, expected_time):
-        """
-        Test refresh token flow access token can be overridden with a time less than 10 min(600000ms or 600s)
-        and  NOT be overridden with a time greater than 10 min(600000ms or 600s)
-        """
-        form_data = {
-            "client_id": self.oauth.client_id,
-            "client_secret": self.oauth.client_secret,
-            "grant_type": "refresh_token",
-            "refresh_token": self.oauth.refresh_token,
-            "_refresh_tokens_validity_ms": 599,
-            "_access_token_expiry_ms": token_expiry_ms
-        }
-
-        resp = await self.oauth.get_token_response(grant_type='refresh_token', data=form_data)
-
-        assert resp['status_code'] == 200
-        assert int(resp['body']['expires_in']) <= expected_time
-
-    @pytest.mark.simulated_auth
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
         level="aal3",

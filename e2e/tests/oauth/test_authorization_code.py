@@ -1029,6 +1029,65 @@ class TestAuthorizationCode:
         assert resp.status_code == 200
         assert int(body['expires_in']) <= expected_time
 
+    @pytest.mark.mock_auth
+    @pytest.mark.errors
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
+    @pytest.mark.parametrize(
+        "token_expiry_ms, expected_time",
+        [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)]
+    )
+    def test_access_token_override_with_refresh_token(
+        self,
+        token_expiry_ms,
+        expected_time,
+        nhsd_apim_proxy_url,
+        authorize_params,
+        token_data,
+        _test_app_credentials
+    ):
+        # Set short expiry
+        auth_info = get_auth_info(
+            url=nhsd_apim_proxy_url + "/authorize",
+            authorize_params=authorize_params,
+            username="656005750104"
+        )
+        token_data["code"] = get_auth_item(auth_info, "code")
+
+        # Post to token endpoint
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data=token_data
+        )
+        body = resp.json()
+
+        assert resp.status_code == 200
+        assert body["refresh_token"]
+
+        refresh_token = body["refresh_token"]
+
+        refresh_token_data = {
+            "client_id": _test_app_credentials["consumerKey"],
+            "client_secret": _test_app_credentials["consumerSecret"],
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+            "_refresh_tokens_validity_ms": 599,
+            "_access_token_expiry_ms": token_expiry_ms
+        }
+
+        resp2 = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data=refresh_token_data
+        )
+        body2 = resp2.json()
+
+        assert resp2.status_code == 200
+        assert int(body2["expires_in"]) <= expected_time
+
     @pytest.mark.errors
     def test_missing_access_token(self):
         resp = requests.get(
