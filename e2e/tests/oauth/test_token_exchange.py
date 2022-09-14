@@ -1641,24 +1641,18 @@ class TestTokenExchange:
         assert resp['body']['refresh_token_expires_in'] == '3599'
 
     @pytest.mark.simulated_auth
-    @pytest.mark.skip(reason="Skipped for now. Needs further investigation.")
-    async def test_cis2_refresh_tokens_generated_with_expected_expiry_separated_auth(self):
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "aal3"},
+        authentication="separate"
+    )
+    def test_cis2_refresh_tokens_generated_with_expected_expiry_separated_auth(
+        self,
+        _nhsd_apim_auth_token_data
+    ):
         """
         Test that refresh tokens generated via CIS2 have an expiry time of 12 hours for separated authentication.
         """
-        # Generate access token using token-exchange
-        id_token_jwt = self.oauth.create_id_token_jwt()
-        client_assertion_jwt = self.oauth.create_jwt(kid='test-1')
-        resp = await self.oauth.get_token_response(
-            grant_type="token_exchange",
-            _jwt=client_assertion_jwt,
-            id_token_jwt=id_token_jwt
-        )
-
-        access_token = resp['body']['access_token']
-        refresh_token = resp['body']['refresh_token']
-
-        assert access_token
-        assert refresh_token
-        assert resp['body']['expires_in'] == '599'
-        assert resp['body']['refresh_token_expires_in'] == '43199'
+        assert _nhsd_apim_auth_token_data['expires_in'] == '599'
+        assert _nhsd_apim_auth_token_data['refresh_token_expires_in'] == '43199'
