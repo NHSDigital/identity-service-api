@@ -129,7 +129,8 @@ class TestTokenExchange:
         access="healthcare_worker",
         level="aal3",
         login_form={"username": "aal3"},
-        authentication="separate"
+        authentication="separate",
+        force_new_token=True
     )
     def test_cis2_token_exchange_happy_path(self, _nhsd_apim_auth_token_data):
         assert _nhsd_apim_auth_token_data["expires_in"] == "599"
@@ -153,7 +154,8 @@ class TestTokenExchange:
         access="healthcare_worker",
         level="aal3",
         login_form={"username": "aal3"},
-        authentication="separate"
+        authentication="separate",
+        force_new_token=True
     )
     def test_cis2_token_exchange_refresh_token(
         self,
@@ -934,7 +936,8 @@ class TestTokenExchange:
         access="healthcare_worker",
         level="aal3",
         login_form={"username": "aal3"},
-        authentication="separate"
+        authentication="separate",
+        force_new_token=True
     )
     def test_cis2_token_exchange_access_tokens_valid(
         self,
@@ -1058,30 +1061,45 @@ class TestTokenExchange:
         access="healthcare_worker",
         level="aal3",
         login_form={"username": "aal3"},
-        authentication="separate"
+        authentication="separate",
+        force_new_token=True
     )
     def test_cis2_token_exchange_refresh_token_become_invalid(
         self,
-        _nhsd_apim_auth_token_data,
         nhsd_apim_proxy_url,
-        _test_app_credentials
+        _test_app_credentials,
+        claims,
+        _jwt_keys,
+        cis2_subject_token_claims,
+        token_data
     ):
+        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data["subject_token"] = create_subject_token(cis2_subject_token_claims)
+
+        # When
         resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data=token_data
+        )
+        token_resp = resp.json()
+
+        assert resp.status_code == 200
+        assert token_resp['access_token']
+        assert token_resp['refresh_token']
+
+        refresh_resp = requests.post(
             nhsd_apim_proxy_url + "/token",
             data={
                 "client_id": _test_app_credentials["consumerKey"],
                 "client_secret": _test_app_credentials["consumerSecret"],
                 "grant_type":  "refresh_token",
-                "refresh_token": _nhsd_apim_auth_token_data["refresh_token"]
+                "refresh_token": token_resp["refresh_token"]
             },
             headers={"Content-Type": "application/x-www-form-urlencoded"}
         )
-
-        assert resp.status_code == 200
-
-        body = resp.json()
-        assert body["access_token"]
-        assert body["refresh_token"]
+        refresh_body = refresh_resp.json()
+        assert refresh_body["access_token"]
+        assert refresh_body["refresh_token"]
 
         resp2 = requests.post(
             nhsd_apim_proxy_url + "/token",
@@ -1089,7 +1107,7 @@ class TestTokenExchange:
                 "client_id": _test_app_credentials["consumerKey"],
                 "client_secret": _test_app_credentials["consumerSecret"],
                 "grant_type":  "refresh_token",
-                "refresh_token": _nhsd_apim_auth_token_data["refresh_token"]
+                "refresh_token": token_resp["refresh_token"]
             },
             headers={"Content-Type": "application/x-www-form-urlencoded"}
         )
@@ -1105,20 +1123,36 @@ class TestTokenExchange:
             "error_description": "refresh_token is invalid"
         }
 
-    async def test_rejects_token_request_by_password(self):
+    def test_rejects_token_request_by_password(
+        self,
+        nhsd_apim_proxy_url,
+        _test_app_credentials,
+    ):
         """
         Test that request for token using password grant type is rejected.
         """
         form_data = {
-            "client_id": self.oauth.client_id,
-            "client_secret": self.oauth.client_secret,
+            "client_id": _test_app_credentials["consumerKey"],
+            "client_secret": _test_app_credentials["consumerSecret"],
             "grant_type": "password",
             "username": "username",
             "password": "password"
         }
-        resp = await self.oauth.get_token_response(grant_type='password', data=form_data)
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data=form_data
+        )
+        body = resp.json()
 
-        assert resp['status_code'] == 400
+        assert resp.status_code == 400
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
+            "error": "unsupported_grant_type",
+            "error_description": "grant_type is invalid"
+        }
 
     @pytest.mark.parametrize("token_expiry_ms, expected_time",
                              [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)])
@@ -1242,7 +1276,8 @@ class TestTokenExchange:
         access="healthcare_worker",
         level="aal3",
         login_form={"username": "aal3"},
-        authentication="separate"
+        authentication="separate",
+        force_new_token=True
     )
     def test_cis2_refresh_tokens_generated_with_expected_expiry_separated_auth(
         self,
