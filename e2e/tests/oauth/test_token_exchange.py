@@ -673,10 +673,9 @@ class TestTokenExchange:
         claims,
         _jwt_keys,
         nhsd_apim_proxy_url,
-        nhs_login_id_token
+        nhs_login_id_token,
+        token_data
     ):
-        client_assertion = create_client_assertion(claims, _jwt_keys["private_key_pem"])
-
         id_token_claims = nhs_login_id_token["claims"]
         id_token_headers = nhs_login_id_token["headers"]
 
@@ -685,16 +684,14 @@ class TestTokenExchange:
         if missing_or_invalid == "invalid":
             id_token_claims = replace_keys(id_token_claims, update_claims)
 
-        id_token_jwt = create_nhs_login_subject_token(id_token_claims, id_token_headers)
+        token_data["subject_token"] = create_nhs_login_subject_token(id_token_claims, id_token_headers)
+        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
 
         # When
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data={"subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
-                  "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-                  "subject_token": id_token_jwt,
-                  "client_assertion": client_assertion,
-                  "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"})
+            data=token_data
+        )
         body = resp.json()
 
         # Then
@@ -763,70 +760,49 @@ class TestTokenExchange:
 
     # ############ OAUTH ENDPOINTS ###########
 
-# TO DO - use pytest marker for token
     @pytest.mark.simulated_auth
-    async def test_userinfo_nhs_login_exchanged_token(self, _jwt_keys, nhsd_apim_proxy_url, claims):
-        # Given
-        expected_status_code = 400
-        expected_error = 'invalid_request'
-        expected_error_description = 'The Userinfo endpoint is only supported for Combined Auth integrations. ' \
-                                     'Currently this is only for NHS CIS2 authentications - for more guidance see ' \
-                                     'https://digital.nhs.uk/developer/guides-and-documentation/security-and' \
-                                     '-authorisation/user-restricted-restful-apis-nhs-cis2-combined-authentication' \
-                                     '-and-authorisation'
+    def test_userinfo_nhs_login_exchanged_token(
+        self,
+        _jwt_keys,
+        nhsd_apim_proxy_url,
+        claims,
+        nhs_login_id_token,
+        token_data
+    ):
+        id_token_claims = nhs_login_id_token["claims"]
+        id_token_headers = nhs_login_id_token["headers"]
+
+        token_data["subject_token"] = create_nhs_login_subject_token(id_token_claims, id_token_headers)
+        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
 
         # When
-        id_token_claims = {"at_hash": "tf_-lqpq36lwO7WmSBIJ6Q",
-                           "sub": "787807429511",
-                           "auditTrackingId": "91f694e6-3749-42fd-90b0-c3134b0d98f6-1546391",
-                           "amr": ["N3_SMARTCARD"],
-                           "iss": "https://am.nhsint.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root"
-                                  "/realms"
-                                  "/NHSIdentity/realms/Healthcare",
-                           "tokenName": "id_token",
-                           "aud": "969567331415.apps.national",
-                           "c_hash": "bc7zzGkClC3MEiFQ3YhPKg",
-                           "acr": "AAL3_ANY",
-                           "org.forgerock.openidconnect.ops": "-I45NjmMDdMa-aNF2sr9hC7qEGQ",
-                           "s_hash": "LPJNul-wow4m6Dsqxbning",
-                           "azp": "969567331415.apps.national",
-                           "auth_time": 1610559802,
-                           "realm": "/NHSIdentity/Healthcare",
-                           "exp": int(time()) + 300,
-                           "tokenType": "JWTToken",
-                           "iat": int(time()) - 100}
-
-        additional_headers = {'kid': 'test-1'}
-        client_assertion = jwt.encode(claims, _jwt_keys["private_key_pem"],
-                                      algorithm="RS512",
-                                      headers=additional_headers)
-
-        with open(config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
-            id_token_private_key = f.read()
-
-        kid = "identity-service-tests-1"
-        headers = ({}, {"kid": kid})[kid is not None]
-        id_token_jwt = jwt.encode(id_token_claims, id_token_private_key, algorithm="RS512", headers=headers)
-
-        # When
-        response = requests.post(
+        resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data={"subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
-                  "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-                  "subject_token": id_token_jwt,
-                  "client_assertion": client_assertion,
-                  "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"})
-        resp = response.json()
+            data=token_data
+        )
+        token_resp = resp.json()
 
         # Then
-        token = resp["access_token"]
-        resp = requests.get(nhsd_apim_proxy_url + '/userinfo',
-                            headers={"Authorization": f"Bearer {token}"})
-        assert expected_status_code == resp.status_code
+        token = token_resp["access_token"]
+        user_info_resp = requests.get(
+            nhsd_apim_proxy_url + '/userinfo',
+            headers={"Authorization": f"Bearer {token}"}
+        )
+        assert user_info_resp.status_code == 400
 
-        resp = resp.json()
-        assert expected_error_description in resp['error_description']
-        assert expected_error in resp['error']
+        body = user_info_resp.json()
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
+            "error": "invalid_request",
+            "error_description": "The Userinfo endpoint is only supported for Combined Auth integrations. " \
+                                 "Currently this is only for NHS CIS2 authentications - for more guidance see " \
+                                 "https://digital.nhs.uk/developer/guides-and-documentation/security-and" \
+                                 "-authorisation/user-restricted-restful-apis-nhs-cis2-combined-authentication" \
+                                 "-and-authorisation"
+        }
 
     # ############# OAUTH TOKENS ###############
 
