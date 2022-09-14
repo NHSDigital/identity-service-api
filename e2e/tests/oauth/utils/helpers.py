@@ -1,3 +1,6 @@
+import jwt
+
+
 def remove_keys(data: dict, keys_to_remove: dict) -> dict:
     """Returns all the params with specified keys removed"""
     for key in keys_to_remove:
@@ -42,3 +45,12 @@ def unsubscribe_product(
     url = f"{apigee_app_base_url}/{app_name}/keys/{key}/apiproducts/{product_name}"
 
     return apigee_edge_session.delete(url)
+
+
+def create_client_assertion(claims, private_key, additional_headers={"kid": "test-1"}):
+    return jwt.encode(
+        claims,
+        private_key,
+        algorithm="RS512",
+        headers=additional_headers
+    )

@@ -3,6 +3,7 @@ from uuid import uuid4
 from time import time
 import requests
 import jwt
+from e2e.tests.oauth.utils.helpers import create_client_assertion
 
 
 @pytest.fixture()
@@ -571,43 +572,42 @@ class TestClientCredentialsJWT:
         del body["message_id"]
         assert body == expected_response
 
-    @pytest.mark.parametrize(
-        "token_expiry_ms, expected_time",
-        [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)],
-    )
     @pytest.mark.nhsd_apim_authorization(
         access="application", level="level3", force_new_token=True
     )
+    @pytest.mark.parametrize(
+        "token_expiry_ms, expected_time",
+        [
+            (100000, 100),
+            (500000, 500),
+            (700000, 600),
+            (1000000, 600)
+        ]
+    )
     def test_access_token_override_with_client_credentials(
-        self, _jwt_keys, nhsd_apim_proxy_url, token_expiry_ms, expected_time, _test_app_credentials
+        self,
+        token_expiry_ms,
+        expected_time,
+        _jwt_keys,
+        nhsd_apim_proxy_url,
+        claims
     ):
-        claims = {
-            "sub": _test_app_credentials["consumerKey"],
-            "iss": _test_app_credentials["consumerKey"],
-            "jti": str(uuid4()),
-            "aud": nhsd_apim_proxy_url + "/token",
-            "exp": int(time()) + 300,  # 5 minutes in the future
-        }
-        additional_headers = {"kid": "test-1"}
-        client_assertion = jwt.encode(
-            claims,
-            _jwt_keys["private_key_pem"],
-            algorithm="RS512",
-            headers=additional_headers,
-        )
-
-        data = {
+        """
+        Test client credential flow access token can be overridden with a time less than 10 min(600000ms or 600s)
+        and NOT be overridden with a time greater than 10 min(600000ms or 600s)
+        """
+        client_assertion = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        form_data = {
             "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
             "client_assertion": client_assertion,
-            "grant_type": "client_credentials",
-            "_access_token_expiry_ms": token_expiry_ms,
+            "grant_type": 'client_credentials',
+            "_access_token_expiry_ms": token_expiry_ms
         }
+        response = requests.post(nhsd_apim_proxy_url + "/token", data=form_data)
+        resp = response.json()
 
-        resp = requests.post(nhsd_apim_proxy_url + "/token", data=data)
-
-        body = resp.json()
-        assert resp.status_code == 200
-        assert int(body["expires_in"]) <= expected_time
+        assert response.status_code == 200
+        assert int(resp['expires_in']) <= expected_time
 
     @pytest.mark.errors
     @pytest.mark.jwks_resource_url(None)

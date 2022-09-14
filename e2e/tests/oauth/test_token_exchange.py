@@ -13,17 +13,9 @@ from e2e.scripts.config import (
 from e2e.tests.oauth.utils.helpers import (
     remove_keys,
     replace_keys,
-    subscribe_app_to_products
+    subscribe_app_to_products,
+    create_client_assertion
 )
-
-
-def create_client_assertion(claims, private_key, additional_headers={"kid": "test-1"}):
-    return jwt.encode(
-        claims,
-        private_key,
-        algorithm="RS512",
-        headers=additional_headers
-    )
 
 
 def create_subject_token(claims, kid="identity-service-tests-1"):
@@ -1154,98 +1146,38 @@ class TestTokenExchange:
             "error_description": "grant_type is invalid"
         }
 
-    @pytest.mark.parametrize("token_expiry_ms, expected_time",
-                             [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)])
-    async def test_access_token_override_with_client_credentials(self, token_expiry_ms, expected_time, cis2_subject_token_claims,
-                                                                 _jwt_keys, nhsd_apim_proxy_url, claims):
-        """
-        Test client credential flow access token can be overridden with a time less than 10 min(600000ms or 600s)
-        and NOT be overridden with a time greater than 10 min(600000ms or 600s)
-        """
-        client_assertion = jwt.encode(claims, _jwt_keys["private_key_pem"],
-                                      algorithm="RS512",
-                                      headers={'kid': 'test-1'})
-        form_data = {
-            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-            "client_assertion": client_assertion,
-            "grant_type": 'client_credentials',
-            "_access_token_expiry_ms": token_expiry_ms}
-        response = requests.post(nhsd_apim_proxy_url + "/token", data=form_data)
-        resp = response.json()
-
-        assert response.status_code == 200
-        assert int(resp['expires_in']) <= expected_time
-
     @pytest.mark.simulated_auth
-    @pytest.mark.parametrize("token_expiry_ms, expected_time",
-                             [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)])
-    async def test_access_token_override_with_token_exchange(self, token_expiry_ms, expected_time, _jwt_keys,
-                                                             nhsd_apim_proxy_url, claims):
+    @pytest.mark.parametrize(
+        "token_expiry_ms, expected_time",
+        [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)]
+    )
+    def test_access_token_override_with_token_exchange(
+        self,
+        token_expiry_ms,
+        expected_time,
+        _jwt_keys,
+        nhsd_apim_proxy_url,
+        claims,
+        token_data,
+        cis2_subject_token_claims
+    ):
         """
         Test token exchange flow access token can be overridden with a time less than 10 min(600000ms or 600s)
         and NOT be overridden with a time greater than 10 min(600000ms or 600s)
         """
-        id_token_claims = {
-            'at_hash': 'tf_-lqpq36lwO7WmSBIJ6Q',
-            'sub': '787807429511',
-            'auditTrackingId': '91f694e6-3749-42fd-90b0-c3134b0d98f6-1546391',
-            'amr': ['N3_SMARTCARD'],
-            'iss': 'https://am.nhsint.auth-ptl.cis2.spineservices.nhs.uk:443'
-                   '/openam/oauth2/realms/root/realms/NHSIdentity/realms/Healthcare',
-            'tokenName': 'id_token',
-            'aud': '969567331415.apps.national',
-            'c_hash': 'bc7zzGkClC3MEiFQ3YhPKg',
-            'acr': 'AAL3_ANY',
-            'org.forgerock.openidconnect.ops': '-I45NjmMDdMa-aNF2sr9hC7qEGQ',
-            's_hash': 'LPJNul-wow4m6Dsqxbning',
-            'azp': '969567331415.apps.national',
-            'auth_time': 1610559802,
-            'realm': '/NHSIdentity/Healthcare',
-            'tokenType': 'JWTToken',
-            'iat': int(time()) - 10,
-            'exp': int(time()) + 600
-        }
+        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data["subject_token"] = create_subject_token(cis2_subject_token_claims)
+        token_data["_access_token_expiry_ms"] = token_expiry_ms
 
-        client_assertion = jwt.encode(claims, _jwt_keys["private_key_pem"],
-                                      algorithm="RS512",
-                                      headers={'kid': 'test-1'})
+        # When
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data=token_data
+        )
+        body = resp.json()
 
-        with open(config.ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
-            id_token_private_key = f.read()
-
-        kid = "identity-service-tests-1"
-        headers = ({}, {"kid": kid})[kid is not None]
-        id_token_jwt = jwt.encode(id_token_claims, id_token_private_key, algorithm="RS512", headers=headers)
-
-        form_data = {
-            "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
-            "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
-            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-            "subject_token": id_token_jwt,
-            "client_assertion": client_assertion,
-            "_access_token_expiry_ms": token_expiry_ms
-        }
-
-        response = requests.post(nhsd_apim_proxy_url + "/token", data=form_data)
-        resp = response.json()
-
-        assert response.status_code == 200
-        assert int(resp['expires_in']) <= expected_time
-
-    @pytest.mark.simulated_auth
-    @pytest.mark.parametrize("token_expiry_ms, expected_time",
-                             [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)])
-    @pytest.mark.skip(reason="Skipped for now. Needs further investigation.")
-    async def test_access_token_override_with_authorization_code(self, token_expiry_ms, expected_time):
-        """
-        Test authorization code flow access token can be overridden with a time less than 10 min(600000ms or 600s)
-        and NOT be overridden with a time greater than 10 min(600000ms or 600s)
-        """
-
-        resp = await self.oauth.get_token_response(grant_type='authorization_code', timeout=token_expiry_ms)
-
-        assert resp['status_code'] == 200
-        assert int(resp['body']['expires_in']) <= expected_time
+        assert resp.status_code == 200
+        assert int(body['expires_in']) <= expected_time
 
     @pytest.mark.simulated_auth
     @pytest.mark.usefixtures("set_refresh_token")
