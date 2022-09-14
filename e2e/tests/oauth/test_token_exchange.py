@@ -593,8 +593,24 @@ class TestTokenExchange:
 
     @pytest.mark.simulated_auth
     @pytest.mark.token_exchange
-    def test_nhs_login_happy_path(self, claims, _jwt_keys, nhsd_apim_proxy_url, nhs_login_id_token, token_data):
-        id_token_claims = nhs_login_id_token["claims"]
+    @pytest.mark.parametrize(
+        "update_claims",
+        [
+            {"identity_proofing_level": "P0"},
+            {"identity_proofing_level": "P5"},
+            {"identity_proofing_level": "P9"}
+        ]
+    )
+    def test_nhs_login_happy_path(
+        self,
+        update_claims,
+        claims,
+        _jwt_keys,
+        nhsd_apim_proxy_url,
+        nhs_login_id_token,
+        token_data
+    ):
+        id_token_claims = replace_keys(nhs_login_id_token["claims"], update_claims)
         id_token_headers = nhs_login_id_token["headers"]
 
         token_data["subject_token"] = create_nhs_login_subject_token(id_token_claims, id_token_headers)
@@ -807,71 +823,69 @@ class TestTokenExchange:
     # ############# OAUTH TOKENS ###############
 
     @pytest.mark.simulated_auth
-    @pytest.mark.parametrize('scope', ['P5'])
-    def test_nhs_login_auth_code_flow_happy_path(self, scope, claims, _jwt_keys, nhsd_apim_proxy_url,
-                                                 _test_app_credentials):
-        id_token_headers = {
-            "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",
-            "aud": "APIM-1",
-            "kid": "nhs-login",
-            "iss": "https://internal-dev.api.service.nhs.uk",
-            "typ": "JWT",
-            "exp": 1616604574,
-            "iat": 1616600974,
-            "alg": "RS512",
-            "jti": "b68ddb28-e440-443d-8725-dfe0da330118"}
+    @pytest.mark.token_exchange
+    @pytest.mark.parametrize(
+        "update_claims",
+        [
+            {"identity_proofing_level": "P0"},
+            {"identity_proofing_level": "P5"},
+            {"identity_proofing_level": "P9"}
+        ]
+    )
+    def test_nhs_login_token_exchange_refresh_token(
+        self,
+        update_claims,
+        claims,
+        _jwt_keys,
+        nhsd_apim_proxy_url,
+        nhs_login_id_token,
+        token_data,
+        _test_app_credentials
+    ):
+        id_token_claims = replace_keys(nhs_login_id_token["claims"], update_claims)
+        id_token_headers = nhs_login_id_token["headers"]
 
-        id_token_nhs_login_claims = {
-            "sub": "8dc9fc1d-c3cb-48e1-ba62-b1532539ab6d",
-            "birthdate": "1939-09-26",
-            "nhs_number": "9482807146",
-            "iss": "https://internal-dev.api.service.nhs.uk",
-            "nonce": "randomnonce",
-            "vtm": "https://auth.aos.signin.nhs.uk/trustmark/auth.aos.signin.nhs.uk",
-            "aud": "java_test_client",
-            "id_status": "verified",
-            "token_use": "id",
-            "surname": "CARTHY",
-            "auth_time": 1617272144,
-            "vot": "P9.Cp.Cd",
-            "exp": int(time()) + 6000,
-            "iat": int(time()) - 100,
-            "family_name": "CARTHY",
-            "jti": "b6d6a28e-b0bb-44e3-974f-bb245c0b688a",
-            "identity_proofing_level": scope}
-
-        with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
-            id_token_nhs_login = f.read()
-
-        id_token_jwt = jwt.encode(payload=id_token_nhs_login_claims,
-                                  key=id_token_nhs_login,
-                                  algorithm="RS512",
-                                  headers=id_token_headers)
-
-        client_assertion = jwt.encode(claims, _jwt_keys["private_key_pem"],
-                                      algorithm="RS512",
-                                      headers={'kid': 'test-1'})
+        token_data["subject_token"] = create_nhs_login_subject_token(id_token_claims, id_token_headers)
+        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
 
         # When
-        response = requests.post(
+        resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data={"subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
-                  "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-                  "subject_token": id_token_jwt,
-                  "client_assertion": client_assertion,
-                  "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"},
-            headers={"Content-Type": "application/x-www-form-urlencoded"})
-        resp = response.json()
+            data=token_data
+        )
+        token_resp = resp.json()
 
-        try:
-            assert resp['access_token']
-            assert resp['refresh_token']
-        except KeyError as _:
-            raise AssertionError(f"Error when requesting token. Missing: {_}\nResponse was: {resp}")
+        assert resp.status_code == 200
+        assert token_resp['access_token']
+        assert token_resp['refresh_token']
+        assert token_resp['expires_in'] == '599'
+        assert token_resp['refresh_token_expires_in'] == '3599'
+        assert token_resp['issued_token_type'] == 'urn:ietf:params:oauth:token-type:access_token'
 
-        assert resp['expires_in'] == '599'
-        assert resp['refresh_token_expires_in'] == '3599'
-        assert resp['issued_token_type'] == 'urn:ietf:params:oauth:token-type:access_token'
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data={
+                "client_id": _test_app_credentials["consumerKey"],
+                "client_secret": _test_app_credentials["consumerSecret"],
+                "grant_type":  "refresh_token",
+                "refresh_token": token_resp['refresh_token']
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"}
+        )
+        refresh_resp = resp.json()
+
+        assert resp.status_code == 200
+        assert refresh_resp["expires_in"] == "599"
+        assert refresh_resp["token_type"] == "Bearer"
+        assert refresh_resp["refresh_count"] == "1"
+        assert set(refresh_resp.keys()) == {
+            "access_token",
+            "expires_in",
+            "refresh_count",
+            "refresh_token",
+            "refresh_token_expires_in",
+            "token_type"
+        }
 
     @pytest.mark.simulated_auth
     @pytest.mark.parametrize('scope', ['P5'])
