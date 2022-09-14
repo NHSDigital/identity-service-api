@@ -47,6 +47,24 @@ def unsubscribe_product(
     return apigee_edge_session.delete(url)
 
 
+def change_jwks_url(
+    apigee_edge_session,
+    apigee_app_base_url,
+    app,
+    new_jwks_resource_url=None,
+    should_remove=False
+):
+    app_name = app["name"]
+    url = f"{apigee_app_base_url}/{app_name}/attributes/jwks-resource-url"
+    if should_remove:
+        return apigee_edge_session.delete(url)
+    else:
+        return apigee_edge_session.post(
+            url,
+            json={"name": "jwks-resource-url", "value": new_jwks_resource_url},
+        )
+
+
 def create_client_assertion(claims, private_key, additional_headers={"kid": "test-1"}):
     return jwt.encode(
         claims,

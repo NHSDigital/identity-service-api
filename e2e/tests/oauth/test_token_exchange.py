@@ -3,7 +3,6 @@ import requests
 import jwt
 from uuid import uuid4
 from time import time
-from e2e.scripts import config
 from e2e.scripts.config import (
     ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH,
     ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
@@ -14,7 +13,8 @@ from e2e.tests.oauth.utils.helpers import (
     remove_keys,
     replace_keys,
     subscribe_app_to_products,
-    create_client_assertion
+    create_client_assertion,
+    change_jwks_url
 )
 
 
@@ -757,58 +757,98 @@ class TestTokenExchange:
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason="Skipped for now. Needs further investigation.")
-    async def test_token_exchange_invalid_jwks_resource_url(self, test_product, test_application):
-        # Given
-        expected_status_code = 403
-        expected_error = 'public_key error'
-        expected_error_description = "The JWKS endpoint, for your client_assertion can't be reached"
+    def test_token_exchange_invalid_jwks_resource_url(
+        self,
+        nhsd_apim_proxy_url,
+        claims,
+        _jwt_keys,
+        cis2_subject_token_claims,
+        token_data,
+        _apigee_edge_session,
+        _apigee_app_base_url,
+        _create_function_scoped_test_app
+    ):
+        app = _create_function_scoped_test_app
+        credential = app["credentials"][0]
+        claims["sub"] = credential["consumerKey"]
+        claims["iss"] = credential["consumerKey"]
 
-        id_token_jwt = self.oauth.create_id_token_jwt()
+        jwks_resp = change_jwks_url(
+            _apigee_edge_session,
+            _apigee_app_base_url,
+            _create_function_scoped_test_app,
+            new_jwks_resource_url="http://invalid_url"
+        )
+        assert jwks_resp.status_code == 200
 
-        await test_application.add_api_product([test_product.name])
-        await test_application.set_custom_attributes(attributes={"jwks-resource-url": "http://invalid_url"})
-
-        client_assertion_jwt = self.oauth.create_jwt(kid='test-1', client_id=test_application.client_id)
+        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data["subject_token"] = create_subject_token(cis2_subject_token_claims)
 
         # When
-        resp = await self.oauth.get_token_response(
-            grant_type="token_exchange",
-            _jwt=client_assertion_jwt,
-            id_token_jwt=id_token_jwt
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data=token_data
         )
 
         # Then
-        assert expected_status_code == resp['status_code'], resp['body']
-        assert expected_error == resp['body']['error']
-        assert expected_error_description == resp['body']['error_description']
+        body = resp.json()
+        assert resp.status_code == 403
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
+            "error": "public_key error",
+            "error_description": "The JWKS endpoint, for your client_assertion can't be reached"
+        }
 
     @pytest.mark.errors
     @pytest.mark.token_exchange
-    @pytest.mark.skip(reason="Skipped for now. Needs further investigation.")
-    async def test_token_exchange_no_jwks_resource_url_set(self, test_product, test_application):
-        # Given
-        expected_status_code = 403
-        expected_error = 'public_key error'
-        expected_error_description = "You need to register a public key to use this authentication method " \
-                                     "- please contact support to configure"
+    def test_token_exchange_no_jwks_resource_url_set(
+        self,
+        nhsd_apim_proxy_url,
+        claims,
+        _jwt_keys,
+        cis2_subject_token_claims,
+        token_data,
+        _apigee_edge_session,
+        _apigee_app_base_url,
+        _create_function_scoped_test_app
+    ):
+        app = _create_function_scoped_test_app
+        credential = app["credentials"][0]
+        claims["sub"] = credential["consumerKey"]
+        claims["iss"] = credential["consumerKey"]
 
-        id_token_jwt = self.oauth.create_id_token_jwt()
+        jwks_resp = change_jwks_url(
+            _apigee_edge_session,
+            _apigee_app_base_url,
+            _create_function_scoped_test_app,
+            should_remove=True
+        )
+        assert jwks_resp.status_code == 200
 
-        await test_application.add_api_product([test_product.name])
-        client_assertion_jwt = self.oauth.create_jwt(kid='test-1', client_id=test_application.client_id)
+        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data["subject_token"] = create_subject_token(cis2_subject_token_claims)
 
         # When
-        resp = await self.oauth.get_token_response(
-            grant_type="token_exchange",
-            _jwt=client_assertion_jwt,
-            id_token_jwt=id_token_jwt
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data=token_data
         )
 
         # Then
-        assert expected_status_code == resp['status_code'], resp['body']
-        assert expected_error == resp['body']['error']
-        assert expected_error_description == resp['body']['error_description']
+        body = resp.json()
+        assert resp.status_code == 403
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
+            "error": "public_key error",
+            "error_description": "You need to register a public key to use this authentication method " \
+                                 "- please contact support to configure"
+        }
 
     # ############ OAUTH ENDPOINTS ###########
 
