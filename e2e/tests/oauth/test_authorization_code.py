@@ -12,7 +12,9 @@ from e2e.scripts.config import (
 )
 from e2e.tests.oauth.utils.helpers import (
     remove_keys,
-    replace_keys
+    replace_keys,
+    subscribe_app_to_products,
+    unsubscribe_product
 )
 
 
@@ -48,41 +50,6 @@ def get_auth_item(auth_info, item):
         auth_item = auth_item[0]
 
     return auth_item
-
-
-def subscribe_app_to_products(
-    apigee_edge_session,
-    apigee_app_base_url,
-    credential,
-    app_name,
-    products
-):
-    key = credential["consumerKey"]
-    attributes = credential["attributes"]
-    url = f"{apigee_app_base_url}/{app_name}/keys/{key}"
-
-    for product in credential["apiProducts"]:
-        if product["apiproduct"] not in products:
-            products.append(product["apiproduct"])
-
-    product_data = {
-        "apiProducts": products,
-        "attributes": attributes
-    }
-
-    return apigee_edge_session.post(url, json=product_data)
-
-
-def unsubscribe_product(
-    apigee_edge_session,
-    apigee_app_base_url,
-    key,
-    app_name,
-    product_name
-):
-    url = f"{apigee_app_base_url}/{app_name}/keys/{key}/apiproducts/{product_name}"
-
-    return apigee_edge_session.delete(url)
 
 
 def change_app_status(

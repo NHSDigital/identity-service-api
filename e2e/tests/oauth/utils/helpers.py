@@ -7,3 +7,38 @@ def remove_keys(data: dict, keys_to_remove: dict) -> dict:
 
 def replace_keys(data: dict, keys_to_replace: dict) -> dict:
     return {**data, **keys_to_replace}
+
+
+def subscribe_app_to_products(
+    apigee_edge_session,
+    apigee_app_base_url,
+    credential,
+    app_name,
+    products
+):
+    key = credential["consumerKey"]
+    attributes = credential["attributes"]
+    url = f"{apigee_app_base_url}/{app_name}/keys/{key}"
+
+    for product in credential["apiProducts"]:
+        if product["apiproduct"] not in products:
+            products.append(product["apiproduct"])
+
+    product_data = {
+        "apiProducts": products,
+        "attributes": attributes
+    }
+
+    return apigee_edge_session.post(url, json=product_data)
+
+
+def unsubscribe_product(
+    apigee_edge_session,
+    apigee_app_base_url,
+    key,
+    app_name,
+    product_name
+):
+    url = f"{apigee_app_base_url}/{app_name}/keys/{key}/apiproducts/{product_name}"
+
+    return apigee_edge_session.delete(url)
