@@ -513,6 +513,13 @@ class TestTokenExchange:
 
     @pytest.mark.errors
     @pytest.mark.simulated_auth
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "aal3"},
+        authentication="separate",
+        force_new_token=True
+    )
     def test_token_exchange_claims_assertion_invalid_jti_claim(
         self,
         _jwt_keys,
@@ -630,6 +637,12 @@ class TestTokenExchange:
 
     @pytest.mark.simulated_auth
     @pytest.mark.happy_path
+    @pytest.mark.nhsd_apim_authorization(
+        access="patient",
+        level="P0",
+        login_form={"auth_method": "P0"},
+        force_new_token=True
+    )
     @pytest.mark.parametrize(
         "update_claims",
         [
@@ -851,6 +864,12 @@ class TestTokenExchange:
         }
 
     @pytest.mark.simulated_auth
+    @pytest.mark.nhsd_apim_authorization(
+        access="patient",
+        level="P0",
+        login_form={"auth_method": "P0"},
+        force_new_token=True
+    )
     def test_userinfo_nhs_login_exchanged_token(
         self,
         _jwt_keys,
@@ -895,6 +914,12 @@ class TestTokenExchange:
         }
 
     @pytest.mark.simulated_auth
+    @pytest.mark.nhsd_apim_authorization(
+        access="patient",
+        level="P0",
+        login_form={"auth_method": "P0"},
+        force_new_token=True
+    )
     @pytest.mark.parametrize(
         "update_claims",
         [
@@ -1183,6 +1208,12 @@ class TestTokenExchange:
 
     @pytest.mark.happy_path
     @pytest.mark.simulated_auth
+    @pytest.mark.nhsd_apim_authorization(
+        access="patient",
+        level="P0",
+        login_form={"auth_method": "P0"},
+        force_new_token=True
+    )
     @pytest.mark.parametrize(
         "token_expiry_ms, expected_time",
         [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)]
