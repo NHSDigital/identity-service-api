@@ -65,10 +65,15 @@ def change_jwks_url(
         )
 
 
-def create_client_assertion(claims, private_key, additional_headers={"kid": "test-1"}):
+def create_client_assertion(
+    claims,
+    private_key,
+    additional_headers={"kid": "test-1"},
+    algorithm="RS512"
+):
     return jwt.encode(
         claims,
         private_key,
-        algorithm="RS512",
+        algorithm=algorithm,
         headers=additional_headers
     )
