@@ -10,6 +10,12 @@ from e2e.scripts.config import (
     CANARY_API_URL,
     CANARY_PRODUCT_NAME
 )
+from e2e.tests.oauth.utils.helpers import (
+    remove_keys,
+    replace_keys,
+    subscribe_app_to_products,
+    unsubscribe_product
+)
 
 
 # Helper Functions
@@ -18,17 +24,6 @@ from e2e.scripts.config import (
 def get_params_from_url(url: str) -> dict:
     """Returns all the params and param values from a given url as a dictionary"""
     return dict(parse.parse_qsl(parse.urlsplit(url).query))
-
-
-def remove_keys(data: dict, keys_to_remove: dict) -> dict:
-    """Returns all the params with specified keys removed"""
-    for key in keys_to_remove:
-        data.pop(key)
-    return data
-
-
-def replace_keys(data: dict, keys_to_replace: dict) -> dict:
-    return {**data, **keys_to_replace}
 
 
 def get_auth_info(url, authorize_params, username):
@@ -55,41 +50,6 @@ def get_auth_item(auth_info, item):
         auth_item = auth_item[0]
 
     return auth_item
-
-
-def subscribe_app_to_products(
-    apigee_edge_session,
-    apigee_app_base_url,
-    credential,
-    app_name,
-    products
-):
-    key = credential["consumerKey"]
-    attributes = credential["attributes"]
-    url = f"{apigee_app_base_url}/{app_name}/keys/{key}"
-
-    for product in credential["apiProducts"]:
-        if product["apiproduct"] not in products:
-            products.append(product["apiproduct"])
-
-    product_data = {
-        "apiProducts": products,
-        "attributes": attributes
-    }
-
-    return apigee_edge_session.post(url, json=product_data)
-
-
-def unsubscribe_product(
-    apigee_edge_session,
-    apigee_app_base_url,
-    key,
-    app_name,
-    product_name
-):
-    url = f"{apigee_app_base_url}/{app_name}/keys/{key}/apiproducts/{product_name}"
-
-    return apigee_edge_session.delete(url)
 
 
 def change_app_status(
@@ -1029,6 +989,104 @@ class TestAuthorizationCode:
                 }
             }
         }
+
+    @pytest.mark.mock_auth
+    @pytest.mark.errors
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
+    @pytest.mark.parametrize(
+        "token_expiry_ms, expected_time",
+        [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)]
+    )
+    def test_access_token_override_with_authorization_code(
+        self,
+        token_expiry_ms,
+        expected_time,
+        nhsd_apim_proxy_url,
+        authorize_params,
+        token_data
+    ):
+        # Set short expiry
+        auth_info = get_auth_info(
+            url=nhsd_apim_proxy_url + "/authorize",
+            authorize_params=authorize_params,
+            username="656005750104"
+        )
+        token_data["code"] = get_auth_item(auth_info, "code")
+        token_data["_access_token_expiry_ms"] = token_expiry_ms
+
+        # Post to token endpoint
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data=token_data
+        )
+        body = resp.json()
+
+        assert resp.status_code == 200
+        assert int(body['expires_in']) <= expected_time
+
+    @pytest.mark.mock_auth
+    @pytest.mark.errors
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
+    @pytest.mark.parametrize(
+        "token_expiry_ms, expected_time",
+        [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)]
+    )
+    def test_access_token_override_with_refresh_token(
+        self,
+        token_expiry_ms,
+        expected_time,
+        nhsd_apim_proxy_url,
+        authorize_params,
+        token_data,
+        _test_app_credentials
+    ):
+        # Set short expiry
+        auth_info = get_auth_info(
+            url=nhsd_apim_proxy_url + "/authorize",
+            authorize_params=authorize_params,
+            username="656005750104"
+        )
+        token_data["code"] = get_auth_item(auth_info, "code")
+
+        # Post to token endpoint
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data=token_data
+        )
+        body = resp.json()
+
+        assert resp.status_code == 200
+        assert body["refresh_token"]
+
+        refresh_token = body["refresh_token"]
+
+        refresh_token_data = {
+            "client_id": _test_app_credentials["consumerKey"],
+            "client_secret": _test_app_credentials["consumerSecret"],
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+            "_refresh_tokens_validity_ms": 599,
+            "_access_token_expiry_ms": token_expiry_ms
+        }
+
+        resp2 = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data=refresh_token_data
+        )
+        body2 = resp2.json()
+
+        assert resp2.status_code == 200
+        assert int(body2["expires_in"]) <= expected_time
 
     @pytest.mark.errors
     def test_missing_access_token(self):
