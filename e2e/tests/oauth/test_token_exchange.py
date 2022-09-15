@@ -141,7 +141,7 @@ class TestTokenExchange:
         }
 
     @pytest.mark.simulated_auth
-    @pytest.mark.token_exchange
+    @pytest.mark.happy_path
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
         level="aal3",
@@ -512,7 +512,7 @@ class TestTokenExchange:
         assert body == expected_response
 
     @pytest.mark.errors
-    @pytest.mark.token_exchange
+    @pytest.mark.simulated_auth
     def test_token_exchange_claims_assertion_invalid_jti_claim(
         self,
         _jwt_keys,
@@ -551,6 +551,7 @@ class TestTokenExchange:
         }
 
     @pytest.mark.errors
+    @pytest.mark.simulated_auth
     @pytest.mark.parametrize(
         "expected_response,expected_status_code,missing_or_invalid,update_claims",
         [
@@ -628,7 +629,7 @@ class TestTokenExchange:
         assert body == expected_response
 
     @pytest.mark.simulated_auth
-    @pytest.mark.token_exchange
+    @pytest.mark.happy_path
     @pytest.mark.parametrize(
         "update_claims",
         [
@@ -674,6 +675,7 @@ class TestTokenExchange:
             "issued_token_type"
         }
 
+    @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.parametrize(
         "expected_response,expected_status_code,missing_or_invalid,update_claims",
@@ -756,7 +758,6 @@ class TestTokenExchange:
         assert body == expected_response
 
     @pytest.mark.errors
-    @pytest.mark.token_exchange
     def test_token_exchange_invalid_jwks_resource_url(
         self,
         nhsd_apim_proxy_url,
@@ -803,7 +804,6 @@ class TestTokenExchange:
         }
 
     @pytest.mark.errors
-    @pytest.mark.token_exchange
     def test_token_exchange_no_jwks_resource_url_set(
         self,
         nhsd_apim_proxy_url,
@@ -850,8 +850,6 @@ class TestTokenExchange:
                                  "- please contact support to configure"
         }
 
-    # ############ OAUTH ENDPOINTS ###########
-
     @pytest.mark.simulated_auth
     def test_userinfo_nhs_login_exchanged_token(
         self,
@@ -896,10 +894,7 @@ class TestTokenExchange:
                                  "-and-authorisation"
         }
 
-    # ############# OAUTH TOKENS ###############
-
     @pytest.mark.simulated_auth
-    @pytest.mark.token_exchange
     @pytest.mark.parametrize(
         "update_claims",
         [
@@ -1088,7 +1083,6 @@ class TestTokenExchange:
         assert canary_resp.text == "Hello user!"
 
     @pytest.mark.simulated_auth
-    @pytest.mark.token_exchange
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
         level="aal3",
@@ -1155,6 +1149,7 @@ class TestTokenExchange:
             "error_description": "refresh_token is invalid"
         }
 
+    @pytest.mark.errors
     def test_rejects_token_request_by_password(
         self,
         nhsd_apim_proxy_url,
@@ -1186,6 +1181,7 @@ class TestTokenExchange:
             "error_description": "grant_type is invalid"
         }
 
+    @pytest.mark.happy_path
     @pytest.mark.simulated_auth
     @pytest.mark.parametrize(
         "token_expiry_ms, expected_time",
@@ -1219,6 +1215,7 @@ class TestTokenExchange:
         assert resp.status_code == 200
         assert int(body['expires_in']) <= expected_time
 
+    @pytest.mark.happy_path
     @pytest.mark.simulated_auth
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
