@@ -3,54 +3,10 @@ from uuid import uuid4
 from time import time
 import requests
 import jwt
-from e2e.tests.oauth.utils.helpers import create_client_assertion
-
-
-@pytest.fixture()
-def set_jwks_resource_url(
-    _apigee_edge_session, _apigee_app_base_url, _create_test_app, request
-):
-
-    mark = request.node.get_closest_marker("jwks_resource_url")
-    if not mark or not mark.args:
-        raise ValueError("Could not find pytest.mark.jwks_resource_url")
-    new_jwks_resource_url = mark.args[0]
-
-    url = _apigee_app_base_url + "/" + _create_test_app["name"] + "/attributes"
-    get_resp = _apigee_edge_session.get(url + "/jwks-resource-url")
-    original_jwks_resource_url = get_resp.json()["value"]
-
-    if new_jwks_resource_url is not None:
-        app_url = original_jwks_resource_url
-        while app_url != new_jwks_resource_url:
-            post_resp = _apigee_edge_session.post(
-                url + "/jwks-resource-url",
-                json={"name": "jwks-resource-url", "value": new_jwks_resource_url},
-            )
-            assert post_resp.json()["value"] == new_jwks_resource_url
-            app_url = _apigee_edge_session.get(url + "/jwks-resource-url").json()[
-                "value"
-            ]
-    else:
-        delete_resp = _apigee_edge_session.delete(url + "/jwks-resource-url")
-        assert delete_resp.status_code == 200
-    yield
-
-    jwks_attribute = {"name": "jwks-resource-url", "value": original_jwks_resource_url}
-    if new_jwks_resource_url is not None:
-        while app_url != original_jwks_resource_url:
-            post_resp2 = _apigee_edge_session.post(
-                url + "/jwks-resource-url", json=jwks_attribute
-            )
-            assert post_resp2.json()["value"] == original_jwks_resource_url
-            app_url = _apigee_edge_session.get(url + "/jwks-resource-url").json()[
-                "value"
-            ]
-    else:
-        post_resp2 = _apigee_edge_session.post(
-            url, json={"attribute": [jwks_attribute]}
-        )
-        assert jwks_attribute in post_resp2.json()["attribute"]
+from e2e.tests.oauth.utils.helpers import (
+    create_client_assertion,
+    change_jwks_url
+)
 
 
 @pytest.fixture()
@@ -70,7 +26,7 @@ def claims(_test_app_credentials, nhsd_apim_proxy_url):
 # retry the test until the app changes propagates inside Apigee and the proxy
 # can pick those changes so we simply rerun the test a sensible amount of times
 # and hope it will pass.
-@pytest.mark.flaky(reruns=60, reruns_delay=1)
+# @pytest.mark.flaky(reruns=60, reruns_delay=1)
 class TestClientCredentialsJWT:
     """ A test suit to test the client credentials flow """
 
@@ -610,10 +566,28 @@ class TestClientCredentialsJWT:
         assert int(resp['expires_in']) <= expected_time
 
     @pytest.mark.errors
-    @pytest.mark.jwks_resource_url(None)
     def test_no_jwks_resource_url_set(
-        self, set_jwks_resource_url, claims, _jwt_keys, nhsd_apim_proxy_url
+        self,
+        claims,
+        _jwt_keys,
+        nhsd_apim_proxy_url,
+        _apigee_edge_session,
+        _apigee_app_base_url,
+        _create_function_scoped_test_app
     ):
+        app = _create_function_scoped_test_app
+        credential = app["credentials"][0]
+        claims["sub"] = credential["consumerKey"]
+        claims["iss"] = credential["consumerKey"]
+
+        jwks_resp = change_jwks_url(
+            _apigee_edge_session,
+            _apigee_app_base_url,
+            _create_function_scoped_test_app,
+            should_remove=True
+        )
+        assert jwks_resp.status_code == 200
+
         additional_headers = {"kid": "test-1"}
         client_assertion = jwt.encode(
             claims,
@@ -641,10 +615,28 @@ class TestClientCredentialsJWT:
         }
 
     @pytest.mark.errors
-    @pytest.mark.jwks_resource_url("https://google.com")
     def test_invalid_jwks_resource_url(
-        self, set_jwks_resource_url, claims, _jwt_keys, nhsd_apim_proxy_url
+        self,
+        claims,
+        _jwt_keys,
+        nhsd_apim_proxy_url,
+        _apigee_edge_session,
+        _apigee_app_base_url,
+        _create_function_scoped_test_app
     ):
+        app = _create_function_scoped_test_app
+        credential = app["credentials"][0]
+        claims["sub"] = credential["consumerKey"]
+        claims["iss"] = credential["consumerKey"]
+
+        jwks_resp = change_jwks_url(
+            _apigee_edge_session,
+            _apigee_app_base_url,
+            _create_function_scoped_test_app,
+            new_jwks_resource_url="https://google.com"
+        )
+        assert jwks_resp.status_code == 200
+
         additional_headers = {"kid": "test-1"}
         client_assertion = jwt.encode(
             claims,
