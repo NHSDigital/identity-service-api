@@ -2,7 +2,6 @@ import pytest
 from uuid import uuid4
 from time import time
 import requests
-import jwt
 from e2e.tests.oauth.utils.helpers import (
     remove_keys,
     replace_keys,

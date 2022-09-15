@@ -859,7 +859,7 @@ class TestTokenExchange:
         del body["message_id"]
         assert body == {
             "error": "public_key error",
-            "error_description": "You need to register a public key to use this authentication method " \
+            "error_description": "You need to register a public key to use this authentication method "
                                  "- please contact support to configure"
         }
 
@@ -906,10 +906,10 @@ class TestTokenExchange:
         del body["message_id"]
         assert body == {
             "error": "invalid_request",
-            "error_description": "The Userinfo endpoint is only supported for Combined Auth integrations. " \
-                                 "Currently this is only for NHS CIS2 authentications - for more guidance see " \
-                                 "https://digital.nhs.uk/developer/guides-and-documentation/security-and" \
-                                 "-authorisation/user-restricted-restful-apis-nhs-cis2-combined-authentication" \
+            "error_description": "The Userinfo endpoint is only supported for Combined Auth integrations. "
+                                 "Currently this is only for NHS CIS2 authentications - for more guidance see "
+                                 "https://digital.nhs.uk/developer/guides-and-documentation/security-and"
+                                 "-authorisation/user-restricted-restful-apis-nhs-cis2-combined-authentication"
                                  "-and-authorisation"
         }
 
