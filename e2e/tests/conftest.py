@@ -13,12 +13,22 @@ from urllib.parse import parse_qs
 from e2e.scripts.config import (
     OAUTH_URL,
     ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
-    MOCK_IDP_BASE_URL
+    MOCK_IDP_BASE_URL,
+    API_NAME,
+    PROXY_NAME
 )
 
-pytest_plugins = [
-   "api_test_utils.fixtures",
-]
+######### pytest-nhsd-apim fixtures ############
+@pytest.fixture(scope="session")
+def nhsd_apim_api_name():
+    return API_NAME
+
+
+@pytest.fixture(scope="session")
+def nhsd_apim_proxy_name():
+    return PROXY_NAME
+
+################################################
 
 @pytest.fixture()
 def get_token(request):
@@ -38,13 +48,13 @@ def get_token(request):
 
     async def _token(
         grant_type: str = "authorization_code",
-        test_app: ApigeeApiDeveloperApps = None,
+        test_application: ApigeeApiDeveloperApps = None,
         **kwargs,
     ):
-        if test_app:
+        if test_application:
             # Use provided test app
             oauth = OauthHelper(
-                test_app.client_id, test_app.client_secret, test_app.callback_url
+                test_application.client_id, test_application.client_secret, test_application.callback_url
             )
             print(oauth.base_uri)
             resp = await oauth.get_token_response(grant_type=grant_type, **kwargs)
@@ -82,14 +92,14 @@ async def get_token_cis2_token_exchange(
     test_app_and_product, product_1_scopes, product_2_scopes
 ):
     """Call identity server to get an access token"""
-    test_product, test_product2, test_app = test_app_and_product
+    test_product, test_product2, test_application = test_app_and_product
     await test_product.update_scopes(product_1_scopes)
     await test_product2.update_scopes(product_2_scopes)
 
     oauth = OauthHelper(
-        client_id=test_app.client_id,
-        client_secret=test_app.client_secret,
-        redirect_uri=test_app.callback_url,
+        client_id=test_application.client_id,
+        client_secret=test_application.client_secret,
+        redirect_uri=test_application.callback_url,
     )
 
     claims = {
@@ -141,14 +151,14 @@ async def get_token_nhs_login_token_exchange(
     test_app_and_product, product_1_scopes, product_2_scopes
 ):
     """Call nhs login to get an access token"""
-    test_product, test_product2, test_app = test_app_and_product
+    test_product, test_product2, test_application = test_app_and_product
     await test_product.update_scopes(product_1_scopes)
     await test_product2.update_scopes(product_2_scopes)
 
     oauth = OauthHelper(
-        client_id=test_app.client_id,
-        client_secret=test_app.client_secret,
-        redirect_uri=test_app.callback_url,
+        client_id=test_application.client_id,
+        client_secret=test_application.client_secret,
+        redirect_uri=test_application.callback_url,
     )
 
     claims = {
@@ -234,9 +244,9 @@ async def test_product():
 def app():
     return ApigeeApiDeveloperApps()
 
-
+# Must be test_application and not test_app due to conflicts with pytest-nhsd-apim
 @pytest.fixture(scope="function")
-async def test_app(app):
+async def test_application(app):
     """Create a test app which can be modified in the test"""
     await app.create_new_app()
     # Sadly no way to do this in the constructor
@@ -275,7 +285,7 @@ def setup_session(request):
     """This fixture is automatically called once at the start of pytest execution.
     The default app created here should be modified by your tests.
     If your test requires specific app config then please create your own using
-    the fixture test_app"""
+    the fixture test_application"""
     async def _setup_session(request):
         product = await _product_with_full_access()
         app = ApigeeApiDeveloperApps()
@@ -347,13 +357,13 @@ class AuthCredentialAndTokenClaim:
         
         return token_resp["body"]
 
-    async def get_state(self, oauth, test_app=None):
+    async def get_state(self, oauth, test_application=None):
 
         self.client_id = oauth.client_id
         self.redirect_uri = oauth.redirect_uri
-        if(test_app):
-            self.client_id = test_app.client_id
-            self.redirect_uri = await test_app.get_callback_url()
+        if(test_application):
+            self.client_id = test_application.client_id
+            self.redirect_uri = await test_application.get_callback_url()
 
         response = await oauth.hit_oauth_endpoint(
             method="GET",
