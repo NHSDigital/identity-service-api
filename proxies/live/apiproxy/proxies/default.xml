@@ -84,6 +84,8 @@
                 <Name>AssignMessage.FailedToDecodeJWTError</Name>
             </Step>
         </FaultRule>
+        <!-- TODO - add new fault rule for specific message when the JWT failed to decode but the SUBJECT_TOKEN is at
+                fault, not the client assertion. -->
         <FaultRule name="jtw_missing_alg">
             <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToDecode") And (jwt.DecodeJWT.FromClientAssertionFormParam.error Matches "Invalid JWS header: Missing JSON object member with key *alg*")</Condition>
             <Step>
@@ -1023,6 +1025,14 @@
                 </Step>
             </Request>
             <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Is "urn:ietf:params:oauth:grant-type:token-exchange") and (request.formparam.subject_token_type NotEquals "urn:ietf:params:oauth:token-type:id_token")</Condition>
+        </Flow>
+      <Flow name="Flow.PostTokenMissingSubjectToken">
+            <Request>
+                <Step>
+                    <Name>RaiseFault.MissingSubjectToken</Name>
+                </Step>
+            </Request>
+            <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Is "urn:ietf:params:oauth:grant-type:token-exchange") and (request.formparam.subject_token Is null)</Condition>
         </Flow>
         <Flow name="Flow.PostTokenInvalidGrantType">
             <Request>
