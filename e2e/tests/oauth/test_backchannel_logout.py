@@ -26,8 +26,8 @@ def create_logout_token(
 ) -> Dict[str, str]:
     """Creates logout token. To be replaced with Mock OIDC"""
     logout_token_claims = {
-        "aud": "test-client-1",
-        "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock",
+        "aud": "test-client-cis2",
+        "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/Cis2-mock-internal-dev",
         "sub": "9999999999",
         "iat": int(time()) - 10,
         "jti": str(uuid4()),
@@ -37,7 +37,7 @@ def create_logout_token(
     if override_claims is not None:
         logout_token_claims = override_claims
 
-    logout_token_kid = override_kid if override_kid is not None else "Xie81yxqBz-7MBOyykWmf-W1UwpsV16DJnQpxs_zixQ"
+    logout_token_kid = override_kid if override_kid is not None else "4A72Ed2asGJ0mdjHNTgo8HQJac7kIAKBTsb_sM1ikn8"
     logout_token_headers = {
         "kid": logout_token_kid,
         "typ": "JWT",
@@ -47,7 +47,7 @@ def create_logout_token(
     if override_sid:
         logout_token_claims['sid'] = override_sid
     
-    id_token_private_key_path = get_env("ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH")
+    id_token_private_key_path = get_env("JWT_PRIVATE_KEY_ABSOLUTE_PATH")
 
     with open(id_token_private_key_path, "r") as f:
         contents = f.read()
@@ -174,7 +174,7 @@ class TestBackChannelLogout:
         (  # invalid aud claim
             {
                 "aud": "invalid_aud_claim",
-                "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock",
+                "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/Cis2-mock-internal-dev",
                 "sub": "9999999999",
                 "iat": int(time()) - 10,
                 "jti": str(uuid4()),
@@ -186,7 +186,7 @@ class TestBackChannelLogout:
         ),
         (  # missing aud claim
             {
-                "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock",
+                "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/Cis2-mock-internal-dev",
                 "sub": "9999999999",
                 "iat": int(time()) - 10,
                 "jti": str(uuid4()),
@@ -198,7 +198,7 @@ class TestBackChannelLogout:
         ),
         (  # invalid iss claim
             {
-                "aud": "test-client-1",
+                "aud": "test-client-cis2",
                 "iss": "invalid_iss_claim",
                 "sub": "9999999999",
                 "iat": int(time()) - 10,
@@ -211,7 +211,7 @@ class TestBackChannelLogout:
         ),
         (  # missing iss claim
             {
-                "aud": "test-client-1",
+                "aud": "test-client-cis2",
                 "sub": "9999999999",
                 "iat": int(time()) - 10,
                 "jti": str(uuid4()),
@@ -223,8 +223,8 @@ class TestBackChannelLogout:
         ),
         (  # missing sid claim
             {
-                "aud": "test-client-1",
-                "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock",
+                "aud": "test-client-cis2",
+                "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/Cis2-mock-internal-dev",
                 "sub": "9999999999",
                 "iat": int(time()) - 10,
                 "jti": str(uuid4()),
@@ -235,8 +235,8 @@ class TestBackChannelLogout:
         ),
         (  # invalid events claim
             {
-                "aud": "test-client-1",
-                "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock",
+                "aud": "test-client-cis2",
+                "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/Cis2-mock-internal-dev",
                 "sub": "9999999999",
                 "iat": int(time()) - 10,
                 "jti": str(uuid4()),
@@ -248,8 +248,8 @@ class TestBackChannelLogout:
         ),
         (  # missing events claim
             {
-                "aud": "test-client-1",
-                "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock",
+                "aud": "test-client-cis2",
+                "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/Cis2-mock-internal-dev",
                 "sub": "9999999999",
                 "iat": int(time()) - 10,
                 "jti": str(uuid4()),
@@ -260,8 +260,8 @@ class TestBackChannelLogout:
         ),
         (  # present nonce claim
             {
-                "aud": "test-client-1",
-                "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/cis2-mock",
+                "aud": "test-client-cis2",
+                "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/Cis2-mock-internal-dev",
                 "sub": "9999999999",
                 "iat": int(time()) - 10,
                 "jti": str(uuid4()),
