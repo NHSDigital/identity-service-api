@@ -1032,7 +1032,7 @@
                     <Name>RaiseFault.MissingSubjectToken</Name>
                 </Step>
             </Request>
-            <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Is "urn:ietf:params:oauth:grant-type:token-exchange") and (request.formparam.subject_token Is null)</Condition>
+            <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.grant_type Is "urn:ietf:params:oauth:grant-type:token-exchange") and (request.formparam.subject_token_type Equals "urn:ietf:params:oauth:token-type:id_token") and (request.formparam.subject_token Equals "")</Condition>
         </Flow>
         <Flow name="Flow.PostTokenInvalidGrantType">
             <Request>
