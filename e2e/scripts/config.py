@@ -15,9 +15,10 @@ SERVICE_NAME = environ.get(
     "SERVICE_NAME",
     (f'identity-service-{ENVIRONMENT}', OAUTH_PROXY.replace('oauth2', 'identity-service'))["pr" in OAUTH_PROXY]
 )
-API_NAME="identity-service"
+API_NAME = "identity-service"
 
 # Test API (Canary API)
+CANARY_PRODUCT_NAME = f"canary-api-{ENVIRONMENT}"
 CANARY_API_URL = f"{OAUTH_BASE_URI}/canary-api"
 
 
