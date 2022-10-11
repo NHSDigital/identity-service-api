@@ -93,9 +93,15 @@
             </Step>
         </FaultRule>
         <FaultRule name="missing_client_assertion">
-            <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToResolveVariable")</Condition>
+            <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToResolveVariable") And (request.formparam.client_assertion Is null)</Condition>
             <Step>
                 <Name>AssignMessage.MissingClientAssertion</Name>
+            </Step>
+        </FaultRule>
+      <FaultRule name="missing_subject_token">
+            <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToResolveVariable") And (request.formparam.subject_token Is null)</Condition>
+            <Step>
+                <Name>AssignMessage.MissingSubjectToken</Name>
             </Step>
         </FaultRule>
         <FaultRule name="cc_verify_api_key">
