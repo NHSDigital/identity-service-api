@@ -103,7 +103,7 @@
             </Step>
         </FaultRule>
         <FaultRule name="invalid_subject_token_jwt">
-            <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToResolveVariable") And (jwt.DecodeJWT.FromSubjectTokenFormParam.error IsNot null) And (request.formparam.subject_token_type IsNot null) And (request.formparam.subject_token Equals "invalid")</Condition>
+            <Condition>(JWT.failed Equals true) And (jwt.DecodeJWT.FromSubjectTokenFormParam.error IsNot null) And (request.formparam.subject_token_type IsNot null) And (request.formparam.subject_token Equals "invalid")</Condition>
             <Step>
                 <Name>AssignMessage.InvalidSubjectToken</Name>
             </Step>
