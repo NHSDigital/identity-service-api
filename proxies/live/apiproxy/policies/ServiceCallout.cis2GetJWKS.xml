@@ -16,7 +16,7 @@
     </LoadBalancer>
     <SSLInfo>
       <Enabled>true</Enabled>
-      <TrustStore>ref://identity-service-truststore</TrustStore>
+<!--      <TrustStore>ref://identity-service-truststore</TrustStore>-->
     </SSLInfo>
     <Path>{jwksPath}</Path>
   </HTTPTargetConnection>
