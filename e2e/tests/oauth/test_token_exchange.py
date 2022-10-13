@@ -243,7 +243,7 @@ class TestTokenExchange:
                 "missing",
                 {"grant_type"}
             ),
-            (  # Test invalid subject_token - TODO - REFACTOR when completing APM-3323
+            (  # Test invalid subject_token
                 {
                     "error": "invalid_request",
                     "error_description": "subject_token is invalid"
