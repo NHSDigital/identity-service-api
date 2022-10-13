@@ -246,7 +246,7 @@ class TestTokenExchange:
             (  # Test invalid subject_token - TODO - REFACTOR when completing APM-3323
                 {
                     "error": "invalid_request",
-                    "error_description": "Malformed JWT in client_assertion"
+                    "error_description": "subject_token is invalid"
                 },
                 400,
                 "invalid",
