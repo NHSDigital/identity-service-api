@@ -104,6 +104,7 @@ def nhs_login_id_token():
 
 @pytest.fixture
 def token_data():
+    # TODO - check this against the new client_assertion/subject token fault requirements
     return {
         "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
         "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
@@ -242,7 +243,7 @@ class TestTokenExchange:
                 "missing",
                 {"grant_type"}
             ),
-            (  # Test invalid subject_token - TO DO - REFACTOR when completing APM-3323
+            (  # Test invalid subject_token - TODO - REFACTOR when completing APM-3323
                 {
                     "error": "invalid_request",
                     "error_description": "Malformed JWT in client_assertion"
@@ -251,10 +252,10 @@ class TestTokenExchange:
                 "invalid",
                 {"subject_token": "invalid"}
             ),
-            (  # Test missing subject_token - TO DO - REFACTOR when completing APM-3323
+            (  # Test missing subject_token
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing client_assertion"
+                    "error_description": "Missing subject_token"
                 },
                 400,
                 "missing",
