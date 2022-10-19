@@ -906,6 +906,11 @@
                 </Step>
                 <Step>
                     <Name>KeyValueMapOperations.GetSecureVariables</Name>
+                    <Condition>idp = "nhs-login</Condition>
+                </Step>
+                <Step>
+                    <Name>KeyValueMapOperations.GetSecureVariablesCIS2</Name>
+                    <Condition>idp != "nhs-login</Condition>
                 </Step>
                 <Step>
                     <Name>GenerateJWT.NHSLoginClientAssertion</Name>
