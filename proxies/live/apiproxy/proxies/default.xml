@@ -906,6 +906,9 @@
                 </Step>
                 <Step>
                     <Name>KeyValueMapOperations.GetSecureVariables</Name>
+                </Step>
+                <Step>
+                    <Name>KeyValueMapOperations.GetSecureVariablesNHSLogin</Name>
                     <Condition>idp = "nhs-login</Condition>
                 </Step>
                 <Step>
