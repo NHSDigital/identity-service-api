@@ -3,7 +3,7 @@ decodedJwt = JSON.parse(decodedJwt);
 
 var InvalidExpiryTime = true
 
-if(typeof jwt.exp == "number"){
+if(typeof decodedJwt.exp == "number"){
     InvalidExpiryTime = false
 }
 
