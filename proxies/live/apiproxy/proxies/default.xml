@@ -448,6 +448,9 @@
                     <Name>DecodeJWT.FromClientAssertionFormParam</Name>
                 </Step>
                 <Step>
+                    <Name>Javascript.ValidateClientAssertionClaims</Name>
+                </Step>
+                <Step>
                     <!-- The JWT Header may be valid, but the rest of the JWT may be malformed or missing.
              This catches that eventuality: -->
                     <Name>RaiseFault.WarningDecodingJWT</Name>
