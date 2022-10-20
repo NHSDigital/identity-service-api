@@ -451,6 +451,10 @@
                     <Name>JavaScript.ValidateClientAssertionClaims</Name>
                 </Step>
                 <Step>
+                    <Name>RaiseFault.InvalidExpiryTime</Name>
+                    <Condition>InvalidExpiryTime Equals true</Condition>
+                </Step>
+                <Step>
                     <!-- The JWT Header may be valid, but the rest of the JWT may be malformed or missing.
              This catches that eventuality: -->
                     <Name>RaiseFault.WarningDecodingJWT</Name>

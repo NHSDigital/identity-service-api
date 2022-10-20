@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.InvalidExpiryTime">
+    <DisplayName>RaiseFault.InvalidExpiryTime</DisplayName>
+    <FaultResponse>
+        <Set>
+            <Payload contentType="application/json">
+        {
+          "error": "invalid_request",
+          "error_description": "Exp claim must be an integer",
+          "message_id": "{messageid}"
+        }
+</Payload>
+            <StatusCode>400</StatusCode>
+            <ReasonPhrase>Bad Request</ReasonPhrase>
+        </Set>
+    </FaultResponse>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</RaiseFault>
