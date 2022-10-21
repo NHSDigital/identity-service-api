@@ -324,7 +324,7 @@
                     <Condition>jwt.DecodeJWT.FromClientAssertionFormParam.warning != null</Condition>
                 </Step>
                 <Step>
-                    <Name>RaiseFault.InvalidJwt.MissingKidHeader</Name>
+                    <Name>RaiseFault.MissingKidHeader</Name>
                     <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Is null) Or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Equals "")</Condition>
                 </Step>
                 <Step>
