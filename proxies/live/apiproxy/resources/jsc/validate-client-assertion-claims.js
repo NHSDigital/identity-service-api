@@ -11,12 +11,6 @@ function extractJsonVariable(contextVariableName) {
 jwtHeaders = extractJsonVariable('header-json')
 jwtPayload = extractJsonVariable('payload-json')
 
-var MissingKidHeader = true
-var InvalidExpiryTime = true
-
-if(typeof jwtPayload.exp == "number") InvalidExpiryTime = false
-
-if (jwtHeaders.kid) MissingKidHeader = false
-
-context.setVariable('InvalidJwt.MissingKidHeader', MissingKidHeader);
-context.setVariable('InvalidJwt.InvalidExpiryTimeType', InvalidExpiryTime);
+// Set context variables based on the condition in the second argument
+context.setVariable('InvalidJwt.MissingKidHeader', jwtPayload.exp == "number");
+context.setVariable('InvalidJwt.InvalidExpiryTime', !!jwtHeaders.kid);
