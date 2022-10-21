@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.InvalidExpiryTime">
-    <DisplayName>RaiseFault.InvalidExpiryTime</DisplayName>
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.InvalidJwt.InvalidExpiryTime">
+    <DisplayName>RaiseFault.InvalidJwt.InvalidExpiryTime</DisplayName>
     <FaultResponse>
         <Set>
             <Payload contentType="application/json">

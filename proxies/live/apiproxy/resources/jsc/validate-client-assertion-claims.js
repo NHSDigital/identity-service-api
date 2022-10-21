@@ -7,4 +7,4 @@ if(typeof decodedJwt.exp == "number"){
     InvalidExpiryTime = false
 }
 
-context.setVariable('InvalidExpiryTime', InvalidExpiryTime);
+context.setVariable('InvalidJwt.InvalidExpiryTimeType', InvalidExpiryTime);
