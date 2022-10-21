@@ -324,7 +324,7 @@
                     <Condition>jwt.DecodeJWT.FromClientAssertionFormParam.warning != null</Condition>
                 </Step>
                 <Step>
-                    <Name>RaiseFault.MissingKidHeader</Name>
+                    <Name>RaiseFault.InvalidJwt.MissingKidHeader</Name>
                     <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Is null) Or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Equals "")</Condition>
                 </Step>
                 <Step>
@@ -447,6 +447,7 @@
                 <Step>
                     <Name>DecodeJWT.FromClientAssertionFormParam</Name>
                 </Step>
+                <!-- Validate the decoded JWT with custom JS policy and raise faults based on the variables created by that script-->
                 <Step>
                     <Name>JavaScript.ValidateClientAssertionClaims</Name>
                 </Step>
@@ -455,14 +456,8 @@
                     <Condition>InvalidJwt.InvalidExpiryTime Equals true</Condition>
                 </Step>
                 <Step>
-                    <!-- The JWT Header may be valid, but the rest of the JWT may be malformed or missing.
-             This catches that eventuality: -->
-                    <Name>RaiseFault.WarningDecodingJWT</Name>
-                    <Condition>jwt.DecodeJWT.FromClientAssertionFormParam.warning != null</Condition>
-                </Step>
-                <Step>
-                    <Name>RaiseFault.MissingKidHeader</Name>
-                    <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Is null) Or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Equals "")</Condition>
+                    <Name>RaiseFault.InvalidJwt.MissingKidHeader</Name>
+                    <Condition>InvalidJwt.MissingKidHeader Equals true</Condition>
                 </Step>
                 <Step>
                     <Name>RaiseFault.MissingOrInvalidTypHeader</Name>
