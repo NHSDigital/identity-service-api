@@ -1,4 +1,4 @@
-<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.InvalidJwt.MissingKidHeader">
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.MissingKidHeader">
   <FaultResponse>
     <Set>
       <Payload contentType="application/json">
