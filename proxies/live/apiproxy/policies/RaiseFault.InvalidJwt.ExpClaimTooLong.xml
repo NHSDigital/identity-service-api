@@ -1,10 +1,10 @@
-<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.MissingKidHeader">
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.InvalidJwt.ExpClaimTooLong">
   <FaultResponse>
     <Set>
       <Payload contentType="application/json">
         {
           "error": "invalid_request",
-          "error_description": "Missing 'kid' header in JWT",
+          "error_description": "Invalid exp claim in JWT - more than 5 minutes in future",
           "message_id": "{messageid}"
         }
 </Payload>

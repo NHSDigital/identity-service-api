@@ -1,10 +1,10 @@
-<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.ExpClaimTooLong">
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.InvalidJwt.MissingOrInvalidIssClaim">
   <FaultResponse>
     <Set>
       <Payload contentType="application/json">
         {
           "error": "invalid_request",
-          "error_description": "Invalid exp claim in JWT - more than 5 minutes in future",
+          "error_description": "Missing or non-matching iss/sub claims in JWT",
           "message_id": "{messageid}"
         }
 </Payload>
