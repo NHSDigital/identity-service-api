@@ -144,7 +144,7 @@ class TestClientCredentialsJWT:
                 # Test invalid jti - integer
                 {
                     "error": "invalid_request",
-                    "error_description": "Jti claim must be a unique string such as UUID4",
+                    "error_description": "Jti claim must be a unique string value such as a GUID",
                 },
                 400,
                 "invalid",

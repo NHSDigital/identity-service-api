@@ -5,7 +5,7 @@
             <Payload contentType="application/json">
         {
           "error": "invalid_request",
-          "error_description": "Jti claim must be a unique string such as UUID4",
+          "error_description": "Jti claim must be a unique string value such as a GUID",
           "message_id": "{messageid}"
         }
 </Payload>
