@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.InvalidJwt.InvalidExpiryTime">
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.InvalidJwt.InvalidJtiClaim">
     <FaultResponse>
         <Set>
             <Payload contentType="application/json">
         {
           "error": "invalid_request",
-          "error_description": "Exp claim must be an integer",
+          "error_description": "Jti claim must be a unique string such as UUID4",
           "message_id": "{messageid}"
         }
 </Payload>

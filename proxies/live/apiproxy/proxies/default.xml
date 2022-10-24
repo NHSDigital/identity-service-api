@@ -322,10 +322,6 @@
                     <Name>JavaScript.ValidateClientAssertionClaims</Name>
                 </Step>
                 <Step>
-                    <Name>RaiseFault.InvalidJwt.InvalidExpiryTime</Name>
-                    <Condition>InvalidJwt.InvalidExpiryTime Equals true</Condition>
-                </Step>
-                <Step>
                     <Name>RaiseFault.InvalidJwt.MissingKidHeader</Name>
                     <Condition>InvalidJwt.MissingKidHeader Equals true</Condition>
                 </Step>
@@ -339,11 +335,19 @@
                 </Step>
                 <Step>
                     <Name>RaiseFault.InvalidJwt.MissingJtiClaim</Name>
-                    <Condition>InvalidJwt.MissingExpClaim Equals true</Condition>
+                    <Condition>InvalidJwt.MissingJtiClaim Equals true</Condition>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.InvalidJwt.InvalidJtiClaim</Name>
+                    <Condition>InvalidJwt.InvalidJtiClaim Equals true</Condition>
                 </Step>
                 <Step>
                     <Name>RaiseFault.InvalidJwt.MissingExpClaim</Name>
                     <Condition>InvalidJwt.MissingExpClaim Equals true</Condition>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.InvalidJwt.InvalidExpiryTime</Name>
+                    <Condition>InvalidJwt.InvalidExpiryTime Equals true</Condition>
                 </Step>
                 <Step>
                     <Name>RaiseFault.InvalidJwt.ExpClaimTooLong</Name>
@@ -453,10 +457,6 @@
                     <Name>JavaScript.ValidateClientAssertionClaims</Name>
                 </Step>
                 <Step>
-                    <Name>RaiseFault.InvalidJwt.InvalidExpiryTime</Name>
-                    <Condition>InvalidJwt.InvalidExpiryTime Equals true</Condition>
-                </Step>
-                <Step>
                     <Name>RaiseFault.InvalidJwt.MissingKidHeader</Name>
                     <Condition>InvalidJwt.MissingKidHeader Equals true</Condition>
                 </Step>
@@ -470,11 +470,19 @@
                 </Step>
                 <Step>
                     <Name>RaiseFault.InvalidJwt.MissingJtiClaim</Name>
-                    <Condition>InvalidJwt.MissingExpClaim Equals true</Condition>
+                    <Condition>InvalidJwt.MissingJtiClaim Equals true</Condition>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.InvalidJwt.InvalidJtiClaim</Name>
+                    <Condition>InvalidJwt.InvalidJtiClaim Equals true</Condition>
                 </Step>
                 <Step>
                     <Name>RaiseFault.InvalidJwt.MissingExpClaim</Name>
                     <Condition>InvalidJwt.MissingExpClaim Equals true</Condition>
+                </Step>
+                 <Step>
+                    <Name>RaiseFault.InvalidJwt.InvalidExpiryTime</Name>
+                    <Condition>InvalidJwt.InvalidExpiryTime Equals true</Condition>
                 </Step>
                 <Step>
                     <Name>RaiseFault.InvalidJwt.ExpClaimTooLong</Name>
