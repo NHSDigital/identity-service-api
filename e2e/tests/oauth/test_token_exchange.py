@@ -511,7 +511,7 @@ class TestTokenExchange:
 
         # Set up valid headers as these are validated first
         headers = {"typ": "jwt", "kid": "test-1"}
-        print(claims)
+
         token_data["client_assertion"] = create_client_assertion(
             claims,
             _jwt_keys["private_key_pem"],
