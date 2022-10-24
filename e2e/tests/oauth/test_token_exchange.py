@@ -453,6 +453,16 @@ class TestTokenExchange:
                 "missing",
                 {"jti"}
             ),
+            (
+                # Test invalid jti - integer
+                {
+                    "error": "invalid_request",
+                    "error_description": "Jti claim must be a unique string such as UUID4",
+                },
+                400,
+                "invalid",
+                {"jti": 1234567890},
+            ),
             (  # Test missing exp
                 {
                     "error": "invalid_request",
@@ -499,7 +509,14 @@ class TestTokenExchange:
         if missing_or_invalid == "invalid":
             claims = replace_keys(claims, update_claims)
 
-        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        # Set up valid headers as these are validated first
+        headers = {"typ": "jwt", "kid": "test-1"}
+        print(claims)
+        token_data["client_assertion"] = create_client_assertion(
+            claims,
+            _jwt_keys["private_key_pem"],
+            additional_headers=headers
+        )
         token_data["subject_token"] = create_subject_token(cis2_subject_token_claims)
 
         # When

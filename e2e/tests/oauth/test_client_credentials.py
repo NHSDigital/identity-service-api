@@ -141,10 +141,10 @@ class TestClientCredentialsJWT:
                 {"iss"},
             ),
             (
-                # Test invalid jti
+                # Test invalid jti - integer
                 {
                     "error": "invalid_request",
-                    "error_description": "Failed to decode JWT",
+                    "error_description": "Jti claim must be a unique string such as UUID4",
                 },
                 400,
                 "invalid",
@@ -178,15 +178,14 @@ class TestClientCredentialsJWT:
                 "missing",
                 {"aud"},
             ),
-            (
-                # Test invalid exp
+            (  # Test invalid exp - string
                 {
                     "error": "invalid_request",
-                    "error_description": "Failed to decode JWT",
+                    "error_description": "Exp claim must be an integer"
                 },
                 400,
                 "invalid",
-                {"exp": "invalid"},
+                {"exp": str(int(time()) + 300)}
             ),
             (
                 # Test exp in the past
@@ -216,7 +215,8 @@ class TestClientCredentialsJWT:
                 400,
                 "missing",
                 {"exp"},
-            )
+            ),
+
         ],
     )
     def test_missing_or_invalid_claims(
