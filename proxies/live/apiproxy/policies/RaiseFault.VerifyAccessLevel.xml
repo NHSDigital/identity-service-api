@@ -4,7 +4,7 @@
         <Payload contentType="application/json">
           {
             "error" : "unauthorized_client",
-            "error_description" :"you have tried to requests authorization but your application is not configured to use this authorization grant type",
+            "error_description" :"you have tried to request authorization but your application is not configured to use this authorization grant type",
             "message_id": "{messageid}"
           }
         </Payload>
