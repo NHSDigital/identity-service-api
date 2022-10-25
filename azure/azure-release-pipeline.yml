@@ -59,6 +59,7 @@ extends:
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
           ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
           ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET_CIS2: keycloak_client_secret_cis2
+          ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET_NHS_LOGIN: keycloak_client_secret_nhs_login
           NUM_RANDOM_LONG_INTS_FOR_STATE: 4
           RATELIMITING: ${{ variables.ratelimiting }}
         post_deploy:

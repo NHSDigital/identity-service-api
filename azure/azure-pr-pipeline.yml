@@ -66,7 +66,6 @@ extends:
           IDENTITY_PROVIDER_NHS_LOGIN: nhs-login-keycloak
           VARIABLES_KVM: identity_service_config_keycloak
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
-          ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET_CIS2: keycloak_client_secret_cis2
           NUM_RANDOM_LONG_INTS_FOR_STATE: 4
           RATELIMITING: ${{ variables.ratelimiting }}
         post_deploy:
