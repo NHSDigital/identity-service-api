@@ -1,0 +1,18 @@
+<KeyValueMapOperations
+    async="false"
+    continueOnError="false"
+    enabled="true"
+    name="KeyValueMapOperations.GetSecureVariablesNHSLogin"
+    mapIdentifier="{{ ENCRYPTED_VARIABLES_KVM  }}"
+  >
+  <Get assignTo="private.apigee.client_secret" index="1">
+    <Key>
+      <Parameter>{{ ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET_NHS_LOGIN | default('client_secret') }}</Parameter>
+    </Key>
+  </Get>
+  <Get assignTo="private.jwt" index="1">
+        <Key>
+            <Parameter>{{ ENCRYPTED_VARIABLES_KVM_KEY_NHS_LOGIN_KEY | default('nhs_login_private_key') }}</Parameter>
+        </Key>
+    </Get>
+</KeyValueMapOperations>

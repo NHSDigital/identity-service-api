@@ -908,6 +908,10 @@
                     <Name>KeyValueMapOperations.GetSecureVariables</Name>
                 </Step>
                 <Step>
+                    <Name>KeyValueMapOperations.GetSecureVariablesNHSLogin</Name>
+                    <Condition>idp = "nhs-login"</Condition>
+                </Step>
+                <Step>
                     <Name>KeyValueMapOperations.GetSecureVariablesCIS2</Name>
                     <Condition>idp != "nhs-login"</Condition>
                 </Step>
