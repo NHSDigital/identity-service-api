@@ -2,7 +2,7 @@
     async="false"
     continueOnError="false"
     enabled="true"
-    name="KeyValueMapOperations.GetSecureVariables"
+    name="KeyValueMapOperations.GetSecureVariablesNHSLogin"
     mapIdentifier="{{ ENCRYPTED_VARIABLES_KVM  }}"
   >
   <Get assignTo="private.apigee.client_secret" index="1">
