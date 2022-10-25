@@ -104,7 +104,6 @@ def nhs_login_id_token():
 
 @pytest.fixture
 def token_data():
-    # TODO - check this against the new client_assertion/subject token fault requirements
     return {
         "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
         "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
