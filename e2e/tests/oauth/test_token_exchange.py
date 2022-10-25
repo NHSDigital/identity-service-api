@@ -398,6 +398,12 @@ class TestTokenExchange:
         del body["message_id"]
         assert body == expected_response
 
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "aal3"},
+        authentication="separate"
+    )
     @pytest.mark.errors
     @pytest.mark.parametrize(
         "expected_response,expected_status_code,missing_or_invalid,update_claims",
@@ -447,6 +453,16 @@ class TestTokenExchange:
                 "missing",
                 {"jti"}
             ),
+            (
+                # Test invalid jti - integer
+                {
+                    "error": "invalid_request",
+                    "error_description": "Jti claim must be a unique string value such as a GUID",
+                },
+                400,
+                "invalid",
+                {"jti": 1234567890},
+            ),
             (  # Test missing exp
                 {
                     "error": "invalid_request",
@@ -468,11 +484,11 @@ class TestTokenExchange:
             (  # Test invalid exp - string
                 {
                     "error": "invalid_request",
-                    "error_description": "Failed to decode JWT"
+                    "error_description": "Exp claim must be an integer"
                 },
                 400,
                 "invalid",
-                {"exp": "invalid"}
+                {"exp": str(int(time()) + 300)}
             ),
         ]
     )
@@ -493,7 +509,14 @@ class TestTokenExchange:
         if missing_or_invalid == "invalid":
             claims = replace_keys(claims, update_claims)
 
-        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        # Set up valid headers as these are validated first
+        headers = {"typ": "jwt", "kid": "test-1"}
+
+        token_data["client_assertion"] = create_client_assertion(
+            claims,
+            _jwt_keys["private_key_pem"],
+            additional_headers=headers
+        )
         token_data["subject_token"] = create_subject_token(cis2_subject_token_claims)
 
         # When
