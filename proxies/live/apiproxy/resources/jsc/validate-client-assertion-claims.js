@@ -1,3 +1,8 @@
+// Declare error message strings
+missingKidCondition = !jwtHeaders.kid
+missingKidMessage = "Missing 'kid' header in JWT"
+noErrorMessage = ""
+
 
 function extractJsonVariable(contextVariableName) {
   return JSON.parse(
@@ -13,7 +18,14 @@ jwtHeaders = extractJsonVariable('header-json')
 jwtPayload = extractJsonVariable('payload-json')
 
 // Set context variables based on the condition in the second argument
-context.setVariable('InvalidJwt.MissingKidHeader', !jwtHeaders.kid);
+
+context.setVariable(
+  'InvalidJwt.ErrorMessage',
+  missingKidCondition && missingKidMessage
+  || noErrorMessage
+)
+
+
 context.setVariable('InvalidJwt.MissingOrInvalidTypHeader', typeof jwtHeaders.typ != "string" || jwtHeaders.typ.toLowerCase() != "jwt");
 context.setVariable('InvalidJwt.MissingExpClaim', !jwtPayload.exp);
 context.setVariable('InvalidJwt.InvalidExpiryTime', typeof jwtPayload.exp != "number");

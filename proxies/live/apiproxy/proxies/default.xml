@@ -322,8 +322,8 @@
                     <Name>JavaScript.ValidateClientAssertionClaims</Name>
                 </Step>
                 <Step>
-                    <Name>RaiseFault.InvalidJwt.MissingKidHeader</Name>
-                    <Condition>InvalidJwt.MissingKidHeader Equals true</Condition>
+                    <Name>RaiseFault.InvalidJwt</Name>
+                    <Condition>InvalidJwt.ErrorMessage NotEquals ""</Condition>
                 </Step>
                 <Step>
                     <Name>RaiseFault.InvalidJwt.MissingOrInvalidTypHeader</Name>
@@ -457,8 +457,8 @@
                     <Name>JavaScript.ValidateClientAssertionClaims</Name>
                 </Step>
                 <Step>
-                    <Name>RaiseFault.InvalidJwt.MissingKidHeader</Name>
-                    <Condition>InvalidJwt.MissingKidHeader Equals true</Condition>
+                    <Name>RaiseFault.InvalidJwt</Name>
+                    <Condition>InvalidJwt.ErrorMessage NotEquals ""</Condition>
                 </Step>
                 <Step>
                     <Name>RaiseFault.InvalidJwt.MissingOrInvalidTypHeader</Name>

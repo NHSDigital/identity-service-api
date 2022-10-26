@@ -1,10 +1,10 @@
-<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.InvalidJwt.MissingKidHeader">
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.InvalidJwt">
   <FaultResponse>
     <Set>
       <Payload contentType="application/json">
         {
           "error": "invalid_request",
-          "error_description": "Missing 'kid' header in JWT",
+          "error_description": {{InvalidJwt.ErrorMessage}},
           "message_id": "{messageid}"
         }
 </Payload>
