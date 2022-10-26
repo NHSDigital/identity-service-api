@@ -17,6 +17,7 @@
     <SSLInfo>
       <Enabled>true</Enabled>
     </SSLInfo>
+    <TrustStore>ref://identity-service-truststore</TrustStore>
     <Path>{identity-service-config.cis2.jwks_path}</Path>
   </HTTPTargetConnection>
 </ServiceCallout>

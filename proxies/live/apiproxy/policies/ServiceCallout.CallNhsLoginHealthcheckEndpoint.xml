@@ -13,6 +13,7 @@
         <SSLInfo>
             <Enabled>true</Enabled>
         </SSLInfo>
+        <TrustStore>ref://identity-service-truststore</TrustStore>
         <URL>https://{identity-service-config.nhs_login.host}/{identity-service-config.nhs_login.health_check_path}</URL>
     </HTTPTargetConnection>
     <Timeout>20000</Timeout>

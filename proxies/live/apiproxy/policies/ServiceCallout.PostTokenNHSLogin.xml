@@ -25,6 +25,7 @@
         <SSLInfo>
             <Enabled>true</Enabled>
         </SSLInfo>
+        <TrustStore>ref://identity-service-truststore</TrustStore>
         <LoadBalancer>
             <Server name="{{ IDENTITY_PROVIDER_NHS_LOGIN }}" />
         </LoadBalancer>
