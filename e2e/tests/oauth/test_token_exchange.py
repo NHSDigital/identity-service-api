@@ -355,6 +355,24 @@ class TestTokenExchange:
                 "invalid",
                 {"typ": None}
             ),
+            (  # Test missing alg
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing 'alg' header in JWT"
+                },
+                400,
+                "missing",
+                {"alg"}
+            ),
+            (  # Test invalid alg
+                {
+                    "error": "invalid_request",
+                    "error_description": "Invalid 'alg' header in JWT - unsupported JWT algorithm - must be 'RS512'"
+                },
+                400,
+                "missing",
+                {"alg"}
+            ),
         ]
     )
     def test_token_exchange_client_assertion_header_errors(
@@ -369,7 +387,7 @@ class TestTokenExchange:
         cis2_subject_token_claims,
         token_data
     ):
-        additional_headers = {"kid": "test-1"}
+        additional_headers = {"kid": "test-1", "alg": "RS512"}
 
         if missing_or_invalid == "missing":
             additional_headers = remove_keys(additional_headers, update_headers)
