@@ -326,34 +326,6 @@
                     <Condition>InvalidJwt.ErrorMessage NotEquals ""</Condition>
                 </Step>
                 <Step>
-                    <Name>RaiseFault.InvalidJwt.MissingOrInvalidTypHeader</Name>
-                    <Condition>InvalidJwt.MissingOrInvalidTypHeader Equals true</Condition>
-                </Step>
-                <Step>
-                    <Name>RaiseFault.InvalidJwt.MissingOrInvalidIssClaim</Name>
-                    <Condition>InvalidJwt.MissingOrInvalidIssClaim Equals true</Condition>
-                </Step>
-                <Step>
-                    <Name>RaiseFault.InvalidJwt.MissingJtiClaim</Name>
-                    <Condition>InvalidJwt.MissingJtiClaim Equals true</Condition>
-                </Step>
-                <Step>
-                    <Name>RaiseFault.InvalidJwt.InvalidJtiClaim</Name>
-                    <Condition>InvalidJwt.InvalidJtiClaim Equals true</Condition>
-                </Step>
-                <Step>
-                    <Name>RaiseFault.InvalidJwt.MissingExpClaim</Name>
-                    <Condition>InvalidJwt.MissingExpClaim Equals true</Condition>
-                </Step>
-                <Step>
-                    <Name>RaiseFault.InvalidJwt.InvalidExpiryTime</Name>
-                    <Condition>InvalidJwt.InvalidExpiryTime Equals true</Condition>
-                </Step>
-                <Step>
-                    <Name>RaiseFault.InvalidJwt.ExpClaimTooLong</Name>
-                    <Condition>InvalidJwt.ExpClaimTooLong Equals true</Condition>
-                </Step>
-                <Step>
                     <Name>LookupCache.JTIClaim</Name>
                 </Step>
                 <Step>
@@ -459,34 +431,6 @@
                 <Step>
                     <Name>RaiseFault.InvalidJwt</Name>
                     <Condition>InvalidJwt.ErrorMessage NotEquals ""</Condition>
-                </Step>
-                <Step>
-                    <Name>RaiseFault.InvalidJwt.MissingOrInvalidTypHeader</Name>
-                    <Condition>InvalidJwt.MissingOrInvalidTypHeader Equals true</Condition>
-                </Step>
-                <Step>
-                    <Name>RaiseFault.InvalidJwt.MissingOrInvalidIssClaim</Name>
-                    <Condition>InvalidJwt.MissingOrInvalidIssClaim Equals true</Condition>
-                </Step>
-                <Step>
-                    <Name>RaiseFault.InvalidJwt.MissingJtiClaim</Name>
-                    <Condition>InvalidJwt.MissingJtiClaim Equals true</Condition>
-                </Step>
-                <Step>
-                    <Name>RaiseFault.InvalidJwt.InvalidJtiClaim</Name>
-                    <Condition>InvalidJwt.InvalidJtiClaim Equals true</Condition>
-                </Step>
-                <Step>
-                    <Name>RaiseFault.InvalidJwt.MissingExpClaim</Name>
-                    <Condition>InvalidJwt.MissingExpClaim Equals true</Condition>
-                </Step>
-                 <Step>
-                    <Name>RaiseFault.InvalidJwt.InvalidExpiryTime</Name>
-                    <Condition>InvalidJwt.InvalidExpiryTime Equals true</Condition>
-                </Step>
-                <Step>
-                    <Name>RaiseFault.InvalidJwt.ExpClaimTooLong</Name>
-                    <Condition>InvalidJwt.ExpClaimTooLong Equals true</Condition>
                 </Step>
                 <Step>
                     <Name>LookupCache.JTIClaim</Name>
