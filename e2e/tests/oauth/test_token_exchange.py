@@ -364,9 +364,6 @@ class TestTokenExchange:
                 "invalid",
                 {"alg": "HS512"}
             ),
-            # Test missing alg is untestable with current setup as the 'algorithm' argument to jwt.encode must be a valid algorithm
-            # There was a RaiseFault with error message: "Missing 'alg' header in JWT", but this was impossible to hit and there was
-            # no test found for it, so it has been deleted
         ]
     )
     def test_token_exchange_client_assertion_header_errors(
