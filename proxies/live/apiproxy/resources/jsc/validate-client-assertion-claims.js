@@ -24,7 +24,6 @@ invalidJtiMessage = "Jti claim must be a unique string value such as a GUID"
 expClaimTooLongMessage = "Invalid exp claim in JWT - more than 5 minutes in future"
 invalidAlgHeaderMessage = "Invalid 'alg' header in JWT - unsupported JWT algorithm - must be 'RS512'"
 jwtExpiredMessage = "Invalid exp claim in JWT - JWT has expired"
-missingAlgHeaderMessage = "Missing 'alg' header in JWT"
 jtiExistsInCacheMessage = "Non-unique jti claim in JWT"
 noErrorMessage = ""
 
@@ -36,7 +35,6 @@ invalidExpiryTimeCondition = typeof jwtPayload.exp != "number"
 missingOrInvalidIssClaimCondition = !jwtPayload.iss || jwtPayload.iss != jwtPayload.sub
 missingJtiClaimCondition = !jwtPayload.jti
 invalidJtiClaimCondition = typeof jwtPayload.jti != "string"
-missingAlgHeaderCondition = !jwtHeaders.alg
 invalidAlgHeaderCondition = jwtHeaders.alg != "RS512"
 jtiExistsInCacheCondition = cachedJtiValue == jwtPayload.jti
 // JS Date constructor uses milliseconds, exp uses seconds, so multiply exp by 1000 to convert to ms
@@ -47,7 +45,6 @@ expClaimTooLongCondition = expExpiry > 310
 // Set the error message to the first error condition that returns true
 context.setVariable('InvalidJwt.ErrorMessage',
   invalidAlgHeaderCondition && invalidAlgHeaderMessage
-  || missingAlgHeaderCondition && missingAlgHeaderMessage
   || jwtExpiredCondition && jwtExpiredMessage
   || missingKidCondition && missingKidMessage
   || missingOrInvalidTypCondition && missingOrInvalidTypMessage
