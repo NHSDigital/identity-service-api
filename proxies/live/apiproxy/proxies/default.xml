@@ -65,29 +65,11 @@
                 <Name>AssignMessage.MissingApiKey</Name>
             </Step>
         </FaultRule>
-        <FaultRule name="jwt_algorithm">
-            <Condition>(JWT.failed Equals true) And (fault.name Equals "AlgorithmMismatch")</Condition>
-            <Step>
-                <Name>AssignMessage.UnsupportedJWTAlgorithmError</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="expired_jwt">
-            <Condition>(JWT.failed Equals true) And (fault.name Equals "TokenExpired")</Condition>
-            <Step>
-                <Name>AssignMessage.ExpiredJWTError</Name>
-            </Step>
-        </FaultRule>
         <FaultRule name="failed_decoding_jwt">
             <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToDecode")</Condition>
             <Step>
                 <!-- DecodeJWT will throw this error where the JWT's *header* is invalid -->
                 <Name>AssignMessage.FailedToDecodeJWTError</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="jtw_missing_alg">
-            <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToDecode") And (jwt.DecodeJWT.FromClientAssertionFormParam.error Matches "Invalid JWS header: Missing JSON object member with key *alg*")</Condition>
-            <Step>
-                <Name>AssignMessage.MissingAlgHeader</Name>
             </Step>
         </FaultRule>
         <FaultRule name="missing_client_assertion">
@@ -317,6 +299,9 @@
                 <Step>
                     <Name>DecodeJWT.FromClientAssertionFormParam</Name>
                 </Step>
+                <Step>
+                    <Name>LookupCache.JTIClaim</Name>
+                </Step>
                 <!-- Validate the decoded JWT with custom JS policy and raise faults based on the variables created by that script-->
                 <Step>
                     <Name>JavaScript.ValidateClientAssertionClaims</Name>
@@ -324,13 +309,6 @@
                 <Step>
                     <Name>RaiseFault.InvalidJwt</Name>
                     <Condition>InvalidJwt.ErrorMessage NotEquals ""</Condition>
-                </Step>
-                <Step>
-                    <Name>LookupCache.JTIClaim</Name>
-                </Step>
-                <Step>
-                    <Name>RaiseFault.JTIValueExistsInCache</Name>
-                    <Condition>JTICachedValue = jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti</Condition>
                 </Step>
                 <Step>
                     <Name>PopulateCache.JTIClaim</Name>
@@ -424,6 +402,9 @@
                 <Step>
                     <Name>DecodeJWT.FromClientAssertionFormParam</Name>
                 </Step>
+                <Step>
+                    <Name>LookupCache.JTIClaim</Name>
+                </Step>
                 <!-- Validate the decoded JWT with custom JS policy and raise faults based on the variables created by that script-->
                 <Step>
                     <Name>JavaScript.ValidateClientAssertionClaims</Name>
@@ -431,13 +412,6 @@
                 <Step>
                     <Name>RaiseFault.InvalidJwt</Name>
                     <Condition>InvalidJwt.ErrorMessage NotEquals ""</Condition>
-                </Step>
-                <Step>
-                    <Name>LookupCache.JTIClaim</Name>
-                </Step>
-                <Step>
-                    <Name>RaiseFault.JTIValueExistsInCache</Name>
-                    <Condition>JTICachedValue = jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti</Condition>
                 </Step>
                 <Step>
                     <Name>PopulateCache.JTIClaim</Name>
