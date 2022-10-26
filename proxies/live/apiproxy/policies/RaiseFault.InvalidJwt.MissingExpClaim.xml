@@ -1,10 +1,10 @@
-<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.MissingJtiClaim">
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.InvalidJwt.MissingExpClaim">
   <FaultResponse>
     <Set>
       <Payload contentType="application/json">
         {
           "error": "invalid_request",
-          "error_description": "Missing jti claim in JWT",
+          "error_description": "Missing exp claim in JWT",
           "message_id": "{messageid}"
         }
 </Payload>

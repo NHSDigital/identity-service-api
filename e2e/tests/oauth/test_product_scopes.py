@@ -246,7 +246,7 @@ class TestClientCredentialsErrorCases:
         assert resp["status_code"] == 401
         assert resp["body"] == {
             "error": "unauthorized_client",
-            "error_description": "you have tried to requests authorization but your "
+            "error_description": "you have tried to request authorization but your "
             "application is not configured to use this authorization grant type",
         }
 
@@ -450,7 +450,7 @@ class TestAuthorizationCodeCis2ErrorCases:
         # Given
         expected_status_code = 401
         expected_error = "unauthorized_client"
-        expected_error_description = "you have tried to requests authorization but your application is not configured to use this authorization grant type"
+        expected_error_description = "you have tried to request authorization but your application is not configured to use this authorization grant type"
 
         # When
         await test_product.update_scopes(product_1_scopes)
@@ -523,7 +523,7 @@ class TestTokenExchangeCis2ErrorCases:
         expected_status_code = 401
         expected_error = "unauthorized_client"
         expected_error_description = (
-            "you have tried to requests authorization but your "
+            "you have tried to request authorization but your "
             "application is not configured to use this authorization grant type"
         )
 
@@ -970,7 +970,7 @@ class TestTokenExchangeNhsLoginErrorCases:
         expected_status_code = 401
         expected_error = "unauthorized_client"
         expected_error_description = (
-            "you have tried to requests authorization but your "
+            "you have tried to request authorization but your "
             "application is not configured to use this authorization grant type"
         )
 
@@ -1163,7 +1163,7 @@ class TestAuthorizationCodeNhsLoginErrorCases:
         expected_status_code = 401
         expected_error = "unauthorized_client"
         expected_error_description = (
-            "you have tried to requests authorization but your "
+            "you have tried to request authorization but your "
             "application is not configured to use this authorization grant type"
         )
 

@@ -317,36 +317,41 @@
                 <Step>
                     <Name>DecodeJWT.FromClientAssertionFormParam</Name>
                 </Step>
+                <!-- Validate the decoded JWT with custom JS policy and raise faults based on the variables created by that script-->
                 <Step>
-                    <!-- The JWT Header may be valid, but the rest of the JWT may be malformed or missing.
-              This catches that eventuality: -->
-                    <Name>RaiseFault.WarningDecodingJWT</Name>
-                    <Condition>jwt.DecodeJWT.FromClientAssertionFormParam.warning != null</Condition>
+                    <Name>JavaScript.ValidateClientAssertionClaims</Name>
                 </Step>
                 <Step>
-                    <Name>RaiseFault.MissingKidHeader</Name>
-                    <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Is null) Or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Equals "")</Condition>
+                    <Name>RaiseFault.InvalidJwt.MissingKidHeader</Name>
+                    <Condition>InvalidJwt.MissingKidHeader Equals true</Condition>
                 </Step>
                 <Step>
-                    <Name>RaiseFault.MissingOrInvalidTypHeader</Name>
-                    <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.typ Is null) Or (Not(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.typ EqualsCaseInsensitive "jwt"))</Condition>
+                    <Name>RaiseFault.InvalidJwt.MissingOrInvalidTypHeader</Name>
+                    <Condition>InvalidJwt.MissingOrInvalidTypHeader Equals true</Condition>
                 </Step>
                 <Step>
-                    <Name>RaiseFault.MissingOrInvalidIssClaim</Name>
-                    <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss Equals "") or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss NotEquals jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.sub)</Condition>
+                    <Name>RaiseFault.InvalidJwt.MissingOrInvalidIssClaim</Name>
+                    <Condition>InvalidJwt.MissingOrInvalidIssClaim Equals true</Condition>
                 </Step>
                 <Step>
-                    <Name>RaiseFault.MissingJtiClaim</Name>
-                    <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti Equals "")</Condition>
+                    <Name>RaiseFault.InvalidJwt.MissingJtiClaim</Name>
+                    <Condition>InvalidJwt.MissingJtiClaim Equals true</Condition>
                 </Step>
                 <Step>
-                    <Name>RaiseFault.MissingExpClaim</Name>
-                    <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Equals "")</Condition>
+                    <Name>RaiseFault.InvalidJwt.InvalidJtiClaim</Name>
+                    <Condition>InvalidJwt.InvalidJtiClaim Equals true</Condition>
                 </Step>
                 <Step>
-                    <!-- We advise to limit expiry time to now + 5 minutes. Allowing an extra 10 seconds to mitigate edge cases: -->
-                    <Name>RaiseFault.ExpClaimTooLong</Name>
-                    <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.seconds_remaining GreaterThan 310)</Condition>
+                    <Name>RaiseFault.InvalidJwt.MissingExpClaim</Name>
+                    <Condition>InvalidJwt.MissingExpClaim Equals true</Condition>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.InvalidJwt.InvalidExpiryTime</Name>
+                    <Condition>InvalidJwt.InvalidExpiryTime Equals true</Condition>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.InvalidJwt.ExpClaimTooLong</Name>
+                    <Condition>InvalidJwt.ExpClaimTooLong Equals true</Condition>
                 </Step>
                 <Step>
                     <Name>LookupCache.JTIClaim</Name>
@@ -447,36 +452,41 @@
                 <Step>
                     <Name>DecodeJWT.FromClientAssertionFormParam</Name>
                 </Step>
+                <!-- Validate the decoded JWT with custom JS policy and raise faults based on the variables created by that script-->
                 <Step>
-                    <!-- The JWT Header may be valid, but the rest of the JWT may be malformed or missing.
-             This catches that eventuality: -->
-                    <Name>RaiseFault.WarningDecodingJWT</Name>
-                    <Condition>jwt.DecodeJWT.FromClientAssertionFormParam.warning != null</Condition>
+                    <Name>JavaScript.ValidateClientAssertionClaims</Name>
                 </Step>
                 <Step>
-                    <Name>RaiseFault.MissingKidHeader</Name>
-                    <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Is null) Or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.kid Equals "")</Condition>
+                    <Name>RaiseFault.InvalidJwt.MissingKidHeader</Name>
+                    <Condition>InvalidJwt.MissingKidHeader Equals true</Condition>
                 </Step>
                 <Step>
-                    <Name>RaiseFault.MissingOrInvalidTypHeader</Name>
-                    <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.typ Is null) Or (Not(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.header.typ EqualsCaseInsensitive "jwt"))</Condition>
+                    <Name>RaiseFault.InvalidJwt.MissingOrInvalidTypHeader</Name>
+                    <Condition>InvalidJwt.MissingOrInvalidTypHeader Equals true</Condition>
                 </Step>
                 <Step>
-                    <Name>RaiseFault.MissingOrInvalidIssClaim</Name>
-                    <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss Equals "") or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.iss NotEquals jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.sub)</Condition>
+                    <Name>RaiseFault.InvalidJwt.MissingOrInvalidIssClaim</Name>
+                    <Condition>InvalidJwt.MissingOrInvalidIssClaim Equals true</Condition>
                 </Step>
                 <Step>
-                    <Name>RaiseFault.MissingJtiClaim</Name>
-                    <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.jti Equals "")</Condition>
+                    <Name>RaiseFault.InvalidJwt.MissingJtiClaim</Name>
+                    <Condition>InvalidJwt.MissingJtiClaim Equals true</Condition>
                 </Step>
                 <Step>
-                    <Name>RaiseFault.MissingExpClaim</Name>
-                    <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Is null) or (jwt.DecodeJWT.FromClientAssertionFormParam.decoded.claim.exp Equals "")</Condition>
+                    <Name>RaiseFault.InvalidJwt.InvalidJtiClaim</Name>
+                    <Condition>InvalidJwt.InvalidJtiClaim Equals true</Condition>
                 </Step>
                 <Step>
-                    <!-- We advise to limit expiry time to now + 5 minutes. Allowing an extra 10 seconds to mitigate edge cases: -->
-                    <Name>RaiseFault.ExpClaimTooLong</Name>
-                    <Condition>(jwt.DecodeJWT.FromClientAssertionFormParam.seconds_remaining GreaterThan 310)</Condition>
+                    <Name>RaiseFault.InvalidJwt.MissingExpClaim</Name>
+                    <Condition>InvalidJwt.MissingExpClaim Equals true</Condition>
+                </Step>
+                 <Step>
+                    <Name>RaiseFault.InvalidJwt.InvalidExpiryTime</Name>
+                    <Condition>InvalidJwt.InvalidExpiryTime Equals true</Condition>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.InvalidJwt.ExpClaimTooLong</Name>
+                    <Condition>InvalidJwt.ExpClaimTooLong Equals true</Condition>
                 </Step>
                 <Step>
                     <Name>LookupCache.JTIClaim</Name>
