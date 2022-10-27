@@ -242,19 +242,19 @@ class TestTokenExchange:
                 "missing",
                 {"grant_type"}
             ),
-            (  # Test invalid subject_token - TO DO - REFACTOR when completing APM-3323
+            (  # Test invalid subject_token
                 {
                     "error": "invalid_request",
-                    "error_description": "Malformed JWT in client_assertion"
+                    "error_description": "subject_token is invalid"
                 },
                 400,
                 "invalid",
                 {"subject_token": "invalid"}
             ),
-            (  # Test missing subject_token - TO DO - REFACTOR when completing APM-3323
+            (  # Test missing subject_token
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing client_assertion"
+                    "error_description": "Missing subject_token"
                 },
                 400,
                 "missing",
