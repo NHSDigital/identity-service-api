@@ -139,7 +139,7 @@ class TestAttachLoggingFields:
                 "iss": self.oauth.client_id,
                 "jti": str(uuid4()),
                 "aud": f"{OAUTH_URL}/token",
-                "exp": int(time()),
+                "exp": int(time()) + 300,
             }
         }
         jwt = self.oauth.create_jwt(**jwt_claims)
