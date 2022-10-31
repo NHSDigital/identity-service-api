@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.InvalidSubjectToken">
+    <DisplayName>Invalid auth code</DisplayName>
+    <Set>
+      <Payload contentType="application/json">
+        {
+          "error" : "invalid_request",
+          "error_description" :"subject_token is invalid",
+          "message_id": "{messageid}"
+        }
+      </Payload>
+      <StatusCode>400</StatusCode>
+      <ReasonPhrase>Bad Request</ReasonPhrase>
+    </Set>
+    <AssignTo createNew="false" transport="https" type="request"/>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</AssignMessage>
