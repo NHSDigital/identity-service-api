@@ -24,6 +24,7 @@
     <LoadBalancer>
       <Server name="{{ IDENTITY_PROVIDER_CIS2 }}" />
     </LoadBalancer>
+    <TrustStore>ref://identity-service-truststore</TrustStore>
     <Path>{identity-service-config.cis2.access_token_path}</Path>
   </HTTPTargetConnection>
 </ServiceCallout>

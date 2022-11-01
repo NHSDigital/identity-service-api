@@ -17,6 +17,7 @@
     <SSLInfo>
       <Enabled>true</Enabled>
     </SSLInfo>
+    <TrustStore>ref://identity-service-truststore</TrustStore>
     <Path>{jwksPath}</Path>
   </HTTPTargetConnection>
 </ServiceCallout>
