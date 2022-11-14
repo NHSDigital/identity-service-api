@@ -419,7 +419,7 @@
                 </Step>
                 <!-- Validate the decoded JWT with custom JS policy and raise faults based on the variables created by that script-->
                 <Step>
-                    <Name>JavaScript.ValidateClientAssertionClaims</Name>
+                    <Name>JavaScript.ValidateClientAssertionClaims</Name> 
                 </Step>
                 <Step>
                     <Name>RaiseFault.InvalidJwt</Name>
@@ -465,6 +465,13 @@
                 </Step>
                 <Step>
                     <Name>DecodeJWT.FromSubjectTokenFormParam</Name>
+                </Step>
+                <Step>
+                    <Name>JavaScript.ValidateClientAssertionClaims</Name> 
+                </Step>
+                <Step>
+                    <Name>RaiseFault.InvalidJwt</Name>
+                    <Condition>InvalidJwt.ErrorMessage NotEquals ""</Condition>
                 </Step>
                 <Step>
                     <Name>AssignMessage.SelectIdTokenFieldsTokenExchange</Name>
