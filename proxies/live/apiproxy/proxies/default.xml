@@ -467,7 +467,7 @@
                     <Name>DecodeJWT.FromSubjectTokenFormParam</Name>
                 </Step>
                 <Step>
-                    <Name>JavaScript.ValidateClientAssertionClaims</Name> 
+                    <Name>JavaScript.ValidateSubjectTokenClaims</Name> 
                 </Step>
                 <Step>
                     <Name>RaiseFault.InvalidJwt</Name>
