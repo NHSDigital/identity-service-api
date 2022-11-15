@@ -357,6 +357,10 @@
                     <Name>VerifyJWT.ClientCredentials</Name>
                 </Step>
                 <Step>
+                    <Name>RaiseFault.InvalidJWTSignature</Name>
+                    <Condition>request.formparam.client_assertion Is null</Condition>
+                </Step>
+                <Step>
                     <!-- Needed because OAuthV2 'GenerateAccessToken' has to have the Client ID and Client Secret in a specific place -->
                     <Name>AssignMessage.SetClientCredentials</Name>
                 </Step>

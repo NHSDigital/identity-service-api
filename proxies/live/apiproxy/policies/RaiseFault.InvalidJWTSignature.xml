@@ -1,0 +1,16 @@
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.InvalidJWTSignature">
+  <FaultResponse>
+    <Set>
+      <Payload contentType="application/json">
+        {
+          "error": "invalid_request",
+          "error_description": "JWT signature verification failed due to invalid token",
+          "message_id": "{messageid}"
+        }
+</Payload>
+      <StatusCode>401</StatusCode>
+      <ReasonPhrase>Unauthorised</ReasonPhrase>
+    </Set>
+  </FaultResponse>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</RaiseFault>
