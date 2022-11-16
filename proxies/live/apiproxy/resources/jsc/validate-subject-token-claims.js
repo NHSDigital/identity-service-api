@@ -48,9 +48,7 @@ expClaimTooLongCondition = expExpiry > 310
 
 // Set the error message to the first error condition that returns true
 context.setVariable('InvalidJwt.ErrorMessage',
-  invalidAlgHeaderCondition && invalidAlgHeaderMessage
-  || invalidAlgHeaderCondition && invalidAlgHeaderMessage
-  || jwtExpiredCondition && jwtExpiredMessage
+  jwtExpiredCondition && jwtExpiredMessage
   || missingKidCondition && missingKidMessage
   || missingOrInvalidTypCondition && missingOrInvalidTypMessage
   || missingExpClaimCondition && missingExpClaimMessage
