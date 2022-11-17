@@ -1,20 +1,22 @@
+from time import time
+from uuid import uuid4
+
+import jwt
 import pytest
 import requests
-import jwt
-from uuid import uuid4
-from time import time
+
 from e2e.scripts.config import (
-    ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH,
-    ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
     CANARY_API_URL,
-    CANARY_PRODUCT_NAME
+    CANARY_PRODUCT_NAME,
+    ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
+    ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH,
 )
 from e2e.tests.oauth.utils.helpers import (
+    change_jwks_url,
+    create_client_assertion,
     remove_keys,
     replace_keys,
     subscribe_app_to_products,
-    create_client_assertion,
-    change_jwks_url
 )
 
 
@@ -743,14 +745,42 @@ class TestTokenExchange:
                 "missing",
                 {"iss"}
             ),
-            (  # Test missing aud
+            (  # Test invalid sub
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing aud claim in JWT"
+                    "error_description": "Missing or non-matching iss/sub claims in JWT"
+                },
+                400,
+                "invalid",
+                {"sub": "invalid"}
+            ),
+            (  # Test missing sub
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing or non-matching iss/sub claims in JWT"
                 },
                 400,
                 "missing",
-                {"aud"}
+                {"sub"}
+            ),
+            (  # Test missing jti
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing jti claim in JWT"
+                },
+                400,
+                "missing",
+                {"jti"}
+            ),
+            (
+                # Test invalid jti - integer
+                {
+                    "error": "invalid_request",
+                    "error_description": "Jti claim must be a unique string value such as a GUID",
+                },
+                400,
+                "invalid",
+                {"jti": 1234567890},
             ),
             (  # Test missing exp
                 {
@@ -760,6 +790,24 @@ class TestTokenExchange:
                 400,
                 "missing",
                 {"exp"}
+            ),
+            (  # Test invalid exp - more than 5 minutes
+                {
+                    "error": "invalid_request",
+                    "error_description": "Invalid exp claim in JWT - more than 5 minutes in future"
+                },
+                400,
+                "invalid",
+                {"exp": int(time()) + 50000}
+            ),
+            (  # Test invalid exp - string
+                {
+                    "error": "invalid_request",
+                    "error_description": "Exp claim must be an integer"
+                },
+                400,
+                "invalid",
+                {"exp": str(int(time()) + 300)}
             ),
         ]
     )
