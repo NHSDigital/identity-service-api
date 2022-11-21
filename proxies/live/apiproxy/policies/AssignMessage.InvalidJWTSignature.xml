@@ -4,14 +4,14 @@
     <Set>
         <Payload contentType="application/json">
             {
-            "error": "invalid_request",
-            "error_description": "JWT signature verification failed due to invalid token",
+            "error": "public_key error",
+            "error_description": "JWT signature verification failed",
             "message_id": "{messageid}"
             }
-        </Payload>
+</Payload>
         <StatusCode>401</StatusCode>
         <ReasonPhrase>Unauthorized</ReasonPhrase>
     </Set>
-    <AssignTo createNew="false" transport="https" type="request"/>
+    <AssignTo createNew="false" transport="https" type="request" />
     <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
 </AssignMessage>
