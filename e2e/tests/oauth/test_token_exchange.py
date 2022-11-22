@@ -46,7 +46,7 @@ def claims(_test_app_credentials, nhsd_apim_proxy_url):
         "sub": _test_app_credentials["consumerKey"],
         "iss": _test_app_credentials["consumerKey"],
         "jti": str(uuid4()),
-        "aud": nhsd_apim_proxy_url + "/token",
+        "aud": nhsd_apim_proxy_url + "-pr-332/token",
         "exp": int(time()) + 300,  # 5 minutes in the future
     }
 
@@ -532,7 +532,7 @@ class TestTokenExchange:
 
         # When
         resp = requests.post(
-            nhsd_apim_proxy_url + "/token",
+            nhsd_apim_proxy_url + "-pr-332/token",
             data=token_data
         )
 
@@ -727,41 +727,23 @@ class TestTokenExchange:
     @pytest.mark.parametrize(
         "expected_response,expected_status_code,missing_or_invalid,update_claims",
         [
-            (  # Test invalid iss
-                {
-                    "error": "invalid_request",
-                    "error_description": "Missing or non-matching iss/sub claims in JWT"
-                },
-                400,
-                "invalid",
-                {"iss": "invalid"}
-            ),
             (  # Test missing iss
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching iss/sub claims in JWT"
+                    "error_description": "Missing iss claims in JWT"
                 },
                 400,
                 "missing",
                 {"iss"}
             ),
-            (  # Test invalid sub
+            (  # Test missing aud
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching iss/sub claims in JWT"
-                },
-                400,
-                "invalid",
-                {"sub": "invalid"}
-            ),
-            (  # Test missing sub
-                {
-                    "error": "invalid_request",
-                    "error_description": "Missing or non-matching iss/sub claims in JWT"
+                    "error_description": "Missing aud claim in JWT"
                 },
                 400,
                 "missing",
-                {"sub"}
+                {"aud"}
             ),
             (  # Test missing jti
                 {
@@ -790,15 +772,6 @@ class TestTokenExchange:
                 400,
                 "missing",
                 {"exp"}
-            ),
-            (  # Test invalid exp - more than 5 minutes
-                {
-                    "error": "invalid_request",
-                    "error_description": "Invalid exp claim in JWT - more than 5 minutes in future"
-                },
-                400,
-                "invalid",
-                {"exp": int(time()) + 50000}
             ),
             (  # Test invalid exp - string
                 {
