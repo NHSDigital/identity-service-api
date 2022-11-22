@@ -6,6 +6,13 @@ install-python:
 	poetry install
 
 install-node:
+	@echo "***********************************************"
+	@echo $${PATH}
+	@echo "***********************************************"
+	@which npm
+	@echo "***********************************************"
+	@echo ''
+	@echo ''
 	npm install
 
 test:
