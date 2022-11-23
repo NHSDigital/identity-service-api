@@ -46,7 +46,7 @@ def claims(_test_app_credentials, nhsd_apim_proxy_url):
         "sub": _test_app_credentials["consumerKey"],
         "iss": _test_app_credentials["consumerKey"],
         "jti": str(uuid4()),
-        "aud": nhsd_apim_proxy_url + "-pr-332/token",
+        "aud": nhsd_apim_proxy_url + "/token",
         "exp": int(time()) + 300,  # 5 minutes in the future
     }
 
@@ -532,7 +532,7 @@ class TestTokenExchange:
 
         # When
         resp = requests.post(
-            nhsd_apim_proxy_url + "-pr-332/token",
+            nhsd_apim_proxy_url + "/token",
             data=token_data
         )
 
@@ -722,6 +722,88 @@ class TestTokenExchange:
             "issued_token_type"
         }
 
+    @pytest.mark.errors
+    @pytest.mark.parametrize(
+        "expected_response,expected_status_code,missing_or_invalid,update_headers",
+        [
+            (  # Test missing kid
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing 'kid' header in Subject Token JWT"
+                },
+                400,
+                "missing",
+                {"kid"}
+            ),
+            (  # Test invalid typ
+                {
+                    "error": "invalid_request",
+                    "error_description": "Invalid 'typ' header in Subject Token JWT - must be 'JWT'"
+                },
+                400,
+                "invalid",
+                {"typ": "invalid"}
+            ),
+            (  # Test None typ
+                {
+                    "error": "invalid_request",
+                    "error_description": "Invalid 'typ' header in Subject Token JWT - must be 'JWT'"
+                },
+                400,
+                "invalid",
+                {"typ": None}
+            ),
+            (  # Test invalid alg
+                {
+                    "error": "invalid_request",
+                    "error_description": "Invalid 'alg' header in Subject Token JWT - must be 'RS512' algorithm"
+                },
+                400,
+                "invalid",
+                {"alg": "HS512"}
+            )
+        ]
+    )
+    def test_token_exchange_nhs_login_subject_token_header_errors(
+        self,
+        expected_response,
+        expected_status_code,
+        missing_or_invalid,
+        update_headers,
+        claims,
+        _jwt_keys,
+        nhsd_apim_proxy_url,
+        nhs_login_id_token,
+        token_data
+    ):
+        # additional_headers = {"kid": "test-1", "alg": "RS512"}
+
+        id_token_claims = nhs_login_id_token["claims"]
+        id_token_headers = nhs_login_id_token["headers"]
+
+        if missing_or_invalid == "missing":
+            id_token_headers = remove_keys(id_token_headers, update_headers)
+        if missing_or_invalid == "invalid":
+            id_token_headers = replace_keys(id_token_headers, update_headers)
+
+        token_data["subject_token"] = create_nhs_login_subject_token(id_token_claims, id_token_headers)
+        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+
+        # When
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data=token_data
+        )
+
+        # Then
+        body = resp.json()
+        assert resp.status_code == expected_status_code
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == expected_response
+
     @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.parametrize(
@@ -730,7 +812,7 @@ class TestTokenExchange:
             (  # Test missing iss
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing iss claims in JWT"
+                    "error_description": "Missing iss claims in Subject Token JWT"
                 },
                 400,
                 "missing",
@@ -739,7 +821,7 @@ class TestTokenExchange:
             (  # Test missing aud
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing aud claim in JWT"
+                    "error_description": "Missing aud claim in Subject Token JWT"
                 },
                 400,
                 "missing",
@@ -748,7 +830,7 @@ class TestTokenExchange:
             (  # Test missing jti
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing jti claim in JWT"
+                    "error_description": "Missing jti claim in Subject Token JWT"
                 },
                 400,
                 "missing",
@@ -758,7 +840,7 @@ class TestTokenExchange:
                 # Test invalid jti - integer
                 {
                     "error": "invalid_request",
-                    "error_description": "Jti claim must be a unique string value such as a GUID",
+                    "error_description": "Jti claim in Subject Token must be a unique string value such as a GUID",
                 },
                 400,
                 "invalid",
@@ -767,7 +849,7 @@ class TestTokenExchange:
             (  # Test missing exp
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing exp claim in JWT"
+                    "error_description": "Missing exp claim in Subject Token JWT"
                 },
                 400,
                 "missing",
@@ -776,7 +858,7 @@ class TestTokenExchange:
             (  # Test invalid exp - string
                 {
                     "error": "invalid_request",
-                    "error_description": "Exp claim must be an integer"
+                    "error_description": "Exp claim in Subject Token must be an integer"
                 },
                 400,
                 "invalid",

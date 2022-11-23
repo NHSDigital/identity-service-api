@@ -16,19 +16,19 @@ expExpiry = context.getVariable("jwt.DecodeJWT.DecodeJWT.FromSubjectTokenFormPar
 // Declare error message strings
 
 
-missingKidMessage = "Missing 'kid' header in JWT"
-missingOrInvalidTypMessage = "Invalid 'typ' header in JWT - must be 'JWT'"
-missingExpClaimMessage = "Missing exp claim in JWT"
-invalidExpiryTimeMessage = "Exp claim must be an integer"
-missingIssClaimMessage = "Missing iss claims in JWT"
-missingJtiClaimMessage = "Missing jti claim in JWT"
-invalidJtiMessage = "Jti claim must be a unique string value such as a GUID"
-expClaimTooLongMessage = "Invalid exp claim in JWT - more than 5 minutes in future"
-missingAlgHeaderMessage = "Missing 'alg' header in JWT"
-invalidAlgHeaderMessage = "Invalid 'alg' header in JWT - unsupported JWT algorithm - must be 'RS512'- subject token"
-jwtExpiredMessage = "Invalid exp claim in JWT - JWT has expired"
-jtiExistsInCacheMessage = "Non-unique jti claim in JWT"
-missingAudMessage = "Missing aud claim in JWT"
+missingKidMessage = "Missing 'kid' header in Subject Token JWT"
+missingOrInvalidTypMessage = "Invalid 'typ' header in Subject Token JWT - must be 'JWT'"
+missingExpClaimMessage = "Missing exp claim in Subject Token JWT"
+invalidExpiryTimeMessage = "Exp claim in Subject Token must be an integer"
+missingIssClaimMessage = "Missing iss claims in Subject Token JWT"
+missingJtiClaimMessage = "Missing jti claim in Subject Token JWT"
+invalidJtiMessage = "Jti claim in Subject Token must be a unique string value such as a GUID"
+expClaimTooLongMessage = "Invalid exp claim in Subject Token JWT - more than 5 minutes in future"
+missingAlgHeaderMessage = "Missing 'alg' header in Subject Token JWT"
+invalidAlgHeaderMessage = "Invalid 'alg' header in Subject Token JWT - must be 'RS512' algorithm"
+jwtExpiredMessage = "Invalid exp claim in Subject Token JWT - JWT has expired"
+jtiExistsInCacheMessage = "Non-unique jti claim in Subject Token JWT"
+missingAudMessage = "Missing aud claim in Subject Token JWT"
 noErrorMessage = ""
 
 // Set conditions for triggering error messages
@@ -51,6 +51,8 @@ missingAudCondtion = !jwtPayload.aud
 // Set the error message to the first error condition that returns true
 context.setVariable('InvalidJwt.ErrorMessage',
   jwtExpiredCondition && jwtExpiredMessage
+  || invalidAlgHeaderCondition && invalidAlgHeaderMessage
+  || missingAlgHeaderCondition && missingAlgHeaderMessage
   || missingKidCondition && missingKidMessage
   || missingOrInvalidTypCondition && missingOrInvalidTypMessage
   || missingExpClaimCondition && missingExpClaimMessage
@@ -59,7 +61,6 @@ context.setVariable('InvalidJwt.ErrorMessage',
   || missingIssClaimCondition && missingIssClaimMessage
   || invalidJtiClaimCondition && invalidJtiMessage
   // Checking that the JTI exists in the cache should happen after checking that the JTI is valid
-  || jtiExistsInCacheCondition && jtiExistsInCacheMessage
   || expClaimTooLongCondition && expClaimTooLongMessage
   || missingAudCondtion && missingAudMessage
   || noErrorMessage
