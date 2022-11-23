@@ -5,19 +5,13 @@ import jwt
 import pytest
 import requests
 
-from e2e.scripts.config import (
-    CANARY_API_URL,
-    CANARY_PRODUCT_NAME,
-    ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
-    ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH,
-)
-from e2e.tests.oauth.utils.helpers import (
-    change_jwks_url,
-    create_client_assertion,
-    remove_keys,
-    replace_keys,
-    subscribe_app_to_products,
-)
+from e2e.scripts.config import (CANARY_API_URL, CANARY_PRODUCT_NAME,
+                                ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
+                                ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH)
+from e2e.tests.oauth.utils.helpers import (change_jwks_url,
+                                           create_client_assertion,
+                                           remove_keys, replace_keys,
+                                           subscribe_app_to_products)
 
 
 def create_subject_token(claims, kid="identity-service-tests-1"):
@@ -906,6 +900,29 @@ class TestTokenExchange:
         assert body == expected_response
 
     @pytest.mark.errors
+    @pytest.mark.parametrize(
+        "jwks_resource_url, expected_status_code, expected_error_body",
+        [
+            (
+                # This url will fail cause it does not have a forward slash at the end...
+                "http://invalid_url",
+                403,
+                {
+                    "error": "public_key error",
+                    "error_description": "The JWKS endpoint, for your client_assertion can't be reached",
+                },
+            ),
+            (
+                # Change the rerource url to an existing key that does not matches the test_app private key.
+                "https://raw.githubusercontent.com/NHSDigital/identity-service-jwks/main/jwks/internal-dev/9baed6f4-1361-4a8e-8531-1f8426e3aba8.json",
+                401,
+                {
+                    "error": "public_key error",
+                    "error_description": "JWT signature verification failed",
+                },
+            ),
+        ],
+    )
     def test_token_exchange_invalid_jwks_resource_url(
         self,
         nhsd_apim_proxy_url,
@@ -915,7 +932,10 @@ class TestTokenExchange:
         token_data,
         _apigee_edge_session,
         _apigee_app_base_url,
-        _create_function_scoped_test_app
+        _create_function_scoped_test_app,
+        jwks_resource_url,
+        expected_status_code,
+        expected_error_body
     ):
         app = _create_function_scoped_test_app
         credential = app["credentials"][0]
@@ -926,7 +946,7 @@ class TestTokenExchange:
             _apigee_edge_session,
             _apigee_app_base_url,
             _create_function_scoped_test_app,
-            new_jwks_resource_url="http://invalid_url"
+            new_jwks_resource_url=jwks_resource_url
         )
         assert jwks_resp.status_code == 200
 
@@ -941,15 +961,12 @@ class TestTokenExchange:
 
         # Then
         body = resp.json()
-        assert resp.status_code == 403
+        assert resp.status_code == expected_status_code
         assert (
             "message_id" in body.keys()
         )  # We assert the key but not he value for message_id
         del body["message_id"]
-        assert body == {
-            "error": "public_key error",
-            "error_description": "The JWKS endpoint, for your client_assertion can't be reached"
-        }
+        assert body == expected_error_body
 
     @pytest.mark.errors
     def test_token_exchange_no_jwks_resource_url_set(
