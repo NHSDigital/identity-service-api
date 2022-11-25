@@ -77,8 +77,8 @@ def nhs_login_id_token():
             "kid": "nhs-login",
             "iss": "https://internal-dev.api.service.nhs.uk",
             "typ": "JWT",
-            "exp": 1616604574,
-            "iat": 1616600974,
+            "exp": int(time()) + 600,
+            "iat": int(time()) - 10,
             "alg": "RS512",
             "jti": "b68ddb28-e440-443d-8725-dfe0da330118"
         },
@@ -86,7 +86,7 @@ def nhs_login_id_token():
             'aud': 'tf_-APIM-1',
             'id_status': 'verified',
             'token_use': 'id',
-            'auth_time': 1616600683,
+            'auth_time': int(time()),
             'iss': 'https://internal-dev.api.service.nhs.uk',
             'vot': 'P9.Cp.Cd',
             'exp': int(time()) + 600,
@@ -626,15 +626,6 @@ class TestTokenExchange:
                 "invalid",
                 {"exp": str(int(time()) + 300)}
             ),
-            (  # Test invalid exp - more than 5 minutes
-                {
-                    "error": "invalid_request",
-                    "error_description": "Invalid 'exp' claim in subject_token JWT - more than 5 minutes in future"
-                },
-                400,
-                "invalid",
-                {"exp": int(time()) + 50000}
-            ),
             (  # Test invalid exp - JWT expired
                 {
                     "error": "invalid_request",
@@ -854,15 +845,6 @@ class TestTokenExchange:
                 400,
                 "invalid",
                 {"exp": str(int(time()) + 300)}
-            ),
-            (  # Test invalid exp - more than 5 minutes
-                {
-                    "error": "invalid_request",
-                    "error_description": "Invalid 'exp' claim in subject_token JWT - more than 5 minutes in future"
-                },
-                400,
-                "invalid",
-                {"exp": int(time()) + 50000}
             ),
             (  # Test invalid exp - JWT expired
                 {

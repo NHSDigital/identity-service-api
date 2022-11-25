@@ -8,7 +8,6 @@ function extractJsonVariable(contextVariableName) {
 
 const jwtHeaders = extractJsonVariable("header-json");
 const jwtPayload = extractJsonVariable("payload-json");
-const expExpiry = extractJsonVariable("seconds_remaining");
 
 // Declare error message strings
 // Headers
@@ -18,8 +17,6 @@ const missingOrInvalidTypMessage =
 const missingAlgHeaderMessage = "Missing 'alg' header in subject_token JWT";
 // Claims
 const missingExpClaimMessage = "Missing 'exp' claim in subject_token JWT";
-const expClaimTooLongMessage =
-  "Invalid 'exp' claim in subject_token JWT - more than 5 minutes in future";
 const invalidExpiryTimeMessage =
   "Invalid 'exp' claim in subject_token JWT - must be an integer";
 const jwtExpiredMessage =
@@ -37,8 +34,6 @@ const missingExpClaimCondition = !jwtPayload.exp;
 const invalidExpiryTimeCondition = typeof jwtPayload.exp != "number";
 // JS Date constructor uses milliseconds, exp uses seconds, so multiply exp by 1000 to convert to ms
 const jwtExpiredCondition = new Date() > new Date(jwtPayload.exp * 1000);
-// We advise to limit expiry time to now + 5 minutes. Allowing an extra 10 seconds to mitigate edge cases:
-const expClaimTooLongCondition = expExpiry > 310;
 const missingIssClaimCondition = !jwtPayload.iss;
 const missingAudCondtion = !jwtPayload.aud;
 
@@ -52,7 +47,6 @@ context.setVariable(
     (missingExpClaimCondition && missingExpClaimMessage) ||
     (invalidExpiryTimeCondition && invalidExpiryTimeMessage) ||
     (missingIssClaimCondition && missingIssClaimMessage) ||
-    (expClaimTooLongCondition && expClaimTooLongMessage) ||
     (missingAudCondtion && missingAudMessage) ||
     noErrorMessage
 );
