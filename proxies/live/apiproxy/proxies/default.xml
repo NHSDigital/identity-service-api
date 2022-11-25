@@ -427,14 +427,6 @@
                 <Step>
                     <Name>JavaScript.ValidateClientAssertionClaims</Name>
                 </Step>
-                <!-- testing error messages -->
-                <Step>
-                    <Name>DecodeJWT.FromSubjectTokenFormParam</Name>
-                </Step>
-                <Step>
-                    <Name>JavaScript.ValidateSubjectTokenClaims</Name>
-                </Step>
-                <!-- testing error messages -->
                 <Step>
                     <Name>RaiseFault.InvalidJwt</Name>
                     <Condition>InvalidJwt.ErrorMessage NotEquals ""</Condition>
@@ -477,7 +469,7 @@
                     <!-- Needed because OAuthV2 'GenerateAccessToken' has to have the Client ID and Client Secret in a specific place -->
                     <Name>AssignMessage.SetClientCredentials</Name>
                 </Step>
-                <!-- <Step>
+                <Step>
                     <Name>DecodeJWT.FromSubjectTokenFormParam</Name>
                 </Step>
                 <Step>
@@ -486,7 +478,7 @@
                 <Step>
                     <Name>RaiseFault.InvalidJwt</Name>
                     <Condition>InvalidJwt.ErrorMessage NotEquals ""</Condition>
-                </Step> -->
+                </Step>
                 <Step>
                     <Name>AssignMessage.SelectIdTokenFieldsTokenExchange</Name>
                 </Step>

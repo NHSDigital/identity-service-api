@@ -590,19 +590,10 @@ class TestTokenExchange:
     @pytest.mark.parametrize(
         "expected_response,expected_status_code,missing_or_invalid,update_claims",
         [
-            (  # Test invalid iss
-                {
-                    "error": "invalid_request",
-                    "error_description": "Missing or non-matching iss/sub claims in JWT"
-                },
-                400,
-                "invalid",
-                {"iss": "invalid"}
-            ),
             (  # Test missing iss
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching iss/sub claims in JWT"
+                    "error_description": "Missing 'iss' claim in subject_token JWT"
                 },
                 400,
                 "missing",
@@ -611,7 +602,7 @@ class TestTokenExchange:
             (  # Test missing aud
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing aud claim in JWT"
+                    "error_description": "Missing 'aud' claim in subject_token JWT"
                 },
                 400,
                 "missing",
@@ -620,11 +611,38 @@ class TestTokenExchange:
             (  # Test missing exp
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing exp claim in JWT"
+                    "error_description": "Missing 'exp' claim in subject_token JWT"
                 },
                 400,
                 "missing",
                 {"exp"}
+            ),
+            (  # Test invalid exp - string
+                {
+                    "error": "invalid_request",
+                    "error_description": "'exp' claim in subject_token must be an integer"
+                },
+                400,
+                "invalid",
+                {"exp": str(int(time()) + 300)}
+            ),
+            (  # Test invalid exp - more than 5 minutes
+                {
+                    "error": "invalid_request",
+                    "error_description": "Invalid 'exp' claim in subject_token JWT - more than 5 minutes in future"
+                },
+                400,
+                "invalid",
+                {"exp": int(time()) + 50000}
+            ),
+            (  # Test invalid exp - JWT expired
+                {
+                    "error": "invalid_request",
+                    "error_description": "Invalid exp claim in subject_token JWT - JWT has expired"
+                },
+                400,
+                "invalid",
+                {"exp": int(time()) + 1}
             ),
         ]
     )
@@ -723,7 +741,7 @@ class TestTokenExchange:
             (  # Test missing kid
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing 'kid' header in Subject Token JWT"
+                    "error_description": "Missing 'kid' header in subject_token JWT"
                 },
                 400,
                 "missing",
@@ -732,7 +750,7 @@ class TestTokenExchange:
             (  # Test invalid typ
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid 'typ' header in Subject Token JWT - must be 'JWT'"
+                    "error_description": "Invalid 'typ' header in subject_token JWT - must be 'JWT'"
                 },
                 400,
                 "invalid",
@@ -741,7 +759,7 @@ class TestTokenExchange:
             (  # Test None typ
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid 'typ' header in Subject Token JWT - must be 'JWT'"
+                    "error_description": "Invalid 'typ' header in subject_token JWT - must be 'JWT'"
                 },
                 400,
                 "invalid",
@@ -750,7 +768,7 @@ class TestTokenExchange:
             (  # Test invalid alg
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid 'alg' header in Subject Token JWT - must be 'RS512' algorithm"
+                    "error_description": "Invalid 'alg' header in subject_token JWT - must be 'RS512' algorithm"
                 },
                 400,
                 "invalid",
@@ -770,8 +788,6 @@ class TestTokenExchange:
         nhs_login_id_token,
         token_data
     ):
-        # additional_headers = {"kid": "test-1", "alg": "RS512"}
-
         id_token_claims = nhs_login_id_token["claims"]
         id_token_headers = nhs_login_id_token["headers"]
 
@@ -806,7 +822,7 @@ class TestTokenExchange:
             (  # Test missing iss
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing iss claims in Subject Token JWT"
+                    "error_description": "Missing 'iss' claim in subject_token JWT"
                 },
                 400,
                 "missing",
@@ -815,35 +831,16 @@ class TestTokenExchange:
             (  # Test missing aud
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing aud claim in Subject Token JWT"
+                    "error_description": "Missing 'aud' claim in subject_token JWT"
                 },
                 400,
                 "missing",
                 {"aud"}
             ),
-            (  # Test missing jti
-                {
-                    "error": "invalid_request",
-                    "error_description": "Missing jti claim in Subject Token JWT"
-                },
-                400,
-                "missing",
-                {"jti"}
-            ),
-            (
-                # Test invalid jti - integer
-                {
-                    "error": "invalid_request",
-                    "error_description": "Jti claim in Subject Token must be a unique string value such as a GUID",
-                },
-                400,
-                "invalid",
-                {"jti": 1234567890},
-            ),
             (  # Test missing exp
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing exp claim in Subject Token JWT"
+                    "error_description": "Missing 'exp' claim in Subject Token JWT"
                 },
                 400,
                 "missing",
@@ -852,11 +849,29 @@ class TestTokenExchange:
             (  # Test invalid exp - string
                 {
                     "error": "invalid_request",
-                    "error_description": "Exp claim in Subject Token must be an integer"
+                    "error_description": "Invalid 'exp' claim in subject_token JWT - must be an integer"
                 },
                 400,
                 "invalid",
                 {"exp": str(int(time()) + 300)}
+            ),
+            (  # Test invalid exp - more than 5 minutes
+                {
+                    "error": "invalid_request",
+                    "error_description": "Invalid 'exp' claim in subject_token JWT - more than 5 minutes in future"
+                },
+                400,
+                "invalid",
+                {"exp": int(time()) + 50000}
+            ),
+            (  # Test invalid exp - JWT expired
+                {
+                    "error": "invalid_request",
+                    "error_description": "Invalid exp claim in subject_token JWT - JWT has expired"
+                },
+                400,
+                "invalid",
+                {"exp": int(time()) + 1}
             ),
         ]
     )
