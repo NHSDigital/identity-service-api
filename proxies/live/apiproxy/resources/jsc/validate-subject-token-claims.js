@@ -8,10 +8,7 @@ function extractJsonVariable(contextVariableName) {
 
 const jwtHeaders = extractJsonVariable("header-json");
 const jwtPayload = extractJsonVariable("payload-json");
-// const cachedJtiValue = context.getVariable("JTICachedValue");
-const expExpiry = context.getVariable(
-  "jwt.DecodeJWT.DecodeJWT.FromSubjectTokenFormParam.seconds_remaining"
-);
+const expExpiry = extractJsonVariable("seconds_remaining");
 
 // Declare error message strings
 // Headers
@@ -29,10 +26,6 @@ const jwtExpiredMessage =
   "Invalid 'exp' claim in subject_token JWT - JWT has expired";
 const missingIssClaimMessage = "Missing 'iss' claim in subject_token JWT";
 const missingAudMessage = "Missing 'aud' claim in subject_token JWT";
-// TO DO - is jti needed here? Not used on cis2
-// missingJtiClaimMessage = "Missing jti claim in subject_token JWT"
-// invalidJtiMessage = "Jti claim in subject_token must be a unique string value such as a GUID"
-// jtiExistsInCacheMessage = "Non-unique jti claim in subject_token JWT"
 const noErrorMessage = "";
 
 // Set conditions for triggering error messages
@@ -48,9 +41,6 @@ const jwtExpiredCondition = new Date() > new Date(jwtPayload.exp * 1000);
 const expClaimTooLongCondition = expExpiry > 310;
 const missingIssClaimCondition = !jwtPayload.iss;
 const missingAudCondtion = !jwtPayload.aud;
-// missingJtiClaimCondition = !jwtPayload.jti
-// invalidJtiClaimCondition = typeof jwtPayload.jti != "string"
-// jtiExistsInCacheCondition = cachedJtiValue == jwtPayload.jti
 
 // Set the error message to the first error condition that returns true
 context.setVariable(
@@ -61,10 +51,7 @@ context.setVariable(
     (missingOrInvalidTypCondition && missingOrInvalidTypMessage) ||
     (missingExpClaimCondition && missingExpClaimMessage) ||
     (invalidExpiryTimeCondition && invalidExpiryTimeMessage) ||
-    // || missingJtiClaimCondition && missingJtiClaimMessage
     (missingIssClaimCondition && missingIssClaimMessage) ||
-    // || invalidJtiClaimCondition && invalidJtiMessage
-    // Checking that the JTI exists in the cache should happen after checking that the JTI is valid
     (expClaimTooLongCondition && expClaimTooLongMessage) ||
     (missingAudCondtion && missingAudMessage) ||
     noErrorMessage

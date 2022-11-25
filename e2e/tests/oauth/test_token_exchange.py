@@ -638,7 +638,7 @@ class TestTokenExchange:
             (  # Test invalid exp - JWT expired
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid exp claim in subject_token JWT - JWT has expired"
+                    "error_description": "Invalid 'exp' claim in subject_token JWT - JWT has expired"
                 },
                 400,
                 "invalid",
@@ -646,7 +646,7 @@ class TestTokenExchange:
             ),
         ]
     )
-    def test_token_exchange_subject_token_claims_errors(
+    def test_token_exchange_cis2_subject_token_claims_errors(
         self,
         expected_response,
         expected_status_code,
