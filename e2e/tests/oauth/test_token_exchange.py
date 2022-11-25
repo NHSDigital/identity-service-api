@@ -620,7 +620,7 @@ class TestTokenExchange:
             (  # Test invalid exp - string
                 {
                     "error": "invalid_request",
-                    "error_description": "'exp' claim in subject_token must be an integer"
+                    "error_description": "Invalid 'exp' claim in subject_token JWT - must be an integer"
                 },
                 400,
                 "invalid",
@@ -725,6 +725,7 @@ class TestTokenExchange:
             "issued_token_type"
         }
 
+    @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.parametrize(
         "expected_response,expected_status_code,missing_or_invalid,update_headers",
@@ -756,15 +757,6 @@ class TestTokenExchange:
                 "invalid",
                 {"typ": None}
             ),
-            (  # Test invalid alg
-                {
-                    "error": "invalid_request",
-                    "error_description": "Missing 'alg' header in subject_token JWT"
-                },
-                400,
-                "missing",
-                {"alg"}
-            )
         ]
     )
     def test_token_exchange_nhs_login_subject_token_header_errors(
@@ -831,7 +823,7 @@ class TestTokenExchange:
             (  # Test missing exp
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing 'exp' claim in Subject Token JWT"
+                    "error_description": "Missing 'exp' claim in subject_token JWT"
                 },
                 400,
                 "missing",
@@ -849,7 +841,7 @@ class TestTokenExchange:
             (  # Test invalid exp - JWT expired
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid exp claim in subject_token JWT - JWT has expired"
+                    "error_description": "Invalid 'exp' claim in subject_token JWT - JWT has expired"
                 },
                 400,
                 "invalid",
