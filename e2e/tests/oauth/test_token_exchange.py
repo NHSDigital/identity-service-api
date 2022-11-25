@@ -768,11 +768,11 @@ class TestTokenExchange:
             (  # Test invalid alg
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid 'alg' header in subject_token JWT - must be 'RS512' algorithm"
+                    "error_description": "Missing 'alg' header in subject_token JWT"
                 },
                 400,
-                "invalid",
-                {"alg": "HS512"}
+                "missing",
+                {"alg"}
             )
         ]
     )

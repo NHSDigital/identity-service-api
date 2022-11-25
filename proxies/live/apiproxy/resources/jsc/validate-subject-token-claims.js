@@ -19,8 +19,6 @@ const missingKidMessage = "Missing 'kid' header in subject_token JWT";
 const missingOrInvalidTypMessage =
   "Invalid 'typ' header in subject_token JWT - must be 'JWT'";
 const missingAlgHeaderMessage = "Missing 'alg' header in subject_token JWT";
-const invalidAlgHeaderMessage =
-  "Invalid 'alg' header in subject_token JWT - must be 'RS512' algorithm";
 // Claims
 const missingExpClaimMessage = "Missing 'exp' claim in subject_token JWT";
 const expClaimTooLongMessage =
@@ -42,7 +40,6 @@ const missingKidCondition = !jwtHeaders.kid;
 const missingOrInvalidTypCondition =
   typeof jwtHeaders.typ != "string" || jwtHeaders.typ.toLowerCase() != "jwt";
 const missingAlgHeaderCondition = !jwtHeaders.alg;
-const invalidAlgHeaderCondition = jwtHeaders.alg != "RS512";
 const missingExpClaimCondition = !jwtPayload.exp;
 const invalidExpiryTimeCondition = typeof jwtPayload.exp != "number";
 // JS Date constructor uses milliseconds, exp uses seconds, so multiply exp by 1000 to convert to ms
@@ -59,7 +56,6 @@ const missingAudCondtion = !jwtPayload.aud;
 context.setVariable(
   "InvalidJwt.ErrorMessage",
   (jwtExpiredCondition && jwtExpiredMessage) ||
-    (invalidAlgHeaderCondition && invalidAlgHeaderMessage) ||
     (missingAlgHeaderCondition && missingAlgHeaderMessage) ||
     (missingKidCondition && missingKidMessage) ||
     (missingOrInvalidTypCondition && missingOrInvalidTypMessage) ||
