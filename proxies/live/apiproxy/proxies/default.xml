@@ -473,6 +473,13 @@
                     <Name>DecodeJWT.FromSubjectTokenFormParam</Name>
                 </Step>
                 <Step>
+                    <Name>JavaScript.ValidateSubjectTokenClaims</Name>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.InvalidJwt</Name>
+                    <Condition>InvalidJwt.ErrorMessage NotEquals ""</Condition>
+                </Step>
+                <Step>
                     <Name>AssignMessage.SelectIdTokenFieldsTokenExchange</Name>
                 </Step>
                 <Step>

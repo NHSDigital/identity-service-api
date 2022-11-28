@@ -11,13 +11,13 @@ var idTokenIssuer = '';
 var isError = false;
 
 if (exp === '[""]' || exp === null) {
-    var errorObject = { error: 'invalid_request', errorDescription: "Missing exp claim in JWT", statusCode: 400, reasonPhrase: "Bad Request" }
+    var errorObject = { error: 'invalid_request', errorDescription: "Missing 'exp' claim in subject_token JWT", statusCode: 400, reasonPhrase: "Bad Request" }
     var isError = true
 } else if(iss === null || iss === '[""]' || iss !== cis2Issuer && iss !== nhsLoginIssuer) {
-    var errorObject = { error: 'invalid_request', errorDescription: "Missing or non-matching iss/sub claims in JWT", statusCode: 400, reasonPhrase: "Bad Request" }
+    var errorObject = { error: 'invalid_request', errorDescription: "Missing or non-matching 'iss' claim in subject_token JWT", statusCode: 400, reasonPhrase: "Bad Request" }
     var isError = true
 } else if(aud === null || aud === '[""]' ) {
-    var errorObject = { error: 'invalid_request', errorDescription: "Missing aud claim in JWT", statusCode: 400, reasonPhrase: "Bad Request" }
+    var errorObject = { error: 'invalid_request', errorDescription: "Missing 'aud' claim in subject_token JWT", statusCode: 400, reasonPhrase: "Bad Request" }
     var isError = true
 }
 

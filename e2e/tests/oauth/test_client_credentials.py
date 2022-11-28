@@ -33,12 +33,6 @@ def token_data():
     }
 
 
-# Some of the following tests require to modify the test_app by the
-# pytest-nhsd-apim module. Once the app is updated in apigee we still need to
-# retry the test until the app changes propagates inside Apigee and the proxy
-# can pick those changes so we simply rerun the test a sensible amount of times
-# and hope it will pass.
-# @pytest.mark.flaky(reruns=60, reruns_delay=1)
 class TestClientCredentialsJWT:
     """A test suit to test the client credentials flow"""
 
@@ -80,8 +74,98 @@ class TestClientCredentialsJWT:
         del body["message_id"]
         assert body == {
             "error": "invalid_request",
-            "error_description": "Invalid 'alg' header in JWT - unsupported JWT algorithm - must be 'RS512'",
+            "error_description": "Invalid 'alg' header in client_assertion JWT - unsupported JWT algorithm - must be 'RS512'",
         }
+
+    @pytest.mark.errors
+    @pytest.mark.parametrize(
+        "expected_response,expected_status_code,missing_or_invalid,update_headers",
+        [
+            (  # Test missing kid
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing 'kid' header in client_assertion JWT"
+                },
+                400,
+                "missing",
+                {"kid"}
+            ),
+            (  # Test invalid kid
+                {
+                    "error": "invalid_request",
+                    "error_description": "Invalid 'kid' header in JWT - no matching public key"
+                },
+                401,
+                "invalid",
+                {"kid": "invalid"}
+            ),
+            (  # Test invalid typ
+                {
+                    "error": "invalid_request",
+                    "error_description": "Invalid 'typ' header in client_assertion JWT - must be 'JWT'"
+                },
+                400,
+                "invalid",
+                {"typ": "invalid"}
+            ),
+            (  # Test None typ
+                {
+                    "error": "invalid_request",
+                    "error_description": "Invalid 'typ' header in client_assertion JWT - must be 'JWT'"
+                },
+                400,
+                "invalid",
+                {"typ": None}
+            ),
+            (  # Test invalid alg
+                {
+                    "error": "invalid_request",
+                    "error_description": "Invalid 'alg' header in client_assertion JWT - unsupported JWT algorithm - must be 'RS512'"
+                },
+                400,
+                "invalid",
+                {"alg": "HS512"}
+            ),
+        ]
+    )
+    def test_missing_or_invalid_headers(
+        self,
+        claims,
+        _jwt_keys,
+        nhsd_apim_proxy_url,
+        expected_response,
+        expected_status_code,
+        missing_or_invalid,
+        update_headers,
+        token_data,
+    ):
+        additional_headers = {"kid": "test-1", "alg": "RS512"}
+
+        if missing_or_invalid == "missing":
+            additional_headers = remove_keys(additional_headers, update_headers)
+        if missing_or_invalid == "invalid":
+            additional_headers = replace_keys(additional_headers, update_headers)
+
+        token_data["client_assertion"] = create_client_assertion(
+            claims,
+            _jwt_keys["private_key_pem"],
+            additional_headers=additional_headers
+        )
+
+        # When
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data=token_data
+        )
+
+        # Then
+        body = resp.json()
+        assert resp.status_code == expected_status_code
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == expected_response
 
     @pytest.mark.errors
     @pytest.mark.parametrize(
@@ -100,7 +184,7 @@ class TestClientCredentialsJWT:
                 # Test sub different to iss
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching iss/sub claims in JWT",
+                    "error_description": "Missing or non-matching iss/sub claims in client_assertion JWT",
                 },
                 400,
                 "invalid",
@@ -109,7 +193,7 @@ class TestClientCredentialsJWT:
             (  # Test missing sub
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching iss/sub claims in JWT",
+                    "error_description": "Missing or non-matching iss/sub claims in client_assertion JWT",
                 },
                 400,
                 "missing",
@@ -119,7 +203,7 @@ class TestClientCredentialsJWT:
                 # Test iss different to sub
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching iss/sub claims in JWT",
+                    "error_description": "Missing or non-matching iss/sub claims in client_assertion JWT",
                 },
                 400,
                 "invalid",
@@ -128,7 +212,7 @@ class TestClientCredentialsJWT:
             (  # Test missing iss
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching iss/sub claims in JWT",
+                    "error_description": "Missing or non-matching iss/sub claims in client_assertion JWT",
                 },
                 400,
                 "missing",
@@ -138,7 +222,7 @@ class TestClientCredentialsJWT:
                 # Test invalid jti - integer
                 {
                     "error": "invalid_request",
-                    "error_description": "Jti claim must be a unique string value such as a GUID",
+                    "error_description": "Invalid 'jti' claim in client_assertion JWT - must be a unique string value such as a GUID",
                 },
                 400,
                 "invalid",
@@ -147,7 +231,7 @@ class TestClientCredentialsJWT:
             (  # Test missing jti
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing jti claim in JWT",
+                    "error_description": "Missing 'jti' claim in client_assertion JWT",
                 },
                 400,
                 "missing",
@@ -175,7 +259,7 @@ class TestClientCredentialsJWT:
             (  # Test invalid exp - string
                 {
                     "error": "invalid_request",
-                    "error_description": "Exp claim must be an integer",
+                    "error_description": "Invalid 'exp' claim in client_assertion JWT - must be an integer",
                 },
                 400,
                 "invalid",
@@ -185,7 +269,7 @@ class TestClientCredentialsJWT:
                 # Test exp in the past
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid exp claim in JWT - JWT has expired",
+                    "error_description": "Invalid 'exp' claim in client_assertion JWT - JWT has expired",
                 },
                 400,
                 "invalid",
@@ -195,7 +279,7 @@ class TestClientCredentialsJWT:
                 # Test exp above 5 min
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid exp claim in JWT - more than 5 minutes in future",
+                    "error_description": "Invalid 'exp' claim in client_assertion JWT - more than 5 minutes in future",
                 },
                 400,
                 "invalid",
@@ -204,7 +288,7 @@ class TestClientCredentialsJWT:
             (  # Test missing exp
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing exp claim in JWT",
+                    "error_description": "Missing 'exp' claim in client_assertion JWT",
                 },
                 400,
                 "missing",
@@ -263,7 +347,7 @@ class TestClientCredentialsJWT:
         del body["message_id"]
         assert body == {
             "error": "invalid_request",
-            "error_description": "Non-unique jti claim in JWT",
+            "error_description": "Non-unique jti claim in client_assertion JWT",
         }
 
     @pytest.mark.errors
@@ -368,7 +452,7 @@ class TestClientCredentialsJWT:
             (  # Test missing kid
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing 'kid' header in JWT",
+                    "error_description": "Missing 'kid' header in client_assertion JWT",
                 },
                 400,
                 {},
