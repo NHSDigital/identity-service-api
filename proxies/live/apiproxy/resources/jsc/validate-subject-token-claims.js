@@ -26,10 +26,12 @@ const missingAudMessage = "Missing 'aud' claim in subject_token JWT";
 const noErrorMessage = "";
 
 // Set conditions for triggering error messages
+// Headers
 const missingKidCondition = !jwtHeaders.kid;
 const missingOrInvalidTypCondition =
   typeof jwtHeaders.typ != "string" || jwtHeaders.typ.toLowerCase() != "jwt";
 const missingAlgHeaderCondition = !jwtHeaders.alg;
+// Claims
 const missingExpClaimCondition = !jwtPayload.exp;
 const invalidExpiryTimeCondition = typeof jwtPayload.exp != "number";
 // JS Date constructor uses milliseconds, exp uses seconds, so multiply exp by 1000 to convert to ms
