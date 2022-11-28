@@ -14,18 +14,18 @@ cachedJtiValue = context.getVariable("JTICachedValue")
 expExpiry = context.getVariable("jwt.DecodeJWT.FromClientAssertionFormParam.seconds_remaining")
 
 // Declare error message strings
-missingKidMessage = "Missing 'kid' header in JWT"
-missingOrInvalidTypMessage = "Invalid 'typ' header in JWT - must be 'JWT'"
-missingExpClaimMessage = "Missing exp claim in JWT"
-invalidExpiryTimeMessage = "Exp claim must be an integer"
-missingOrInvalidIssClaimMessage = "Missing or non-matching iss/sub claims in JWT"
-missingJtiClaimMessage = "Missing jti claim in JWT"
-invalidJtiMessage = "Jti claim must be a unique string value such as a GUID"
-expClaimTooLongMessage = "Invalid exp claim in JWT - more than 5 minutes in future"
-missingAlgHeaderMessage = "Missing 'alg' header in JWT"
-invalidAlgHeaderMessage = "Invalid 'alg' header in JWT - unsupported JWT algorithm - must be 'RS512'"
-jwtExpiredMessage = "Invalid exp claim in JWT - JWT has expired"
-jtiExistsInCacheMessage = "Non-unique jti claim in JWT"
+missingKidMessage = "Missing 'kid' header in client_assertion JWT"
+missingOrInvalidTypMessage = "Invalid 'typ' header in client_assertion JWT - must be 'JWT'"
+missingExpClaimMessage = "Missing 'exp' claim in client_assertion JWT"
+invalidExpiryTimeMessage = "Invalid 'exp' claim in client_assertion JWT - must be an integer"
+missingOrInvalidIssClaimMessage = "Missing or non-matching iss/sub claims in client_assertion JWT"
+missingJtiClaimMessage = "Missing 'jti' claim in client_assertion JWT"
+invalidJtiMessage = "Invalid 'jti' claim in client_assertion JWT - must be a unique string value such as a GUID"
+expClaimTooLongMessage = "Invalid 'exp' claim in client_assertion JWT - more than 5 minutes in future"
+missingAlgHeaderMessage = "Missing 'alg' header in client_assertion JWT"
+invalidAlgHeaderMessage = "Invalid 'alg' header in client_assertion JWT - unsupported JWT algorithm - must be 'RS512'"
+jwtExpiredMessage = "Invalid 'exp' claim in client_assertion JWT - JWT has expired"
+jtiExistsInCacheMessage = "Non-unique jti claim in client_assertion JWT"
 noErrorMessage = ""
 
 // Set conditions for triggering error messages
