@@ -33,6 +33,12 @@ def token_data():
     }
 
 
+# Some of the following tests require to modify the test_app by the
+# pytest-nhsd-apim module. Once the app is updated in apigee we still need to
+# retry the test until the app changes propagates inside Apigee and the proxy
+# can pick those changes so we simply rerun the test a sensible amount of times
+# and hope it will pass.
+# @pytest.mark.flaky(reruns=60, reruns_delay=1)
 class TestClientCredentialsJWT:
     """A test suit to test the client credentials flow"""
 
