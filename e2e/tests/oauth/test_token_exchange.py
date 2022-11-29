@@ -614,7 +614,7 @@ class TestTokenExchange:
                     "error": "invalid_request",
                     "error_description": "Missing 'aud' claim in subject_token JWT"
                 },
-                400,
+                401,
                 "missing",
                 {"aud"}
             ),
@@ -826,7 +826,7 @@ class TestTokenExchange:
                     "error": "invalid_request",
                     "error_description": "Missing 'aud' claim in subject_token JWT"
                 },
-                400,
+                401,
                 "missing",
                 {"aud"}
             ),

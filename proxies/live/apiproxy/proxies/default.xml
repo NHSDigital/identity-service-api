@@ -326,7 +326,7 @@
                 </Step>
                 <Step>
                     <Name>RaiseFault.InvalidJwt</Name>
-                    <Condition>InvalidJwt.ErrorMessage NotEquals ""</Condition>
+                    <Condition>invalid_jwt.error_message NotEquals ""</Condition>
                 </Step>
                 <Step>
                     <Name>PopulateCache.JTIClaim</Name>
@@ -477,7 +477,7 @@
                 </Step>
                 <Step>
                     <Name>RaiseFault.InvalidJwt</Name>
-                    <Condition>InvalidJwt.ErrorMessage NotEquals ""</Condition>
+                    <Condition>invalid_jwt.error_message NotEquals ""</Condition>
                 </Step>
                 <Step>
                     <Name>AssignMessage.SelectIdTokenFieldsTokenExchange</Name>

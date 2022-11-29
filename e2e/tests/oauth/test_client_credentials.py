@@ -358,7 +358,7 @@ class TestClientCredentialsJWT:
                 {
                     "error": "invalid_request",
                     "error_description": "Missing or invalid client_assertion_type - "
-                    "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                    "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'",
                 },
                 400,
                 "invalid",
@@ -368,7 +368,7 @@ class TestClientCredentialsJWT:
                 {
                     "error": "invalid_request",
                     "error_description": "Missing or invalid client_assertion_type - "
-                    "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                    "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'",
                 },
                 400,
                 "missing",
@@ -383,7 +383,7 @@ class TestClientCredentialsJWT:
                 "invalid",
                 {"client_assertion": "invalid"},
             ),
-            (  # Test missing client_assertion_type
+            (  # Test missing client_assertion
                 {
                     "error": "invalid_request",
                     "error_description": "Missing client_assertion",

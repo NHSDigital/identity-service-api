@@ -6,6 +6,13 @@ function extractJsonVariable(contextVariableName) {
   );
 }
 
+function createError(message, statusCode) {
+  return {
+    errorMessage: message,
+    statusCode: statusCode,
+  };
+}
+
 const jwtHeaders = extractJsonVariable("header-json");
 const jwtPayload = extractJsonVariable("payload-json");
 
@@ -40,15 +47,16 @@ const missingIssClaimCondition = !jwtPayload.iss;
 const missingAudCondtion = !jwtPayload.aud;
 
 // Set the error message to the first error condition that returns true
-context.setVariable(
-  "InvalidJwt.ErrorMessage",
-  (jwtExpiredCondition && jwtExpiredMessage) ||
-    (missingAlgHeaderCondition && missingAlgHeaderMessage) ||
-    (missingKidCondition && missingKidMessage) ||
-    (missingOrInvalidTypCondition && missingOrInvalidTypMessage) ||
-    (missingExpClaimCondition && missingExpClaimMessage) ||
-    (invalidExpiryTimeCondition && invalidExpiryTimeMessage) ||
-    (missingIssClaimCondition && missingIssClaimMessage) ||
-    (missingAudCondtion && missingAudMessage) ||
-    noErrorMessage
-);
+const err =
+  (jwtExpiredCondition && createError(jwtExpiredMessage, 400)) ||
+  (missingAlgHeaderCondition && createError(missingAlgHeaderMessage, 400)) ||
+  (missingKidCondition && createError(missingKidMessage, 400)) ||
+  (missingOrInvalidTypCondition && createError(missingOrInvalidTypMessage, 400)) ||
+  (missingExpClaimCondition && createError(missingExpClaimMessage, 400)) ||
+  (invalidExpiryTimeCondition && createError(invalidExpiryTimeMessage, 400)) ||
+  (missingIssClaimCondition && createError(missingIssClaimMessage, 400)) ||
+  (missingAudCondtion && createError(missingAudMessage, 401)) ||
+  createError(noErrorMessage, 200);
+
+context.setVariable("invalid_jwt.error_message", err.errorMessage);
+context.setVariable("invalid_jwt.error_status_code", err.statusCode);

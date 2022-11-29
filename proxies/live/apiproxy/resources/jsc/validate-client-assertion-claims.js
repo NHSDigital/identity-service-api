@@ -6,6 +6,13 @@ function extractJsonVariable(contextVariableName) {
   );
 }
 
+function createError(message, statusCode) {
+  return {
+    errorMessage: message,
+    statusCode: statusCode,
+  };
+}
+
 const jwtHeaders = extractJsonVariable("header-json");
 const jwtPayload = extractJsonVariable("payload-json");
 const expExpiry = extractJsonVariable("seconds_remaining");
@@ -55,21 +62,23 @@ const missingJtiClaimCondition = !jwtPayload.jti;
 const invalidJtiClaimCondition = typeof jwtPayload.jti != "string";
 const jtiExistsInCacheCondition = cachedJtiValue == jwtPayload.jti;
 
-// Set the error message to the first error condition that returns true
-context.setVariable(
-  "InvalidJwt.ErrorMessage",
-  (invalidAlgHeaderCondition && invalidAlgHeaderMessage) ||
-    (invalidAlgHeaderCondition && invalidAlgHeaderMessage) ||
-    (jwtExpiredCondition && jwtExpiredMessage) ||
-    (missingKidCondition && missingKidMessage) ||
-    (missingOrInvalidTypCondition && missingOrInvalidTypMessage) ||
-    (missingExpClaimCondition && missingExpClaimMessage) ||
-    (invalidExpiryTimeCondition && invalidExpiryTimeMessage) ||
-    (missingOrInvalidIssClaimCondition && missingOrInvalidIssClaimMessage) ||
-    (missingJtiClaimCondition && missingJtiClaimMessage) ||
-    (invalidJtiClaimCondition && invalidJtiMessage) ||
-    // Checking that the JTI exists in the cache should happen after checking that the JTI is valid
-    (jtiExistsInCacheCondition && jtiExistsInCacheMessage) ||
-    (expClaimTooLongCondition && expClaimTooLongMessage) ||
-    noErrorMessage
-);
+const err =
+  (invalidAlgHeaderCondition && createError(invalidAlgHeaderMessage, 400)) ||
+  (invalidAlgHeaderCondition && createError(invalidAlgHeaderMessage, 400)) ||
+  (jwtExpiredCondition && createError(jwtExpiredMessage, 400)) ||
+  (missingKidCondition && createError(missingKidMessage, 400)) ||
+  (missingOrInvalidTypCondition &&
+    createError(missingOrInvalidTypMessage, 400)) ||
+  (missingExpClaimCondition && createError(missingExpClaimMessage, 400)) ||
+  (invalidExpiryTimeCondition && createError(invalidExpiryTimeMessage, 400)) ||
+  (missingOrInvalidIssClaimCondition &&
+    createError(missingOrInvalidIssClaimMessage, 400)) ||
+  (missingJtiClaimCondition && createError(missingJtiClaimMessage, 400)) ||
+  (invalidJtiClaimCondition && createError(invalidJtiMessage, 400)) ||
+  // Checking that the JTI exists in the cache should happen after checking that the JTI is valid
+  (jtiExistsInCacheCondition && createError(jtiExistsInCacheMessage, 400)) ||
+  (expClaimTooLongCondition && createError(expClaimTooLongMessage, 400)) ||
+  createError(noErrorMessage, 200);
+
+context.setVariable("invalid_jwt.error_message", err.errorMessage);
+context.setVariable("invalid_jwt.error_status_code", err.statusCode);
