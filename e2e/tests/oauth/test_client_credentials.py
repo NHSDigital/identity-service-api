@@ -174,7 +174,7 @@ class TestClientCredentialsJWT:
             (  # Test invalid sub and iss claims
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid iss/sub claims in JWT",
+                    "error_description": "Invalid 'iss'/'sub' claims in client_assertion JWT",
                 },
                 401,
                 "invalid",
@@ -184,7 +184,7 @@ class TestClientCredentialsJWT:
                 # Test sub different to iss
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching iss/sub claims in client_assertion JWT",
+                    "error_description": "Missing or non-matching 'iss'/'sub' claims in client_assertion JWT",
                 },
                 400,
                 "invalid",
@@ -193,7 +193,7 @@ class TestClientCredentialsJWT:
             (  # Test missing sub
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching iss/sub claims in client_assertion JWT",
+                    "error_description": "Missing or non-matching 'iss'/'sub' claims in client_assertion JWT",
                 },
                 400,
                 "missing",
@@ -203,7 +203,7 @@ class TestClientCredentialsJWT:
                 # Test iss different to sub
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching iss/sub claims in client_assertion JWT",
+                    "error_description": "Missing or non-matching 'iss'/'sub' claims in client_assertion JWT",
                 },
                 400,
                 "invalid",
@@ -212,7 +212,7 @@ class TestClientCredentialsJWT:
             (  # Test missing iss
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching iss/sub claims in client_assertion JWT",
+                    "error_description": "Missing or non-matching 'iss'/'sub' claims in client_assertion JWT",
                 },
                 400,
                 "missing",

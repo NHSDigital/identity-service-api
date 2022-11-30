@@ -35,7 +35,7 @@ const expClaimTooLongMessage =
 const jwtExpiredMessage =
   "Invalid 'exp' claim in client_assertion JWT - JWT has expired";
 const missingOrInvalidIssClaimMessage =
-  "Missing or non-matching iss/sub claims in client_assertion JWT";
+  "Missing or non-matching 'iss'/'sub' claims in client_assertion JWT";
 const missingJtiClaimMessage = "Missing 'jti' claim in client_assertion JWT";
 const invalidJtiMessage =
   "Invalid 'jti' claim in client_assertion JWT - must be a unique string value such as a GUID";
@@ -57,7 +57,7 @@ const jwtExpiredCondition = new Date() > new Date(jwtPayload.exp * 1000);
 // We advise to limit expiry time to now + 5 minutes. Allowing an extra 10 seconds to mitigate edge cases:
 const expClaimTooLongCondition = expExpiry > 310;
 const missingOrInvalidIssClaimCondition =
-  !jwtPayload.iss || jwtPayload.iss != jwtPayload.sub;
+  !jwtPayload.iss || !jwtPayload.sub || jwtPayload.iss != jwtPayload.sub;
 const missingJtiClaimCondition = !jwtPayload.jti;
 const invalidJtiClaimCondition = typeof jwtPayload.jti != "string";
 const jtiExistsInCacheCondition = cachedJtiValue == jwtPayload.jti;
