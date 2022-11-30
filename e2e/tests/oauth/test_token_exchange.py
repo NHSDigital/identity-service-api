@@ -327,7 +327,7 @@ class TestTokenExchange:
             (  # Test invalid kid
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid 'kid' header in JWT - no matching public key"
+                    "error_description": "Invalid 'kid' header in client_assertion JWT - no matching public key"
                 },
                 401,
                 "invalid",
@@ -620,7 +620,7 @@ class TestTokenExchange:
         del body["message_id"]
         assert body == {
             "error": "invalid_request",
-            "error_description": "Non-unique jti claim in client_assertion JWT"
+            "error_description": "Non-unique 'jti' claim in client_assertion JWT"
         }
 
     @pytest.mark.errors

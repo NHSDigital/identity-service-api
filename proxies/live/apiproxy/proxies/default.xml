@@ -109,9 +109,27 @@
             </Step>
         </FaultRule>
         <FaultRule name="cc_no_matching_pub_key">
-            <Condition>(JWT.failed Equals true) and (fault.name Equals "NoMatchingPublicKey")</Condition>
+            <Condition>(JWT.failed Equals true) and (jwt.VerifyJWT.ClientCredentials.error IsNot null) and (fault.name Equals "NoMatchingPublicKey")</Condition>
             <Step>
-                <Name>AssignMessage.NoMatchingPublicKey</Name>
+                <Name>AssignMessage.NoMatchingPublicKeyClientCredentials</Name>
+            </Step>
+        </FaultRule>
+        <FaultRule name="tx_no_matching_pub_key">
+            <Condition>(JWT.failed Equals true) and (jwt.VerifyJWT.SubjectToken.error IsNot null) and (fault.name Equals "NoMatchingPublicKey")</Condition>
+            <Step>
+                <Name>AssignMessage.NoMatchingPublicKeySubjectToken</Name>
+            </Step>
+        </FaultRule>
+        <FaultRule name="bcl_no_matching_pub_key">
+            <Condition>(JWT.failed Equals true) and (jwt.VerifyJWT.LogoutToken.error IsNot null) and (fault.name Equals "NoMatchingPublicKey")</Condition>
+            <Step>
+                <Name>AssignMessage.NoMatchingPublicKeyLogoutToken</Name>
+            </Step>
+        </FaultRule>
+        <FaultRule name="id_no_matching_pub_key">
+            <Condition>(JWT.failed Equals true) and (jwt.VerifyJWT.FromExternalIdToken.error IsNot null) and (fault.name Equals "NoMatchingPublicKey")</Condition>
+            <Step>
+                <Name>AssignMessage.NoMatchingPublicKeyExternalIdToken</Name>
             </Step>
         </FaultRule>
         <FaultRule name="refresh_token_expired">

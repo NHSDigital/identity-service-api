@@ -39,7 +39,7 @@ const missingOrInvalidIssClaimMessage =
 const missingJtiClaimMessage = "Missing 'jti' claim in client_assertion JWT";
 const invalidJtiMessage =
   "Invalid 'jti' claim in client_assertion JWT - must be a unique string value such as a GUID";
-const jtiExistsInCacheMessage = "Non-unique jti claim in client_assertion JWT";
+const jtiExistsInCacheMessage = "Non-unique 'jti' claim in client_assertion JWT";
 const noErrorMessage = "";
 
 // Set conditions for triggering error messages
