@@ -184,7 +184,7 @@ class TestTokenExchange:
                 {
                     "error": "invalid_request",
                     "error_description": "Missing or invalid client_assertion_type - " \
-                                         "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                                         "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'"
                 },
                 400,
                 "invalid",
@@ -194,7 +194,7 @@ class TestTokenExchange:
                 {
                     "error": "invalid_request",
                     "error_description": "Missing or invalid client_assertion_type - " \
-                                         "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                                         "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'"
                 },
                 400,
                 "missing",
@@ -327,7 +327,7 @@ class TestTokenExchange:
             (  # Test invalid kid
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid 'kid' header in JWT - no matching public key"
+                    "error_description": "Invalid 'kid' header in client_assertion JWT - no matching public key"
                 },
                 401,
                 "invalid",
@@ -413,10 +413,19 @@ class TestTokenExchange:
     @pytest.mark.parametrize(
         "expected_response,expected_status_code,missing_or_invalid,update_claims",
         [
+            (  # Test invalid sub and iss claims
+                {
+                    "error": "invalid_request",
+                    "error_description": "Invalid 'iss'/'sub' claims in client_assertion JWT",
+                },
+                401,
+                "invalid",
+                {"sub": "invalid", "iss": "invalid"},
+            ),
             (  # Test invalid iss
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching iss/sub claims in client_assertion JWT"
+                    "error_description": "Missing or non-matching 'iss'/'sub' claims in client_assertion JWT"
                 },
                 400,
                 "invalid",
@@ -425,7 +434,7 @@ class TestTokenExchange:
             (  # Test missing iss
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching iss/sub claims in client_assertion JWT"
+                    "error_description": "Missing or non-matching 'iss'/'sub' claims in client_assertion JWT"
                 },
                 400,
                 "missing",
@@ -434,7 +443,7 @@ class TestTokenExchange:
             (  # Test invalid sub
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching iss/sub claims in client_assertion JWT"
+                    "error_description": "Missing or non-matching 'iss'/'sub' claims in client_assertion JWT"
                 },
                 400,
                 "invalid",
@@ -443,7 +452,7 @@ class TestTokenExchange:
             (  # Test missing sub
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching iss/sub claims in client_assertion JWT"
+                    "error_description": "Missing or non-matching 'iss'/'sub' claims in client_assertion JWT"
                 },
                 400,
                 "missing",
@@ -467,6 +476,25 @@ class TestTokenExchange:
                 400,
                 "invalid",
                 {"jti": 1234567890},
+            ),
+            (
+                # Test invalid aud
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing or invalid 'aud' claim in client_assertion JWT",
+                },
+                401,
+                "invalid",
+                {"aud": "invalid"},
+            ),
+            (  # Test missing aud
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing or invalid 'aud' claim in client_assertion JWT",
+                },
+                401,
+                "missing",
+                {"aud"},
             ),
             (  # Test missing exp
                 {
@@ -592,7 +620,7 @@ class TestTokenExchange:
         del body["message_id"]
         assert body == {
             "error": "invalid_request",
-            "error_description": "Non-unique jti claim in client_assertion JWT"
+            "error_description": "Non-unique 'jti' claim in client_assertion JWT"
         }
 
     @pytest.mark.errors
@@ -614,7 +642,7 @@ class TestTokenExchange:
                     "error": "invalid_request",
                     "error_description": "Missing 'aud' claim in subject_token JWT"
                 },
-                400,
+                401,
                 "missing",
                 {"aud"}
             ),
@@ -826,7 +854,7 @@ class TestTokenExchange:
                     "error": "invalid_request",
                     "error_description": "Missing 'aud' claim in subject_token JWT"
                 },
-                400,
+                401,
                 "missing",
                 {"aud"}
             ),

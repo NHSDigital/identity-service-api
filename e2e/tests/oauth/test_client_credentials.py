@@ -93,7 +93,7 @@ class TestClientCredentialsJWT:
             (  # Test invalid kid
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid 'kid' header in JWT - no matching public key"
+                    "error_description": "Invalid 'kid' header in client_assertion JWT - no matching public key"
                 },
                 401,
                 "invalid",
@@ -174,7 +174,7 @@ class TestClientCredentialsJWT:
             (  # Test invalid sub and iss claims
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid iss/sub claims in JWT",
+                    "error_description": "Invalid 'iss'/'sub' claims in client_assertion JWT",
                 },
                 401,
                 "invalid",
@@ -184,7 +184,7 @@ class TestClientCredentialsJWT:
                 # Test sub different to iss
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching iss/sub claims in client_assertion JWT",
+                    "error_description": "Missing or non-matching 'iss'/'sub' claims in client_assertion JWT",
                 },
                 400,
                 "invalid",
@@ -193,7 +193,7 @@ class TestClientCredentialsJWT:
             (  # Test missing sub
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching iss/sub claims in client_assertion JWT",
+                    "error_description": "Missing or non-matching 'iss'/'sub' claims in client_assertion JWT",
                 },
                 400,
                 "missing",
@@ -203,7 +203,7 @@ class TestClientCredentialsJWT:
                 # Test iss different to sub
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching iss/sub claims in client_assertion JWT",
+                    "error_description": "Missing or non-matching 'iss'/'sub' claims in client_assertion JWT",
                 },
                 400,
                 "invalid",
@@ -212,7 +212,7 @@ class TestClientCredentialsJWT:
             (  # Test missing iss
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching iss/sub claims in client_assertion JWT",
+                    "error_description": "Missing or non-matching 'iss'/'sub' claims in client_assertion JWT",
                 },
                 400,
                 "missing",
@@ -241,7 +241,7 @@ class TestClientCredentialsJWT:
                 # Test invalid aud
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or invalid aud claim in JWT",
+                    "error_description": "Missing or invalid 'aud' claim in client_assertion JWT",
                 },
                 401,
                 "invalid",
@@ -250,7 +250,7 @@ class TestClientCredentialsJWT:
             (  # Test missing aud
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or invalid aud claim in JWT",
+                    "error_description": "Missing or invalid 'aud' claim in client_assertion JWT",
                 },
                 401,
                 "missing",
@@ -347,7 +347,7 @@ class TestClientCredentialsJWT:
         del body["message_id"]
         assert body == {
             "error": "invalid_request",
-            "error_description": "Non-unique jti claim in client_assertion JWT",
+            "error_description": "Non-unique 'jti' claim in client_assertion JWT",
         }
 
     @pytest.mark.errors
@@ -358,7 +358,7 @@ class TestClientCredentialsJWT:
                 {
                     "error": "invalid_request",
                     "error_description": "Missing or invalid client_assertion_type - "
-                    "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                    "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'",
                 },
                 400,
                 "invalid",
@@ -368,7 +368,7 @@ class TestClientCredentialsJWT:
                 {
                     "error": "invalid_request",
                     "error_description": "Missing or invalid client_assertion_type - "
-                    "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                    "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'",
                 },
                 400,
                 "missing",
@@ -383,7 +383,7 @@ class TestClientCredentialsJWT:
                 "invalid",
                 {"client_assertion": "invalid"},
             ),
-            (  # Test missing client_assertion_type
+            (  # Test missing client_assertion
                 {
                     "error": "invalid_request",
                     "error_description": "Missing client_assertion",
@@ -435,49 +435,6 @@ class TestClientCredentialsJWT:
         assert resp.status_code == expected_status_code
         assert "message_id" in body.keys()
         del body["message_id"]  # We dont assert message_id as it is a random value.
-        assert body == expected_response
-
-    @pytest.mark.errors
-    @pytest.mark.parametrize(
-        "expected_response,expected_status_code,headers",
-        [
-            (  # Test invalid kid
-                {
-                    "error": "invalid_request",
-                    "error_description": "Invalid 'kid' header in JWT - no matching public key",
-                },
-                401,
-                {"kid": "invalid"},
-            ),
-            (  # Test missing kid
-                {
-                    "error": "invalid_request",
-                    "error_description": "Missing 'kid' header in client_assertion JWT",
-                },
-                400,
-                {},
-            ),
-        ],
-    )
-    def test_kid(
-        self,
-        claims,
-        _jwt_keys,
-        nhsd_apim_proxy_url,
-        token_data,
-        expected_response,
-        expected_status_code,
-        headers,
-    ):
-        token_data["client_assertion"] = create_client_assertion(
-            claims, _jwt_keys["private_key_pem"], additional_headers=headers
-        )
-
-        resp = requests.post(nhsd_apim_proxy_url + "/token", data=token_data)
-        body = resp.json()
-        assert resp.status_code == expected_status_code
-        assert "message_id" in body.keys()  # We assert the key but not he value for message_id
-        del body["message_id"]
         assert body == expected_response
 
     @pytest.mark.nhsd_apim_authorization(access="application", level="level3")
