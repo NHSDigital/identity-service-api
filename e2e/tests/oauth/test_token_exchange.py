@@ -468,6 +468,25 @@ class TestTokenExchange:
                 "invalid",
                 {"jti": 1234567890},
             ),
+            (
+                # Test invalid aud
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing or invalid 'aud' claim in client_assertion JWT",
+                },
+                401,
+                "invalid",
+                {"aud": "invalid"},
+            ),
+            (  # Test missing aud
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing or invalid 'aud' claim in client_assertion JWT",
+                },
+                401,
+                "missing",
+                {"aud"},
+            ),
             (  # Test missing exp
                 {
                     "error": "invalid_request",

@@ -241,7 +241,7 @@ class TestClientCredentialsJWT:
                 # Test invalid aud
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or invalid aud claim in JWT",
+                    "error_description": "Missing or invalid 'aud' claim in client_assertion JWT",
                 },
                 401,
                 "invalid",
@@ -250,7 +250,7 @@ class TestClientCredentialsJWT:
             (  # Test missing aud
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or invalid aud claim in JWT",
+                    "error_description": "Missing or invalid 'aud' claim in client_assertion JWT",
                 },
                 401,
                 "missing",
