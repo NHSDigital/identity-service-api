@@ -184,7 +184,7 @@ class TestTokenExchange:
                 {
                     "error": "invalid_request",
                     "error_description": "Missing or invalid client_assertion_type - " \
-                                         "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                                         "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'"
                 },
                 400,
                 "invalid",
@@ -194,7 +194,7 @@ class TestTokenExchange:
                 {
                     "error": "invalid_request",
                     "error_description": "Missing or invalid client_assertion_type - " \
-                                         "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                                         "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'"
                 },
                 400,
                 "missing",
