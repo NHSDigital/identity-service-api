@@ -107,7 +107,7 @@ def token_data():
         "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"
     }
 
-
+@pytest.mark.mock_auth
 class TestTokenExchange:
     """ A test suit to test the token exchange flow """
 

@@ -62,11 +62,10 @@ def create_logout_token(
     return logout_token_jwt
 
 
-@pytest.mark.asyncio
+@pytest.mark.mock_auth
 class TestBackChannelLogout:
     """ A test suite for back-channel logout functionality"""
     
-    @pytest.mark.mock_auth
     @pytest.mark.happy_path
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
@@ -103,7 +102,6 @@ class TestBackChannelLogout:
         )
         assert userinfo_resp.status_code == 401
     
-    @pytest.mark.mock_auth
     @pytest.mark.happy_path
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
@@ -163,7 +161,6 @@ class TestBackChannelLogout:
         assert post_refresh_userinfo_resp.status_code == 401
 
     # Request sends a JWT has missing or invalid claims of the following problems, returns a 400
-    @pytest.mark.mock_auth
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
         level="aal3",
@@ -295,14 +292,13 @@ class TestBackChannelLogout:
         assert back_channel_resp.json()["error_description"] == error_message
 
     # Request sends JWT that cannot be verified returns a  400
-    @pytest.mark.mock_auth
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
         level="aal3",
         login_form={"username": "656005750104"},
         force_new_token=True
     )
-    async def test_invalid_jwt(self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url):
+    def test_invalid_jwt(self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url):
         access_token = _nhsd_apim_auth_token_data["access_token"]
 
         # Test token can be used to access identity service
@@ -326,7 +322,6 @@ class TestBackChannelLogout:
         assert back_channel_resp.json()["error_description"] == "Unable to verify JWT"
 
     # Requests sends an logout token that does not exist in the session-id cache returns a 501
-    @pytest.mark.mock_auth
     @pytest.mark.parametrize("sid", ["5b8f2499-ad4a-4a7c-b0ac-aaada65bda2b", "12a5019c-17e1-4977-8f42-65a12843ea02"])
     def test_sid_not_cached(self, nhsd_apim_proxy_url, sid):
         logout_token = create_logout_token(override_sid=sid)
