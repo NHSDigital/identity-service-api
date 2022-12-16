@@ -103,12 +103,7 @@ def refresh_token_data(_test_app_credentials):
     }
 
 
-# Some of the following tests require to modify the test_app by the
-# pytest-nhsd-apim module. Once the app is updated in apigee we still need to
-# retry the test until the app changes propagates inside Apigee and the proxy
-# can pick those changes so we simply rerun the test a sensible amount of times
-# and hope it will pass.
-@pytest.mark.flaky(reruns=60, reruns_delay=1)
+@pytest.mark.mock_auth
 class TestAuthorizationCode:
     """ A test suit to test the token exchange flow """
 
@@ -135,7 +130,6 @@ class TestAuthorizationCode:
             "issued_at"  # Added by pytest_nhsd_apim
         }
 
-    @pytest.mark.mock_auth
     @pytest.mark.errors
     @pytest.mark.token_endpoint
     @pytest.mark.nhsd_apim_authorization(
@@ -464,7 +458,6 @@ class TestAuthorizationCode:
         assert resp.status_code == 405
         assert resp.headers["Allow"] == allowed_method
 
-    @pytest.mark.mock_auth
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
     @pytest.mark.nhsd_apim_authorization(
@@ -730,7 +723,6 @@ class TestAuthorizationCode:
             "which has sufficient access to access this resource.",
         }
 
-    @pytest.mark.mock_auth
     @pytest.mark.errors
     @pytest.mark.token_endpoint
     @pytest.mark.nhsd_apim_authorization(
@@ -814,7 +806,6 @@ class TestAuthorizationCode:
             "which has sufficient access to access this resource.",
         }
 
-    @pytest.mark.mock_auth
     @pytest.mark.happy_path
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
@@ -832,7 +823,6 @@ class TestAuthorizationCode:
         assert resp.status_code == 200
         assert body == BANK.get(self.name)["response"]
 
-    @pytest.mark.mock_auth
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
         level="aal3",
@@ -937,7 +927,6 @@ class TestAuthorizationCode:
         assert resp.status_code == 401
         assert body == expected_response
 
-    @pytest.mark.mock_auth
     @pytest.mark.errors
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
@@ -990,7 +979,6 @@ class TestAuthorizationCode:
             }
         }
 
-    @pytest.mark.mock_auth
     @pytest.mark.errors
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
@@ -1029,7 +1017,6 @@ class TestAuthorizationCode:
         assert resp.status_code == 200
         assert int(body['expires_in']) <= expected_time
 
-    @pytest.mark.mock_auth
     @pytest.mark.errors
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
@@ -1105,7 +1092,6 @@ class TestAuthorizationCode:
             }
         }
 
-    @pytest.mark.mock_auth
     @pytest.mark.errors
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",

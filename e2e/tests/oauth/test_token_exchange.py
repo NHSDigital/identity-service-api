@@ -7,15 +7,15 @@ import requests
 
 from e2e.scripts.config import (CANARY_API_URL, CANARY_PRODUCT_NAME,
                                 ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
-                                ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH)
+                                JWT_PRIVATE_KEY_ABSOLUTE_PATH)
 from e2e.tests.oauth.utils.helpers import (change_jwks_url,
                                            create_client_assertion,
                                            remove_keys, replace_keys,
                                            subscribe_app_to_products)
 
 
-def create_subject_token(claims, kid="identity-service-tests-1"):
-    with open(ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
+def create_subject_token(claims, kid="4A72Ed2asGJ0mdjHNTgo8HQJac7kIAKBTsb_sM1ikn8"):
+    with open(JWT_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
         id_token_private_key = f.read()
 
     headers = ({}, {"kid": kid})[kid is not None]
@@ -52,8 +52,7 @@ def cis2_subject_token_claims():
         "sub": "787807429511",
         "auditTrackingId": "91f694e6-3749-42fd-90b0-c3134b0d98f6-1546391",
         "amr": ["N3_SMARTCARD"],
-        "iss": "https://am.nhsint.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms"
-               "/NHSIdentity/realms/Healthcare",
+        "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/Cis2-mock-internal-dev",
         "tokenName": "id_token",
         "aud": "969567331415.apps.national",
         "c_hash": "bc7zzGkClC3MEiFQ3YhPKg",
@@ -74,7 +73,7 @@ def nhs_login_id_token():
         "headers": {
             "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",
             "aud": "APIM-1",
-            "kid": "nhs-login",
+            "kid": "B86zGrfcoloO13rnjKYDyAJcqj2iZAMrS49jyleL0Fo",
             "iss": "https://internal-dev.api.service.nhs.uk",
             "typ": "JWT",
             "exp": int(time()) + 600,
@@ -87,7 +86,7 @@ def nhs_login_id_token():
             'id_status': 'verified',
             'token_use': 'id',
             'auth_time': int(time()),
-            'iss': 'https://internal-dev.api.service.nhs.uk',
+            'iss': 'https://identity.ptl.api.platform.nhs.uk/auth/realms/NHS-Login-mock-internal-dev',
             'vot': 'P9.Cp.Cd',
             'exp': int(time()) + 600,
             'iat': int(time()) - 10,
@@ -108,7 +107,7 @@ def token_data():
         "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"
     }
 
-
+@pytest.mark.mock_auth
 class TestTokenExchange:
     """ A test suit to test the token exchange flow """
 
@@ -136,7 +135,6 @@ class TestTokenExchange:
             "issued_at"  # Added by pytest_nhsd_apim
         }
 
-    @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
@@ -578,7 +576,6 @@ class TestTokenExchange:
         assert body == expected_response
 
     @pytest.mark.errors
-    @pytest.mark.simulated_auth
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
         level="aal3",
@@ -604,7 +601,7 @@ class TestTokenExchange:
         )
         resp = response.json()
 
-        assert 200 == response.status_code
+        assert response.status_code == 200
         assert 'access_token' in resp['issued_token_type']
 
         resp = requests.post(
@@ -624,7 +621,6 @@ class TestTokenExchange:
         }
 
     @pytest.mark.errors
-    @pytest.mark.simulated_auth
     @pytest.mark.parametrize(
         "expected_response,expected_status_code,missing_or_invalid,update_claims",
         [
@@ -710,60 +706,195 @@ class TestTokenExchange:
         del body["message_id"]
         assert body == expected_response
 
-    @pytest.mark.simulated_auth
     @pytest.mark.happy_path
     @pytest.mark.nhsd_apim_authorization(
         access="patient",
         level="P0",
-        login_form={"auth_method": "P0"},
+        login_form={"username": "9912003073"},
+        authentication="separate",
         force_new_token=True
     )
-    @pytest.mark.parametrize(
-        "update_claims",
-        [
-            {"identity_proofing_level": "P0"},
-            {"identity_proofing_level": "P5"},
-            {"identity_proofing_level": "P9"}
-        ]
-    )
-    def test_nhs_login_happy_path(
-        self,
-        update_claims,
-        claims,
-        _jwt_keys,
-        nhsd_apim_proxy_url,
-        nhs_login_id_token,
-        token_data
-    ):
-        id_token_claims = replace_keys(nhs_login_id_token["claims"], update_claims)
-        id_token_headers = nhs_login_id_token["headers"]
-
-        token_data["subject_token"] = create_nhs_login_subject_token(id_token_claims, id_token_headers)
-        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
-
-        # When
-        resp = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data=token_data
-        )
-        body = resp.json()
-
-        assert resp.status_code == 200
-        assert body["expires_in"] == "599"
-        assert body["token_type"] == "Bearer"
-        assert body["refresh_count"] == "0"
-        assert body["issued_token_type"] == "urn:ietf:params:oauth:token-type:access_token"
-        assert set(body.keys()) == {
+    def test_nhs_login_happy_path_P0(self, _nhsd_apim_auth_token_data):
+        assert _nhsd_apim_auth_token_data["expires_in"] == "599"
+        assert _nhsd_apim_auth_token_data["token_type"] == "Bearer"
+        assert _nhsd_apim_auth_token_data["refresh_count"] == "0"
+        assert _nhsd_apim_auth_token_data["issued_token_type"] == "urn:ietf:params:oauth:token-type:access_token"
+        assert set(_nhsd_apim_auth_token_data.keys()) == {
             "access_token",
             "expires_in",
             "refresh_count",
             "refresh_token",
             "refresh_token_expires_in",
             "token_type",
-            "issued_token_type"
+            "issued_token_type",
+            "issued_at"  # Added by pytest_nhsd_apim
         }
 
-    @pytest.mark.simulated_auth
+    @pytest.mark.happy_path
+    @pytest.mark.nhsd_apim_authorization(
+        access="patient",
+        level="P5",
+        login_form={"username": "9912003072"},
+        authentication="separate",
+        force_new_token=True
+    )
+    def test_nhs_login_happy_path_P5(self, _nhsd_apim_auth_token_data):
+        assert _nhsd_apim_auth_token_data["expires_in"] == "599"
+        assert _nhsd_apim_auth_token_data["token_type"] == "Bearer"
+        assert _nhsd_apim_auth_token_data["refresh_count"] == "0"
+        assert _nhsd_apim_auth_token_data["issued_token_type"] == "urn:ietf:params:oauth:token-type:access_token"
+        assert set(_nhsd_apim_auth_token_data.keys()) == {
+            "access_token",
+            "expires_in",
+            "refresh_count",
+            "refresh_token",
+            "refresh_token_expires_in",
+            "token_type",
+            "issued_token_type",
+            "issued_at"  # Added by pytest_nhsd_apim
+        }
+
+    @pytest.mark.happy_path
+    @pytest.mark.nhsd_apim_authorization(
+        access="patient",
+        level="P9",
+        login_form={"username": "9912003071"},
+        authentication="separate",
+        force_new_token=True
+    )
+    def test_nhs_login_happy_path_P9(self, _nhsd_apim_auth_token_data):
+        assert _nhsd_apim_auth_token_data["expires_in"] == "599"
+        assert _nhsd_apim_auth_token_data["token_type"] == "Bearer"
+        assert _nhsd_apim_auth_token_data["refresh_count"] == "0"
+        assert _nhsd_apim_auth_token_data["issued_token_type"] == "urn:ietf:params:oauth:token-type:access_token"
+        assert set(_nhsd_apim_auth_token_data.keys()) == {
+            "access_token",
+            "expires_in",
+            "refresh_count",
+            "refresh_token",
+            "refresh_token_expires_in",
+            "token_type",
+            "issued_token_type",
+            "issued_at"  # Added by pytest_nhsd_apim
+        }
+
+    @pytest.mark.happy_path
+    @pytest.mark.nhsd_apim_authorization(
+        access="patient",
+        level="P0",
+        login_form={"username": "9912003073"},
+        authentication="separate",
+        force_new_token=True
+    )
+    def test_nhs_login_refresh_token_P0(
+        self,
+        _nhsd_apim_auth_token_data,
+        nhsd_apim_proxy_url,
+        _test_app_credentials
+    ):
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data={
+                "client_id": _test_app_credentials["consumerKey"],
+                "client_secret": _test_app_credentials["consumerSecret"],
+                "grant_type":  "refresh_token",
+                "refresh_token": _nhsd_apim_auth_token_data["refresh_token"]
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"}
+        )
+        refresh_resp = resp.json()
+
+        assert resp.status_code == 200
+        assert refresh_resp["expires_in"] == "599"
+        assert refresh_resp["token_type"] == "Bearer"
+        assert refresh_resp["refresh_count"] == "1"
+        assert set(refresh_resp.keys()) == {
+            "access_token",
+            "expires_in",
+            "refresh_count",
+            "refresh_token",
+            "refresh_token_expires_in",
+            "token_type"
+        }
+
+    @pytest.mark.happy_path
+    @pytest.mark.nhsd_apim_authorization(
+        access="patient",
+        level="P5",
+        login_form={"username": "9912003072"},
+        authentication="separate",
+        force_new_token=True
+    )
+    def test_nhs_login_refresh_token_P5(
+        self,
+        _nhsd_apim_auth_token_data,
+        nhsd_apim_proxy_url,
+        _test_app_credentials
+    ):
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data={
+                "client_id": _test_app_credentials["consumerKey"],
+                "client_secret": _test_app_credentials["consumerSecret"],
+                "grant_type":  "refresh_token",
+                "refresh_token": _nhsd_apim_auth_token_data["refresh_token"]
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"}
+        )
+        refresh_resp = resp.json()
+
+        assert resp.status_code == 200
+        assert refresh_resp["expires_in"] == "599"
+        assert refresh_resp["token_type"] == "Bearer"
+        assert refresh_resp["refresh_count"] == "1"
+        assert set(refresh_resp.keys()) == {
+            "access_token",
+            "expires_in",
+            "refresh_count",
+            "refresh_token",
+            "refresh_token_expires_in",
+            "token_type"
+        }
+
+    @pytest.mark.happy_path
+    @pytest.mark.nhsd_apim_authorization(
+        access="patient",
+        level="P9",
+        login_form={"username": "9912003071"},
+        authentication="separate",
+        force_new_token=True
+    )
+    def test_nhs_login_refresh_token_P9(
+        self,
+        _nhsd_apim_auth_token_data,
+        nhsd_apim_proxy_url,
+        _test_app_credentials
+    ):
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data={
+                "client_id": _test_app_credentials["consumerKey"],
+                "client_secret": _test_app_credentials["consumerSecret"],
+                "grant_type":  "refresh_token",
+                "refresh_token": _nhsd_apim_auth_token_data["refresh_token"]
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"}
+        )
+        refresh_resp = resp.json()
+
+        assert resp.status_code == 200
+        assert refresh_resp["expires_in"] == "599"
+        assert refresh_resp["token_type"] == "Bearer"
+        assert refresh_resp["refresh_count"] == "1"
+        assert set(refresh_resp.keys()) == {
+            "access_token",
+            "expires_in",
+            "refresh_count",
+            "refresh_token",
+            "refresh_token_expires_in",
+            "token_type"
+        }
+
     @pytest.mark.errors
     @pytest.mark.parametrize(
         "expected_response,expected_status_code,missing_or_invalid,update_headers",
@@ -835,7 +966,6 @@ class TestTokenExchange:
         del body["message_id"]
         assert body == expected_response
 
-    @pytest.mark.simulated_auth
     @pytest.mark.errors
     @pytest.mark.parametrize(
         "expected_response,expected_status_code,missing_or_invalid,update_claims",
@@ -1042,11 +1172,11 @@ class TestTokenExchange:
                                  "- please contact support to configure"
         }
 
-    @pytest.mark.simulated_auth
     @pytest.mark.nhsd_apim_authorization(
         access="patient",
-        level="P0",
-        login_form={"auth_method": "P0"},
+        level="P9",
+        login_form={"username": "9912003071"},
+        authentication="separate",
         force_new_token=True
     )
     def test_userinfo_nhs_login_exchanged_token(
@@ -1069,6 +1199,7 @@ class TestTokenExchange:
             data=token_data
         )
         token_resp = resp.json()
+        print(token_resp)
 
         # Then
         token = token_resp["access_token"]
@@ -1092,77 +1223,6 @@ class TestTokenExchange:
                                  "-and-authorisation"
         }
 
-    @pytest.mark.simulated_auth
-    @pytest.mark.nhsd_apim_authorization(
-        access="patient",
-        level="P0",
-        login_form={"auth_method": "P0"},
-        force_new_token=True
-    )
-    @pytest.mark.parametrize(
-        "update_claims",
-        [
-            {"identity_proofing_level": "P0"},
-            {"identity_proofing_level": "P5"},
-            {"identity_proofing_level": "P9"}
-        ]
-    )
-    def test_nhs_login_token_exchange_refresh_token(
-        self,
-        update_claims,
-        claims,
-        _jwt_keys,
-        nhsd_apim_proxy_url,
-        nhs_login_id_token,
-        token_data,
-        _test_app_credentials
-    ):
-        id_token_claims = replace_keys(nhs_login_id_token["claims"], update_claims)
-        id_token_headers = nhs_login_id_token["headers"]
-
-        token_data["subject_token"] = create_nhs_login_subject_token(id_token_claims, id_token_headers)
-        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
-
-        # When
-        resp = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data=token_data
-        )
-        token_resp = resp.json()
-
-        assert resp.status_code == 200
-        assert token_resp['access_token']
-        assert token_resp['refresh_token']
-        assert token_resp['expires_in'] == '599'
-        assert token_resp['refresh_token_expires_in'] == '3599'
-        assert token_resp['issued_token_type'] == 'urn:ietf:params:oauth:token-type:access_token'
-
-        resp = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data={
-                "client_id": _test_app_credentials["consumerKey"],
-                "client_secret": _test_app_credentials["consumerSecret"],
-                "grant_type":  "refresh_token",
-                "refresh_token": token_resp['refresh_token']
-            },
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
-        )
-        refresh_resp = resp.json()
-
-        assert resp.status_code == 200
-        assert refresh_resp["expires_in"] == "599"
-        assert refresh_resp["token_type"] == "Bearer"
-        assert refresh_resp["refresh_count"] == "1"
-        assert set(refresh_resp.keys()) == {
-            "access_token",
-            "expires_in",
-            "refresh_count",
-            "refresh_token",
-            "refresh_token_expires_in",
-            "token_type"
-        }
-
-    @pytest.mark.simulated_auth
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
         level="aal3",
@@ -1223,11 +1283,11 @@ class TestTokenExchange:
         assert canary_resp.status_code == 200
         assert canary_resp.text == "Hello user!"
 
-    @pytest.mark.simulated_auth
     @pytest.mark.nhsd_apim_authorization(
         access="patient",
-        level="P0",
-        login_form={"auth_method": "P0"},
+        level="P9",
+        login_form={"username": "9912003071"},
+        authentication="separate",
         force_new_token=True
     )
     def test_nhs_login_token_exchange_access_tokens_valid(
@@ -1286,7 +1346,6 @@ class TestTokenExchange:
         assert canary_resp.status_code == 200
         assert canary_resp.text == "Hello user!"
 
-    @pytest.mark.simulated_auth
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
         level="aal3",
@@ -1386,11 +1445,11 @@ class TestTokenExchange:
         }
 
     @pytest.mark.happy_path
-    @pytest.mark.simulated_auth
     @pytest.mark.nhsd_apim_authorization(
         access="patient",
-        level="P0",
-        login_form={"auth_method": "P0"},
+        level="P9",
+        login_form={"username": "9912003071"},
+        authentication="separate",
         force_new_token=True
     )
     @pytest.mark.parametrize(
@@ -1426,7 +1485,6 @@ class TestTokenExchange:
         assert int(body['expires_in']) <= expected_time
 
     @pytest.mark.happy_path
-    @pytest.mark.simulated_auth
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
         level="aal3",

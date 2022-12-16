@@ -32,7 +32,7 @@ def token_data():
         "grant_type": "client_credentials",
     }
 
-
+@pytest.mark.mock_auth
 class TestClientCredentialsJWT:
     """A test suit to test the client credentials flow"""
 
