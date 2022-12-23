@@ -26,6 +26,7 @@ def access_token_api():
     return AccessTokensAPI(client=client)
 
 
+@pytest.mark.mock_auth
 class TestAttachLoggingFields:
     @pytest.mark.happy_path
     @pytest.mark.logging
