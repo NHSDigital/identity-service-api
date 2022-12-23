@@ -64,10 +64,10 @@ context.setVariable('accesstoken.auth_user_id', user_id)
 
 function getProvider() {
   var cis2_issuer = context.getVariable('identity-service-config.cis2.issuer')
-  var is_mock_cis2_provider = cis2_issuer.includes('api.service.nhs.uk')
+  var is_mock_cis2_provider = cis2_issuer.includes('api.service.nhs.uk') || cis2_issuer.includes('identity.ptl.api.platform.nhs.uk')
 
   var nhs_login_issuer = context.getVariable('identity-service-config.nhs_login.issuer')
-  var is_mock_nhs_login_provider = nhs_login_issuer.includes('api.service.nhs.uk')
+  var is_mock_nhs_login_provider = nhs_login_issuer.includes('api.service.nhs.uk') || nhs_login_issuer.includes('identity.ptl.api.platform.nhs.uk')
 
   var is_nhs_login = context.getVariable('idp') === 'nhs-login'
     || context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.nhs_number')
