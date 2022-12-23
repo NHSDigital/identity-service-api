@@ -4,4 +4,8 @@
     <Name>identity-service-config.cis2.redirect_uri </Name>
     <Template>https://internal-dev.api.service.nhs.uk/{proxy.basepath}/callback</Template>
   </AssignVariable>
+  <AssignVariable>
+    <Name>identity-service-config.nhs_login.redirect_uri </Name>
+    <Template>https://internal-dev.api.service.nhs.uk/{proxy.basepath}/callback</Template>
+  </AssignVariable>
 </AssignMessage>
