@@ -73,16 +73,6 @@ def change_app_status(
 
 
 @pytest.fixture()
-def authorize_params(_test_app_credentials, _test_app_callback_url):
-    return {
-        "client_id": _test_app_credentials["consumerKey"],
-        "redirect_uri": _test_app_callback_url,
-        "response_type": "code",
-        "state": random.getrandbits(32)
-    }
-
-
-@pytest.fixture()
 def token_data(_test_app_credentials, _test_app_callback_url):
     return {
         "client_id": _test_app_credentials["consumerKey"],
@@ -1277,9 +1267,6 @@ class TestAuthorizationCode:
         assert _nhsd_apim_auth_token_data["expires_in"] == "599"
         assert _nhsd_apim_auth_token_data["refresh_token_expires_in"] == "43199"
 
-    @pytest.mark.skip(
-        reason="TO REFACTOR to use Second Gen mock auth once completed. First gen does not work on prs"
-    )
     @pytest.mark.parametrize(
         '_',
         [

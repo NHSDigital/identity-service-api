@@ -1,6 +1,7 @@
 import json
 import pytest
 import asyncio
+import random
 from api_test_utils.oauth_helper import OauthHelper
 from api_test_utils.apigee_api_apps import ApigeeApiDeveloperApps
 from api_test_utils.apigee_api_products import ApigeeApiProducts
@@ -27,6 +28,15 @@ def nhsd_apim_api_name():
 @pytest.fixture(scope="session")
 def nhsd_apim_proxy_name():
     return PROXY_NAME
+
+@pytest.fixture()
+def authorize_params(_test_app_credentials, _test_app_callback_url):
+    return {
+        "client_id": _test_app_credentials["consumerKey"],
+        "redirect_uri": _test_app_callback_url,
+        "response_type": "code",
+        "state": random.getrandbits(32)
+    }
 
 ################################################
 
