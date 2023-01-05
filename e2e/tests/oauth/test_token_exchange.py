@@ -1,111 +1,16 @@
 from time import time
-from uuid import uuid4
 
-import jwt
 import pytest
 import requests
 
-from e2e.scripts.config import (CANARY_API_URL, CANARY_PRODUCT_NAME,
-                                ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
-                                JWT_PRIVATE_KEY_ABSOLUTE_PATH)
+from e2e.scripts.config import (CANARY_API_URL, CANARY_PRODUCT_NAME)
 from e2e.tests.oauth.utils.helpers import (change_jwks_url,
                                            create_client_assertion,
                                            remove_keys, replace_keys,
-                                           subscribe_app_to_products)
+                                           subscribe_app_to_products,
+                                           create_subject_token,
+                                           create_nhs_login_subject_token)
 
-
-def create_subject_token(claims, kid="4A72Ed2asGJ0mdjHNTgo8HQJac7kIAKBTsb_sM1ikn8"):
-    with open(JWT_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
-        id_token_private_key = f.read()
-
-    headers = ({}, {"kid": kid})[kid is not None]
-    return jwt.encode(claims, id_token_private_key, algorithm="RS512", headers=headers)
-
-
-def create_nhs_login_subject_token(claims, headers):
-    with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
-        id_token_nhs_login = f.read()
-
-    return jwt.encode(
-        payload=claims,
-        key=id_token_nhs_login,
-        algorithm="RS512",
-        headers=headers
-    )
-
-
-@pytest.fixture
-def claims(_test_app_credentials, nhsd_apim_proxy_url):
-    return {
-        "sub": _test_app_credentials["consumerKey"],
-        "iss": _test_app_credentials["consumerKey"],
-        "jti": str(uuid4()),
-        "aud": nhsd_apim_proxy_url + "/token",
-        "exp": int(time()) + 300,  # 5 minutes in the future
-    }
-
-
-@pytest.fixture
-def cis2_subject_token_claims():
-    return {
-        "at_hash": "tf_-lqpq36lwO7WmSBIJ6Q",
-        "sub": "787807429511",
-        "auditTrackingId": "91f694e6-3749-42fd-90b0-c3134b0d98f6-1546391",
-        "amr": ["N3_SMARTCARD"],
-        "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/Cis2-mock-internal-dev",
-        "tokenName": "id_token",
-        "aud": "969567331415.apps.national",
-        "c_hash": "bc7zzGkClC3MEiFQ3YhPKg",
-        "acr": "AAL3_ANY",
-        "org.forgerock.openidconnect.ops": "-I45NjmMDdMa-aNF2sr9hC7qEGQ",
-        "s_hash": "LPJNul-wow4m6Dsqxbning",
-        "azp": "969567331415.apps.national",
-        "auth_time": 1610559802,
-        "realm": "/NHSIdentity/Healthcare",
-        "exp": int(time()) + 300,
-        "tokenType": "JWTToken",
-        "iat": int(time()) - 100}
-
-
-@pytest.fixture
-def nhs_login_id_token():
-    return {
-        "headers": {
-            "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",
-            "aud": "APIM-1",
-            "kid": "B86zGrfcoloO13rnjKYDyAJcqj2iZAMrS49jyleL0Fo",
-            "iss": "https://internal-dev.api.service.nhs.uk",
-            "typ": "JWT",
-            "exp": int(time()) + 600,
-            "iat": int(time()) - 10,
-            "alg": "RS512",
-            "jti": "b68ddb28-e440-443d-8725-dfe0da330118"
-        },
-        "claims": {
-            'aud': 'tf_-APIM-1',
-            'id_status': 'verified',
-            'token_use': 'id',
-            'auth_time': int(time()),
-            'iss': 'https://identity.ptl.api.platform.nhs.uk/auth/realms/NHS-Login-mock-internal-dev',
-            'vot': 'P9.Cp.Cd',
-            'exp': int(time()) + 600,
-            'iat': int(time()) - 10,
-            'vtm': 'https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk',
-            'jti': 'b68ddb28-e440-443d-8725-dfe0da330118',
-            "identity_proofing_level": "P9"
-        }
-    }
-
-
-@pytest.fixture
-def token_data():
-    return {
-        "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
-        "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-        "subject_token": None,  # Should be replaced in test
-        "client_assertion": None,  # Should be replaced in test
-        "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"
-    }
 
 @pytest.mark.mock_auth
 class TestTokenExchange:
@@ -284,20 +189,20 @@ class TestTokenExchange:
         _jwt_keys,
         nhsd_apim_proxy_url,
         cis2_subject_token_claims,
-        token_data
+        token_data_token_exchange
     ):
-        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
-        token_data["subject_token"] = create_subject_token(cis2_subject_token_claims)
+        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data_token_exchange["subject_token"] = create_subject_token(cis2_subject_token_claims)
 
         if missing_or_invalid == "missing":
-            token_data = remove_keys(token_data, update_data)
+            token_data_token_exchange = remove_keys(token_data_token_exchange, update_data)
         if missing_or_invalid == "invalid":
-            token_data = replace_keys(token_data, update_data)
+            token_data_token_exchange = replace_keys(token_data_token_exchange, update_data)
 
         # When
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data=token_data
+            data=token_data_token_exchange
         )
 
         # Then
@@ -370,7 +275,7 @@ class TestTokenExchange:
         _jwt_keys,
         nhsd_apim_proxy_url,
         cis2_subject_token_claims,
-        token_data
+        token_data_token_exchange
     ):
         additional_headers = {"kid": "test-1", "alg": "RS512"}
 
@@ -379,17 +284,17 @@ class TestTokenExchange:
         if missing_or_invalid == "invalid":
             additional_headers = replace_keys(additional_headers, update_headers)
 
-        token_data["client_assertion"] = create_client_assertion(
+        token_data_token_exchange["client_assertion"] = create_client_assertion(
             claims,
             _jwt_keys["private_key_pem"],
             additional_headers=additional_headers
         )
-        token_data["subject_token"] = create_subject_token(cis2_subject_token_claims)
+        token_data_token_exchange["subject_token"] = create_subject_token(cis2_subject_token_claims)
 
         # When
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data=token_data
+            data=token_data_token_exchange
         )
 
         # Then
@@ -543,7 +448,7 @@ class TestTokenExchange:
         _jwt_keys,
         nhsd_apim_proxy_url,
         cis2_subject_token_claims,
-        token_data
+        token_data_token_exchange
     ):
         if missing_or_invalid == "missing":
             claims = remove_keys(claims, update_claims)
@@ -553,17 +458,17 @@ class TestTokenExchange:
         # Set up valid headers as these are validated first
         headers = {"typ": "jwt", "kid": "test-1"}
 
-        token_data["client_assertion"] = create_client_assertion(
+        token_data_token_exchange["client_assertion"] = create_client_assertion(
             claims,
             _jwt_keys["private_key_pem"],
             additional_headers=headers
         )
-        token_data["subject_token"] = create_subject_token(cis2_subject_token_claims)
+        token_data_token_exchange["subject_token"] = create_subject_token(cis2_subject_token_claims)
 
         # When
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data=token_data
+            data=token_data_token_exchange
         )
 
         # Then
@@ -589,15 +494,15 @@ class TestTokenExchange:
         nhsd_apim_proxy_url,
         cis2_subject_token_claims,
         claims,
-        token_data
+        token_data_token_exchange
     ):
-        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
-        token_data["subject_token"] = create_subject_token(cis2_subject_token_claims)
+        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data_token_exchange["subject_token"] = create_subject_token(cis2_subject_token_claims)
 
         # When
         response = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data=token_data
+            data=token_data_token_exchange
         )
         resp = response.json()
 
@@ -606,7 +511,7 @@ class TestTokenExchange:
 
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data=token_data
+            data=token_data_token_exchange
         )
 
         body = resp.json()
@@ -681,20 +586,20 @@ class TestTokenExchange:
         _jwt_keys,
         nhsd_apim_proxy_url,
         cis2_subject_token_claims,
-        token_data
+        token_data_token_exchange
     ):
         if missing_or_invalid == "missing":
             cis2_subject_token_claims = remove_keys(cis2_subject_token_claims, update_claims)
         if missing_or_invalid == "invalid":
             cis2_subject_token_claims = replace_keys(cis2_subject_token_claims, update_claims)
 
-        token_data["subject_token"] = create_subject_token(cis2_subject_token_claims)
-        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data_token_exchange["subject_token"] = create_subject_token(cis2_subject_token_claims)
+        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
 
         # When
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data=token_data
+            data=token_data_token_exchange
         )
 
         # Then
@@ -938,7 +843,7 @@ class TestTokenExchange:
         _jwt_keys,
         nhsd_apim_proxy_url,
         nhs_login_id_token,
-        token_data
+        token_data_token_exchange
     ):
         id_token_claims = nhs_login_id_token["claims"]
         id_token_headers = nhs_login_id_token["headers"]
@@ -948,13 +853,13 @@ class TestTokenExchange:
         if missing_or_invalid == "invalid":
             id_token_headers = replace_keys(id_token_headers, update_headers)
 
-        token_data["subject_token"] = create_nhs_login_subject_token(id_token_claims, id_token_headers)
-        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data_token_exchange["subject_token"] = create_nhs_login_subject_token(id_token_claims, id_token_headers)
+        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
 
         # When
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data=token_data
+            data=token_data_token_exchange
         )
 
         # Then
@@ -1027,7 +932,7 @@ class TestTokenExchange:
         _jwt_keys,
         nhsd_apim_proxy_url,
         nhs_login_id_token,
-        token_data
+        token_data_token_exchange
     ):
         id_token_claims = nhs_login_id_token["claims"]
         id_token_headers = nhs_login_id_token["headers"]
@@ -1037,13 +942,13 @@ class TestTokenExchange:
         if missing_or_invalid == "invalid":
             id_token_claims = replace_keys(id_token_claims, update_claims)
 
-        token_data["subject_token"] = create_nhs_login_subject_token(id_token_claims, id_token_headers)
-        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data_token_exchange["subject_token"] = create_nhs_login_subject_token(id_token_claims, id_token_headers)
+        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
 
         # When
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data=token_data
+            data=token_data_token_exchange
         )
         body = resp.json()
 
@@ -1086,7 +991,7 @@ class TestTokenExchange:
         claims,
         _jwt_keys,
         cis2_subject_token_claims,
-        token_data,
+        token_data_token_exchange,
         _apigee_edge_session,
         _apigee_app_base_url,
         _create_function_scoped_test_app,
@@ -1107,13 +1012,13 @@ class TestTokenExchange:
         )
         assert jwks_resp.status_code == 200
 
-        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
-        token_data["subject_token"] = create_subject_token(cis2_subject_token_claims)
+        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data_token_exchange["subject_token"] = create_subject_token(cis2_subject_token_claims)
 
         # When
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data=token_data
+            data=token_data_token_exchange
         )
 
         # Then
@@ -1132,7 +1037,7 @@ class TestTokenExchange:
         claims,
         _jwt_keys,
         cis2_subject_token_claims,
-        token_data,
+        token_data_token_exchange,
         _apigee_edge_session,
         _apigee_app_base_url,
         _create_function_scoped_test_app
@@ -1150,13 +1055,13 @@ class TestTokenExchange:
         )
         assert jwks_resp.status_code == 200
 
-        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
-        token_data["subject_token"] = create_subject_token(cis2_subject_token_claims)
+        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data_token_exchange["subject_token"] = create_subject_token(cis2_subject_token_claims)
 
         # When
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data=token_data
+            data=token_data_token_exchange
         )
 
         # Then
@@ -1185,21 +1090,20 @@ class TestTokenExchange:
         nhsd_apim_proxy_url,
         claims,
         nhs_login_id_token,
-        token_data
+        token_data_token_exchange
     ):
         id_token_claims = nhs_login_id_token["claims"]
         id_token_headers = nhs_login_id_token["headers"]
 
-        token_data["subject_token"] = create_nhs_login_subject_token(id_token_claims, id_token_headers)
-        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data_token_exchange["subject_token"] = create_nhs_login_subject_token(id_token_claims, id_token_headers)
+        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
 
         # When
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data=token_data
+            data=token_data_token_exchange
         )
         token_resp = resp.json()
-        print(token_resp)
 
         # Then
         token = token_resp["access_token"]
@@ -1239,7 +1143,7 @@ class TestTokenExchange:
         _apigee_app_base_url,
         claims,
         _jwt_keys,
-        token_data,
+        token_data_token_exchange,
         cis2_subject_token_claims
     ):
         """
@@ -1261,13 +1165,13 @@ class TestTokenExchange:
         claims["sub"] = credential["consumerKey"]
         claims["iss"] = credential["consumerKey"]
 
-        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
-        token_data["subject_token"] = create_subject_token(cis2_subject_token_claims)
+        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data_token_exchange["subject_token"] = create_subject_token(cis2_subject_token_claims)
 
         # When
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data=token_data
+            data=token_data_token_exchange
         )
 
         body = resp.json()
@@ -1299,7 +1203,7 @@ class TestTokenExchange:
         _apigee_app_base_url,
         claims,
         _jwt_keys,
-        token_data,
+        token_data_token_exchange,
         nhs_login_id_token
     ):
         """
@@ -1324,13 +1228,13 @@ class TestTokenExchange:
         id_token_claims = nhs_login_id_token["claims"]
         id_token_headers = nhs_login_id_token["headers"]
 
-        token_data["subject_token"] = create_nhs_login_subject_token(id_token_claims, id_token_headers)
-        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data_token_exchange["subject_token"] = create_nhs_login_subject_token(id_token_claims, id_token_headers)
+        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
 
         # When
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data=token_data
+            data=token_data_token_exchange
         )
 
         body = resp.json()
@@ -1360,15 +1264,15 @@ class TestTokenExchange:
         claims,
         _jwt_keys,
         cis2_subject_token_claims,
-        token_data
+        token_data_token_exchange
     ):
-        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
-        token_data["subject_token"] = create_subject_token(cis2_subject_token_claims)
+        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data_token_exchange["subject_token"] = create_subject_token(cis2_subject_token_claims)
 
         # When
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data=token_data
+            data=token_data_token_exchange
         )
         token_resp = resp.json()
 
@@ -1463,21 +1367,21 @@ class TestTokenExchange:
         _jwt_keys,
         nhsd_apim_proxy_url,
         claims,
-        token_data,
+        token_data_token_exchange,
         cis2_subject_token_claims
     ):
         """
         Test token exchange flow access token can be overridden with a time less than 10 min(600000ms or 600s)
         and NOT be overridden with a time greater than 10 min(600000ms or 600s)
         """
-        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
-        token_data["subject_token"] = create_subject_token(cis2_subject_token_claims)
-        token_data["_access_token_expiry_ms"] = token_expiry_ms
+        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data_token_exchange["subject_token"] = create_subject_token(cis2_subject_token_claims)
+        token_data_token_exchange["_access_token_expiry_ms"] = token_expiry_ms
 
         # When
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data=token_data
+            data=token_data_token_exchange
         )
         body = resp.json()
 

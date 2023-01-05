@@ -1,5 +1,8 @@
 import jwt
 
+from e2e.scripts.config import (ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
+                                JWT_PRIVATE_KEY_ABSOLUTE_PATH)
+
 
 def remove_keys(data: dict, keys_to_remove: dict) -> dict:
     """Returns all the params with specified keys removed"""
@@ -76,4 +79,24 @@ def create_client_assertion(
         private_key,
         algorithm=algorithm,
         headers=additional_headers
+    )
+
+
+def create_subject_token(claims, kid="4A72Ed2asGJ0mdjHNTgo8HQJac7kIAKBTsb_sM1ikn8"):
+    with open(JWT_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
+        id_token_private_key = f.read()
+
+    headers = ({}, {"kid": kid})[kid is not None]
+    return jwt.encode(claims, id_token_private_key, algorithm="RS512", headers=headers)
+
+
+def create_nhs_login_subject_token(claims, headers):
+    with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
+        id_token_nhs_login = f.read()
+
+    return jwt.encode(
+        payload=claims,
+        key=id_token_nhs_login,
+        algorithm="RS512",
+        headers=headers
     )

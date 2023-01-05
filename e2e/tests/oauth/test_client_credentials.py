@@ -1,5 +1,4 @@
 from time import time
-from uuid import uuid4
 
 import pytest
 import requests
@@ -12,37 +11,17 @@ from e2e.tests.oauth.utils.helpers import (
 )
 
 
-@pytest.fixture()
-def claims(_test_app_credentials, nhsd_apim_proxy_url):
-    claims = {
-        "sub": _test_app_credentials["consumerKey"],
-        "iss": _test_app_credentials["consumerKey"],
-        "jti": str(uuid4()),
-        "aud": nhsd_apim_proxy_url + "/token",
-        "exp": int(time()) + 300,  # 5 minutes in the future
-    }
-    return claims
-
-
-@pytest.fixture
-def token_data():
-    return {
-        "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-        "client_assertion": None,  # Should be replace in test
-        "grant_type": "client_credentials",
-    }
-
 @pytest.mark.mock_auth
 class TestClientCredentialsJWT:
     """A test suit to test the client credentials flow"""
 
     @pytest.mark.happy_path
     @pytest.mark.nhsd_apim_authorization(access="application", level="level3", force_new_token=True)
-    def test_successful_jwt_token_response(self, _nhsd_apim_auth_token_data):
-        assert "access_token" in _nhsd_apim_auth_token_data.keys()
-        assert "issued_at" in _nhsd_apim_auth_token_data.keys()  # Added by pytest_nhsd_apim
-        assert _nhsd_apim_auth_token_data["expires_in"] == "599"
-        assert _nhsd_apim_auth_token_data["token_type"] == "Bearer"
+    def test_successful_jwt_token_response(self, _nhsd_apim_auth_token_data_client_credentials):
+        assert "access_token" in _nhsd_apim_auth_token_data_client_credentials.keys()
+        assert "issued_at" in _nhsd_apim_auth_token_data_client_credentials.keys()  # Added by pytest_nhsd_apim
+        assert _nhsd_apim_auth_token_data_client_credentials["expires_in"] == "599"
+        assert _nhsd_apim_auth_token_data_client_credentials["token_type"] == "Bearer"
 
     @pytest.mark.errors
     @pytest.mark.parametrize(
@@ -58,14 +37,14 @@ class TestClientCredentialsJWT:
             ("HS512"),
         ],
     )
-    def test_incorrect_jwt_algorithm(self, claims, nhsd_apim_proxy_url, _jwt_keys, token_data, algorithm):
-        token_data["client_assertion"] = create_client_assertion(
+    def test_incorrect_jwt_algorithm(self, claims, nhsd_apim_proxy_url, _jwt_keys, token_data_client_credentials, algorithm):
+        token_data_client_credentials["client_assertion"] = create_client_assertion(
             claims, _jwt_keys["private_key_pem"], algorithm=algorithm
         )
 
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data=token_data,
+            data=token_data_client_credentials,
         )
         body = resp.json()
 
@@ -137,7 +116,7 @@ class TestClientCredentialsJWT:
         expected_status_code,
         missing_or_invalid,
         update_headers,
-        token_data,
+        token_data_client_credentials,
     ):
         additional_headers = {"kid": "test-1", "alg": "RS512"}
 
@@ -146,7 +125,7 @@ class TestClientCredentialsJWT:
         if missing_or_invalid == "invalid":
             additional_headers = replace_keys(additional_headers, update_headers)
 
-        token_data["client_assertion"] = create_client_assertion(
+        token_data_client_credentials["client_assertion"] = create_client_assertion(
             claims,
             _jwt_keys["private_key_pem"],
             additional_headers=additional_headers
@@ -155,7 +134,7 @@ class TestClientCredentialsJWT:
         # When
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data=token_data
+            data=token_data_client_credentials
         )
 
         # Then
@@ -305,18 +284,18 @@ class TestClientCredentialsJWT:
         expected_status_code,
         missing_or_invalid,
         replaced_claims,
-        token_data,
+        token_data_client_credentials,
     ):
         if missing_or_invalid == "missing":
             claims = remove_keys(claims, replaced_claims)
         if missing_or_invalid == "invalid":
             claims = replace_keys(claims, replaced_claims)
 
-        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data_client_credentials["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
 
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data=token_data,
+            data=token_data_client_credentials,
         )
         body = resp.json()
 
@@ -327,19 +306,19 @@ class TestClientCredentialsJWT:
 
     @pytest.mark.errors
     @pytest.mark.nhsd_apim_authorization(access="application", level="level3", force_new_token=True)
-    def test_reusing_same_jti(self, _jwt_keys, nhsd_apim_proxy_url, claims, token_data):
-        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+    def test_reusing_same_jti(self, _jwt_keys, nhsd_apim_proxy_url, claims, token_data_client_credentials):
+        token_data_client_credentials["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
 
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data=token_data,
+            data=token_data_client_credentials,
         )
 
         assert resp.status_code == 200
 
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data=token_data,
+            data=token_data_client_credentials,
         )
 
         body = resp.json()
@@ -417,20 +396,20 @@ class TestClientCredentialsJWT:
         claims,
         _jwt_keys,
         nhsd_apim_proxy_url,
-        token_data,
+        token_data_client_credentials,
         expected_response,
         expected_status_code,
         missing_or_invalid,
         data_override,
     ):
-        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data_client_credentials["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
 
         if missing_or_invalid == "missing":
-            token_data = remove_keys(token_data, data_override)
+            token_data_client_credentials = remove_keys(token_data_client_credentials, data_override)
         if missing_or_invalid == "invalid":
-            token_data = replace_keys(token_data, data_override)
+            token_data_client_credentials = replace_keys(token_data_client_credentials, data_override)
 
-        resp = requests.post(nhsd_apim_proxy_url + "/token", data=token_data)
+        resp = requests.post(nhsd_apim_proxy_url + "/token", data=token_data_client_credentials)
         body = resp.json()
         assert resp.status_code == expected_status_code
         assert "message_id" in body.keys()
@@ -465,16 +444,16 @@ class TestClientCredentialsJWT:
         _jwt_keys,
         nhsd_apim_proxy_url,
         claims,
-        token_data,
+        token_data_client_credentials,
     ):
         """
         Test client credential flow access token can be overridden with a time less than 10 min(600000ms or 600s)
         and NOT be overridden with a time greater than 10 min(600000ms or 600s)
         """
-        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
-        token_data["_access_token_expiry_ms"] = token_expiry_ms
+        token_data_client_credentials["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data_client_credentials["_access_token_expiry_ms"] = token_expiry_ms
 
-        response = requests.post(nhsd_apim_proxy_url + "/token", data=token_data)
+        response = requests.post(nhsd_apim_proxy_url + "/token", data=token_data_client_credentials)
         resp = response.json()
 
         assert response.status_code == 200
@@ -489,7 +468,7 @@ class TestClientCredentialsJWT:
         _apigee_edge_session,
         _apigee_app_base_url,
         _create_function_scoped_test_app,
-        token_data,
+        token_data_client_credentials,
     ):
         app = _create_function_scoped_test_app
         credential = app["credentials"][0]
@@ -504,9 +483,9 @@ class TestClientCredentialsJWT:
         )
         assert jwks_resp.status_code == 200
 
-        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data_client_credentials["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
 
-        resp = requests.post(nhsd_apim_proxy_url + "/token", data=token_data)
+        resp = requests.post(nhsd_apim_proxy_url + "/token", data=token_data_client_credentials)
         body = resp.json()
         assert resp.status_code == 403
         assert "message_id" in body.keys()  # We assert the key but not he value for message_id
@@ -549,7 +528,7 @@ class TestClientCredentialsJWT:
         _apigee_edge_session,
         _apigee_app_base_url,
         _create_function_scoped_test_app,
-        token_data,
+        token_data_client_credentials,
         jwks_resource_url,
         expected_status_code,
         expected_error_body,
@@ -567,9 +546,9 @@ class TestClientCredentialsJWT:
         )
         assert jwks_resp.status_code == 200
 
-        token_data["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data_client_credentials["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
 
-        resp = requests.post(nhsd_apim_proxy_url + "/token", data=token_data)
+        resp = requests.post(nhsd_apim_proxy_url + "/token", data=token_data_client_credentials)
         body = resp.json()
         assert resp.status_code == expected_status_code
         assert "message_id" in body.keys()  # We assert the key but not he value for message_id
