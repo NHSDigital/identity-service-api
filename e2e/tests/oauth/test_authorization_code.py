@@ -14,34 +14,13 @@ from e2e.tests.oauth.utils.helpers import (
     remove_keys,
     replace_keys,
     subscribe_app_to_products,
-    unsubscribe_product
+    unsubscribe_product,
+    get_auth_info,
+    get_auth_item
 )
 
 
 # Helper Functions
-def get_params_from_url(url: str) -> dict:
-    """Returns all the params and param values from a given url as a dictionary"""
-    return dict(parse.parse_qsl(parse.urlsplit(url).query))
-
-
-def get_auth_info(url, authorize_params, username):
-    # Log in to Keycloak and get code
-    session = requests.Session()
-    resp = session.get(
-        url=url,
-        params=authorize_params,
-        verify=False
-    )
-
-    tree = html.fromstring(resp.content.decode())
-
-    form = tree.get_element_by_id("kc-form-login")
-    url = form.action
-    resp2 = session.post(url, data={"username": username})
-
-    return urlparse(resp2.history[-1].headers["Location"]).query
-
-
 def get_auth_item(auth_info, item):
     auth_item = parse_qs(auth_info)[item]
     if isinstance(auth_item, list):

@@ -1,4 +1,8 @@
 import jwt
+import requests
+
+from lxml import html
+from urllib.parse import urlparse, parse_qs
 
 from e2e.scripts.config import (ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
                                 JWT_PRIVATE_KEY_ABSOLUTE_PATH)
@@ -100,3 +104,29 @@ def create_nhs_login_subject_token(claims, headers):
         algorithm="RS512",
         headers=headers
     )
+
+
+def get_auth_info(url, authorize_params, username):
+    # Log in to Keycloak and get code
+    session = requests.Session()
+    resp = session.get(
+        url=url,
+        params=authorize_params,
+        verify=False
+    )
+
+    tree = html.fromstring(resp.content.decode())
+
+    form = tree.get_element_by_id("kc-form-login")
+    url = form.action
+    resp2 = session.post(url, data={"username": username})
+
+    return urlparse(resp2.history[-1].headers["Location"]).query
+
+
+def get_auth_item(auth_info, item):
+    auth_item = parse_qs(auth_info)[item]
+    if isinstance(auth_item, list):
+        auth_item = auth_item[0]
+
+    return auth_item

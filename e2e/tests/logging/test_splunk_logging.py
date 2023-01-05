@@ -2,43 +2,15 @@ import pytest
 import requests
 import json
 
-from lxml import html
-from urllib.parse import urlparse, parse_qs
 from uuid import uuid4
 
 from e2e.tests.oauth.utils.helpers import (
     create_client_assertion,
     create_subject_token,
-    create_nhs_login_subject_token
+    create_nhs_login_subject_token,
+    get_auth_info,
+    get_auth_item
 )
-
-
-# TO DO - shared with test_authorization_code tests. Move out to shared file
-def get_auth_info(url, authorize_params, username):
-    # Log in to Keycloak and get code
-    session = requests.Session()
-    resp = session.get(
-        url=url,
-        params=authorize_params,
-        verify=False
-    )
-
-    tree = html.fromstring(resp.content.decode())
-
-    form = tree.get_element_by_id("kc-form-login")
-    url = form.action
-    resp2 = session.post(url, data={"username": username})
-
-    return urlparse(resp2.history[-1].headers["Location"]).query
-
-
-# TO DO - shared with test_authorization_code tests. Move out to shared file
-def get_auth_item(auth_info, item):
-    auth_item = parse_qs(auth_info)[item]
-    if isinstance(auth_item, list):
-        auth_item = auth_item[0]
-
-    return auth_item
 
 
 def get_payload_sent_to_splunk(debug, session_name, path_suffix):
