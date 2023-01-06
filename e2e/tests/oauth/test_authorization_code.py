@@ -21,6 +21,11 @@ from e2e.tests.oauth.utils.helpers import (
 
 
 # Helper Functions
+def get_params_from_url(url: str) -> dict:
+    """Returns all the params and param values from a given url as a dictionary"""
+    return dict(parse.parse_qsl(parse.urlsplit(url).query))
+
+
 def get_auth_item(auth_info, item):
     auth_item = parse_qs(auth_info)[item]
     if isinstance(auth_item, list):
