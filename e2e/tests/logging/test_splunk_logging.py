@@ -9,33 +9,22 @@ from e2e.tests.oauth.utils.helpers import (
     create_subject_token,
     create_nhs_login_subject_token,
     get_auth_info,
-    get_auth_item
+    get_auth_item,
 )
 
 
-def get_payload_sent_to_splunk(debug, session_name, path_suffix):
+def get_payload_sent_to_splunk(debug, session_name):
     trace_ids = debug.get_transaction_data(session_name=session_name)
-    for trace_id in trace_ids:
-        trace_data = debug.get_transaction_data_by_id(
-            session_name=session_name, transaction_id=trace_id
-        )
-
-        for data in trace_data["point"]:
-            if data["id"] == "FlowInfo":
-                for result in data["results"]:
-                    if result["ActionResult"] == "DebugInfo":
-                        for property in result["properties"]["property"]:
-                            if property["name"] == "proxy.pathsuffix" and property["value"] == path_suffix:
-                                target_trace_data = trace_data
-    
-    if not target_trace_data:
-        raise Exception(f"Could not find trace data for {path_suffix}")
+    trace_data = debug.get_transaction_data_by_id(
+        session_name=session_name, transaction_id=trace_ids[0]
+    )
 
     payload = debug.get_apigee_variable_from_trace(
-        name="splunkCalloutRequest.content", data=target_trace_data
+        name="splunkCalloutRequest.content", data=trace_data
     )
 
     return json.loads(payload)
+
 
 @pytest.mark.mock_auth
 class TestSplunkLoggingFields:
@@ -45,18 +34,10 @@ class TestSplunkLoggingFields:
         "is_nhs_login,username,provider",
         [
             # CIS2
-            (
-                False,
-                "656005750104",
-                "apim-mock-nhs-cis2"
-            ),
+            (False, "656005750104", "apim-mock-nhs-cis2"),
             # NHS Login
-            (
-                True,
-                "9912003071",
-                "apim-mock-nhs-login"
-            )
-        ]
+            (True, "9912003071", "apim-mock-nhs-login"),
+        ],
     )
     def test_splunk_fields_for_authorize_endpoint(
         self,
@@ -65,10 +46,11 @@ class TestSplunkLoggingFields:
         authorize_params,
         is_nhs_login,
         username,
-        provider
+        provider,
     ):
         session_name = str(uuid4())
-        trace.post_debugsession(session_name)
+        header_filters = {"trace_id": session_name}
+        trace.post_debugsession(session=session_name, header_filters=header_filters)
 
         if is_nhs_login:
             authorize_params["scope"] = "nhs-login"
@@ -76,10 +58,11 @@ class TestSplunkLoggingFields:
         get_auth_info(
             url=nhsd_apim_proxy_url + "/authorize",
             authorize_params=authorize_params,
-            username=username
+            username=username,
+            headers=header_filters,
         )
 
-        payload = get_payload_sent_to_splunk(trace, session_name, "/authorize")
+        payload = get_payload_sent_to_splunk(trace, session_name)
         auth = payload["auth"]
         auth_meta = auth["meta"]
 
@@ -97,20 +80,10 @@ class TestSplunkLoggingFields:
         "is_nhs_login,username,provider,level",
         [
             # CIS2
-            (
-                False,
-                "656005750104",
-                "apim-mock-nhs-cis2",
-                "aal3"
-            ),
+            (False, "656005750104", "apim-mock-nhs-cis2", "aal3"),
             # NHS Login
-            (
-                True,
-                "9912003071",
-                "apim-mock-nhs-login",
-                "p9"
-            )
-        ]
+            (True, "9912003071", "apim-mock-nhs-login", "p9"),
+        ],
     )
     def test_splunk_fields_for_callback_endpoint(
         self,
@@ -120,10 +93,11 @@ class TestSplunkLoggingFields:
         is_nhs_login,
         username,
         provider,
-        level
+        level,
     ):
         session_name = str(uuid4())
-        trace.post_debugsession(session_name)
+        header_filters = {"trace_id": session_name}
+        trace.post_debugsession(session=session_name, header_filters=header_filters)
 
         if is_nhs_login:
             authorize_params["scope"] = "nhs-login"
@@ -132,10 +106,11 @@ class TestSplunkLoggingFields:
         get_auth_info(
             url=nhsd_apim_proxy_url + "/authorize",
             authorize_params=authorize_params,
-            username=username
+            username=username,
+            callback_headers=header_filters,
         )
 
-        payload = get_payload_sent_to_splunk(trace, session_name, "/callback")
+        payload = get_payload_sent_to_splunk(trace, session_name)
         auth = payload["auth"]
         auth_meta = auth["meta"]
 
@@ -153,20 +128,10 @@ class TestSplunkLoggingFields:
         "is_nhs_login,username,provider,level",
         [
             # CIS2
-            (
-                False,
-                "656005750104",
-                "apim-mock-nhs-cis2",
-                "aal3"
-            ),
+            (False, "656005750104", "apim-mock-nhs-cis2", "aal3"),
             # NHS Login
-            (
-                True,
-                "9912003071",
-                "apim-mock-nhs-login",
-                "p9"
-            )
-        ]
+            (True, "9912003071", "apim-mock-nhs-login", "p9"),
+        ],
     )
     def test_splunk_fields_for_token_endpoint_authorization_code(
         self,
@@ -177,7 +142,7 @@ class TestSplunkLoggingFields:
         is_nhs_login,
         username,
         provider,
-        level
+        level,
     ):
         if is_nhs_login:
             authorize_params["scope"] = "nhs-login"
@@ -185,20 +150,24 @@ class TestSplunkLoggingFields:
         auth_info = get_auth_info(
             url=nhsd_apim_proxy_url + "/authorize",
             authorize_params=authorize_params,
-            username=username
+            username=username,
         )
         token_data_authorization_code["code"] = get_auth_item(auth_info, "code")
 
         session_name = str(uuid4())
-        trace.post_debugsession(session_name)
+        header_filters = {"trace_id": session_name}
+        trace.post_debugsession(session=session_name, header_filters=header_filters)
 
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-            data=token_data_authorization_code
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "trace_id": session_name,
+            },
+            data=token_data_authorization_code,
         )
 
-        payload = get_payload_sent_to_splunk(trace, session_name, "/token")
+        payload = get_payload_sent_to_splunk(trace, session_name)
 
         trace.delete_debugsession_by_name(session_name)
 
@@ -223,21 +192,25 @@ class TestSplunkLoggingFields:
         trace,
         claims,
         token_data_client_credentials,
-        _jwt_keys
+        _jwt_keys,
     ):
         token_data_client_credentials["client_assertion"] = create_client_assertion(
             claims, _jwt_keys["private_key_pem"]
         )
         session_name = str(uuid4())
-        trace.post_debugsession(session_name)
+        header_filters = {"trace_id": session_name}
+        trace.post_debugsession(session=session_name, header_filters=header_filters)
 
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-            data=token_data_client_credentials
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "trace_id": session_name,
+            },
+            data=token_data_client_credentials,
         )
 
-        payload = get_payload_sent_to_splunk(trace, session_name, "/token")
+        payload = get_payload_sent_to_splunk(trace, session_name)
 
         trace.delete_debugsession_by_name(session_name)
 
@@ -263,21 +236,29 @@ class TestSplunkLoggingFields:
         claims,
         token_data_token_exchange,
         _jwt_keys,
-        cis2_subject_token_claims
+        cis2_subject_token_claims,
     ):
-        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
-        token_data_token_exchange["subject_token"] = create_subject_token(cis2_subject_token_claims)
-        
+        token_data_token_exchange["client_assertion"] = create_client_assertion(
+            claims, _jwt_keys["private_key_pem"]
+        )
+        token_data_token_exchange["subject_token"] = create_subject_token(
+            cis2_subject_token_claims
+        )
+
         session_name = str(uuid4())
-        trace.post_debugsession(session_name)
+        header_filters = {"trace_id": session_name}
+        trace.post_debugsession(session=session_name, header_filters=header_filters)
 
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-            data=token_data_token_exchange
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "trace_id": session_name,
+            },
+            data=token_data_token_exchange,
         )
 
-        payload = get_payload_sent_to_splunk(trace, session_name, "/token")
+        payload = get_payload_sent_to_splunk(trace, session_name)
 
         trace.delete_debugsession_by_name(session_name)
 
@@ -303,24 +284,32 @@ class TestSplunkLoggingFields:
         claims,
         token_data_token_exchange,
         _jwt_keys,
-        nhs_login_id_token
+        nhs_login_id_token,
     ):
         id_token_claims = nhs_login_id_token["claims"]
         id_token_headers = nhs_login_id_token["headers"]
 
-        token_data_token_exchange["subject_token"] = create_nhs_login_subject_token(id_token_claims, id_token_headers)
-        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
-        
+        token_data_token_exchange["subject_token"] = create_nhs_login_subject_token(
+            id_token_claims, id_token_headers
+        )
+        token_data_token_exchange["client_assertion"] = create_client_assertion(
+            claims, _jwt_keys["private_key_pem"]
+        )
+
         session_name = str(uuid4())
-        trace.post_debugsession(session_name)
+        header_filters = {"trace_id": session_name}
+        trace.post_debugsession(session=session_name, header_filters=header_filters)
 
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-            data=token_data_token_exchange
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "trace_id": session_name,
+            },
+            data=token_data_token_exchange,
         )
 
-        payload = get_payload_sent_to_splunk(trace, session_name, "/token")
+        payload = get_payload_sent_to_splunk(trace, session_name)
 
         trace.delete_debugsession_by_name(session_name)
 

@@ -18,7 +18,7 @@ from e2e.scripts.config import (
     ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
     MOCK_IDP_BASE_URL,
     API_NAME,
-    PROXY_NAME
+    PROXY_NAME,
 )
 
 ######### pytest-nhsd-apim fixtures ############
@@ -31,14 +31,16 @@ def nhsd_apim_api_name():
 def nhsd_apim_proxy_name():
     return PROXY_NAME
 
+
 @pytest.fixture()
 def authorize_params(_test_app_credentials, _test_app_callback_url):
     return {
         "client_id": _test_app_credentials["consumerKey"],
         "redirect_uri": _test_app_callback_url,
         "response_type": "code",
-        "state": random.getrandbits(32)
+        "state": random.getrandbits(32),
     }
+
 
 @pytest.fixture()
 def token_data_authorization_code(_test_app_credentials, _test_app_callback_url):
@@ -47,8 +49,9 @@ def token_data_authorization_code(_test_app_credentials, _test_app_callback_url)
         "client_secret": _test_app_credentials["consumerSecret"],
         "redirect_uri": _test_app_callback_url,
         "grant_type": "authorization_code",
-        "code": None  # Should be updated in the test
+        "code": None,  # Should be updated in the test
     }
+
 
 @pytest.fixture
 def token_data_token_exchange():
@@ -57,8 +60,9 @@ def token_data_token_exchange():
         "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
         "subject_token": None,  # Should be replaced in test
         "client_assertion": None,  # Should be replaced in test
-        "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange"
+        "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
     }
+
 
 @pytest.fixture
 def token_data_client_credentials():
@@ -67,6 +71,7 @@ def token_data_client_credentials():
         "client_assertion": None,  # Should be replace in test
         "grant_type": "client_credentials",
     }
+
 
 # client_assertion claims
 @pytest.fixture
@@ -78,6 +83,7 @@ def claims(_test_app_credentials, nhsd_apim_proxy_url):
         "aud": nhsd_apim_proxy_url + "/token",
         "exp": int(time()) + 300,  # 5 minutes in the future
     }
+
 
 @pytest.fixture
 def cis2_subject_token_claims():
@@ -98,7 +104,9 @@ def cis2_subject_token_claims():
         "realm": "/NHSIdentity/Healthcare",
         "exp": int(time()) + 300,
         "tokenType": "JWTToken",
-        "iat": int(time()) - 100}
+        "iat": int(time()) - 100,
+    }
+
 
 @pytest.fixture
 def nhs_login_id_token():
@@ -112,25 +120,27 @@ def nhs_login_id_token():
             "exp": int(time()) + 600,
             "iat": int(time()) - 10,
             "alg": "RS512",
-            "jti": "b68ddb28-e440-443d-8725-dfe0da330118"
+            "jti": "b68ddb28-e440-443d-8725-dfe0da330118",
         },
         "claims": {
-            'aud': 'tf_-APIM-1',
-            'id_status': 'verified',
-            'token_use': 'id',
-            'auth_time': int(time()),
-            'iss': 'https://identity.ptl.api.platform.nhs.uk/auth/realms/NHS-Login-mock-internal-dev',
-            'vot': 'P9.Cp.Cd',
-            'exp': int(time()) + 600,
-            'iat': int(time()) - 10,
-            'vtm': 'https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk',
-            'jti': 'b68ddb28-e440-443d-8725-dfe0da330118',
+            "aud": "tf_-APIM-1",
+            "id_status": "verified",
+            "token_use": "id",
+            "auth_time": int(time()),
+            "iss": "https://identity.ptl.api.platform.nhs.uk/auth/realms/NHS-Login-mock-internal-dev",
+            "vot": "P9.Cp.Cd",
+            "exp": int(time()) + 600,
+            "iat": int(time()) - 10,
+            "vtm": "https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk",
+            "jti": "b68ddb28-e440-443d-8725-dfe0da330118",
             "identity_proofing_level": "P9",
-            "nhs_number": "9912003071"
-        }
+            "nhs_number": "9912003071",
+        },
     }
 
+
 ################################################
+
 
 @pytest.fixture()
 def get_token(request):
@@ -156,7 +166,9 @@ def get_token(request):
         if test_application:
             # Use provided test app
             oauth = OauthHelper(
-                test_application.client_id, test_application.client_secret, test_application.callback_url
+                test_application.client_id,
+                test_application.client_secret,
+                test_application.callback_url,
             )
             print(oauth.base_uri)
             resp = await oauth.get_token_response(grant_type=grant_type, **kwargs)
@@ -346,6 +358,7 @@ async def test_product():
 def app():
     return ApigeeApiDeveloperApps()
 
+
 # Must be test_application and not test_app due to conflicts with pytest-nhsd-apim
 @pytest.fixture(scope="function")
 async def test_application(app):
@@ -388,6 +401,7 @@ def setup_session(request):
     The default app created here should be modified by your tests.
     If your test requires specific app config then please create your own using
     the fixture test_application"""
+
     async def _setup_session(request):
         product = await _product_with_full_access()
         app = ApigeeApiDeveloperApps()
@@ -433,10 +447,11 @@ def setup_function(request):
     ]
     setattr(request.cls, "name", name)
 
+
 class AuthCredentialAndTokenClaim:
-    def __init__(self, auth_method=None, scope=''):
-        self.auth_method=auth_method
-        self.scope=scope
+    def __init__(self, auth_method=None, scope=""):
+        self.auth_method = auth_method
+        self.scope = scope
 
     async def get_token(self, oauth):
         state = await self.get_state(oauth)
@@ -456,14 +471,14 @@ class AuthCredentialAndTokenClaim:
             },
             allow_redirects=False,
         )
-        
+
         return token_resp["body"]
 
     async def get_state(self, oauth, test_application=None):
 
         self.client_id = oauth.client_id
         self.redirect_uri = oauth.redirect_uri
-        if(test_application):
+        if test_application:
             self.client_id = test_application.client_id
             self.redirect_uri = await test_application.get_callback_url()
 
@@ -480,19 +495,18 @@ class AuthCredentialAndTokenClaim:
             allow_redirects=False,
         )
         self.response = response
-        if("Location" in response["headers"]):
+        if "Location" in response["headers"]:
             location = response["headers"]["Location"]
             state = urlparse.urlparse(location)
             return parse_qs(state.query)["state"]
 
-
     async def make_auth_request(self, oauth, state):
 
-        data={"state": state[0]}
-        if(self.auth_method):
-            data={"state": state[0], "auth_method": self.auth_method}
+        data = {"state": state[0]}
+        if self.auth_method:
+            data = {"state": state[0], "auth_method": self.auth_method}
 
-        # # Make simulated auth request to authenticate     
+        # # Make simulated auth request to authenticate
 
         response = await oauth.hit_oauth_endpoint(
             base_uri=MOCK_IDP_BASE_URL,
@@ -510,7 +524,7 @@ class AuthCredentialAndTokenClaim:
             allow_redirects=False,
         )
         self.response = response
-        if("Location" in response["headers"]):
+        if "Location" in response["headers"]:
             location = response["headers"]["Location"]
             auth_code = urlparse.urlparse(location)
             return parse_qs(auth_code.query)["code"]
@@ -521,48 +535,55 @@ class AuthCredentialAndTokenClaim:
         response = await oauth.hit_oauth_endpoint(
             method="GET",
             endpoint="callback",
-            params={"code": auth_code[0], "client_id": "some-client-id", "state": state[0]},
+            params={
+                "code": auth_code[0],
+                "client_id": "some-client-id",
+                "state": state[0],
+            },
             allow_redirects=False,
         )
         self.response = response
-        if("Location" in response["headers"]):
+        if "Location" in response["headers"]:
             location = response["headers"]["Location"]
             auth_code = urlparse.urlparse(location)
             return parse_qs(auth_code.query)["code"]
+
 
 @pytest.fixture()
 def auth_code_nhs_login(auth_method):
     return AuthCredentialAndTokenClaim(auth_method, "nhs-login")
 
+
 @pytest.fixture()
 def auth_code_nhs_cis2(auth_method):
     return AuthCredentialAndTokenClaim(auth_method)
 
+
 async def _get_userinfo_nhs_login_exchanged_token(oauth):
     id_token_claims = {
-            "aud": "tf_-APIM-1",
-            "id_status": "verified",
-            "token_use": "id",
-            "auth_time": 1616600683,
-            "iss": "https://internal-dev.api.service.nhs.uk",
-            "vot": "P9.Cp.Cd",
-            "exp": int(time()) + 600,
-            "iat": int(time()) - 10,
-            "vtm": "https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk",
-            "jti": "b68ddb28-e440-443d-8725-dfe0da330118",
-            "identity_proofing_level": "P9"
-        }
+        "aud": "tf_-APIM-1",
+        "id_status": "verified",
+        "token_use": "id",
+        "auth_time": 1616600683,
+        "iss": "https://internal-dev.api.service.nhs.uk",
+        "vot": "P9.Cp.Cd",
+        "exp": int(time()) + 600,
+        "iat": int(time()) - 10,
+        "vtm": "https://auth.sandpit.signin.nhs.uk/trustmark/auth.sandpit.signin.nhs.uk",
+        "jti": "b68ddb28-e440-443d-8725-dfe0da330118",
+        "identity_proofing_level": "P9",
+    }
     id_token_headers = {
-            "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",
-            "aud": "APIM-1",
-            "kid": "nhs-login",
-            "iss": "https://internal-dev.api.service.nhs.uk",
-            "typ": "JWT",
-            "exp": 1616604574,
-            "iat": 1616600974,
-            "alg": "RS512",
-            "jti": "b68ddb28-e440-443d-8725-dfe0da330118",
-        }
+        "sub": "49f470a1-cc52-49b7-beba-0f9cec937c46",
+        "aud": "APIM-1",
+        "kid": "nhs-login",
+        "iss": "https://internal-dev.api.service.nhs.uk",
+        "typ": "JWT",
+        "exp": 1616604574,
+        "iat": 1616600974,
+        "alg": "RS512",
+        "jti": "b68ddb28-e440-443d-8725-dfe0da330118",
+    }
 
     with open(ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH, "r") as f:
         contents = f.read()
@@ -579,10 +600,9 @@ async def _get_userinfo_nhs_login_exchanged_token(oauth):
         _jwt=client_assertion_jwt,
         id_token_jwt=id_token_jwt,
     )
-    return resp       
+    return resp
+
 
 @pytest.fixture()
 def get_exchange_code_nhs_login_token():
     return _get_userinfo_nhs_login_exchanged_token
-
-

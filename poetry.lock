@@ -827,7 +827,7 @@ pytest = ">=3.10"
 
 [[package]]
 name = "pytest-nhsd-apim"
-version = "3.2.0"
+version = "3.2.1"
 description = "Pytest plugin accessing NHSDigital's APIM proxies"
 category = "main"
 optional = false
@@ -1168,7 +1168,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "d5bfaca45a03aba8aca0e43eb9886f64723e7a197466cf32e12f73b0bbf32c1b"
+content-hash = "4f01915ff28eb8fbb2f55738226cc4b52e83ecbe42a93fd124c0135c9e907222"
 
 [metadata.files]
 aiohttp = []
