@@ -63,6 +63,9 @@ class TestSplunkLoggingFields:
         )
 
         payload = get_payload_sent_to_splunk(trace, session_name)
+
+        trace.delete_debugsession_by_name(session_name)
+
         auth = payload["auth"]
         auth_meta = auth["meta"]
 
@@ -111,6 +114,9 @@ class TestSplunkLoggingFields:
         )
 
         payload = get_payload_sent_to_splunk(trace, session_name)
+
+        trace.delete_debugsession_by_name(session_name)
+
         auth = payload["auth"]
         auth_meta = auth["meta"]
 
