@@ -17,11 +17,11 @@ class TestClientCredentialsJWT:
 
     @pytest.mark.happy_path
     @pytest.mark.nhsd_apim_authorization(access="application", level="level3", force_new_token=True)
-    def test_successful_jwt_token_response(self, _nhsd_apim_auth_token_data_client_credentials):
-        assert "access_token" in _nhsd_apim_auth_token_data_client_credentials.keys()
-        assert "issued_at" in _nhsd_apim_auth_token_data_client_credentials.keys()  # Added by pytest_nhsd_apim
-        assert _nhsd_apim_auth_token_data_client_credentials["expires_in"] == "599"
-        assert _nhsd_apim_auth_token_data_client_credentials["token_type"] == "Bearer"
+    def test_successful_jwt_token_response(self, _nhsd_apim_auth_token_data):
+        assert "access_token" in _nhsd_apim_auth_token_data.keys()
+        assert "issued_at" in _nhsd_apim_auth_token_data.keys()  # Added by pytest_nhsd_apim
+        assert _nhsd_apim_auth_token_data["expires_in"] == "599"
+        assert _nhsd_apim_auth_token_data["token_type"] == "Bearer"
 
     @pytest.mark.errors
     @pytest.mark.parametrize(
