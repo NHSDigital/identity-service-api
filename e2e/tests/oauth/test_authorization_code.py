@@ -14,34 +14,16 @@ from e2e.tests.oauth.utils.helpers import (
     remove_keys,
     replace_keys,
     subscribe_app_to_products,
-    unsubscribe_product
+    unsubscribe_product,
+    get_auth_info,
+    get_auth_item
 )
 
 
 # Helper Functions
-
-
 def get_params_from_url(url: str) -> dict:
     """Returns all the params and param values from a given url as a dictionary"""
     return dict(parse.parse_qsl(parse.urlsplit(url).query))
-
-
-def get_auth_info(url, authorize_params, username):
-    # Log in to Keycloak and get code
-    session = requests.Session()
-    resp = session.get(
-        url=url,
-        params=authorize_params,
-        verify=False
-    )
-
-    tree = html.fromstring(resp.content.decode())
-
-    form = tree.get_element_by_id("kc-form-login")
-    url = form.action
-    resp2 = session.post(url, data={"username": username})
-
-    return urlparse(resp2.history[-1].headers["Location"]).query
 
 
 def get_auth_item(auth_info, item):
@@ -70,29 +52,6 @@ def change_app_status(
 
 
 # Fixtures
-
-
-@pytest.fixture()
-def authorize_params(_test_app_credentials, _test_app_callback_url):
-    return {
-        "client_id": _test_app_credentials["consumerKey"],
-        "redirect_uri": _test_app_callback_url,
-        "response_type": "code",
-        "state": random.getrandbits(32)
-    }
-
-
-@pytest.fixture()
-def token_data(_test_app_credentials, _test_app_callback_url):
-    return {
-        "client_id": _test_app_credentials["consumerKey"],
-        "client_secret": _test_app_credentials["consumerSecret"],
-        "redirect_uri": _test_app_callback_url,
-        "grant_type": "authorization_code",
-        "code": None  # Should be updated in the test
-    }
-
-
 @pytest.fixture()
 def refresh_token_data(_test_app_credentials):
     return {
@@ -237,7 +196,7 @@ class TestAuthorizationCode:
         self,
         nhsd_apim_proxy_url,
         authorize_params,
-        token_data,
+        token_data_authorization_code,
         expected_response,
         expected_status_code,
         missing_or_invalid,
@@ -248,18 +207,18 @@ class TestAuthorizationCode:
             authorize_params=authorize_params,
             username="656005750104"
         )
-        token_data["code"] = get_auth_item(auth_info, "code")
+        token_data_authorization_code["code"] = get_auth_item(auth_info, "code")
 
         if missing_or_invalid == "missing":
-            token_data = remove_keys(token_data, update_data)
+            token_data_authorization_code = remove_keys(token_data_authorization_code, update_data)
         if missing_or_invalid == "invalid":
-            token_data = replace_keys(token_data, update_data)
+            token_data_authorization_code = replace_keys(token_data_authorization_code, update_data)
 
         # Post to token endpoint
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
             headers={"Content-Type": "application/x-www-form-urlencoded"},
-            data=token_data
+            data=token_data_authorization_code
         )
 
         body = resp.json()
@@ -938,7 +897,7 @@ class TestAuthorizationCode:
         self,
         nhsd_apim_proxy_url,
         authorize_params,
-        token_data
+        token_data_authorization_code
     ):
         # Set short expiry
         auth_info = get_auth_info(
@@ -946,14 +905,14 @@ class TestAuthorizationCode:
             authorize_params=authorize_params,
             username="656005750104"
         )
-        token_data["code"] = get_auth_item(auth_info, "code")
-        token_data["_access_token_expiry_ms"] = 4
+        token_data_authorization_code["code"] = get_auth_item(auth_info, "code")
+        token_data_authorization_code["_access_token_expiry_ms"] = 4
 
         # Post to token endpoint
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
             headers={"Content-Type": "application/x-www-form-urlencoded"},
-            data=token_data
+            data=token_data_authorization_code
         )
 
         token_resp = resp.json()
@@ -996,7 +955,7 @@ class TestAuthorizationCode:
         expected_time,
         nhsd_apim_proxy_url,
         authorize_params,
-        token_data
+        token_data_authorization_code
     ):
         # Set short expiry
         auth_info = get_auth_info(
@@ -1004,13 +963,13 @@ class TestAuthorizationCode:
             authorize_params=authorize_params,
             username="656005750104"
         )
-        token_data["code"] = get_auth_item(auth_info, "code")
-        token_data["_access_token_expiry_ms"] = token_expiry_ms
+        token_data_authorization_code["code"] = get_auth_item(auth_info, "code")
+        token_data_authorization_code["_access_token_expiry_ms"] = token_expiry_ms
 
         # Post to token endpoint
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data=token_data
+            data=token_data_authorization_code
         )
         body = resp.json()
 
@@ -1034,7 +993,7 @@ class TestAuthorizationCode:
         expected_time,
         nhsd_apim_proxy_url,
         authorize_params,
-        token_data,
+        token_data_authorization_code,
         _test_app_credentials
     ):
         # Set short expiry
@@ -1043,12 +1002,12 @@ class TestAuthorizationCode:
             authorize_params=authorize_params,
             username="656005750104"
         )
-        token_data["code"] = get_auth_item(auth_info, "code")
+        token_data_authorization_code["code"] = get_auth_item(auth_info, "code")
 
         # Post to token endpoint
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            data=token_data
+            data=token_data_authorization_code
         )
         body = resp.json()
 
@@ -1103,7 +1062,7 @@ class TestAuthorizationCode:
         self,
         nhsd_apim_proxy_url,
         authorize_params,
-        token_data
+        token_data_authorization_code
     ):
         # Authorize
         auth_info = get_auth_info(
@@ -1111,12 +1070,12 @@ class TestAuthorizationCode:
             authorize_params=authorize_params,
             username="656005750104"
         )
-        token_data["code"] = get_auth_item(auth_info, "code")
+        token_data_authorization_code["code"] = get_auth_item(auth_info, "code")
 
         # Post to token endpoint with params not data
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
-            params=token_data
+            params=token_data_authorization_code
         )
 
         body = resp.json()
@@ -1277,9 +1236,6 @@ class TestAuthorizationCode:
         assert _nhsd_apim_auth_token_data["expires_in"] == "599"
         assert _nhsd_apim_auth_token_data["refresh_token_expires_in"] == "43199"
 
-    @pytest.mark.skip(
-        reason="TO REFACTOR to use Second Gen mock auth once completed. First gen does not work on prs"
-    )
     @pytest.mark.parametrize(
         '_',
         [
@@ -1288,7 +1244,7 @@ class TestAuthorizationCode:
                 marks=pytest.mark.nhsd_apim_authorization(
                     access="patient",
                     level="P0",
-                    login_form={"auth_method": "P0"},
+                    login_form={"username": "9912003073"},
                     force_new_token=True
                 ),
             ),
@@ -1297,7 +1253,7 @@ class TestAuthorizationCode:
                 marks=pytest.mark.nhsd_apim_authorization(
                     access="patient",
                     level="P5",
-                    login_form={"auth_method": "P5"},
+                    login_form={"username": "9912003072"},
                     force_new_token=True
                 ),
             ),
@@ -1306,7 +1262,7 @@ class TestAuthorizationCode:
                 marks=pytest.mark.nhsd_apim_authorization(
                     access="patient",
                     level="P9",
-                    login_form={"auth_method": "P9"},
+                    login_form={"username": "9912003071"},
                     force_new_token=True
                 ),
             )

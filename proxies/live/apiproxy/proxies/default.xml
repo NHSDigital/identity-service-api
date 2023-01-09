@@ -732,11 +732,11 @@
                 </Step>
                 <Step>
                     <Name>PopulateCache.SessionId</Name>
-                    <Condition>accesstoken.auth_provider = "nhs-cis2"</Condition>
+                    <Condition>(accesstoken.auth_provider = "nhs-cis2") or (accesstoken.auth_provider = "apim-mock-nhs-cis2")</Condition>
                 </Step>
                 <Step>
                     <Name>PopulateCache.RefreshTokenSessionId</Name>
-                    <Condition>accesstoken.auth_provider = "nhs-cis2"</Condition>
+                    <Condition>(accesstoken.auth_provider = "nhs-cis2") or (accesstoken.auth_provider = "apim-mock-nhs-cis2")</Condition>
                 </Step>
             </Request>
             <Response>
@@ -826,11 +826,11 @@
                 </Step>
                 <Step>
                     <Name>LookupCache.RefreshTokenSessionID</Name>
-                    <Condition>(apigee.auth_provider != null) and (apigee.auth_provider = "nhs-cis2")</Condition>
+                    <Condition>(apigee.auth_provider != null) and ((apigee.auth_provider = "nhs-cis2") or (apigee.auth_provider = "apim-mock-nhs-cis2"))</Condition>
                 </Step>
                 <Step>
                     <Name>PopulateCache.LookedUpSessionId</Name>
-                    <Condition>(apigee.auth_provider != null) and (apigee.auth_provider = "nhs-cis2")</Condition>
+                    <Condition>(apigee.auth_provider != null) and ((apigee.auth_provider = "nhs-cis2") or (apigee.auth_provider = "apim-mock-nhs-cis2"))</Condition>
                 </Step>
             </Request>
             <Response>

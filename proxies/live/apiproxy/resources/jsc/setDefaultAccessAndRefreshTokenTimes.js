@@ -1,6 +1,6 @@
 const authProvider = context.getVariable('apigee.auth_provider');
 
-if (authProvider !== null && authProvider === "nhs-cis2" ) {
+if (authProvider !== null && (authProvider === "nhs-cis2" || authProvider === "apim-mock-nhs-cis2")) {
     var refreshTokenDefaultMs = context.getVariable('identity-service-config.cis2.refresh_token_expiry_ms');
     var refreshTokenDefaultValidityMs = context.getVariable('identity-service-config.cis2.refresh_tokens_validity_ms');
     var accessTokenDefaultMs = context.getVariable('identity-service-config.cis2.access_token_expiry_ms');
