@@ -34,9 +34,29 @@ class TestSplunkLoggingFields:
         "is_nhs_login,username,provider",
         [
             # CIS2
-            (False, "656005750104", "apim-mock-nhs-cis2"),
+            pytest.param(
+                False,
+                "656005750104",
+                "apim-mock-nhs-cis2",
+                marks=pytest.mark.nhsd_apim_authorization(
+                    access="healthcare_worker",
+                    level="aal3",
+                    login_form={"username": "656005750104"},
+                    force_new_token=True
+                ),
+            ),
             # NHS Login
-            (True, "9912003071", "apim-mock-nhs-login"),
+            pytest.param(
+                True,
+                "9912003071",
+                "apim-mock-nhs-login",
+                marks=pytest.mark.nhsd_apim_authorization(
+                    access="patient",
+                    level="P9",
+                    login_form={"username": "9912003071"},
+                    force_new_token=True
+                ),
+            ),
         ],
     )
     def test_splunk_fields_for_authorize_endpoint(
@@ -83,9 +103,31 @@ class TestSplunkLoggingFields:
         "is_nhs_login,username,provider,level",
         [
             # CIS2
-            (False, "656005750104", "apim-mock-nhs-cis2", "aal3"),
+            pytest.param(
+                False,
+                "656005750104",
+                "apim-mock-nhs-cis2",
+                "aal3",
+                marks=pytest.mark.nhsd_apim_authorization(
+                    access="healthcare_worker",
+                    level="aal3",
+                    login_form={"username": "656005750104"},
+                    force_new_token=True
+                ),
+            ),
             # NHS Login
-            (True, "9912003071", "apim-mock-nhs-login", "p9"),
+            pytest.param(
+                True,
+                "9912003071",
+                "apim-mock-nhs-login",
+                "p9",
+                marks=pytest.mark.nhsd_apim_authorization(
+                    access="patient",
+                    level="P9",
+                    login_form={"username": "9912003071"},
+                    force_new_token=True
+                ),
+            ),
         ],
     )
     def test_splunk_fields_for_callback_endpoint(
@@ -134,9 +176,31 @@ class TestSplunkLoggingFields:
         "is_nhs_login,username,provider,level",
         [
             # CIS2
-            (False, "656005750104", "apim-mock-nhs-cis2", "aal3"),
+            pytest.param(
+                False,
+                "656005750104",
+                "apim-mock-nhs-cis2",
+                "aal3",
+                marks=pytest.mark.nhsd_apim_authorization(
+                    access="healthcare_worker",
+                    level="aal3",
+                    login_form={"username": "656005750104"},
+                    force_new_token=True
+                ),
+            ),
             # NHS Login
-            (True, "9912003071", "apim-mock-nhs-login", "p9"),
+            pytest.param(
+                True,
+                "9912003071",
+                "apim-mock-nhs-login",
+                "p9",
+                marks=pytest.mark.nhsd_apim_authorization(
+                    access="patient",
+                    level="P9",
+                    login_form={"username": "9912003071"},
+                    force_new_token=True
+                ),
+            ),
         ],
     )
     def test_splunk_fields_for_token_endpoint_authorization_code(
@@ -192,6 +256,7 @@ class TestSplunkLoggingFields:
 
     @pytest.mark.happy_path
     @pytest.mark.logging
+    @pytest.mark.nhsd_apim_authorization(access="application", level="level3", force_new_token=True)
     def test_splunk_fields_for_token_endpoint_client_credentials(
         self,
         nhsd_apim_proxy_url,
@@ -235,6 +300,13 @@ class TestSplunkLoggingFields:
 
     @pytest.mark.happy_path
     @pytest.mark.logging
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "aal3"},
+        authentication="separate",
+        force_new_token=True
+    )
     def test_splunk_fields_for_token_endpoint_token_exchange_cis2(
         self,
         nhsd_apim_proxy_url,
@@ -279,10 +351,17 @@ class TestSplunkLoggingFields:
         assert auth_meta["provider"] == "apim-mock-nhs-cis2"
 
         auth_user = auth["user"]
-        assert auth_user["user_id"] == "787807429511"
+        assert auth_user["user_id"] == "787807429511" # sub on subject-token claims
 
     @pytest.mark.happy_path
     @pytest.mark.logging
+    @pytest.mark.nhsd_apim_authorization(
+        access="patient",
+        level="P9",
+        login_form={"username": "9912003071"},
+        authentication="separate",
+        force_new_token=True
+    )
     def test_splunk_fields_for_token_endpoint_token_exchange_nhs_login(
         self,
         nhsd_apim_proxy_url,
