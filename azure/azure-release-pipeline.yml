@@ -108,6 +108,19 @@ extends:
           NUM_RANDOM_LONG_INTS_FOR_STATE: 4
           RATELIMITING: ${{ variables.ratelimiting }}
       - environment: dev
+      - environment: dev
+        service_name: ${{ variables.service_name }}-dep
+        short_service_name: ${{ variables.short_service_name }}-dep
+        stage_name: dep
+        service_base_path: ${{ variables.service_base_path }}-dep
+        jinja_templates:
+          IDENTITY_PROVIDER_CIS2: cis2
+          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login-keycloak
+          VARIABLES_KVM: identity_service_config_dep
+          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+          ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
       - environment: sandbox # required for hello-world https://portal.developer.nhs.uk/docs/hello-world-sandbox/1/routes/hello/application/get
       - environment: sandbox
         service_name: ${{ variables.service_name }}-mock
