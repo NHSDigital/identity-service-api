@@ -115,7 +115,7 @@ extends:
         service_base_path: ${{ variables.service_base_path }}-dep
         jinja_templates:
           IDENTITY_PROVIDER_CIS2: cis2-dep
-          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
+          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login-dep
           VARIABLES_KVM: identity_service_config_dep
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
           ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: dep_client_secret
