@@ -114,7 +114,7 @@ extends:
         stage_name: dep
         service_base_path: ${{ variables.service_base_path }}-dep
         jinja_templates:
-          IDENTITY_PROVIDER_CIS2: cis2
+          IDENTITY_PROVIDER_CIS2: cis2-dep
           IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
           VARIABLES_KVM: identity_service_config_dep
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
