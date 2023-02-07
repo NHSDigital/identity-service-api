@@ -815,8 +815,12 @@
                     <Condition>(apigee.can_override_refresh_token_validity != null) and (apigee.can_override_refresh_token_validity = true)</Condition>
                 </Step>
                 <Step>
+                    <Name>JavaScript.CalculateRefreshTokenExpiresIn</Name>
+                </Step>
+                <Step>
                     <Name>OAuthV2.GenerateRefreshToken</Name>
                 </Step>
+                <!-- Following two steps should no longer be necessary now we are calculating the true refresh token expiry time using JavaScript.CalculateRefreshTokenExpiresIn -->
                 <Step>
                     <Name>JavaScript.CalculateAccessTokenAge</Name>
                 </Step>
@@ -824,6 +828,7 @@
                     <Name>RaiseFault.TokenRefreshTimelimitExceeded</Name>
                     <Condition>private.apigee.access_token_age_ms > apigee.refresh_tokens_validity_ms</Condition>
                 </Step>
+                <!-- TODO: Understand what's happening here and whether we need to adjust the timeout in the PopulateCache policy -->
                 <Step>
                     <Name>LookupCache.RefreshTokenSessionID</Name>
                     <Condition>(apigee.auth_provider != null) and ((apigee.auth_provider = "nhs-cis2") or (apigee.auth_provider = "apim-mock-nhs-cis2"))</Condition>
