@@ -13,5 +13,5 @@ this_refresh_token_expiry_time_ms = now_ms + refresh_token_expiry_ms;
 refresh_token_expiry_time_ms = this_refresh_token_expiry_time_ms < refresh_tokens_end_time_ms ? this_refresh_token_expiry_time_ms : refresh_tokens_end_time_ms;
 
 // Express as ms from now
-refresh_token_expires_in_ms = refresh_token_expiry_time_ms - now
+refresh_token_expires_in_ms = refresh_token_expiry_time_ms - now_ms
 context.setVariable('apigee.refresh_token_expires_in_ms', refresh_token_expires_in_ms)
