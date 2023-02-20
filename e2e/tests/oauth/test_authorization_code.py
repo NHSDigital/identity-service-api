@@ -1086,7 +1086,7 @@ class TestAuthorizationCode:
         del body["message_id"]
         assert body == {
             "error": "invalid_request",
-            "error_description": "Content-Type header must be application/x-www-urlencoded",
+            "error_description": "Content-Type header must be application/x-www-form-urlencoded",
         }
 
     @pytest.mark.errors
