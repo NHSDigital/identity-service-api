@@ -36,7 +36,7 @@ else {
     const refresh_token_expiry_time_ms = Math.min(this_refresh_token_expiry_time_ms, refresh_tokens_end_time_ms);
 
     // Express as ms from now
-    let refresh_token_expires_in_ms = refresh_token_expiry_time_ms - now_ms;
+    var refresh_token_expires_in_ms = refresh_token_expiry_time_ms - now_ms;
 
     // We don't want a negative value (can happen during tests that manipulate the expiry times)
     refresh_token_expires_in_ms = Math.max(0, refresh_token_expires_in_ms)
