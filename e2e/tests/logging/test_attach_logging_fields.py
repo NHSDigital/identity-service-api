@@ -1,11 +1,5 @@
 import pytest
 
-from pytest_nhsd_apim.apigee_apis import (
-    ApigeeNonProdCredentials,
-    ApigeeClient,
-    AccessTokensAPI
-)
-
 
 # Helpers
 def get_token_details(token_data):
@@ -13,17 +7,6 @@ def get_token_details(token_data):
     for attribute in token_data["attributes"]:
         token_attributes[attribute["name"]] = attribute["value"]
     return token_attributes
-
-
-# Fixtures
-@pytest.fixture()
-def access_token_api():
-    """
-    Authenitcated wrapper for Apigee's access token API
-    """
-    config = ApigeeNonProdCredentials()
-    client = ApigeeClient(config=config)
-    return AccessTokensAPI(client=client)
 
 
 @pytest.mark.mock_auth

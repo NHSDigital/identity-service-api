@@ -21,6 +21,13 @@ from e2e.scripts.config import (
     PROXY_NAME,
 )
 
+from pytest_nhsd_apim.apigee_apis import (
+    ApigeeNonProdCredentials,
+    ApigeeClient,
+    AccessTokensAPI,
+    ApiProductsAPI
+)
+
 ######### pytest-nhsd-apim fixtures ############
 @pytest.fixture(scope="session")
 def nhsd_apim_api_name():
@@ -137,6 +144,24 @@ def nhs_login_id_token():
             "nhs_number": "9912003071",
         },
     }
+
+@pytest.fixture(scope="session")
+def access_token_api():
+    """
+    Authenitcated wrapper for Apigee's access token API
+    """
+    config = ApigeeNonProdCredentials()
+    client = ApigeeClient(config=config)
+    return AccessTokensAPI(client=client)
+
+@pytest.fixture(scope="session")
+def products_api():
+    """
+    Authenitcated wrapper for Apigee's access token API
+    """
+    config = ApigeeNonProdCredentials()
+    client = ApigeeClient(config=config)
+    return ApiProductsAPI(client=client)
 
 
 ################################################
