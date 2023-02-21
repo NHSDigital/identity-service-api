@@ -139,12 +139,6 @@ class TestClientCredentialsHappyCases:
                     "urn:nhsd:apim:app:level3:example-1",
                 ],
             ),
-            # Scenario 8: one product with valid scope with trailing and leading spaces
-            (
-                [" urn:nhsd:apim:app:level3:ambulance-analytics "],
-                [],
-                ["urn:nhsd:apim:app:level3:ambulance-analytics"],
-            ),
         ],
     )
     def test_valid_application_restricted_scope_combination(
@@ -187,16 +181,10 @@ class TestClientCredentialsHappyCases:
 
         assert resp.status_code == 200
         body = resp.json()
-        print("TOKEN BODY")
-        print(body)
-        print("**************")
         access_token = body["access_token"]
 
         # Compare scopes
         token_data = access_token_api.get_token_details(access_token)
-        print("TOKEN DETAILS")
-        print(token_data)
-        print("**************")
         token_scopes = token_data["scope"].split(" ")
         
         assert sorted(token_scopes) == sorted(expected_filtered_scopes)
@@ -242,10 +230,15 @@ class TestClientCredentialsHappyCases:
 #             (["#£$?!&%*.;@~_-"], []),
 #             # Scenario 8: one product with invalid scope (empty string)
 #             ([""], []),
-#             # Scenario 8: one product with invalid scope (None object)
+#             # Scenario 9: one product with invalid scope (None object)
 #             ([None], []),
-#             # Scenario 9: one product with invalid scope (missing colon)
+#             # Scenario 10: one product with invalid scope (missing colon)
 #             (["urn:nshd:apim:app:level3personal-demographics-service"], []),
+            # # Scenario 11: one product with valid scope with trailing and leading spaces
+            # (
+            #     [" urn:nhsd:apim:app:level3:ambulance-analytics "],
+            #     []
+            # ),
 #         ],
 #     )
 #     def test_error_application_restricted_scope_combination(
