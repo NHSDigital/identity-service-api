@@ -815,8 +815,12 @@
                     <Condition>(apigee.can_override_refresh_token_validity != null) and (apigee.can_override_refresh_token_validity = true)</Condition>
                 </Step>
                 <Step>
+                    <Name>JavaScript.CalculateRefreshTokenExpiresIn</Name>
+                </Step>
+                <Step>
                     <Name>OAuthV2.GenerateRefreshToken</Name>
                 </Step>
+                <!-- Following two steps should no longer be necessary now we are calculating the true refresh token expiry time using JavaScript.CalculateRefreshTokenExpiresIn -->
                 <Step>
                     <Name>JavaScript.CalculateAccessTokenAge</Name>
                 </Step>
