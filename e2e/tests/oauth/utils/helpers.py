@@ -45,38 +45,6 @@ def unsubscribe_product(
     return apigee_edge_session.delete(url)
 
 
-def unsubscribe_all_apps_from_product(
-    apigee_edge_session, nhsd_apim_config, product_name, _apigee_app_base_url_no_dev
-):
-    org = nhsd_apim_config["APIGEE_ORGANIZATION"]
-    base_url = f"https://api.enterprise.apigee.com/v1/organizations/{org}"
-    products_url = f"{base_url}/apiproducts/{product_name}?query=list&entity=apps"
-
-    apps_subscribed_to_product_resp = apigee_edge_session.get(products_url)
-    apps_subscribed_to_product = apps_subscribed_to_product_resp.json()
-
-    for app_id in apps_subscribed_to_product:
-        app_config_resp = apigee_edge_session.get(f"{_apigee_app_base_url_no_dev}/{app_id}")
-        app_config = app_config_resp.json()
-        app_name = app_config["name"]
-        developer_id = app_config["developerId"]
-
-        dev_config_resp = apigee_edge_session.get(f"{base_url}/developers/{developer_id}")
-        dev_config = dev_config_resp.json()
-        dev_email = dev_config["email"]
-
-        for credential in app_config["credentials"]:
-            consumer_key = credential["consumerKey"]
-            products = credential["apiProducts"]
-            for product in products:
-                if product["apiproduct"] == product_name:
-                    remove_credential_resp = apigee_edge_session.delete(
-                        f"{base_url}/developers/{dev_email}/apps/{app_name}/keys/{consumer_key}/apiproducts/{product_name}"
-                    )
-                    remove_credential_resp.raise_for_status()
-                    break
-
-
 def change_jwks_url(
     apigee_edge_session,
     apigee_app_base_url,

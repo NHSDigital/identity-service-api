@@ -20,7 +20,6 @@ def test_app_and_product(
     nhsd_apim_proxy_name,
     nhsd_apim_unsubscribe_test_app_from_all_products
 ):
-    # TO DO - test when running with other test files
     nhsd_apim_unsubscribe_test_app_from_all_products()
 
     app = nhsd_apim_test_app()
@@ -53,7 +52,6 @@ def test_app_and_product(
 
     yield app, products
 
-    # TO DO - test when running with other test files
     nhsd_apim_unsubscribe_test_app_from_all_products()
     
     for product in products:
@@ -190,78 +188,96 @@ class TestClientCredentialsHappyCases:
         assert sorted(token_scopes) == sorted(expected_filtered_scopes)
 
 
-# @pytest.mark.asyncio
-# class TestClientCredentialsErrorCases:
-#     @pytest.mark.errors
-#     @pytest.mark.parametrize(
-#         "product_1_scopes, product_2_scopes",
-#         [
-#             # Scenario 1: multiple products with no scopes
-#             ([], []),
-#             # Scenario 2: one product with test_user_restricted_scope_combinationinvalid scope, one product with no scope
-#             (["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"], []),
-#             # Scenario 3: multiple products with invalid scopes
-#             (
-#                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
-#                 ["urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics"],
-#             ),
-#             # Scenario 4: one product with multiple invalid scopes
-#             (
-#                 [
-#                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
-#                     "urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics",
-#                 ],
-#                 [],
-#             ),
-#             # Scenario 5: multiple products with multiple invalid scopes
-#             (
-#                 [
-#                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
-#                     "urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics",
-#                 ],
-#                 [
-#                     "urn:nhsd:apim:user-nhs-id:aal3:example-1",
-#                     "urn:nhsd:apim:user-nhs-id:aal3:example-2",
-#                 ],
-#             ),
-#             # Scenario 6: one product with invalid scope (wrong formation)
-#             (["ThisDoesNotExist"], []),
-#             # Scenario 7: one product with invalid scope (special caracters)
-#             (["#£$?!&%*.;@~_-"], []),
-#             # Scenario 8: one product with invalid scope (empty string)
-#             ([""], []),
-#             # Scenario 9: one product with invalid scope (None object)
-#             ([None], []),
-#             # Scenario 10: one product with invalid scope (missing colon)
-#             (["urn:nshd:apim:app:level3personal-demographics-service"], []),
-            # # Scenario 11: one product with valid scope with trailing and leading spaces
-            # (
-            #     [" urn:nhsd:apim:app:level3:ambulance-analytics "],
-            #     []
-            # ),
-#         ],
-#     )
-#     def test_error_application_restricted_scope_combination(
-#         self, product_1_scopes, product_2_scopes, test_app_and_product, event_loop
-#     ):
-#         test_product, test_product2, test_application = test_app_and_product
+class TestClientCredentialsErrorCases:
+    @pytest.mark.errors
+    @pytest.mark.parametrize(
+        "product_1_scopes, product_2_scopes",
+        [
+            # Scenario 1: multiple products with no scopes
+            ([], []),
+            # Scenario 2: one product with test_user_restricted_scope_combinationinvalid scope, one product with no scope
+            (["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"], []),
+            # Scenario 3: multiple products with invalid scopes
+            (
+                ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics"],
+            ),
+            # Scenario 4: one product with multiple invalid scopes
+            (
+                [
+                    "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
+                    "urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics",
+                ],
+                [],
+            ),
+            # Scenario 5: multiple products with multiple invalid scopes
+            (
+                [
+                    "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
+                    "urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics",
+                ],
+                [
+                    "urn:nhsd:apim:user-nhs-id:aal3:example-1",
+                    "urn:nhsd:apim:user-nhs-id:aal3:example-2",
+                ],
+            ),
+            # Scenario 6: one product with invalid scope (wrong formation)
+            (["ThisDoesNotExist"], []),
+            # Scenario 7: one product with invalid scope (special caracters)
+            (["#£$?!&%*.;@~_-"], []),
+            # Scenario 8: one product with invalid scope (empty string)
+            ([""], []),
+            # Scenario 9: one product with invalid scope (None object)
+            ([None], []),
+            # Scenario 10: one product with invalid scope (missing colon)
+            (["urn:nshd:apim:app:level3personal-demographics-service"], []),
+        ],
+    )
+    def test_error_application_restricted_scope_combination(
+        self,
+        product_1_scopes,
+        product_2_scopes,
+        test_app_and_product,
+        products_api,
+        nhsd_apim_proxy_url,
+        token_data_client_credentials,
+        _jwt_keys
+    ):
+        app, products = test_app_and_product
 
-#         event_loop.run_until_complete(test_product.update_scopes(product_1_scopes))
-#         event_loop.run_until_complete(test_product2.update_scopes(product_2_scopes))
+        # Update product scopes
+        for product, product_scopes in zip(products, [product_1_scopes, product_2_scopes]):
+            product["scopes"] = product_scopes
+            products_api.put_product_by_name(product["name"], product)
 
-#         resp = event_loop.run_until_complete(
-#             self.oauth.get_token_response(
-#                 grant_type="client_credentials",
-#                 _jwt=self.oauth.create_jwt(kid="test-1", client_id=test_application.client_id),
-#             )
-#         )
+        # Get app-restricted token
+        claims = {
+            "sub": app["credentials"][0]["consumerKey"],
+            "iss": app["credentials"][0]["consumerKey"],
+            "jti": str(uuid4()),
+            "aud": nhsd_apim_proxy_url + "/token",
+            "exp": int(time()) + 300,  # 5 minutes in the future
+        }
 
-#         assert resp["status_code"] == 401
-#         assert resp["body"] == {
-#             "error": "unauthorized_client",
-#             "error_description": "you have tried to request authorization but your "
-#             "application is not configured to use this authorization grant type",
-#         }
+        token_data_client_credentials["client_assertion"] = create_client_assertion(
+            claims,
+            _jwt_keys["private_key_pem"]
+        )
+
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data=token_data_client_credentials
+        )
+        body = resp.json()
+
+        assert resp.status_code == 401
+        assert "message_id" in body.keys()  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
+            "error": "unauthorized_client",
+            "error_description": "you have tried to request authorization but your "
+            "application is not configured to use this authorization grant type",
+        }
 
 
 # @pytest.mark.asyncio
