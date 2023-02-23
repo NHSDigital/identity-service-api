@@ -1,5 +1,6 @@
 import jwt
 import requests
+import json
 
 from lxml import html
 from urllib.parse import urlparse, parse_qs
@@ -113,3 +114,15 @@ def get_auth_item(auth_info, item):
         auth_item = auth_item[0]
 
     return auth_item
+
+def get_variable_from_trace(debug, session_name, variable):
+    trace_ids = debug.get_transaction_data(session_name=session_name)
+    trace_data = debug.get_transaction_data_by_id(
+        session_name=session_name, transaction_id=trace_ids[0]
+    )
+
+    payload = debug.get_apigee_variable_from_trace(
+        name=variable, data=trace_data
+    )
+
+    return json.loads(payload)

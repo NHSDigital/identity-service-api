@@ -8,7 +8,8 @@ from uuid import uuid4
 from e2e.tests.oauth.utils.helpers import (
     create_client_assertion,
     get_auth_info,
-    get_auth_item
+    get_auth_item,
+    get_variable_from_trace
 )
 from e2e.scripts.config import (ENVIRONMENT)
 
@@ -281,7 +282,7 @@ class TestClientCredentials:
         }
 
 
-class TestAuthorizationCodeCis2HappyCases:
+class TestAuthorizationCodeCis2:
     @pytest.mark.happy_path
     @pytest.mark.parametrize(
         "product_1_scopes, product_2_scopes, expected_filtered_scopes",
@@ -379,7 +380,7 @@ class TestAuthorizationCodeCis2HappyCases:
             product["scopes"] = product_scopes
             products_api.put_product_by_name(product["name"], product)
 
-        # # Get cis2 combined token
+        # Get cis2 combined token
         authorize_params = {
             "client_id": app["credentials"][0]["consumerKey"],
             "redirect_uri": app["callbackUrl"],
@@ -416,80 +417,100 @@ class TestAuthorizationCodeCis2HappyCases:
         
         assert sorted(token_scopes) == sorted(expected_filtered_scopes)
 
+    @pytest.mark.errors
+    @pytest.mark.parametrize(
+        "product_1_scopes, product_2_scopes",
+        [
+            # Scenario 1: multiple products with no scopes
+            ([], []),
+            # Scenario 2: one product with invalid scope, one product with no scope
+            (["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"], []),
+            # Scenario 3: multiple products with invalid scopes
+            (
+                ["urn:nhsd:apim:app:level3:personal-demographics-service"],
+                ["urn:nhsd:apim:app:level3:ambulance-analytics"],
+            ),
+            # Scenario 4: one product with multiple invalid scopes
+            (
+                [
+                    "urn:nhsd:apim:app:level3:personal-demographics-service",
+                    "urn:nhsd:apim:app:level3:ambulance-analytics",
+                ],
+                [],
+            ),
+            # Scenario 5: multiple products with multiple invalid scopes
+            (
+                [
+                    "urn:nhsd:apim:app:level3:personal-demographics-service",
+                    "urn:nhsd:apim:app:level3:ambulance-analytics",
+                ],
+                [
+                    "urn:nhsd:apim:app:level3:example-1",
+                    "urn:nhsd:apim:app:level3:example-2",
+                ],
+            ),
+            # Scenario 6: one product with invalid scope (wrong formation)
+            (["ThisDoesNotExist"], []),
+            # Scenario 7: one product with invalid scope (special characters)
+            (["#£$?!&%*.;@~_-"], []),
+            # Scenario 8: one product with invalid scope (empty string)
+            ([""], []),
+            # Scenario 8: one product with invalid scope (None object)
+            ([None], []),
+            # Scenario 9: one product with invalid scope, one product with no scope
+            (["urn:nhsd:apim:user:aal3personal-demographics-service"], []),
+        ],
+    )
+    def test_cis2_error_user_restricted_scope_combination(
+        self,
+        product_1_scopes,
+        product_2_scopes,
+        test_app_and_product,
+        nhsd_apim_proxy_url,
+        products_api,
+        trace
+    ):
+        app, products = test_app_and_product
 
-# @pytest.mark.asyncio
-# class TestAuthorizationCodeCis2ErrorCases:
-#     @pytest.mark.simulated_auth
-#     @pytest.mark.errors
-#     @pytest.mark.parametrize(
-#         "product_1_scopes, product_2_scopes",
-#         [
-#             # Scenario 1: multiple products with no scopes
-#             ([], []),
-#             # Scenario 2: one product with invalid scope, one product with no scope
-#             (["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"], []),
-#             # Scenario 3: multiple products with invalid scopes
-#             (
-#                 ["urn:nhsd:apim:app:level3:personal-demographics-service"],
-#                 ["urn:nhsd:apim:app:level3:ambulance-analytics"],
-#             ),
-#             # Scenario 4: one product with multiple invalid scopes
-#             (
-#                 [
-#                     "urn:nhsd:apim:app:level3:personal-demographics-service",
-#                     "urn:nhsd:apim:app:level3:ambulance-analytics",
-#                 ],
-#                 [],
-#             ),
-#             # Scenario 5: multiple products with multiple invalid scopes
-#             (
-#                 [
-#                     "urn:nhsd:apim:app:level3:personal-demographics-service",
-#                     "urn:nhsd:apim:app:level3:ambulance-analytics",
-#                 ],
-#                 [
-#                     "urn:nhsd:apim:app:level3:example-1",
-#                     "urn:nhsd:apim:app:level3:example-2",
-#                 ],
-#             ),
-#             # Scenario 6: one product with invalid scope (wrong formation)
-#             (["ThisDoesNotExist"], []),
-#             # Scenario 7: one product with invalid scope (special characters)
-#             (["#£$?!&%*.;@~_-"], []),
-#             # Scenario 8: one product with invalid scope (empty string)
-#             ([""], []),
-#             # Scenario 8: one product with invalid scope (None object)
-#             ([None], []),
-#             # Scenario 9: one product with invalid scope, one product with no scope
-#             (["urn:nhsd:apim:user:aal3personal-demographics-service"], []),
-#         ],
-#     )
-#     @pytest.mark.parametrize("auth_method", [(None)])
-#     async def test_cis2_error_user_restricted_scope_combination(
-#         self, product_1_scopes, product_2_scopes, test_app_and_product, helper, auth_code_nhs_cis2
-#     ):
-#         test_product, test_product2, test_application = test_app_and_product
+        # Update product scopes
+        for product, product_scopes in zip(products, [product_1_scopes, product_2_scopes]):
+            product["scopes"] = product_scopes
+            products_api.put_product_by_name(product["name"], product)
 
-#         # Given
-#         expected_status_code = 401
-#         expected_error = "unauthorized_client"
-#         expected_error_description = "you have tried to request authorization but your application is not configured to use this authorization grant type"
+        # Set up trace
+        session_name = str(uuid4())
+        header_filters = {"trace_id": session_name}
+        trace.post_debugsession(session=session_name, header_filters=header_filters)
 
-#         # When
-#         await test_product.update_scopes(product_1_scopes)
-#         await test_product2.update_scopes(product_2_scopes)
 
-#         state = await auth_code_nhs_cis2.get_state(self.oauth, test_application)        
+        # Authorize and hit callback endpoint
+        authorize_params = {
+            "client_id": app["credentials"][0]["consumerKey"],
+            "redirect_uri": app["callbackUrl"],
+            "response_type": "code",
+            "state": random.getrandbits(32),
+        }
+        get_auth_info(
+            url=nhsd_apim_proxy_url + "/authorize",
+            authorize_params=authorize_params,
+            username="656005750104",
+            callback_headers=header_filters,
+        )
 
-#         # Make simulated auth request to authenticate and Make initial callback request       
-#         auth_code = await auth_code_nhs_cis2.make_auth_request(self.oauth, state)
-#         await auth_code_nhs_cis2.make_callback_request(self.oauth, state, auth_code)
-#         response = auth_code_nhs_cis2.response
+        # Get variables from trace
+        status_code = get_variable_from_trace(trace, session_name, "error.status.code")
+        error_content = get_variable_from_trace(trace, session_name, "error.content")
 
-#         # Then
-#         assert expected_status_code == response["status_code"]
-#         assert expected_error == response["body"]["error"]
-#         assert expected_error_description == response["body"]["error_description"]
+        trace.delete_debugsession_by_name(session_name)
+
+        assert status_code == 401
+        assert "message_id" in error_content.keys()  # We assert the key but not he value for message_id
+        del error_content["message_id"]
+        assert error_content == {
+            "error": "unauthorized_client",
+            "error_description": "you have tried to request authorization but your "
+            "application is not configured to use this authorization grant type",
+        }
 
 
 # @pytest.mark.asyncio

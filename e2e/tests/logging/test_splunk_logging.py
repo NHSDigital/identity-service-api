@@ -1,6 +1,5 @@
 import pytest
 import requests
-import json
 
 from uuid import uuid4
 
@@ -10,20 +9,8 @@ from e2e.tests.oauth.utils.helpers import (
     create_nhs_login_subject_token,
     get_auth_info,
     get_auth_item,
+    get_variable_from_trace
 )
-
-
-def get_payload_sent_to_splunk(debug, session_name):
-    trace_ids = debug.get_transaction_data(session_name=session_name)
-    trace_data = debug.get_transaction_data_by_id(
-        session_name=session_name, transaction_id=trace_ids[0]
-    )
-
-    payload = debug.get_apigee_variable_from_trace(
-        name="splunkCalloutRequest.content", data=trace_data
-    )
-
-    return json.loads(payload)
 
 
 @pytest.mark.mock_auth
@@ -82,7 +69,7 @@ class TestSplunkLoggingFields:
             headers=header_filters,
         )
 
-        payload = get_payload_sent_to_splunk(trace, session_name)
+        payload = get_variable_from_trace(trace, session_name, "splunkCalloutRequest.content")
 
         trace.delete_debugsession_by_name(session_name)
 
@@ -155,7 +142,7 @@ class TestSplunkLoggingFields:
             callback_headers=header_filters,
         )
 
-        payload = get_payload_sent_to_splunk(trace, session_name)
+        payload = get_variable_from_trace(trace, session_name, "splunkCalloutRequest.content")
 
         trace.delete_debugsession_by_name(session_name)
 
@@ -237,7 +224,7 @@ class TestSplunkLoggingFields:
             data=token_data_authorization_code,
         )
 
-        payload = get_payload_sent_to_splunk(trace, session_name)
+        payload = get_variable_from_trace(trace, session_name, "splunkCalloutRequest.content")
 
         trace.delete_debugsession_by_name(session_name)
 
@@ -281,7 +268,7 @@ class TestSplunkLoggingFields:
             data=token_data_client_credentials,
         )
 
-        payload = get_payload_sent_to_splunk(trace, session_name)
+        payload = get_variable_from_trace(trace, session_name, "splunkCalloutRequest.content")
 
         trace.delete_debugsession_by_name(session_name)
 
@@ -336,7 +323,7 @@ class TestSplunkLoggingFields:
             data=token_data_token_exchange,
         )
 
-        payload = get_payload_sent_to_splunk(trace, session_name)
+        payload = get_variable_from_trace(trace, session_name, "splunkCalloutRequest.content")
 
         trace.delete_debugsession_by_name(session_name)
 
@@ -394,7 +381,7 @@ class TestSplunkLoggingFields:
             data=token_data_token_exchange,
         )
 
-        payload = get_payload_sent_to_splunk(trace, session_name)
+        payload = get_variable_from_trace(trace, session_name, "splunkCalloutRequest.content")
 
         trace.delete_debugsession_by_name(session_name)
 
