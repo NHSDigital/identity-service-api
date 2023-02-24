@@ -65,12 +65,5 @@ e2e:
 	rm -f reports/e2e.xml  > /dev/null || true 
 	@for f in  $$(find  e2e/tests  -name "test_*.py") ; do \
 		echo $$f; \
-		$(pytest) -m "not mock_auth" || exit 1; \
-	done
-
-e2e-mock:
-	rm -f reports/e2e.xml  > /dev/null || true 
-	@for f in  $$(find  e2e/tests  -name "test_*.py") ; do \
-		echo $$f; \
-		$(pytest) -m "not simulated_auth" || exit 1; \
+		$(pytest) || exit 1; \
 	done

@@ -780,7 +780,7 @@ class TestAuthorizationCode:
         body = resp.json()
 
         assert resp.status_code == 200
-        assert body == BANK.get(self.name)["response"]
+        assert body == BANK.get("test_userinfo")["response"]
 
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
