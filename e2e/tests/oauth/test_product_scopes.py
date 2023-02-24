@@ -144,7 +144,7 @@ class TestClientCredentials:
             ),
         ],
     )
-    def test_valid_application_restricted_scope_combination(
+    def test_valid_application_restricted_scope_combinations(
         self,
         product_1_scopes,
         product_2_scopes,
@@ -236,7 +236,7 @@ class TestClientCredentials:
             (["urn:nshd:apim:app:level3personal-demographics-service"], []),
         ],
     )
-    def test_error_application_restricted_scope_combination(
+    def test_application_restricted_scope_combination_errors(
         self,
         product_1_scopes,
         product_2_scopes,
@@ -282,51 +282,72 @@ class TestClientCredentials:
             "application is not configured to use this authorization grant type",
         }
 
-#     @pytest.mark.parametrize(
-#         "external_scope",
-#         [
-#             # passing in external scopes via form params
-#             "invavlid scope",
-#             "$£$12vdg@@fd",
-#             "   external  scope",
-#             [
-#                 "urn:nhsd:apim:user:aal3personal-demographics-service",
-#                 "urn:nhsd:apim:app:level3:example-2",
-#             ],
-#         ],
-#     )
-#     async def test_client_credentials_flow_remove_external_scopes(
-#         self, test_app_and_products, external_scope
-#     ):
-#         product_scope = ["urn:nhsd:apim:app:level3:personal-demographics"]
-#         test_product, test_product2, test_application = test_app_and_products
+    @pytest.mark.parametrize(
+        "external_scope",
+        [
+            # passing in external scopes via form params
+            "invavlid scope",
+            "$£$12vdg@@fd",
+            "   external  scope",
+            [
+                "urn:nhsd:apim:user:aal3personal-demographics-service",
+                "urn:nhsd:apim:app:level3:example-2",
+            ],
+        ],
+    )
+    def test_client_credentials_flow_removes_external_scopes(
+        self,
+        external_scope,
+        test_app_and_products,
+        nhsd_apim_proxy_url,
+        products_api,
+        access_token_api,
+        token_data_client_credentials,
+        _jwt_keys
+    ):
+        app, products = test_app_and_products
 
-#         await test_product.update_scopes(product_scope)
-#         await test_product2.update_scopes(product_scope)
+        expected_scopes = ["urn:nhsd:apim:app:level3:personal-demographics"]
 
-#         jwt = self.oauth.create_jwt(kid="test-1", client_id=test_application.client_id)
+        # Update product scopes
+        for product in products:
+            product["scopes"] = expected_scopes
+            products_api.put_product_by_name(product["name"], product)
 
-#         data = {
-#             "scope": external_scope,
-#             "grant_type": "client_credentials",
-#             "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-#             "client_assertion": jwt,
-#         }
+        # Get app-restricted token
+        claims = {
+            "sub": app["credentials"][0]["consumerKey"],
+            "iss": app["credentials"][0]["consumerKey"],
+            "jti": str(uuid4()),
+            "aud": nhsd_apim_proxy_url + "/token",
+            "exp": int(time()) + 300,  # 5 minutes in the future
+        }
 
-#         resp = await self.oauth.get_token_response(
-#             grant_type="client_credentials", data=data
-#         )
+        token_data_client_credentials["client_assertion"] = create_client_assertion(
+            claims,
+            _jwt_keys["private_key_pem"]
+        )
 
-#         assert list(resp["body"].keys()) == [
-#             "access_token",
-#             "expires_in",
-#             "token_type",
-#             "issued_at",
-#         ]
-#         assert resp["status_code"] == 200
+        token_data_client_credentials["scope"] = external_scope
+
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data=token_data_client_credentials
+        )
+
+        assert resp.status_code == 200
+
+        body = resp.json()
+        access_token = body["access_token"]
+
+        # Compare scopes
+        token_data = access_token_api.get_token_details(access_token)
+        token_scopes = token_data["scope"].split(" ")
+        
+        assert token_scopes == expected_scopes
 
 
-class TestAuthorizationCodeCis2:
+class TestAuthorizationCode:
     @pytest.mark.happy_path
     @pytest.mark.parametrize(
         "product_1_scopes, product_2_scopes, expected_filtered_scopes",
@@ -407,7 +428,7 @@ class TestAuthorizationCodeCis2:
             ),
         ],
     )
-    def test_cis2_user_restricted_scope_combination(
+    def test_valid_cis2_combined_user_restricted_scope_combinations(
         self,
         product_1_scopes,
         product_2_scopes,
@@ -505,7 +526,7 @@ class TestAuthorizationCodeCis2:
             (["urn:nhsd:apim:user:aal3personal-demographics-service"], []),
         ],
     )
-    def test_cis2_error_user_restricted_scope_combination(
+    def test_cis2_combined_user_restricted_scope_combination_errors(
         self,
         product_1_scopes,
         product_2_scopes,
@@ -556,58 +577,75 @@ class TestAuthorizationCodeCis2:
             "application is not configured to use this authorization grant type",
         }
 
-#     @pytest.mark.parametrize(
-#         "external_scope",
-#         [
-#             # passing in external scopes via form params
-#             "invavlid scope",
-#             "$£$12vdg@@fd",
-#             "   external  scope",
-#             [
-#                 "urn:nhsd:apim:user:aal3personal-demographics-service",
-#                 "urn:nhsd:apim:app:level3:example-2",
-#             ],
-#         ],
-#     )
-#     async def test_authorization_code_flow_remove_external_scopes(
-#         self, test_app_and_products, helper, external_scope
-#     ):
-#         product_scope = ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"]
-#         test_product, test_product2, test_application = test_app_and_products
+    @pytest.mark.parametrize(
+        "external_scope",
+        [
+            # passing in external scopes via form params
+            "invavlid scope",
+            "$£$12vdg@@fd",
+            "   external  scope",
+            [
+                "urn:nhsd:apim:user:aal3personal-demographics-service",
+                "urn:nhsd:apim:app:level3:example-2",
+            ],
+        ],
+    )
+    def test_cis2_combined_user_restricted_flow_removes_external_scopes(
+        self,
+        external_scope,
+        test_app_and_products,
+        nhsd_apim_proxy_url,
+        products_api,
+        access_token_api
+    ):
+        app, products = test_app_and_products
 
-#         await test_product.update_scopes(product_scope)
-#         await test_product2.update_scopes(product_scope)
+        expected_scopes = ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"]
 
-#         callback_url = await test_application.get_callback_url()
+        # Update product scopes
+        for product in products:
+            product["scopes"] = expected_scopes
+            products_api.put_product_by_name(product["name"], product)
 
-#         oauth = OauthHelper(test_application.client_id, test_application.client_secret, callback_url)
+        # Get cis2 combined token
+        authorize_params = {
+            "client_id": app["credentials"][0]["consumerKey"],
+            "redirect_uri": app["callbackUrl"],
+            "response_type": "code",
+            "state": random.getrandbits(32),
+        }
+        auth_info = get_auth_info(
+            url=nhsd_apim_proxy_url + "/authorize",
+            authorize_params=authorize_params,
+            username="656005750104"
+        )
+        token_data = {
+            "client_id": app["credentials"][0]["consumerKey"],
+            "client_secret": app["credentials"][0]["consumerSecret"],
+            "redirect_uri": app["callbackUrl"],
+            "grant_type": "authorization_code",
+            "code": get_auth_item(auth_info, "code"),
+            "scope": external_scope
+        }
 
-#         assert helper.check_endpoint(
-#             verb="POST",
-#             endpoint=f"{config.OAUTH_URL}/token",
-#             expected_status_code=200,
-#             expected_response=[
-#                 "access_token",
-#                 "expires_in",
-#                 "refresh_count",
-#                 "refresh_token",
-#                 "refresh_token_expires_in",
-#                 "sid",
-#                 "token_type",
-#             ],
-#             data={
-#                 "scope": external_scope,
-#                 "client_id": test_application.get_client_id(),
-#                 "client_secret": test_application.get_client_secret(),
-#                 "redirect_uri": callback_url,
-#                 "grant_type": "authorization_code",
-#                 "code": await oauth.get_authenticated_with_simulated_auth(),
-#             },
-#         )
+        # Post to token endpoint
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=token_data
+        )
 
-# @pytest.mark.asyncio
-# class TestAuthorizationCodeNhsLoginHappyCases:
-#     @pytest.mark.simulated_auth
+        assert resp.status_code == 200
+        body = resp.json()
+        access_token = body["access_token"]
+
+        # Compare scopes
+        token_data = access_token_api.get_token_details(access_token)
+        token_scopes = token_data["scope"].split(" ")
+        
+        assert token_scopes == expected_scopes
+
+
 #     @pytest.mark.happy_path
 #     @pytest.mark.parametrize(
 #         "product_1_scopes, product_2_scopes, expected_filtered_scopes",
@@ -695,7 +733,7 @@ class TestAuthorizationCodeCis2:
 #         ],
 #     )
 #     @pytest.mark.parametrize("auth_method", [('P9')])
-#     async def test_nhs_login_user_restricted_scope_combination(
+#     def test_valid_nhs_login_combined_user_restricted_scope_combinations(
 #         self,
 #         product_1_scopes,
 #         product_2_scopes,
@@ -730,9 +768,6 @@ class TestAuthorizationCodeCis2:
 #         assert expected_filtered_scopes.sort() == user_restricted_scopes.sort()
 
 
-# @pytest.mark.asyncio
-# class TestAuthorizationCodeNhsLoginErrorCases:
-#     @pytest.mark.simulated_auth
 #     @pytest.mark.errors
 #     @pytest.mark.parametrize(
 #         "product_1_scopes, product_2_scopes",
@@ -778,7 +813,7 @@ class TestAuthorizationCodeCis2:
 #         ],
 #     )
 #     @pytest.mark.parametrize("auth_method", [("P9")])
-#     async def test_nhs_login_user_restricted_error_scope_combination(
+#     def test_nhs_login_combined_user_restricted_scope_combination_errors(
 #         self, product_1_scopes, product_2_scopes, test_app_and_products, helper, auth_code_nhs_login
 #     ):
 #         test_product, test_product2, test_application = test_app_and_products
@@ -889,7 +924,7 @@ class TestTokenExchange:
             ),
         ],
     )
-    def test_cis2_token_exchange_user_restricted_scope_combination(
+    def test_valid_cis2_token_exchange_user_restricted_scope_combination(
         self,
         product_1_scopes,
         product_2_scopes,
