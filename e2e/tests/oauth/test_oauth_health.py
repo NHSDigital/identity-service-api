@@ -23,14 +23,7 @@ class TestOauthHealth:
         body = resp.json()
         assert body["status"] == "pass"
         assert sorted(body.keys()) == sorted(
-            [
-                "status",
-                "version",
-                "revision",
-                "releaseId",
-                "commitId",
-                "checks"
-            ]
+            ["status", "version", "revision", "releaseId", "commitId", "checks"]
         )
         assert body["checks"]["nhs-cis2"]["status"] == "pass"
         assert body["checks"]["nhs-login"]["status"] == "pass"

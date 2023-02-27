@@ -10,7 +10,7 @@ from pytest_nhsd_apim.apigee_apis import (
     ApiProductsAPI,
 )
 
-from e2e.scripts.config import (
+from e2e.tests.utils.config import (
     API_NAME,
     PROXY_NAME,
 )

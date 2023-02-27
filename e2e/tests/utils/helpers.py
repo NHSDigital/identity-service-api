@@ -5,7 +5,7 @@ import json
 from lxml import html
 from urllib.parse import urlparse, parse_qs
 
-from e2e.scripts.config import (
+from e2e.tests.utils.config import (
     ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH,
     JWT_PRIVATE_KEY_ABSOLUTE_PATH,
 )

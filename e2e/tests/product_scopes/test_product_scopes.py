@@ -5,15 +5,15 @@ import random
 from time import time
 from uuid import uuid4
 
-from e2e.tests.oauth.utils.helpers import (
+from e2e.tests.utils.helpers import (
     create_client_assertion,
     get_auth_info,
     get_auth_item,
     get_variable_from_trace,
     create_subject_token,
-    create_nhs_login_subject_token
+    create_nhs_login_subject_token,
 )
-from e2e.scripts.config import ENVIRONMENT
+from e2e.tests.utils.config import ENVIRONMENT
 
 
 # Fixtures
