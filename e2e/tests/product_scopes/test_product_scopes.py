@@ -13,57 +13,6 @@ from e2e.tests.utils.helpers import (
     create_subject_token,
     create_nhs_login_subject_token,
 )
-from e2e.tests.utils.config import ENVIRONMENT
-
-
-# Fixtures
-@pytest.fixture(scope="function")
-def test_app_and_products_for_scopes(
-    nhsd_apim_test_app,
-    products_api,
-    _apigee_edge_session,
-    _apigee_app_base_url,
-    nhsd_apim_proxy_name,
-    nhsd_apim_unsubscribe_test_app_from_all_products,
-):
-    nhsd_apim_unsubscribe_test_app_from_all_products()
-
-    app = nhsd_apim_test_app()
-    app_name = app["name"]
-
-    product_names = [f"apim-auto-{uuid4()}", f"apim-auto-{uuid4()}"]
-    products = [
-        {
-            "apiResources": ["/"],
-            "approvalType": "auto",
-            "attributes": [{"name": "access", "value": "public"}],
-            "description": product_name,
-            "displayName": product_name,
-            "environments": [ENVIRONMENT],
-            "name": product_name,
-            "proxies": [nhsd_apim_proxy_name],
-            "scopes": [],
-        }
-        for product_name in product_names
-    ]
-
-    for product in products:
-        products_api.post_products(body=product)
-
-    app["apiProducts"] = product_names
-    add_products_to_app_resp = _apigee_edge_session.post(
-        f"{_apigee_app_base_url}/{app_name}", json=app
-    )
-    assert add_products_to_app_resp.status_code == 200
-
-    app = add_products_to_app_resp.json()
-
-    yield app, products
-
-    nhsd_apim_unsubscribe_test_app_from_all_products()
-
-    for product in products:
-        products_api.delete_product_by_name(product_name=product["name"])
 
 
 class TestProductScopes:

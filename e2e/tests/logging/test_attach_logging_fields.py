@@ -1,15 +1,15 @@
 import pytest
 
 
-# Helpers
-def get_token_details(token_data):
-    token_attributes = {}
-    for attribute in token_data["attributes"]:
-        token_attributes[attribute["name"]] = attribute["value"]
-    return token_attributes
-
-
 class TestAttachLoggingFields:
+    """Test logging fields are attached as attributes to access tokens"""
+
+    def get_token_details(self, token_data):
+        token_attributes = {}
+        for attribute in token_data["attributes"]:
+            token_attributes[attribute["name"]] = attribute["value"]
+        return token_attributes
+
     @pytest.mark.happy_path
     @pytest.mark.logging
     @pytest.mark.parametrize(
@@ -167,7 +167,7 @@ class TestAttachLoggingFields:
     ):
         access_token = _nhsd_apim_auth_token_data["access_token"]
         token_data = access_token_api.get_token_details(access_token)
-        token_attributes = get_token_details(token_data)
+        token_attributes = self.get_token_details(token_data)
 
         for attribute, _ in expected_token_attributes.items():
             assert token_attributes[attribute] == expected_token_attributes[attribute]

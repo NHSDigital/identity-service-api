@@ -13,9 +13,10 @@ from pytest_nhsd_apim.apigee_apis import (
 from e2e.tests.utils.config import (
     API_NAME,
     PROXY_NAME,
+    ENVIRONMENT
 )
 
-
+# FIXTURES FOR USE IN SET UP OF pytest_nhsd_apim
 @pytest.fixture(scope="session")
 def nhsd_apim_api_name():
     return API_NAME
@@ -26,16 +27,7 @@ def nhsd_apim_proxy_name():
     return PROXY_NAME
 
 
-@pytest.fixture()
-def authorize_params(_test_app_credentials, _test_app_callback_url):
-    return {
-        "client_id": _test_app_credentials["consumerKey"],
-        "redirect_uri": _test_app_callback_url,
-        "response_type": "code",
-        "state": random.getrandbits(32),
-    }
-
-
+# TOKEN DATA
 @pytest.fixture()
 def token_data_authorization_code(_test_app_credentials, _test_app_callback_url):
     return {
@@ -67,7 +59,27 @@ def token_data_client_credentials():
     }
 
 
-# client_assertion claims
+@pytest.fixture()
+def refresh_token_data(_test_app_credentials):
+    return {
+        "client_id": _test_app_credentials["consumerKey"],
+        "client_secret": _test_app_credentials["consumerSecret"],
+        "grant_type": "refresh_token",
+        "refresh_token": None,  # Should be updated in the test
+    }
+
+
+# AUTH PARAMS AND CLAIMS
+@pytest.fixture()
+def authorize_params(_test_app_credentials, _test_app_callback_url):
+    return {
+        "client_id": _test_app_credentials["consumerKey"],
+        "redirect_uri": _test_app_callback_url,
+        "response_type": "code",
+        "state": random.getrandbits(32),
+    }
+
+
 @pytest.fixture
 def claims(_test_app_credentials, nhsd_apim_proxy_url):
     return {
@@ -133,6 +145,7 @@ def nhs_login_id_token():
     }
 
 
+# APIGEE API CLIENTS
 @pytest.fixture(scope="session")
 def access_token_api():
     """
@@ -151,3 +164,53 @@ def products_api():
     config = ApigeeNonProdCredentials()
     client = ApigeeClient(config=config)
     return ApiProductsAPI(client=client)
+
+
+# APIGEE RESOURCES FOR WHEN STANDARD TEST_APP FROM PACKAGE IS NOT APPLICABLE
+@pytest.fixture(scope="function")
+def test_app_and_products_for_scopes(
+    nhsd_apim_test_app,
+    products_api,
+    _apigee_edge_session,
+    _apigee_app_base_url,
+    nhsd_apim_proxy_name,
+    nhsd_apim_unsubscribe_test_app_from_all_products,
+):
+    nhsd_apim_unsubscribe_test_app_from_all_products()
+
+    app = nhsd_apim_test_app()
+    app_name = app["name"]
+
+    product_names = [f"apim-auto-{uuid4()}", f"apim-auto-{uuid4()}"]
+    products = [
+        {
+            "apiResources": ["/"],
+            "approvalType": "auto",
+            "attributes": [{"name": "access", "value": "public"}],
+            "description": product_name,
+            "displayName": product_name,
+            "environments": [ENVIRONMENT],
+            "name": product_name,
+            "proxies": [nhsd_apim_proxy_name],
+            "scopes": [],
+        }
+        for product_name in product_names
+    ]
+
+    for product in products:
+        products_api.post_products(body=product)
+
+    app["apiProducts"] = product_names
+    add_products_to_app_resp = _apigee_edge_session.post(
+        f"{_apigee_app_base_url}/{app_name}", json=app
+    )
+    assert add_products_to_app_resp.status_code == 200
+
+    app = add_products_to_app_resp.json()
+
+    yield app, products
+
+    nhsd_apim_unsubscribe_test_app_from_all_products()
+
+    for product in products:
+        products_api.delete_product_by_name(product_name=product["name"])

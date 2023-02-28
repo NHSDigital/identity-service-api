@@ -14,6 +14,8 @@ from e2e.tests.utils.helpers import (
 
 
 class TestSplunkLoggingFields:
+    """Test suite for testing logging fields are sent to splunk"""
+
     @pytest.mark.happy_path
     @pytest.mark.logging
     @pytest.mark.parametrize(

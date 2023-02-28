@@ -4,7 +4,6 @@ import random
 
 from time import sleep
 from urllib import parse
-from urllib.parse import parse_qs
 
 from e2e.tests.utils.response_bank import BANK
 from e2e.tests.utils.config import CANARY_API_URL, CANARY_PRODUCT_NAME
@@ -18,50 +17,29 @@ from e2e.tests.utils.helpers import (
 )
 
 
-# Helper Functions
-def get_params_from_url(url: str) -> dict:
-    """Returns all the params and param values from a given url as a dictionary"""
-    return dict(parse.parse_qsl(parse.urlsplit(url).query))
-
-
-def get_auth_item(auth_info, item):
-    auth_item = parse_qs(auth_info)[item]
-    if isinstance(auth_item, list):
-        auth_item = auth_item[0]
-
-    return auth_item
-
-
-def change_app_status(
-    apigee_edge_session,
-    apigee_app_base_url,
-    app,
-    status,
-):
-    assert status in ["approve", "revoke"]
-    app_name = app["name"]
-    url = f"{apigee_app_base_url}/{app_name}?action={status}"
-
-    app["status"] = status
-
-    resp = apigee_edge_session.post(url)
-
-    return resp
-
-
-# Fixtures
-@pytest.fixture()
-def refresh_token_data(_test_app_credentials):
-    return {
-        "client_id": _test_app_credentials["consumerKey"],
-        "client_secret": _test_app_credentials["consumerSecret"],
-        "grant_type": "refresh_token",
-        "refresh_token": None,  # Should be updated in the test
-    }
-
-
 class TestAuthorizationCode:
     """A test suit to test the token exchange flow"""
+
+    def get_params_from_url(self, url: str) -> dict:
+        """Returns all the params and param values from a given url as a dictionary"""
+        return dict(parse.parse_qsl(parse.urlsplit(url).query))
+
+    def change_app_status(
+        self,
+        apigee_edge_session,
+        apigee_app_base_url,
+        app,
+        status,
+    ):
+        assert status in ["approve", "revoke"]
+        app_name = app["name"]
+        url = f"{apigee_app_base_url}/{app_name}?action={status}"
+
+        app["status"] = status
+
+        resp = apigee_edge_session.post(url)
+
+        return resp
 
     @pytest.mark.happy_path
     @pytest.mark.token_endpoint
@@ -566,7 +544,7 @@ class TestAuthorizationCode:
         redirected_url = resp.headers["Location"]
         assert redirected_url.startswith(_test_app_callback_url)
 
-        redirect_params = get_params_from_url(redirected_url)
+        redirect_params = self.get_params_from_url(redirected_url)
         if "state" in params:
             expected_params["state"] = str(params["state"])
 
@@ -590,7 +568,7 @@ class TestAuthorizationCode:
         ]
 
         # Revoke app
-        revoke_app_resp = change_app_status(
+        revoke_app_resp = self.change_app_status(
             _apigee_edge_session,
             _apigee_app_base_url,
             _create_function_scoped_test_app,
