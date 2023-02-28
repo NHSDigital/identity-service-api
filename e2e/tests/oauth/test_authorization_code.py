@@ -241,6 +241,49 @@ class TestAuthorizationCode:
             "token_type",
         ]
 
+    @pytest.mark.happy_path
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
+    def test_refresh_token_expiry_calculated_correctly(
+        self,
+        nhsd_apim_proxy_url,
+        refresh_token_data,
+        _nhsd_apim_auth_token_data
+    ):
+        '''
+        refresh_token_expires_in should reduce on subsequent calls
+        '''
+        wait_time_between_refresh_token_calls = 3
+        refresh_token_data["refresh_token"] = _nhsd_apim_auth_token_data["refresh_token"]
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=refresh_token_data
+        )
+        body = resp.json()
+        first_expiry = int(body["refresh_token_expires_in"])
+        assert body["refresh_count"] == "1"
+
+        sleep(wait_time_between_refresh_token_calls)
+
+        refresh_token_data["refresh_token"] = body["refresh_token"]
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=refresh_token_data
+        )
+        body = resp.json()
+        assert body["refresh_count"] == "2"
+        second_expiry = int(body["refresh_token_expires_in"])
+        assert second_expiry < first_expiry
+        assert first_expiry - second_expiry == wait_time_between_refresh_token_calls
+
+
+
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
     @pytest.mark.parametrize(
