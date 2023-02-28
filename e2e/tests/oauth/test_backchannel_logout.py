@@ -63,7 +63,6 @@ def create_logout_token(
     return logout_token_jwt
 
 
-@pytest.mark.mock_auth
 class TestBackChannelLogout:
     """A test suite for back-channel logout functionality"""
 

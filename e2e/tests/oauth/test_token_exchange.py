@@ -15,7 +15,6 @@ from e2e.tests.utils.helpers import (
 )
 
 
-@pytest.mark.mock_auth
 class TestTokenExchange:
     """A test suit to test the token exchange flow"""
 

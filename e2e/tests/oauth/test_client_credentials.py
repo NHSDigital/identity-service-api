@@ -11,7 +11,6 @@ from e2e.tests.utils.helpers import (
 )
 
 
-@pytest.mark.mock_auth
 class TestClientCredentialsJWT:
     """A test suit to test the client credentials flow"""
 

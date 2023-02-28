@@ -60,7 +60,6 @@ def refresh_token_data(_test_app_credentials):
     }
 
 
-@pytest.mark.mock_auth
 class TestAuthorizationCode:
     """A test suit to test the token exchange flow"""
 

@@ -9,7 +9,6 @@ def get_token_details(token_data):
     return token_attributes
 
 
-@pytest.mark.mock_auth
 class TestAttachLoggingFields:
     @pytest.mark.happy_path
     @pytest.mark.logging

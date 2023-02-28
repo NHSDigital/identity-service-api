@@ -13,7 +13,6 @@ from e2e.tests.utils.helpers import (
 )
 
 
-@pytest.mark.mock_auth
 class TestSplunkLoggingFields:
     @pytest.mark.happy_path
     @pytest.mark.logging
