@@ -42,8 +42,6 @@ extends:
       RATELIMITING: ${{ variables.ratelimiting }}
     apigee_deployments:
       - environment: internal-dev
-        post_deploy:
-          - template: ./templates/run-integration-tests.yml
       - environment: internal-dev
         service_name: ${{ variables.service_name }}-int
         short_service_name: ${{ variables.short_service_name }}-int
@@ -71,5 +69,3 @@ extends:
           RATELIMITING: ${{ variables.ratelimiting }}
         post_deploy:
           - template: ./templates/run-integration-tests.yml
-            parameters:
-              mock_auth: true

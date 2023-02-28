@@ -41,8 +41,6 @@ extends:
       RATELIMITING: ${{ variables.ratelimiting }}
     apigee_deployments:
       - environment: internal-dev
-        post_deploy:
-          - template: ./templates/run-integration-tests.yml
       - environment: internal-dev-sandbox
       - environment: internal-qa
         depends_on:
@@ -62,8 +60,6 @@ extends:
           RATELIMITING: ${{ variables.ratelimiting }}
         post_deploy:
           - template: ./templates/run-integration-tests.yml
-            parameters:
-              mock_auth: true
       - environment: internal-qa
         depends_on:
           - internal_dev
