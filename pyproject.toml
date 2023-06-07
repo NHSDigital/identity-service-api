@@ -19,7 +19,7 @@ beautifulsoup4 = "^4.10.0"
 selenium = "^4.0.0"
 pytest-xdist = {extras = ["psutil"], version = "^2.4.0"}
 pytest-custom-exit-code = "^0.3.0"
-pytest-nhsd-apim = "^3.2.1"
+pytest-nhsd-apim = "^3.3.2"
 
 
 [tool.poetry.dev-dependencies]
