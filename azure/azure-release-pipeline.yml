@@ -52,6 +52,8 @@ extends:
           VARIABLES_KVM: identity_service_config_keycloak
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
           ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
         post_deploy:
           - template: ./templates/run-integration-tests.yml
 
@@ -67,6 +69,8 @@ extends:
           VARIABLES_KVM: identity_service_config_keycloak
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
           ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
 
       # INTERNAL_QA
       - environment: internal-qa
@@ -80,6 +84,8 @@ extends:
           VARIABLES_KVM: identity_service_config_keycloak
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
           ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
       - environment: internal-qa # int backend
         depends_on:
           - internal_dev
@@ -91,6 +97,8 @@ extends:
           IDENTITY_PROVIDER_NHS_LOGIN: nhs-login-int
           VARIABLES_KVM: identity_service_config_int
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
 
       # INTERNAL_QA_SANDBOX
       - environment: internal-qa-sandbox
@@ -106,6 +114,8 @@ extends:
           VARIABLES_KVM: identity_service_config_keycloak
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
           ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
 
       # REF
       - environment: ref
@@ -119,6 +129,8 @@ extends:
           VARIABLES_KVM: identity_service_config_keycloak
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
           ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
 
       # DEV
       - environment: dev # real nhs-login, mock cis2
@@ -133,6 +145,8 @@ extends:
           VARIABLES_KVM: identity_service_config_keycloak
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
           ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
       - environment: dev # dep
         service_name: ${{ variables.service_name }}-dep
         short_service_name: ${{ variables.short_service_name }}-dep
@@ -144,6 +158,8 @@ extends:
           VARIABLES_KVM: identity_service_config_dep
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
           ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: dep_client_secret
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
 
       # SANDBOX
       - environment: sandbox
@@ -157,6 +173,8 @@ extends:
           VARIABLES_KVM: identity_service_config_keycloak
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
           ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
 
       # INT
       - environment: int
@@ -172,6 +190,8 @@ extends:
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
           ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
           ENCRYPTED_VARIABLES_KVM_KEY_NHS_LOGIN_KEY: keycloak_nhs_login_private_key
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
 
       # PROD
       - environment: prod
