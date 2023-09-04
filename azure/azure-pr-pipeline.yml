@@ -40,6 +40,7 @@ extends:
       ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
       ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
       NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+      RATELIMITING: ${{ variables.ratelimiting }}
     apigee_deployments:
       - environment: internal-dev
         service_name: ${{ variables.service_name }}-mock
