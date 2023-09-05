@@ -87,8 +87,6 @@ extends:
           NUM_RANDOM_LONG_INTS_FOR_STATE: 4
           RATELIMITING: ${{ variables.ratelimiting }}
       - environment: internal-qa # int backend
-        depends_on:
-          - internal_dev
         stage_name: internal_qa_smartcard
         fully_qualified_service_name: identity-service-internal-qa-int
         service_base_path: ${{ variables.service_base_path }}-int
@@ -102,8 +100,6 @@ extends:
 
       # INTERNAL_QA_SANDBOX
       - environment: internal-qa-sandbox
-        depends_on:
-          - internal_dev
         service_name: ${{ variables.service_name }}-mock
         short_service_name: ${{ variables.short_service_name }}-mock
         stage_name: internal_qa_sandbox
@@ -125,7 +121,7 @@ extends:
         service_base_path: ${{ variables.service_base_path }}-mock
         jinja_templates:
           IDENTITY_PROVIDER_CIS2: cis2-keycloak
-          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
+          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login-keycloak
           VARIABLES_KVM: identity_service_config_keycloak
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
           ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
@@ -154,7 +150,7 @@ extends:
         service_base_path: ${{ variables.service_base_path }}-dep
         jinja_templates:
           IDENTITY_PROVIDER_CIS2: cis2-dep
-          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login-dep
+          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login-keycloak
           VARIABLES_KVM: identity_service_config_dep
           ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
           ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: dep_client_secret
