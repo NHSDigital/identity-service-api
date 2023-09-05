@@ -31,7 +31,7 @@ apigee:
   - name: {{ ENV.name }}
 {% if ENV.name == 'internal-dev' %}
     products:
-      - name: identity-service-internal-dev
+      - name: identity-service-mock-internal-dev
         approvalType: auto
         attributes:
           - name: access
@@ -40,7 +40,6 @@ apigee:
         displayName: Identity Service - (Internal Development)
         environments: [ "internal-dev" ]
         proxies:
-          - identity-service-internal-dev
           - identity-service-mock-internal-dev
         scopes:
           - urn:nhsd:apim:user-nhs-cis2:aal3:identity-service
