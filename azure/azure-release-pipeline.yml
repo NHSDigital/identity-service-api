@@ -44,7 +44,7 @@ extends:
       - environment: internal-dev
         service_name: ${{ variables.service_name }}-mock
         short_service_name: ${{ variables.short_service_name }}-mock
-        stage_name: internal_dev_mock
+        stage_name: internal_dev
         service_base_path: ${{ variables.service_base_path }}-mock
         jinja_templates:
           IDENTITY_PROVIDER_CIS2: cis2-keycloak
@@ -61,7 +61,7 @@ extends:
       - environment: internal-dev-sandbox
         service_name: ${{ variables.service_name }}-mock
         short_service_name: ${{ variables.short_service_name }}-mock
-        stage_name: internal_dev_sandbox_mock
+        stage_name: internal_dev_sandbox
         service_base_path: ${{ variables.service_base_path }}-mock
         jinja_templates:
           IDENTITY_PROVIDER_CIS2: cis2-keycloak
@@ -76,7 +76,7 @@ extends:
       - environment: internal-qa
         service_name: ${{ variables.service_name }}-mock
         short_service_name: ${{ variables.short_service_name }}-mock
-        stage_name: internal_qa_mock
+        stage_name: internal_qa
         service_base_path: ${{ variables.service_base_path }}-mock
         jinja_templates:
           IDENTITY_PROVIDER_CIS2: cis2-keycloak
@@ -106,7 +106,7 @@ extends:
           - internal_dev
         service_name: ${{ variables.service_name }}-mock
         short_service_name: ${{ variables.short_service_name }}-mock
-        stage_name: internal_qa_sandbox_mock
+        stage_name: internal_qa_sandbox
         service_base_path: ${{ variables.service_base_path }}-mock
         jinja_templates:
           IDENTITY_PROVIDER_CIS2: cis2-keycloak
@@ -121,7 +121,7 @@ extends:
       - environment: ref
         service_name: ${{ variables.service_name }}-mock
         short_service_name: ${{ variables.short_service_name }}-mock
-        stage_name: ref_mock
+        stage_name: ref
         service_base_path: ${{ variables.service_base_path }}-mock
         jinja_templates:
           IDENTITY_PROVIDER_CIS2: cis2-keycloak
@@ -165,7 +165,7 @@ extends:
       - environment: sandbox
         service_name: ${{ variables.service_name }}-mock
         short_service_name: ${{ variables.short_service_name }}-mock
-        stage_name: sandbox_mock
+        stage_name: sandbox
         service_base_path: ${{ variables.service_base_path }}-mock
         jinja_templates:
           IDENTITY_PROVIDER_CIS2: cis2-keycloak
