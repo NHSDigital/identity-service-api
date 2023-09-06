@@ -35,18 +35,17 @@ extends:
     ping: false
     apigee_deployments:
       - environment: internal-dev
+        service_name: ${{ variables.service_name }}
+        short_service_name: ${{ variables.short_service_name }}
+        stage_name: internal_dev
+        service_base_path: ${{ variables.service_base_path }}
+        jinja_templates: ${{ variables.default_keycloak_jinja_templates }}
+      - environment: internal-dev
         service_name: ${{ variables.service_name }}-mock
         short_service_name: ${{ variables.short_service_name }}-mock
         stage_name: internal_dev_mock
         service_base_path: ${{ variables.service_base_path }}-mock
-        jinja_templates:
-          IDENTITY_PROVIDER_CIS2: cis2-keycloak
-          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login-keycloak
-          VARIABLES_KVM: identity_service_config_keycloak
-          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
-          ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
-          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
-          RATELIMITING: ${{ variables.ratelimiting }}
+        jinja_templates: ${{ variables.default_keycloak_jinja_templates }}
         post_deploy:
           - template: ./templates/run-integration-tests.yml
       - environment: internal-dev
