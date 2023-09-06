@@ -54,6 +54,13 @@ extends:
         short_service_name: ${{ variables.short_service_name }}
         stage_name: internal_dev
         service_base_path: ${{ variables.service_base_path }}
+        jinja_templates:
+          IDENTITY_PROVIDER_CIS2: cis2
+          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
+          VARIABLES_KVM: identity_service_config
+          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
 
       # INTERNAL-DEV-SANDBOX
       - environment: internal-dev-sandbox
@@ -66,6 +73,13 @@ extends:
         short_service_name: ${{ variables.short_service_name }}
         stage_name: internal_dev_sandbox
         service_base_path: ${{ variables.service_base_path }}
+        jinja_templates:
+          IDENTITY_PROVIDER_CIS2: cis2
+          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
+          VARIABLES_KVM: identity_service_config
+          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
 
       # INTERNAL_QA
       - environment: internal-qa
@@ -78,6 +92,13 @@ extends:
         short_service_name: ${{ variables.short_service_name }}
         stage_name: internal_qa
         service_base_path: ${{ variables.service_base_path }}
+        jinja_templates:
+          IDENTITY_PROVIDER_CIS2: cis2
+          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
+          VARIABLES_KVM: identity_service_config
+          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
       - environment: internal-qa # int backend
         stage_name: internal_qa_smartcard
         fully_qualified_service_name: identity-service-internal-qa-int
@@ -101,6 +122,13 @@ extends:
         short_service_name: ${{ variables.short_service_name }}
         stage_name: internal_qa_sandbox
         service_base_path: ${{ variables.service_base_path }}
+        jinja_templates:
+          IDENTITY_PROVIDER_CIS2: cis2
+          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
+          VARIABLES_KVM: identity_service_config
+          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
 
       # REF
       - environment: ref
@@ -113,6 +141,13 @@ extends:
         short_service_name: ${{ variables.short_service_name }}
         stage_name: ref
         service_base_path: ${{ variables.service_base_path }}
+        jinja_templates:
+          IDENTITY_PROVIDER_CIS2: cis2
+          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
+          VARIABLES_KVM: identity_service_config
+          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
 
       # DEV
       - environment: dev # real nhs-login, mock cis2
@@ -153,6 +188,13 @@ extends:
         short_service_name: ${{ variables.short_service_name }}
         stage_name: sandbox
         service_base_path: ${{ variables.service_base_path }}
+        jinja_templates:
+          IDENTITY_PROVIDER_CIS2: cis2
+          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
+          VARIABLES_KVM: identity_service_config
+          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
 
       # INT
       - environment: int
