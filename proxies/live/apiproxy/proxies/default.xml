@@ -644,7 +644,7 @@
                     <Name>AssignMessage.BackchannelLogoutResponse</Name>
                 </Step>
             </Response>
-            <Condition>((proxy.pathsuffix MatchesPath "/backchannel_logout") and (request.verb Equals "POST")</Condition>
+            <Condition>(proxy.pathsuffix MatchesPath "/backchannel_logout") and (request.verb Equals "POST")</Condition>
         </Flow>
         <Flow name="Flow.PostTokenAuthorizationCode">
             <Description>OAuth Token Endpoint - Authorization Code Flow</Description>
