@@ -33,10 +33,11 @@ extends:
     enable_monitoring: true
     enable_status_monitoring: true
     jinja_templates:
-      IDENTITY_PROVIDER_CIS2: cis2
-      IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
-      VARIABLES_KVM: identity_service_config
+      IDENTITY_PROVIDER_CIS2: cis2-keycloak
+      IDENTITY_PROVIDER_NHS_LOGIN: nhs-login-keycloak
+      VARIABLES_KVM: identity_service_config_keycloak
       ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+      ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
       NUM_RANDOM_LONG_INTS_FOR_STATE: 4
       RATELIMITING: ${{ variables.ratelimiting }}
     apigee_deployments:
@@ -44,48 +45,39 @@ extends:
       - environment: internal-dev
         service_name: ${{ variables.service_name }}-mock
         short_service_name: ${{ variables.short_service_name }}-mock
-        stage_name: internal_dev
+        stage_name: internal_dev_mock
         service_base_path: ${{ variables.service_base_path }}-mock
-        jinja_templates:
-          IDENTITY_PROVIDER_CIS2: cis2-keycloak
-          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login-keycloak
-          VARIABLES_KVM: identity_service_config_keycloak
-          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
-          ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
-          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
-          RATELIMITING: ${{ variables.ratelimiting }}
         post_deploy:
           - template: ./templates/run-integration-tests.yml
+      - environment: internal-dev
+        service_name: ${{ variables.service_name }}
+        short_service_name: ${{ variables.short_service_name }}
+        stage_name: internal_dev
+        service_base_path: ${{ variables.service_base_path }}
 
       # INTERNAL-DEV-SANDBOX
       - environment: internal-dev-sandbox
         service_name: ${{ variables.service_name }}-mock
         short_service_name: ${{ variables.short_service_name }}-mock
-        stage_name: internal_dev_sandbox
+        stage_name: internal_dev_sandbox_mock
         service_base_path: ${{ variables.service_base_path }}-mock
-        jinja_templates:
-          IDENTITY_PROVIDER_CIS2: cis2-keycloak
-          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login-keycloak
-          VARIABLES_KVM: identity_service_config_keycloak
-          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
-          ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
-          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
-          RATELIMITING: ${{ variables.ratelimiting }}
+      - environment: internal-dev-sandbox
+        service_name: ${{ variables.service_name }}
+        short_service_name: ${{ variables.short_service_name }}
+        stage_name: internal_dev_sandbox
+        service_base_path: ${{ variables.service_base_path }}
 
       # INTERNAL_QA
       - environment: internal-qa
         service_name: ${{ variables.service_name }}-mock
         short_service_name: ${{ variables.short_service_name }}-mock
-        stage_name: internal_qa
+        stage_name: internal_qa_mock
         service_base_path: ${{ variables.service_base_path }}-mock
-        jinja_templates:
-          IDENTITY_PROVIDER_CIS2: cis2-keycloak
-          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login-keycloak
-          VARIABLES_KVM: identity_service_config_keycloak
-          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
-          ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
-          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
-          RATELIMITING: ${{ variables.ratelimiting }}
+      - environment: internal-qa
+        service_name: ${{ variables.service_name }}
+        short_service_name: ${{ variables.short_service_name }}
+        stage_name: internal_qa
+        service_base_path: ${{ variables.service_base_path }}
       - environment: internal-qa # int backend
         stage_name: internal_qa_smartcard
         fully_qualified_service_name: identity-service-internal-qa-int
@@ -102,47 +94,40 @@ extends:
       - environment: internal-qa-sandbox
         service_name: ${{ variables.service_name }}-mock
         short_service_name: ${{ variables.short_service_name }}-mock
-        stage_name: internal_qa_sandbox
+        stage_name: internal_qa_sandbox_mock
         service_base_path: ${{ variables.service_base_path }}-mock
-        jinja_templates:
-          IDENTITY_PROVIDER_CIS2: cis2-keycloak
-          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login-keycloak
-          VARIABLES_KVM: identity_service_config_keycloak
-          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
-          ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
-          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
-          RATELIMITING: ${{ variables.ratelimiting }}
+      - environment: internal-qa-sandbox
+        service_name: ${{ variables.service_name }}
+        short_service_name: ${{ variables.short_service_name }}
+        stage_name: internal_qa_sandbox
+        service_base_path: ${{ variables.service_base_path }}
 
       # REF
       - environment: ref
         service_name: ${{ variables.service_name }}-mock
         short_service_name: ${{ variables.short_service_name }}-mock
-        stage_name: ref
+        stage_name: ref_mock
         service_base_path: ${{ variables.service_base_path }}-mock
-        jinja_templates:
-          IDENTITY_PROVIDER_CIS2: cis2-keycloak
-          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login-keycloak
-          VARIABLES_KVM: identity_service_config_keycloak
-          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
-          ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
-          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
-          RATELIMITING: ${{ variables.ratelimiting }}
+      - environment: ref
+        service_name: ${{ variables.service_name }}
+        short_service_name: ${{ variables.short_service_name }}
+        stage_name: ref
+        service_base_path: ${{ variables.service_base_path }}
 
       # DEV
       - environment: dev # real nhs-login, mock cis2
+        jinja_templates:
+          IDENTITY_PROVIDER_CIS2: cis2
+          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
+          VARIABLES_KVM: identity_service_config
+          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
       - environment: dev # both mocked
         service_name: ${{ variables.service_name }}-mock
         short_service_name: ${{ variables.short_service_name }}-mock
         stage_name: dev_mock
         service_base_path: ${{ variables.service_base_path }}-mock
-        jinja_templates:
-          IDENTITY_PROVIDER_CIS2: cis2-keycloak
-          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
-          VARIABLES_KVM: identity_service_config_keycloak
-          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
-          ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
-          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
-          RATELIMITING: ${{ variables.ratelimiting }}
       - environment: dev # dep
         service_name: ${{ variables.service_name }}-dep
         short_service_name: ${{ variables.short_service_name }}-dep
@@ -161,33 +146,35 @@ extends:
       - environment: sandbox
         service_name: ${{ variables.service_name }}-mock
         short_service_name: ${{ variables.short_service_name }}-mock
-        stage_name: sandbox
+        stage_name: sandbox_mock
         service_base_path: ${{ variables.service_base_path }}-mock
-        jinja_templates:
-          IDENTITY_PROVIDER_CIS2: cis2-keycloak
-          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login-keycloak
-          VARIABLES_KVM: identity_service_config_keycloak
-          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
-          ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
-          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
-          RATELIMITING: ${{ variables.ratelimiting }}
+      - environment: sandbox
+        service_name: ${{ variables.service_name }}
+        short_service_name: ${{ variables.short_service_name }}
+        stage_name: sandbox
+        service_base_path: ${{ variables.service_base_path }}
 
       # INT
       - environment: int
+        jinja_templates:
+          IDENTITY_PROVIDER_CIS2: cis2
+          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
+          VARIABLES_KVM: identity_service_config
+          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
       - environment: int
         service_name: ${{ variables.service_name }}-mock
         short_service_name: ${{ variables.short_service_name }}-mock
         stage_name: int_mock
         service_base_path: ${{ variables.service_base_path }}-mock
-        jinja_templates:
-          IDENTITY_PROVIDER_CIS2: cis2-keycloak
-          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login-keycloak
-          VARIABLES_KVM: identity_service_config_keycloak
-          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
-          ENCRYPTED_VARIABLES_KVM_KEY_CLIENT_SECRET: keycloak_client_secret
-          ENCRYPTED_VARIABLES_KVM_KEY_NHS_LOGIN_KEY: keycloak_nhs_login_private_key
-          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
-          RATELIMITING: ${{ variables.ratelimiting }}
 
       # PROD
       - environment: prod
+        jinja_templates:
+          IDENTITY_PROVIDER_CIS2: cis2
+          IDENTITY_PROVIDER_NHS_LOGIN: nhs-login
+          VARIABLES_KVM: identity_service_config
+          ENCRYPTED_VARIABLES_KVM: identity-service-variables-encrypted
+          NUM_RANDOM_LONG_INTS_FOR_STATE: 4
+          RATELIMITING: ${{ variables.ratelimiting }}
