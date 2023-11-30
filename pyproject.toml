@@ -9,7 +9,7 @@ authors = []
 readme = 'README.md'
 license = "MIT"
 repository = "https://github.com/NHSDigital/identity-service-api"
-homepage = ""
+homepage = "https://github.com/NHSDigital/identity-service-api"
 keywords = ["healthcare", "uk", "nhs"]
 
 [tool.poetry.dependencies]
