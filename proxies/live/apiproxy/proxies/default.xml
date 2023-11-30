@@ -65,11 +65,32 @@
                 <Name>AssignMessage.MissingApiKey</Name>
             </Step>
         </FaultRule>
-        <FaultRule name="failed_decoding_jwt">
-            <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToDecode")</Condition>
+        <FaultRule name="failed_decoding_jwt_client_assertion">
+            <Condition>(JWT.failed Equals true) And (jwt.DecodeJWT.FromClientAssertionFormParam.error IsNot null) And (fault.name Equals "FailedToDecode")</Condition>
             <Step>
                 <!-- DecodeJWT will throw this error where the JWT's *header* is invalid -->
-                <Name>AssignMessage.FailedToDecodeJWTError</Name>
+                <Name>AssignMessage.FailedToDecodeClientAssertionJWTError</Name>
+            </Step>
+        </FaultRule>
+        <FaultRule name="failed_decoding_jwt_subject_token">
+            <Condition>(JWT.failed Equals true) And (jwt.DecodeJWT.FromSubjectTokenFormParam.error IsNot null) And (fault.name Equals "FailedToDecode")</Condition>
+            <Step>
+                <!-- DecodeJWT will throw this error where the JWT's *header* is invalid -->
+                <Name>AssignMessage.FailedToDecodeSubjectTokenJWTError</Name>
+            </Step>
+        </FaultRule>
+        <FaultRule name="failed_decoding_jwt_external_id_token">
+            <Condition>(JWT.failed Equals true) And (jwt.DecodeJWT.FromExternalIdToken.error IsNot null) And (fault.name Equals "FailedToDecode")</Condition>
+            <Step>
+                <!-- DecodeJWT will throw this error where the JWT's *header* is invalid -->
+                <Name>AssignMessage.FailedToDecodeExternalIdTokenJWTError</Name>
+            </Step>
+        </FaultRule>
+        <FaultRule name="failed_decoding_jwt_logout_token">
+            <Condition>(JWT.failed Equals true) And (jwt.DecodeJWT.LogoutToken.error IsNot null) And (fault.name Equals "FailedToDecode")</Condition>
+            <Step>
+                <!-- DecodeJWT will throw this error where the JWT's *header* is invalid -->
+                <Name>AssignMessage.FailedToDecodeLogoutTokenJWTError</Name>
             </Step>
         </FaultRule>
         <FaultRule name="invalid_jwt_signature">
@@ -88,12 +109,6 @@
             <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToResolveVariable") And (request.formparam.subject_token_type IsNot null) And (request.formparam.subject_token Is null)</Condition>
             <Step>
                 <Name>AssignMessage.MissingSubjectToken</Name>
-            </Step>
-        </FaultRule>
-        <FaultRule name="invalid_subject_token_jwt">
-            <Condition>(JWT.failed Equals true) And (jwt.DecodeJWT.FromSubjectTokenFormParam.error IsNot null) And (request.formparam.subject_token_type IsNot null) And (request.formparam.subject_token Equals "invalid")</Condition>
-            <Step>
-                <Name>AssignMessage.InvalidSubjectToken</Name>
             </Step>
         </FaultRule>
         <FaultRule name="cc_verify_api_key">
