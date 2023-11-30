@@ -146,7 +146,7 @@ class TestTokenExchange:
             (  # Test invalid subject_token
                 {
                     "error": "invalid_request",
-                    "error_description": "subject_token is invalid",
+                    "error_description": "Malformed JWT in subject_token",
                 },
                 400,
                 "invalid",
