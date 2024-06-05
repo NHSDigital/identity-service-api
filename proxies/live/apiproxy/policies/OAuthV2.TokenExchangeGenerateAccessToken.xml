@@ -17,14 +17,6 @@
     <Attributes>
         <Attribute name="id_token-subject" display="true" />
         <Attribute name="id_token-issuer" display="true" />
-        <Attribute name="id_assurance_level" display="true" />
         <Attribute name="grant_type" display="true">urn:ietf:params:oauth:grant-type:token-exchange</Attribute>
-        <Attribute name="auth_type" ref="splunk.auth.type" display="true" />
-        <Attribute name="auth_grant_type" ref="splunk.auth.grant_type" display="true" />
-        <Attribute name="auth_provider" ref="splunk.auth.provider" display="true" />
-        <Attribute name="auth_level" ref="splunk.auth.level" display="true" />
-        <Attribute name="auth_user_id" ref="splunk.auth.user_id" display="true" />
-        <Attribute name="issuer" ref="issuerUri" display="false" />
-        <Attribute name="_first_issued" ref="system.timestamp" display="false" />
     </Attributes>
 </OAuthV2>
