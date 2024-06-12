@@ -103,6 +103,7 @@ def cis2_subject_token_claims():
         "aud": "969567331415.apps.national",
         "c_hash": "bc7zzGkClC3MEiFQ3YhPKg",
         "acr": "AAL3_ANY",
+        "id_assurance_level": int(3),
         "org.forgerock.openidconnect.ops": "-I45NjmMDdMa-aNF2sr9hC7qEGQ",
         "s_hash": "LPJNul-wow4m6Dsqxbning",
         "azp": "969567331415.apps.national",
