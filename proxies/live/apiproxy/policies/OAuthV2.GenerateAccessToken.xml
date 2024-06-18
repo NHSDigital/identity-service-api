@@ -19,7 +19,7 @@
         <Attribute name="id_token-acr" ref="jwt.DecodeJWT.FromExternalIdToken.claim.acr" display="true"/>
         <Attribute name="id_token-amr" ref="jwt.DecodeJWT.FromExternalIdToken.claim.amr" display="true"/>
         <Attribute name="id_token-id-assurance-level" ref="jwt.DecodeJWT.FromExternalIdToken.claim.id_assurance_level" display="true"/>
-        <Attribute name="id_token-identity-proofing-level" ref="jwt.DecodeJWT.FromExternalIdToken.decoded.claim.identity_proofing_level" display="true"/>
+        <Attribute name="id_token-identity-proofing-level" ref="jwt.DecodeJWT.FromExternalIdToken.claim.identity_proofing_level" display="true"/>
         <Attribute name="auth_type" ref="splunk.auth.type" display="true"/>
         <Attribute name="auth_grant_type" ref="splunk.auth.grant_type" display="true"/>
         <Attribute name="auth_provider" ref="splunk.auth.provider" display="true"/>
