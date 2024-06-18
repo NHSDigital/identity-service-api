@@ -24,6 +24,7 @@
         <Attribute name="id_token-acr" ref="jwt.VerifyJWT.SubjectToken.claim.acr" display="true" />
         <Attribute name="id_token-amr" ref="jwt.VerifyJWT.SubjectToken.claim.amr" display="true" />
         <Attribute name="id_token-id-assurance-level" ref="jwt.VerifyJWT.SubjectToken.claim.id_assurance_level" display="true" />
+        <Attribute name="id_token-identity-proofing-level" ref="jwt.VerifyJWT.SubjectToken.claim.identity_proofing_level" display="true"/>
         <Attribute name="grant_type" display="true">urn:ietf:params:oauth:grant-type:token-exchange</Attribute>
         <Attribute name="auth_type" ref="splunk.auth.type" display="true" />
         <Attribute name="auth_grant_type" ref="splunk.auth.grant_type" display="true" />
