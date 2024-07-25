@@ -63,6 +63,28 @@ class TestAuthorizationCode:
             "token_type",
             "issued_at",  # Added by pytest_nhsd_apim
         }
+    @pytest.mark.happy_path
+    @pytest.mark.token_endpoint
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal2",
+        login_form={"username": "656005750109"},
+        force_new_token=True,
+    )
+    def test_token_endpoint_aal2(self, _nhsd_apim_auth_token_data):
+        assert _nhsd_apim_auth_token_data["expires_in"] == "599"
+        assert _nhsd_apim_auth_token_data["token_type"] == "Bearer"
+        assert _nhsd_apim_auth_token_data["refresh_count"] == "0"
+        assert set(_nhsd_apim_auth_token_data.keys()) == {
+            "access_token",
+            "expires_in",
+            "refresh_count",
+            "refresh_token",
+            "refresh_token_expires_in",
+            "sid",
+            "token_type",
+            "issued_at",  # Added by pytest_nhsd_apim
+        }
 
     @pytest.mark.errors
     @pytest.mark.token_endpoint
@@ -70,6 +92,109 @@ class TestAuthorizationCode:
         access="healthcare_worker",
         level="aal3",
         login_form={"username": "656005750104"},
+        force_new_token=True,
+    )
+    @pytest.mark.parametrize(
+        "expected_response,expected_status_code,missing_or_invalid,update_data",
+        [
+            (  # Test invalid grant_type
+                {
+                    "error": "unsupported_grant_type",
+                    "error_description": "grant_type is invalid",
+                },
+                400,
+                "invalid",
+                {"grant_type": "invalid"},
+            ),
+            (  # Test missing grant_type
+                {
+                    "error": "invalid_request",
+                    "error_description": "grant_type is missing",
+                },
+                400,
+                "missing",
+                {"grant_type"},
+            ),
+            (  # Test missing client_id
+                {
+                    "error": "invalid_request",
+                    "error_description": "client_id is missing",
+                },
+                401,
+                "missing",
+                {"client_id"},
+            ),
+            (  # Test invalid client_id
+                {
+                    "error": "invalid_client",
+                    "error_description": "client_id or client_secret is invalid",
+                },
+                401,
+                "invalid",
+                {"client_id": "invalid"},
+            ),
+            (  # Test invalid client_secret
+                {
+                    "error": "invalid_client",
+                    "error_description": "client_id or client_secret is invalid",
+                },
+                401,
+                "invalid",
+                {"client_secret": "invalid"},
+            ),
+            (  # Test missing client_secret
+                {
+                    "error": "invalid_request",
+                    "error_description": "client_secret is missing",
+                },
+                401,
+                "missing",
+                {"client_secret"},
+            ),
+            (  # Test invalid redirect_uri
+                {
+                    "error": "invalid_request",
+                    "error_description": "redirect_uri is invalid",
+                },
+                400,
+                "invalid",
+                {"redirect_uri": "invalid"},
+            ),
+            (  # Test missing redirect_uri
+                {
+                    "error": "invalid_request",
+                    "error_description": "redirect_uri is missing",
+                },
+                400,
+                "missing",
+                {"redirect_uri"},
+            ),
+            (  # Test invalid authorization_code
+                {
+                    "error": "invalid_grant",
+                    "error_description": "authorization_code is invalid",
+                },
+                400,
+                "invalid",
+                {"code": "invalid"},
+            ),
+            (  # Test missing authorization_code
+                {
+                    "error": "invalid_request",
+                    "error_description": "authorization_code is missing",
+                },
+                400,
+                "missing",
+                {"code"},
+            ),
+        ],
+    )
+    @pytest.mark.errors
+    @pytest.mark.token_endpoint
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal2",
+        login_form={"username": "656005750109"},
         force_new_token=True,
     )
     @pytest.mark.parametrize(
@@ -208,6 +333,47 @@ class TestAuthorizationCode:
         del body["message_id"]
         assert body == expected_response
 
+    def test_token_error_conditions_aal2(
+        self,
+        nhsd_apim_proxy_url,
+        authorize_params,
+        token_data_authorization_code,
+        expected_response,
+        expected_status_code,
+        missing_or_invalid,
+        update_data,
+    ):
+        auth_info = get_auth_info(
+            url=nhsd_apim_proxy_url + "/authorize",
+            authorize_params=authorize_params,
+            username="656005750109",
+        )
+        token_data_authorization_code["code"] = get_auth_item(auth_info, "code")
+
+        if missing_or_invalid == "missing":
+            token_data_authorization_code = remove_keys(
+                token_data_authorization_code, update_data
+            )
+        if missing_or_invalid == "invalid":
+            token_data_authorization_code = replace_keys(
+                token_data_authorization_code, update_data
+            )
+
+        # Post to token endpoint
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=token_data_authorization_code,
+        )
+
+        body = resp.json()
+        assert resp.status_code == expected_status_code
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == expected_response
+
     @pytest.mark.happy_path
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
@@ -216,6 +382,39 @@ class TestAuthorizationCode:
         force_new_token=True,
     )
     def test_refresh_token(
+        self, nhsd_apim_proxy_url, refresh_token_data, _nhsd_apim_auth_token_data
+    ):
+        refresh_token_data["refresh_token"] = _nhsd_apim_auth_token_data[
+            "refresh_token"
+        ]
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=refresh_token_data,
+        )
+        body = resp.json()
+
+        assert resp.status_code == 200
+        assert body["expires_in"] == "599"
+        assert body["token_type"] == "Bearer"
+        assert body["refresh_count"] == "1"
+        assert sorted(list(body.keys())) == [
+            "access_token",
+            "expires_in",
+            "refresh_count",
+            "refresh_token",
+            "refresh_token_expires_in",
+            "token_type",
+        ]
+
+    @pytest.mark.happy_path
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal2",
+        login_form={"username": "656005750109"},
+        force_new_token=True,
+    )
+    def test_refresh_token_aal2(
         self, nhsd_apim_proxy_url, refresh_token_data, _nhsd_apim_auth_token_data
     ):
         refresh_token_data["refresh_token"] = _nhsd_apim_auth_token_data[
@@ -282,7 +481,46 @@ class TestAuthorizationCode:
         assert second_expiry < first_expiry
         assert first_expiry - second_expiry == wait_time_between_refresh_token_calls
 
+    @pytest.mark.happy_path
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal2",
+        login_form={"username": "656005750104"},
+        force_new_token=True
+    )
+    def test_refresh_token_expiry_calculated_correctly_aal2(
+        self,
+        nhsd_apim_proxy_url,
+        refresh_token_data,
+        _nhsd_apim_auth_token_data
+    ):
+        '''
+        refresh_token_expires_in should reduce on subsequent calls
+        '''
+        wait_time_between_refresh_token_calls = 3
+        refresh_token_data["refresh_token"] = _nhsd_apim_auth_token_data["refresh_token"]
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=refresh_token_data
+        )
+        body = resp.json()
+        first_expiry = int(body["refresh_token_expires_in"])
+        assert body["refresh_count"] == "1"
 
+        sleep(wait_time_between_refresh_token_calls)
+
+        refresh_token_data["refresh_token"] = body["refresh_token"]
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=refresh_token_data
+        )
+        body = resp.json()
+        assert body["refresh_count"] == "2"
+        second_expiry = int(body["refresh_token_expires_in"])
+        assert second_expiry < first_expiry
+        assert first_expiry - second_expiry == wait_time_between_refresh_token_calls
 
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
@@ -400,6 +638,44 @@ class TestAuthorizationCode:
         )  # We assert the key but not he value for message_id
         del body["message_id"]
         assert body == expected_response
+    
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal2",
+        login_form={"username": "656005750109"},
+        force_new_token=True,
+    )
+    def test_refresh_token_error_conditions_aal2(
+        self,
+        expected_response,
+        expected_status_code,
+        missing_or_invalid,
+        update_data,
+        nhsd_apim_proxy_url,
+        refresh_token_data,
+        _nhsd_apim_auth_token_data,
+    ):
+        refresh_token_data["refresh_token"] = _nhsd_apim_auth_token_data[
+            "refresh_token"
+        ]
+        if missing_or_invalid == "missing":
+            data = remove_keys(refresh_token_data, update_data)
+        if missing_or_invalid == "invalid":
+            data = replace_keys(refresh_token_data, update_data)
+
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=data,
+        )
+
+        body = resp.json()
+        assert resp.status_code == expected_status_code
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == expected_response
 
     @pytest.mark.happy_path
     @pytest.mark.authorize_endpoint
@@ -443,6 +719,39 @@ class TestAuthorizationCode:
             url=nhsd_apim_proxy_url + "/authorize",
             authorize_params=authorize_params,
             username="656005750104",
+        )
+        authorize_params["code"] = get_auth_item(auth_info, "code")
+        authorize_params["state"] = get_auth_item(auth_info, "state")
+
+        resp = requests.get(
+            nhsd_apim_proxy_url + "/callback", authorize_params, allow_redirects=False
+        )
+
+        body = resp.json()
+        assert resp.status_code == 400
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
+            "error": "invalid_request",
+            "error_description": "Invalid state parameter.",
+        }
+
+    @pytest.mark.errors
+    @pytest.mark.authorize_endpoint
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal2",
+        login_form={"username": "656005750109"},
+        force_new_token=True,
+    )
+    def test_cache_invalidation_aal2(self, nhsd_apim_proxy_url, authorize_params):
+        # Make authorize request, which includes callback call to retrieve used state
+        auth_info = get_auth_info(
+            url=nhsd_apim_proxy_url + "/authorize",
+            authorize_params=authorize_params,
+            username="656005750109",
         )
         authorize_params["code"] = get_auth_item(auth_info, "code")
         authorize_params["state"] = get_auth_item(auth_info, "state")
@@ -766,6 +1075,89 @@ class TestAuthorizationCode:
             "which has sufficient access to access this resource.",
         }
 
+    @pytest.mark.errors
+    @pytest.mark.token_endpoint
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal2",
+        login_form={"username": "656005750109"},
+        force_new_token=True,
+    )
+    def test_token_unsubscribed_error_condition_aal2(
+        self,
+        nhsd_apim_proxy_url,
+        _create_function_scoped_test_app,
+        _apigee_edge_session,
+        _apigee_app_base_url,
+        _proxy_product_with_scope,
+    ):
+        # Subscribe app to wrong environment Canary
+        # so that product with wrong identity service associated
+        # Also subscribe app to correct identity service
+        app = _create_function_scoped_test_app
+        credential = app["credentials"][0]
+
+        product_resp = subscribe_app_to_products(
+            _apigee_edge_session,
+            _apigee_app_base_url,
+            credential,
+            app["name"],
+            ["canary-api-ref", _proxy_product_with_scope["name"]],
+        )
+        assert product_resp.status_code == 200
+
+        params = {
+            "client_id": credential["consumerKey"],
+            "redirect_uri": app["callbackUrl"],
+            "response_type": "code",
+            "state": random.getrandbits(32),
+        }
+
+        # Authorize
+        auth_info = get_auth_info(
+            url=nhsd_apim_proxy_url + "/authorize",
+            authorize_params=params,
+            username="656005750104",
+        )
+
+        # Remove correct ideneity service from product
+        remove_product_resp = unsubscribe_product(
+            _apigee_edge_session,
+            _apigee_app_base_url,
+            credential["consumerKey"],
+            app["name"],
+            _proxy_product_with_scope["name"],
+        )
+        assert remove_product_resp.status_code == 200
+
+        token_data = {
+            "client_id": credential["consumerKey"],
+            "client_secret": credential["consumerSecret"],
+            "redirect_uri": app["callbackUrl"],
+            "grant_type": "authorization_code",
+            "code": get_auth_item(auth_info, "code"),
+        }
+
+        # Post to token endpoint
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data=token_data,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+
+        body = resp.json()
+        assert resp.status_code == 401
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
+            "error": "access_denied",
+            "error_description": "API Key supplied does not have access to this resource. "
+            "Please check the API Key you are using belongs to an app "
+            "which has sufficient access to access this resource.",
+        }
+
     @pytest.mark.happy_path
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
@@ -822,6 +1214,90 @@ class TestAuthorizationCode:
             url=nhsd_apim_proxy_url + "/authorize",
             authorize_params=params,
             username="656005750104",
+        )
+
+        token_data = {
+            "client_id": credential["consumerKey"],
+            "client_secret": credential["consumerSecret"],
+            "redirect_uri": app["callbackUrl"],
+            "grant_type": "authorization_code",
+            "code": get_auth_item(auth_info, "code"),
+        }
+
+        # Post to token endpoint
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data=token_data,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        body = resp.json()
+        assert resp.status_code == 200
+        token = body["access_token"]
+
+        # Call Canary
+        canary_resp = requests.get(
+            CANARY_API_URL, headers={"Authorization": f"Bearer {token}"}
+        )
+
+        assert canary_resp.status_code == 200
+        assert canary_resp.text == "Hello user!"
+
+    @pytest.mark.happy_path
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal2",
+        login_form={"username": "656005750109"},
+        force_new_token=True,
+    )
+    def test_userinfo_aal2(self, nhsd_apim_proxy_url, nhsd_apim_auth_headers):
+        resp = requests.get(
+            nhsd_apim_proxy_url + "/userinfo", headers=nhsd_apim_auth_headers
+        )
+        body = resp.json()
+
+        assert resp.status_code == 200
+        assert body == BANK.get("test_userinfo")["response"]
+
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal2",
+        login_form={"username": "656005750109"},
+        force_new_token=True,
+    )
+    @pytest.mark.happy_path
+    def test_access_token_aal2(
+        self,
+        nhsd_apim_proxy_url,
+        _create_function_scoped_test_app,
+        _proxy_product_with_scope,
+        _apigee_edge_session,
+        _apigee_app_base_url,
+    ):
+        # Subscribe app to canary and identity service
+        app = _create_function_scoped_test_app
+        credential = app["credentials"][0]
+
+        product_resp = subscribe_app_to_products(
+            _apigee_edge_session,
+            _apigee_app_base_url,
+            credential,
+            app["name"],
+            [CANARY_PRODUCT_NAME, _proxy_product_with_scope["name"]],
+        )
+        assert product_resp.status_code == 200
+
+        # Authorize
+        params = {
+            "client_id": credential["consumerKey"],
+            "redirect_uri": app["callbackUrl"],
+            "response_type": "code",
+            "state": random.getrandbits(32),
+        }
+
+        auth_info = get_auth_info(
+            url=nhsd_apim_proxy_url + "/authorize",
+            authorize_params=params,
+            username="656005750109",
         )
 
         token_data = {
@@ -937,6 +1413,52 @@ class TestAuthorizationCode:
     @pytest.mark.errors
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
+        level="aal2",
+        login_form={"username": "656005750109"},
+        force_new_token=True,
+    )
+    def test_expired_access_token_aal2(
+        self, nhsd_apim_proxy_url, authorize_params, token_data_authorization_code
+    ):
+        # Set short expiry
+        auth_info = get_auth_info(
+            url=nhsd_apim_proxy_url + "/authorize",
+            authorize_params=authorize_params,
+            username="656005750109",
+        )
+        token_data_authorization_code["code"] = get_auth_item(auth_info, "code")
+        token_data_authorization_code["_access_token_expiry_ms"] = 4
+
+        # Post to token endpoint
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=token_data_authorization_code,
+        )
+
+        token_resp = resp.json()
+        token = token_resp["access_token"]
+
+        # Wait for expiry
+        sleep(5)
+
+        # Hit canary with expired token
+        resp_canary = requests.get(
+            CANARY_API_URL, headers={"Authorization": f"Bearer {token}"}
+        )
+        body = resp_canary.json()
+
+        assert resp_canary.status_code == 401
+        assert body == {
+            "fault": {
+                "faultstring": "Access Token expired",
+                "detail": {"errorcode": "keymanagement.service.access_token_expired"},
+            }
+        }
+
+    @pytest.mark.errors
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
         level="aal3",
         login_form={"username": "656005750104"},
         force_new_token=True,
@@ -958,6 +1480,43 @@ class TestAuthorizationCode:
             url=nhsd_apim_proxy_url + "/authorize",
             authorize_params=authorize_params,
             username="656005750104",
+        )
+        token_data_authorization_code["code"] = get_auth_item(auth_info, "code")
+        token_data_authorization_code["_access_token_expiry_ms"] = token_expiry_ms
+
+        # Post to token endpoint
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token", data=token_data_authorization_code
+        )
+        body = resp.json()
+
+        assert resp.status_code == 200
+        assert int(body["expires_in"]) <= expected_time
+    
+    @pytest.mark.errors
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal2",
+        login_form={"username": "656005750109"},
+        force_new_token=True,
+    )
+    @pytest.mark.parametrize(
+        "token_expiry_ms, expected_time",
+        [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)],
+    )
+    def test_access_token_override_with_authorization_code_aal2(
+        self,
+        token_expiry_ms,
+        expected_time,
+        nhsd_apim_proxy_url,
+        authorize_params,
+        token_data_authorization_code,
+    ):
+        # Set short expiry
+        auth_info = get_auth_info(
+            url=nhsd_apim_proxy_url + "/authorize",
+            authorize_params=authorize_params,
+            username="656005750109",
         )
         token_data_authorization_code["code"] = get_auth_item(auth_info, "code")
         token_data_authorization_code["_access_token_expiry_ms"] = token_expiry_ms
@@ -996,6 +1555,60 @@ class TestAuthorizationCode:
             url=nhsd_apim_proxy_url + "/authorize",
             authorize_params=authorize_params,
             username="656005750104",
+        )
+        token_data_authorization_code["code"] = get_auth_item(auth_info, "code")
+
+        # Post to token endpoint
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token", data=token_data_authorization_code
+        )
+        body = resp.json()
+
+        assert resp.status_code == 200
+        assert body["refresh_token"]
+
+        refresh_token = body["refresh_token"]
+
+        refresh_token_data = {
+            "client_id": _test_app_credentials["consumerKey"],
+            "client_secret": _test_app_credentials["consumerSecret"],
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+            "_refresh_tokens_validity_ms": 599,
+            "_access_token_expiry_ms": token_expiry_ms,
+        }
+
+        resp2 = requests.post(nhsd_apim_proxy_url + "/token", data=refresh_token_data)
+        body2 = resp2.json()
+
+        assert resp2.status_code == 200
+        assert int(body2["expires_in"]) <= expected_time
+
+    @pytest.mark.errors
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal2",
+        login_form={"username": "656005750109"},
+        force_new_token=True,
+    )
+    @pytest.mark.parametrize(
+        "token_expiry_ms, expected_time",
+        [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)],
+    )
+    def test_access_token_override_with_refresh_token_aal2(
+        self,
+        token_expiry_ms,
+        expected_time,
+        nhsd_apim_proxy_url,
+        authorize_params,
+        token_data_authorization_code,
+        _test_app_credentials,
+    ):
+        # Set short expiry
+        auth_info = get_auth_info(
+            url=nhsd_apim_proxy_url + "/authorize",
+            authorize_params=authorize_params,
+            username="656005750109",
         )
         token_data_authorization_code["code"] = get_auth_item(auth_info, "code")
 
@@ -1073,6 +1686,40 @@ class TestAuthorizationCode:
             "error": "invalid_request",
             "error_description": "Content-Type header must be application/x-www-form-urlencoded",
         }
+    
+    @pytest.mark.errors
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal2",
+        login_form={"username": "656005750109"},
+        force_new_token=True,
+    )
+    def test_access_token_with_params_aal2(
+        self, nhsd_apim_proxy_url, authorize_params, token_data_authorization_code
+    ):
+        # Authorize
+        auth_info = get_auth_info(
+            url=nhsd_apim_proxy_url + "/authorize",
+            authorize_params=authorize_params,
+            username="656005750109",
+        )
+        token_data_authorization_code["code"] = get_auth_item(auth_info, "code")
+
+        # Post to token endpoint with params not data
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token", params=token_data_authorization_code
+        )
+
+        body = resp.json()
+        assert resp.status_code == 415
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
+            "error": "invalid_request",
+            "error_description": "Content-Type header must be application/x-www-form-urlencoded",
+        }
 
     @pytest.mark.errors
     @pytest.mark.nhsd_apim_authorization(
@@ -1119,6 +1766,52 @@ class TestAuthorizationCode:
             "error": "invalid_grant",
             "error_description": "refresh token refresh period has expired",
         }
+    
+    @pytest.mark.errors
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750109"},
+        force_new_token=True,
+    )
+    def test_refresh_token_does_expire_aal2(
+        self, nhsd_apim_proxy_url, refresh_token_data, _nhsd_apim_auth_token_data
+    ):
+        # Set short expiry
+        refresh_token_data["refresh_token"] = _nhsd_apim_auth_token_data[
+            "refresh_token"
+        ]
+        refresh_token_data["_refresh_token_expiry_ms"] = 4
+
+        # Refresh token
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=refresh_token_data,
+        )
+        refresh_token_resp = resp.json()
+        refresh_token_data["refresh_token"] = refresh_token_resp["refresh_token"]
+
+        # Wait for expiry
+        sleep(5)
+
+        # Attempt to get new token
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=refresh_token_data,
+        )
+        body = resp.json()
+
+        assert resp.status_code == 401
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
+            "error": "invalid_grant",
+            "error_description": "refresh token refresh period has expired",
+        }
 
     @pytest.mark.errors
     @pytest.mark.nhsd_apim_authorization(
@@ -1128,6 +1821,38 @@ class TestAuthorizationCode:
         force_new_token=True,
     )
     def test_refresh_tokens_validity_expires(
+        self, nhsd_apim_proxy_url, refresh_token_data, _nhsd_apim_auth_token_data
+    ):
+        refresh_token_data["refresh_token"] = _nhsd_apim_auth_token_data[
+            "refresh_token"
+        ]
+        refresh_token_data["_refresh_tokens_validity_ms"] = 0
+
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=refresh_token_data,
+        )
+        body = resp.json()
+
+        assert resp.status_code == 401
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
+            "error": "invalid_grant",
+            "error_description": "refresh token refresh period has expired",
+        }
+    
+    @pytest.mark.errors
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal2",
+        login_form={"username": "656005750109"},
+        force_new_token=True,
+    )
+    def test_refresh_tokens_validity_expires_aal2(
         self, nhsd_apim_proxy_url, refresh_token_data, _nhsd_apim_auth_token_data
     ):
         refresh_token_data["refresh_token"] = _nhsd_apim_auth_token_data[
@@ -1200,6 +1925,55 @@ class TestAuthorizationCode:
             "error": "invalid_grant",
             "error_description": "refresh_token is invalid",
         }
+    
+    @pytest.mark.errors
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal2",
+        login_form={"username": "656005750109"},
+        force_new_token=True,
+    )
+    def test_re_use_of_refresh_token_aal2(
+        self, nhsd_apim_proxy_url, refresh_token_data, _nhsd_apim_auth_token_data
+    ):
+        refresh_token_data["refresh_token"] = _nhsd_apim_auth_token_data[
+            "refresh_token"
+        ]
+
+        # Refresh token
+        resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=refresh_token_data,
+        )
+
+        assert resp.status_code == 200
+        assert sorted(list(resp.json().keys())) == [
+            "access_token",
+            "expires_in",
+            "refresh_count",
+            "refresh_token",
+            "refresh_token_expires_in",
+            "token_type",
+        ]
+
+        # Refresh original token
+        resp_two = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=refresh_token_data,
+        )
+        body = resp_two.json()
+
+        assert resp_two.status_code == 401
+        assert (
+            "message_id" in body.keys()
+        )  # We assert the key but not he value for message_id
+        del body["message_id"]
+        assert body == {
+            "error": "invalid_grant",
+            "error_description": "refresh_token is invalid",
+        }
 
     @pytest.mark.happy_path
     @pytest.mark.nhsd_apim_authorization(
@@ -1209,6 +1983,22 @@ class TestAuthorizationCode:
         force_new_token=True,
     )
     def test_cis2_refresh_tokens_generated_with_expected_expiry_combined_auth(
+        self, _nhsd_apim_auth_token_data
+    ):
+        """
+        Test that refresh tokens generated via CIS2 have an expiry time of 12 hours for combined authentication.
+        """
+        assert _nhsd_apim_auth_token_data["expires_in"] == "599"
+        assert _nhsd_apim_auth_token_data["refresh_token_expires_in"] == "43199"
+    
+    @pytest.mark.happy_path
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal2",
+        login_form={"username": "656005750109"},
+        force_new_token=True,
+    )
+    def test_cis2_refresh_tokens_generated_with_expected_expiry_combined_auth_aal2(
         self, _nhsd_apim_auth_token_data
     ):
         """

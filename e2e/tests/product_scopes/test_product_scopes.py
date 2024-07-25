@@ -139,6 +139,7 @@ class TestProductScopes:
             pytest.param(
                 ["urn:nhsd:apim:app:level3:personal-demographics-service"],
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 ["urn:nhsd:apim:app:level3:personal-demographics-service"],
                 "client_credentials",
                 id="App-restricted: one product with valid scope, one product with invalid scope",
@@ -188,6 +189,7 @@ class TestProductScopes:
                 [
                     "urn:nhsd:apim:app:level3:ambulance-analytics",
                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
+                    "urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service",
                 ],
                 [],
                 ["urn:nhsd:apim:app:level3:ambulance-analytics"],
@@ -198,10 +200,12 @@ class TestProductScopes:
                 [
                     "urn:nhsd:apim:app:level3:ambulance-analytics",
                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
+                    "urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service",
                 ],
                 [
                     "urn:nhsd:apim:app:level3:example-1",
                     "urn:nhsd:apim:user-nhs-id:aal3:example-2",
+                    "urn:nhsd:apim:user-nhs-id:aal2:example-2",
                 ],
                 [
                     "urn:nhsd:apim:app:level3:ambulance-analytics",
@@ -212,24 +216,34 @@ class TestProductScopes:
             ),
             pytest.param(
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 [],
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 "cis2_combined",
                 id="User-restricted-CIS2-combined: one product with valid scope",
             ),
             pytest.param(
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 ["urn:nhsd:apim:app:level3:ambulance-analytics"],
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 "cis2_combined",
                 id="User-restricted-CIS2-combined: one product with valid scope, one product with invalid scope",
             ),
             pytest.param(
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
                 ["urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:ambulance-analytics"],
                 [
                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
                     "urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics",
+                ],
+                [
+                    "urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service",
+                    "urn:nhsd:apim:user-nhs-id:aal2:ambulance-analytics",
                 ],
                 "cis2_combined",
                 id="User-restricted-CIS2-combined: multiple products with valid scopes",
@@ -239,10 +253,18 @@ class TestProductScopes:
                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
                     "urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics",
                 ],
+                [
+                    "urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service",
+                    "urn:nhsd:apim:user-nhs-id:aal2:ambulance-analytics",
+                ],
                 [],
                 [
                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
                     "urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics",
+                ],
+                 [
+                    "urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service",
+                    "urn:nhsd:apim:user-nhs-id:aal2:ambulance-analytics",
                 ],
                 "cis2_combined",
                 id="User-restricted-CIS2-combined: one product with multiple valid scopes",
@@ -253,14 +275,28 @@ class TestProductScopes:
                     "urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics",
                 ],
                 [
+                    "urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service",
+                    "urn:nhsd:apim:user-nhs-id:aal2:ambulance-analytics",
+                ],
+                [
                     "urn:nhsd:apim:user-nhs-id:aal3:example-1",
                     "urn:nhsd:apim:user-nhs-id:aal3:example-2",
+                ],
+                [
+                    "urn:nhsd:apim:user-nhs-id:aal2:example-1",
+                    "urn:nhsd:apim:user-nhs-id:aal2:example-2",
                 ],
                 [
                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
                     "urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics",
                     "urn:nhsd:apim:user-nhs-id:aal3:example-1",
                     "urn:nhsd:apim:user-nhs-id:aal3:example-2",
+                ],
+                [
+                    "urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service",
+                    "urn:nhsd:apim:user-nhs-id:aal2:ambulance-analytics",
+                    "urn:nhsd:apim:user-nhs-id:aal2:example-1",
+                    "urn:nhsd:apim:user-nhs-id:aal2:example-2",
                 ],
                 "cis2_combined",
                 id="User-restricted-CIS2-combined: multiple products with multiple valid scopes",
@@ -270,8 +306,13 @@ class TestProductScopes:
                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
                     "urn:nhsd:apim:app:level3:ambulance-analytics",
                 ],
+                [
+                    "urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service",
+                    "urn:nhsd:apim:app:level3:ambulance-analytics",
+                ],
                 [],
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 "cis2_combined",
                 id="User-restricted-CIS2-combined: one product with multiple scopes (valid and invalid)",
             ),
@@ -281,12 +322,24 @@ class TestProductScopes:
                     "urn:nhsd:apim:app:level3:ambulance-analytics",
                 ],
                 [
+                    "urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service",
+                    "urn:nhsd:apim:app:level3:ambulance-analytics",
+                ],
+                [
                     "urn:nhsd:apim:user-nhs-id:aal3:example-1",
+                    "urn:nhsd:apim:app:level3:example-2",
+                ],
+                [
+                    "urn:nhsd:apim:user-nhs-id:aal2:example-1",
                     "urn:nhsd:apim:app:level3:example-2",
                 ],
                 [
                     "urn:nhsd:apim:user-nhs-id:aal3:example-1",
                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
+                ],
+                [
+                    "urn:nhsd:apim:user-nhs-id:aal2:example-1",
+                    "urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service",
                 ],
                 "cis2_combined",
                 id="User-restricted-CIS2-combined: multiple products with multiple scopes (valid and invalid)",
@@ -374,24 +427,34 @@ class TestProductScopes:
             ),
             pytest.param(
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 [],
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 "cis2_seperate",
                 id="User-restricted-CIS2-seperate: one product with valid scope",
             ),
             pytest.param(
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 ["urn:nhsd:apim:app:level3:ambulance-analytics"],
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 "cis2_seperate",
                 id="User-restricted-CIS2-seperate: one product with valid scope, one product with invalid scope",
             ),
             pytest.param(
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
                 ["urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:ambulance-analytics"],
                 [
                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
                     "urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics",
+                ],
+                [
+                    "urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service",
+                    "urn:nhsd:apim:user-nhs-id:aal2:ambulance-analytics",
                 ],
                 "cis2_seperate",
                 id="User-restricted-CIS2-seperate: multiple products with valid scopes",
@@ -401,10 +464,18 @@ class TestProductScopes:
                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
                     "urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics",
                 ],
+                [
+                    "urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service",
+                    "urn:nhsd:apim:user-nhs-id:aal2:ambulance-analytics",
+                ],
                 [],
                 [
                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
                     "urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics",
+                ],
+                [
+                    "urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service",
+                    "urn:nhsd:apim:user-nhs-id:aal2:ambulance-analytics",
                 ],
                 "cis2_seperate",
                 id="User-restricted-CIS2-seperate: one product with multiple valid scopes",
@@ -415,14 +486,28 @@ class TestProductScopes:
                     "urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics",
                 ],
                 [
+                    "urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service",
+                    "urn:nhsd:apim:user-nhs-id:aal2:ambulance-analytics",
+                ],
+                [
                     "urn:nhsd:apim:user-nhs-id:aal3:example-1",
                     "urn:nhsd:apim:user-nhs-id:aal3:example-2",
+                ],
+                [
+                    "urn:nhsd:apim:user-nhs-id:aal2:example-1",
+                    "urn:nhsd:apim:user-nhs-id:aal2:example-2",
                 ],
                 [
                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
                     "urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics",
                     "urn:nhsd:apim:user-nhs-id:aal3:example-1",
                     "urn:nhsd:apim:user-nhs-id:aal3:example-2",
+                ],
+                [
+                    "urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service",
+                    "urn:nhsd:apim:user-nhs-id:aal2:ambulance-analytics",
+                    "urn:nhsd:apim:user-nhs-id:aal2:example-1",
+                    "urn:nhsd:apim:user-nhs-id:aal2:example-2",
                 ],
                 "cis2_seperate",
                 id="User-restricted-CIS2-seperate: multiple products with multiple valid scopes",
@@ -432,8 +517,13 @@ class TestProductScopes:
                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
                     "urn:nhsd:apim:app:level3:ambulance-analytics",
                 ],
+                [
+                    "urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service",
+                    "urn:nhsd:apim:app:level3:ambulance-analytics",
+                ],
                 [],
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 "cis2_seperate",
                 id="User-restricted-CIS2-seperate: one product with multiple scopes (valid and invalid)",
             ),
@@ -443,12 +533,24 @@ class TestProductScopes:
                     "urn:nhsd:apim:app:level3:ambulance-analytics",
                 ],
                 [
+                    "urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service",
+                    "urn:nhsd:apim:app:level3:ambulance-analytics",
+                ],
+                [
                     "urn:nhsd:apim:user-nhs-id:aal3:example-1",
+                    "urn:nhsd:apim:app:level3:example-2",
+                ],
+                 [
+                    "urn:nhsd:apim:user-nhs-id:aal2:example-1",
                     "urn:nhsd:apim:app:level3:example-2",
                 ],
                 [
                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
                     "urn:nhsd:apim:user-nhs-id:aal3:example-1",
+                ],
+                [
+                    "urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service",
+                    "urn:nhsd:apim:user-nhs-id:aal2:example-1",
                 ],
                 "cis2_seperate",
                 id="User-restricted-CIS2-seperate: multiple products with multiple scopes (valid and invalid)",
@@ -639,6 +741,10 @@ class TestProductScopes:
                     "urn:nhsd:apim:user:aal3personal-demographics-service",
                     "urn:nhsd:apim:app:level3:example-2",
                 ],
+                [
+                    "urn:nhsd:apim:user:aal2personal-demographics-service",
+                    "urn:nhsd:apim:app:level3:example-2",
+                ],
                 ["urn:nhsd:apim:app:level3:personal-demographics"],
                 "client_credentials",
                 id="App-restricted: form param scope removed (invalid scopes)",
@@ -646,18 +752,21 @@ class TestProductScopes:
             pytest.param(
                 "invalid_scope",
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 "cis2_combined",
                 id="User-restricted-CIS2-combined: form param scope removed (not a real scope)",
             ),
             pytest.param(
                 "$£$12vdg@@fd",
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 "cis2_combined",
                 id="User-restricted-CIS2-combined: form param scope removed (special characters)",
             ),
             pytest.param(
                 "   external  scope",
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 "cis2_combined",
                 id="User-restricted-CIS2-combined: form param scope removed (white space)",
             ),
@@ -666,7 +775,12 @@ class TestProductScopes:
                     "urn:nhsd:apim:user:aal3personal-demographics-service",
                     "urn:nhsd:apim:app:level3:example-2",
                 ],
+                [
+                    "urn:nhsd:apim:user:aal2personal-demographics-service",
+                    "urn:nhsd:apim:app:level3:example-2",
+                ],
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 "cis2_combined",
                 id="User-restricted-CIS2-combined: form param scope removed (invalid scopes)",
             ),
@@ -693,6 +807,10 @@ class TestProductScopes:
                     "urn:nhsd:apim:user:aal3personal-demographics-service",
                     "urn:nhsd:apim:app:level3:example-2",
                 ],
+                [
+                    "urn:nhsd:apim:user:aal2personal-demographics-service",
+                    "urn:nhsd:apim:app:level3:example-2",
+                ],
                 ["urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service"],
                 "nhs_login_combined",
                 id="User-restricted-NHS-Login-combined: form param scope removed (invalid scopes)",
@@ -700,18 +818,21 @@ class TestProductScopes:
             pytest.param(
                 "invalid_scope",
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 "cis2_seperate",
                 id="User-restricted-CIS2-seperate: form param scope removed (not a real scope)",
             ),
             pytest.param(
                 "$£$12vdg@@fd",
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 "cis2_seperate",
                 id="User-restricted-CIS2-seperate: form param scope removed (special characters)",
             ),
             pytest.param(
                 "   external  scope",
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 "cis2_seperate",
                 id="User-restricted-CIS2-seperate: form param scope removed (white space)",
             ),
@@ -720,7 +841,12 @@ class TestProductScopes:
                     "urn:nhsd:apim:user:aal3personal-demographics-service",
                     "urn:nhsd:apim:app:level3:example-2",
                 ],
+                 [
+                    "urn:nhsd:apim:user:aal2personal-demographics-service",
+                    "urn:nhsd:apim:app:level3:example-2",
+                ],
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 "cis2_seperate",
                 id="User-restricted-CIS2-seperate: form param scope removed (invalid scopes)",
             ),
@@ -745,6 +871,10 @@ class TestProductScopes:
             pytest.param(
                 [
                     "urn:nhsd:apim:user:aal3personal-demographics-service",
+                    "urn:nhsd:apim:app:level3:example-2",
+                ],
+                [
+                    "urn:nhsd:apim:user:aal2personal-demographics-service",
                     "urn:nhsd:apim:app:level3:example-2",
                 ],
                 ["urn:nhsd:apim:user-nhs-login:P9:personal-demographics-service"],
@@ -846,6 +976,8 @@ class TestProductScopes:
             pytest.param(
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
                 ["urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
+                ["urn:nhsd:apim:user-nhs-id:aal2:ambulance-analytics"],
                 "client_credentials",
                 id="App-restricted: multiple products with invalid scopes",
             ),
@@ -853,6 +985,10 @@ class TestProductScopes:
                 [
                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
                     "urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics",
+                ],
+                [
+                    "urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service",
+                    "urn:nhsd:apim:user-nhs-id:aal2:ambulance-analytics",
                 ],
                 [],
                 "client_credentials",
@@ -864,8 +1000,16 @@ class TestProductScopes:
                     "urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics",
                 ],
                 [
+                    "urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service",
+                    "urn:nhsd:apim:user-nhs-id:aal2:ambulance-analytics",
+                ],
+                [
                     "urn:nhsd:apim:user-nhs-id:aal3:example-1",
                     "urn:nhsd:apim:user-nhs-id:aal3:example-2",
+                ],
+                [
+                    "urn:nhsd:apim:user-nhs-id:aal2:example-1",
+                    "urn:nhsd:apim:user-nhs-id:aal2:example-2",
                 ],
                 "client_credentials",
                 id="App-restricted: multiple products with multiple invalid scopes",
@@ -965,6 +1109,7 @@ class TestProductScopes:
             ),
             pytest.param(
                 ["urn:nhsd:apim:user:aal3personal-demographics-service"],
+                ["urn:nhsd:apim:user:aal2personal-demographics-service"],
                 [],
                 "cis2_combined",
                 id="User-restricted-CIS2-combined: one product with invalid scope (missing colon), one product with no scope",
@@ -1103,6 +1248,7 @@ class TestProductScopes:
             ),
             pytest.param(
                 ["urn:nhsd:apim:user:aal3personal-demographics-service"],
+                ["urn:nhsd:apim:user:aal2personal-demographics-service"],
                 [],
                 "cis2_seperate",
                 id="User-restricted-CIS2-seperate: one product with invalid scope (missing colon), one product with no scope",

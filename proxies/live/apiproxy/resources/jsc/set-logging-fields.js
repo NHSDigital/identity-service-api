@@ -98,6 +98,9 @@ function getLevel(level) {
     if (level.includes('aal3')) {
       return 'aal3'
     }
+    if (level.includes('aal2')) {
+      return 'aal2'
+    }
     if (level.includes('level3')) {
       return 'level3'
     }

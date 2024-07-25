@@ -102,6 +102,46 @@ class TestBackChannelLogout:
     @pytest.mark.happy_path
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
+        level="aal2",
+        login_form={"username": "656005750109"},
+        force_new_token=True,
+    )
+    def test_backchannel_logout_happy_path_aal2(
+        self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url
+    ):
+        access_token = _nhsd_apim_auth_token_data["access_token"]
+        sid = _nhsd_apim_auth_token_data["sid"]
+        assert sid
+
+        # Test token can be used to access identity service
+        userinfo_resp = requests.get(
+            nhsd_apim_proxy_url + "/userinfo",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        assert userinfo_resp.status_code == 200
+
+        # Mock back channel logout notification and test succesful logout response
+        logout_token = self.create_logout_token(override_sid=sid)
+
+        back_channel_resp = requests.post(
+            nhsd_apim_proxy_url + "/backchannel_logout",
+            data={"logout_token": logout_token},
+        )
+        assert back_channel_resp.status_code == 200
+
+        # Revoking a token seems to be eventually consistent?
+        sleep(2)
+
+        # Test access token has been revoked
+        userinfo_resp = requests.get(
+            nhsd_apim_proxy_url + "/userinfo",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        assert userinfo_resp.status_code == 401
+
+    @pytest.mark.happy_path
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
         level="aal3",
         login_form={"username": "656005750104"},
         force_new_token=True,
@@ -163,11 +203,200 @@ class TestBackChannelLogout:
         )
         assert post_refresh_userinfo_resp.status_code == 401
 
+    @pytest.mark.happy_path
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal2",
+        login_form={"username": "656005750109"},
+        force_new_token=True,
+    )
+    def test_backchannel_logout_user_refresh_token_aal2(
+        self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url, _test_app_credentials
+    ):
+        access_token = _nhsd_apim_auth_token_data["access_token"]
+        sid = _nhsd_apim_auth_token_data["sid"]
+        assert sid
+
+        # Test token can be used to access identity service
+        userinfo_resp = requests.get(
+            nhsd_apim_proxy_url + "/userinfo",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        assert userinfo_resp.status_code == 200
+
+        # refresh token
+        refresh_token_resp = requests.post(
+            nhsd_apim_proxy_url + "/token",
+            data={
+                "client_id": _test_app_credentials["consumerKey"],
+                "client_secret": _test_app_credentials["consumerSecret"],
+                "refresh_token": _nhsd_apim_auth_token_data["refresh_token"],
+                "grant_type": "refresh_token",
+            },
+        )
+        refreshed_access_token = refresh_token_resp.json()["access_token"]
+
+        refresh_userinfo_resp = requests.get(
+            nhsd_apim_proxy_url + "/userinfo",
+            headers={"Authorization": f"Bearer {refreshed_access_token}"},
+        )
+        assert refresh_userinfo_resp.status_code == 200
+
+        # Mock back channel logout notification and test succesful logout response
+        logout_token = self.create_logout_token(override_sid=sid)
+
+        back_channel_resp = requests.post(
+            nhsd_apim_proxy_url + "/backchannel_logout",
+            data={"logout_token": logout_token},
+        )
+        assert back_channel_resp.status_code == 200
+
+        # Revoking a token seems to be eventually consistent?
+        sleep(2)
+
+        # Test access token has been revoked
+        post_userinfo_resp = requests.get(
+            nhsd_apim_proxy_url + "/userinfo",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        assert post_userinfo_resp.status_code == 401
+
+        post_refresh_userinfo_resp = requests.get(
+            nhsd_apim_proxy_url + "/userinfo",
+            headers={"Authorization": f"Bearer {refreshed_access_token}"},
+        )
+        assert post_refresh_userinfo_resp.status_code == 401
+        
     # Request sends a JWT has missing or invalid claims of the following problems, returns a 400
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
         level="aal3",
         login_form={"username": "656005750104"},
+        force_new_token=True,
+    )
+    @pytest.mark.parametrize(
+        "claims,status_code,error_message",
+        [
+            (  # invalid aud claim
+                {
+                    "aud": "invalid_aud_claim",
+                    "iss": "https://identity.ptl.api.platform.nhs.uk/realms/Cis2-mock-internal-dev",
+                    "sub": "9999999999",
+                    "iat": int(time()) - 10,
+                    "jti": str(uuid4()),
+                    "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
+                    "events": {
+                        "http://schemas.openid.net/event/backchannel-logout": {}
+                    },
+                },
+                400,
+                "Missing/invalid aud claim in JWT",
+            ),
+            (  # missing aud claim
+                {
+                    "iss": "https://identity.ptl.api.platform.nhs.uk/realms/Cis2-mock-internal-dev",
+                    "sub": "9999999999",
+                    "iat": int(time()) - 10,
+                    "jti": str(uuid4()),
+                    "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
+                    "events": {
+                        "http://schemas.openid.net/event/backchannel-logout": {}
+                    },
+                },
+                400,
+                "Missing/invalid aud claim in JWT",
+            ),
+            (  # invalid iss claim
+                {
+                    "aud": "test-client-cis2",
+                    "iss": "invalid_iss_claim",
+                    "sub": "9999999999",
+                    "iat": int(time()) - 10,
+                    "jti": str(uuid4()),
+                    "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
+                    "events": {
+                        "http://schemas.openid.net/event/backchannel-logout": {}
+                    },
+                },
+                400,
+                "Missing/invalid iss claim in JWT",
+            ),
+            (  # missing iss claim
+                {
+                    "aud": "test-client-cis2",
+                    "sub": "9999999999",
+                    "iat": int(time()) - 10,
+                    "jti": str(uuid4()),
+                    "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
+                    "events": {
+                        "http://schemas.openid.net/event/backchannel-logout": {}
+                    },
+                },
+                400,
+                "Missing/invalid iss claim in JWT",
+            ),
+            (  # missing sid claim
+                {
+                    "aud": "test-client-cis2",
+                    "iss": "https://identity.ptl.api.platform.nhs.uk/realms/Cis2-mock-internal-dev",
+                    "sub": "9999999999",
+                    "iat": int(time()) - 10,
+                    "jti": str(uuid4()),
+                    "events": {
+                        "http://schemas.openid.net/event/backchannel-logout": {}
+                    },
+                },
+                400,
+                "Missing sid claim in JWT",
+            ),
+            (  # invalid events claim
+                {
+                    "aud": "test-client-cis2",
+                    "iss": "https://identity.ptl.api.platform.nhs.uk/realms/Cis2-mock-internal-dev",
+                    "sub": "9999999999",
+                    "iat": int(time()) - 10,
+                    "jti": str(uuid4()),
+                    "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
+                    "events": {"invalid_event_url": {}},
+                },
+                400,
+                "Missing/invalid events claim in JWT",
+            ),
+            (  # missing events claim
+                {
+                    "aud": "test-client-cis2",
+                    "iss": "https://identity.ptl.api.platform.nhs.uk/realms/Cis2-mock-internal-dev",
+                    "sub": "9999999999",
+                    "iat": int(time()) - 10,
+                    "jti": str(uuid4()),
+                    "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
+                },
+                400,
+                "Missing/invalid events claim in JWT",
+            ),
+            (  # present nonce claim
+                {
+                    "aud": "test-client-cis2",
+                    "iss": "https://identity.ptl.api.platform.nhs.uk/realms/Cis2-mock-internal-dev",
+                    "sub": "9999999999",
+                    "iat": int(time()) - 10,
+                    "jti": str(uuid4()),
+                    "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
+                    "events": {
+                        "http://schemas.openid.net/event/backchannel-logout": {}
+                    },
+                    "nonce": "valid_nonce",
+                },
+                400,
+                "Prohibited nonce claim in JWT",
+            ),
+        ],
+    )
+    # Request sends a JWT has missing or invalid claims of the following problems, returns a 400
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal2",
+        login_form={"username": "656005750109"},
         force_new_token=True,
     )
     @pytest.mark.parametrize(
@@ -325,6 +554,37 @@ class TestBackChannelLogout:
         force_new_token=True,
     )
     def test_invalid_jwt(self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url):
+        access_token = _nhsd_apim_auth_token_data["access_token"]
+
+        # Test token can be used to access identity service
+        userinfo_resp = requests.get(
+            nhsd_apim_proxy_url + "/userinfo",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        assert userinfo_resp.status_code == 200
+
+        # Mock back channel logout notification and test with invalid kid
+        logout_token = self.create_logout_token(
+            override_kid="invalid_kid",
+            override_sid="5b8f2499-ad4a-4a7c-b0ac-aaada65bda2b",
+        )
+
+        back_channel_resp = requests.post(
+            nhsd_apim_proxy_url + "/backchannel_logout",
+            data={"logout_token": logout_token},
+        )
+
+        assert back_channel_resp.status_code == 400
+        assert back_channel_resp.json()["error_description"] == "Unable to verify JWT"
+
+    # Request sends JWT that cannot be verified returns a  400
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal2",
+        login_form={"username": "656005750109"},
+        force_new_token=True,
+    )
+    def test_invalid_jwt_aal2(self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url):
         access_token = _nhsd_apim_auth_token_data["access_token"]
 
         # Test token can be used to access identity service
