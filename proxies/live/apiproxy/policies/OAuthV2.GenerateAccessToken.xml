@@ -16,7 +16,7 @@
         <Attribute name="id_token" ref="externalIdToken" display="true"/>
         <Attribute name="id_token-subject" ref="jwt.DecodeJWT.FromExternalIdToken.claim.subject" display="true"/>
         <Attribute name="id_token-issuer" ref="jwt.DecodeJWT.FromExternalIdToken.claim.issuer" display="true"/>
-        <Attribute name="id_token-acr" ref="jwt.DecodeJWT.FromExternalIdToken.claim.acr" display="true"/>
+        <Attribute name="id_token-acr" ref="jwt.DecodeJWT.FromExternalIdToken.claim.authentication_assurance_leve" display="true"/>
         <Attribute name="id_token-amr" ref="jwt.DecodeJWT.FromExternalIdToken.claim.amr" display="true"/>
         <Attribute name="id_token-id-assurance-level" ref="jwt.DecodeJWT.FromExternalIdToken.claim.id_assurance_level" display="true"/>
         <Attribute name="id_token-identity-proofing-level" ref="jwt.DecodeJWT.FromExternalIdToken.claim.identity_proofing_level" display="true"/>
