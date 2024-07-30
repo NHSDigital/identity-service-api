@@ -20,15 +20,6 @@ from e2e.tests.utils.helpers import (
 class TestAuthorizationCode:
     """A test suit to test the token exchange flow"""
 
-    # We are on our second generation of mock identity provider for
-    # healthcare_worker access (CIS2). This allows you to log-in using a
-    # username.
-    MOCK_CIS2_USERNAMES = {
-     "aal1": ["656005750110"],
-     "aal2": ["656005750109", "656005750111", "656005750112"],
-     "aal3": ["656005750104", "656005750105", "656005750106"],
-    }
-
     def get_params_from_url(self, url: str) -> dict:
         """Returns all the params and param values from a given url as a dictionary"""
         return dict(parse.parse_qsl(parse.urlsplit(url).query))
