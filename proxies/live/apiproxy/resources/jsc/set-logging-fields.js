@@ -95,10 +95,10 @@ function getLevel(level) {
   if (level) {
     level = level.toLowerCase()
 
-    if (level.includes(3)) {
+    if (level===('3')) {
       return 'aal3'
     }
-    if (level.includes(2)) {
+    if (level===('2')) {
       return 'aal2'
     }
     if (level.includes('level3')) {

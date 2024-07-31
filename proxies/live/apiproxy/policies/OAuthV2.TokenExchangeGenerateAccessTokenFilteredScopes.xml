@@ -21,7 +21,8 @@
         <Attribute name="id_token-subject" ref="jwt.VerifyJWT.SubjectToken.claim.subject" display="true" />
         <Attribute name="id_token" display="true" ref="request.formparam.subject_token" />
         <Attribute name="id_token-issuer" ref="jwt.VerifyJWT.SubjectToken.claim.issuer" display="true" />
-        <Attribute name="id_token-acr" ref="jwt.VerifyJWT.SubjectToken.claim.authentication_assurance_leve" display="true" />
+        <Attribute name="id_token-acr" ref="jwt.VerifyJWT.SubjectToken.claim.acr" display="true" />
+        <Attribute name="id_token-authentication_assurance_level" ref="jwt.DecodeJWT.FromExternalIdToken.claim.authentication_assurance_level" display="true"/>
         <Attribute name="id_token-amr" ref="jwt.VerifyJWT.SubjectToken.claim.amr" display="true" />
         <Attribute name="id_token-id-assurance-level" ref="jwt.VerifyJWT.SubjectToken.claim.id_assurance_level" display="true" />
         <Attribute name="id_token-identity-proofing-level" ref="jwt.VerifyJWT.SubjectToken.claim.identity_proofing_level" display="true"/>
