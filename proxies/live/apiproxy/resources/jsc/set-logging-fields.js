@@ -19,7 +19,7 @@ if (grant_type === 'authorization_code' || pathsuffix === '/authorize' || pathsu
       level = getLevel(proofing_level)
       user_id = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.nhs_number')
     } else {
-      claim_acr = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.authentication_assurance_level')
+      claim_acr = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.acr')
 
       level = getLevel(claim_acr)
       user_id = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.subject')
