@@ -9,6 +9,8 @@ else{
     id_token_acr = ':aal' + id_token_acr + ':';
 }
 
+print("ID_TOKEN_CHECK",id_token_acr);
+
 var api_product_scopes = String(context.getVariable('original_scope'));
 
 if (api_product_scopes == 'null') {
