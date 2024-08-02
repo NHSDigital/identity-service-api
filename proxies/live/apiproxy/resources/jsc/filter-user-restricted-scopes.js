@@ -9,6 +9,7 @@ else{
     id_token_acr = ':' + id_token_acr.slice(0, 4).toLowerCase() + ':';
 }
 
+print("IDTOKEN",id_token_acr);
 var api_product_scopes = String(context.getVariable('original_scope'));
 
 if (api_product_scopes == 'null') {
