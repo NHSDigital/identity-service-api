@@ -166,9 +166,11 @@ class TestAttachLoggingFields:
         self, _nhsd_apim_auth_token_data, access_token_api, expected_token_attributes
     ):
         access_token = _nhsd_apim_auth_token_data["access_token"]
+        print(f"My first Check - {access_token}")
         token_data = access_token_api.get_token_details(access_token)
+        print(f"My Second Check - {token_data}")
         token_attributes = self.get_token_details(token_data)
-        print(f"token attributes check - {token_attributes}")
+        print(f"My Third Check - {token_attributes}")
+
         for attribute, _ in expected_token_attributes.items():
-            print(f"expected_token - {expected_token_attributes}")
             assert token_attributes[attribute] == expected_token_attributes[attribute]
