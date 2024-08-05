@@ -5,9 +5,9 @@ if(idp == 'nhs-login'){
     id_token_acr = ':' + id_token_acr.slice(0, 2) + ':'; 
 }
 else{
-   // var id_token_acr = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.decoded.claim.authentication_assurance_level');
-   // id_token_acr = ':aal' + id_token_acr + ':';
-   var id_token_acr = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.decoded.claim');
+    var id_token_acr = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.decoded.claim.authentication_assurance_level');
+    id_token_acr = ':aal' + id_token_acr + ':';
+   
 }
 
 print("ID_TOKEN_CHECK",id_token_acr);
