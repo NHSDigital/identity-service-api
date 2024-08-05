@@ -9,45 +9,72 @@ class TestAttachLoggingFields:
         for attribute in token_data["attributes"]:
             token_attributes[attribute["name"]] = attribute["value"]
         return token_attributes
+    
+    # We are on our second generation of mock identity provider for
+    # healthcare_worker access (CIS2). This allows you to log-in using a
+    # username.
+    MOCK_CIS2_USERNAMES = {
+     "aal1": ["656005750110"],
+     "aal2": ["656005750109", "656005750111", "656005750112"],
+     "aal3": ["656005750104", "656005750105", "656005750106"],
+    }
 
     @pytest.mark.happy_path
     @pytest.mark.logging
     @pytest.mark.parametrize(
         ("expected_token_attributes"),
         [
-            # User-restricted CIS2 combined aal3
+            # User-restricted CIS2 combined aal3 & aal2
             pytest.param(
                 {
                     "auth_type": "user",
                     "auth_grant_type": "authorization_code",
-                    "auth_level": "aal3",
+                    "auth_level": level,
                     "auth_provider": "apim-mock-nhs-cis2",
-                    "auth_user_id": "656005750104",
+                    "auth_user_id": username,
                 },
                 marks=pytest.mark.nhsd_apim_authorization(
                     access="healthcare_worker",
-                    level="aal3",
-                    login_form={"username": "656005750104"},
+                    level=level,
+                    login_form={"username": username},
                     force_new_token=True,
                 ),
-            ),
-            # User-restricted CIS2 seperate aal3
+            )
+            for level, usernames in MOCK_CIS2_USERNAMES.items()
+            for username in usernames
+        ]
+    )
+    @pytest.mark.happy_path
+    @pytest.mark.logging
+    @pytest.mark.parametrize(
+        ("expected_token_attributes"),
+        [
+            # User-restricted CIS2 seperate aal3 & aal2
             pytest.param(
                 {
                     "auth_type": "user",
                     "auth_grant_type": "token_exchange",
-                    "auth_level": "aal3",
+                    "auth_level": level,
                     "auth_provider": "apim-mock-nhs-cis2",
-                    "auth_user_id": "656005750104",
+                    "auth_user_id": username,
                 },
                 marks=pytest.mark.nhsd_apim_authorization(
                     access="healthcare_worker",
-                    level="aal3",
-                    login_form={"username": "656005750104"},
+                    level=level,
+                    login_form={"username": username},
                     authentication="separate",
                     force_new_token=True,
                 ),
-            ),
+            )
+            for level, usernames in MOCK_CIS2_USERNAMES.items()
+            for username in usernames
+        ]
+    )
+    @pytest.mark.happy_path
+    @pytest.mark.logging
+    @pytest.mark.parametrize(
+        ("expected_token_attributes"),
+        [
             # User-restricted NHS-login combined P0
             pytest.param(
                 {
