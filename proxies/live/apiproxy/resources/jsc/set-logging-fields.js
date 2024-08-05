@@ -20,8 +20,9 @@ if (grant_type === 'authorization_code' || pathsuffix === '/authorize' || pathsu
       user_id = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.nhs_number')
     } else {
       claim_acr = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.authentication_assurance_level')
-
+      print("Checking ACR",claim_acr);
       level = getLevel(claim_acr)
+      print("Checking level",level);
       user_id = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.subject')
     }
   }
