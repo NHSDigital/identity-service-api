@@ -20,9 +20,7 @@ if (grant_type === 'authorization_code' || pathsuffix === '/authorize' || pathsu
       user_id = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.nhs_number')
     } else {
       claim_acr = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.authentication_assurance_level')
-      print("Checking ACR",claim_acr);
       level = getLevel(claim_acr)
-      print("Checking level",level);
       user_id = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.subject')
     }
   }
@@ -101,6 +99,9 @@ function getLevel(level) {
     }
     if (level===('2')) {
       return 'aal2'
+    }
+    if (level===('1')) {
+      return 'aal1'
     }
     if (level.includes('level3')) {
       return 'level3'
