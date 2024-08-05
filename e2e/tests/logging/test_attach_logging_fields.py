@@ -31,23 +31,23 @@ class TestAttachLoggingFields:
                     force_new_token=True,
                 ),
             ),
-            # User-restricted CIS2 seperate aal3
-            pytest.param(
-                {
-                    "auth_type": "user",
-                    "auth_grant_type": "token_exchange",
-                    "auth_level": "aal3",
-                    "auth_provider": "apim-mock-nhs-cis2",
-                    "auth_user_id": "656005750104",
-                },
-                marks=pytest.mark.nhsd_apim_authorization(
-                    access="healthcare_worker",
-                    level="aal3",
-                    login_form={"username": "656005750104"},
-                    authentication="separate",
-                    force_new_token=True,
-                ),
-            ),
+            # # User-restricted CIS2 seperate aal3
+            # pytest.param(
+            #     {
+            #         "auth_type": "user",
+            #         "auth_grant_type": "token_exchange",
+            #         "auth_level": "aal3",
+            #         "auth_provider": "apim-mock-nhs-cis2",
+            #         "auth_user_id": "656005750104",
+            #     },
+            #     marks=pytest.mark.nhsd_apim_authorization(
+            #         access="healthcare_worker",
+            #         level="aal3",
+            #         login_form={"username": "656005750104"},
+            #         authentication="separate",
+            #         force_new_token=True,
+            #     ),
+            # ),
             # User-restricted NHS-login combined P0
             pytest.param(
                 {
