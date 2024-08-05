@@ -170,4 +170,5 @@ class TestAttachLoggingFields:
         token_attributes = self.get_token_details(token_data)
 
         for attribute, _ in expected_token_attributes.items():
+            print(f"My current test app is - {attribute}")
             assert token_attributes[attribute] == expected_token_attributes[attribute]
