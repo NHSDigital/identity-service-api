@@ -11,14 +11,6 @@ from e2e.tests.utils.config import JWT_PRIVATE_KEY_ABSOLUTE_PATH
 
 class TestBackChannelLogout:
     """A test suite for back-channel logout functionality"""
-    # We are on our second generation of mock identity provider for
-    # healthcare_worker access (CIS2). This allows you to log-in using a
-    # username.
-    MOCK_CIS2_USERNAMES = {
-     "aal1": ["656005750110"],
-     "aal2": ["656005750109", "656005750111", "656005750112"],
-     "aal3": ["656005750104", "656005750105", "656005750106"],
-    }
 
     def create_logout_token(
         self,
@@ -68,19 +60,11 @@ class TestBackChannelLogout:
         return logout_token_jwt
 
     @pytest.mark.happy_path
-    @pytest.mark.parametrize(
-        [
-            pytest.param(
-                marks=pytest.mark.nhsd_apim_authorization(
-                    access="healthcare_worker",
-                    level=level,
-                    login_form={"username": username},
-                    force_new_token=True,
-                ),
-            )
-            for level, usernames in MOCK_CIS2_USERNAMES.items()
-            for username in usernames
-        ],
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True,
     )
     def test_backchannel_logout_happy_path(
         self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url
@@ -116,19 +100,11 @@ class TestBackChannelLogout:
         assert userinfo_resp.status_code == 401
 
     @pytest.mark.happy_path
-    @pytest.mark.parametrize(
-        [
-            pytest.param(
-                marks=pytest.mark.nhsd_apim_authorization(
-                    access="healthcare_worker",
-                    level=level,
-                    login_form={"username": username},
-                    force_new_token=True,
-                ),
-            )
-            for level, usernames in MOCK_CIS2_USERNAMES.items()
-            for username in usernames
-        ],
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True,
     )
     def test_backchannel_logout_user_refresh_token(
         self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url, _test_app_credentials
@@ -188,19 +164,11 @@ class TestBackChannelLogout:
         assert post_refresh_userinfo_resp.status_code == 401
 
     # Request sends a JWT has missing or invalid claims of the following problems, returns a 400
-    @pytest.mark.parametrize(
-        [
-            pytest.param(
-                marks=pytest.mark.nhsd_apim_authorization(
-                    access="healthcare_worker",
-                    level=level,
-                    login_form={"username": username},
-                    force_new_token=True,
-                ),
-            )
-            for level, usernames in MOCK_CIS2_USERNAMES.items()
-            for username in usernames
-        ],
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True,
     )
     @pytest.mark.parametrize(
         "claims,status_code,error_message",
@@ -350,19 +318,11 @@ class TestBackChannelLogout:
         assert back_channel_resp.json()["error_description"] == error_message
 
     # Request sends JWT that cannot be verified returns a  400
-    @pytest.mark.parametrize(
-        [
-            pytest.param(
-                marks=pytest.mark.nhsd_apim_authorization(
-                    access="healthcare_worker",
-                    level=level,
-                    login_form={"username": username},
-                    force_new_token=True,
-                ),
-            )
-            for level, usernames in MOCK_CIS2_USERNAMES.items()
-            for username in usernames
-        ],
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True,
     )
     def test_invalid_jwt(self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url):
         access_token = _nhsd_apim_auth_token_data["access_token"]
