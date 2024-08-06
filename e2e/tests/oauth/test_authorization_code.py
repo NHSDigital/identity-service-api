@@ -43,7 +43,6 @@ class TestAuthorizationCode:
         for username in usernames
     ]
     
-
     def get_params_from_url(self, url: str) -> dict:
         """Returns all the params and param values from a given url as a dictionary"""
         return dict(parse.parse_qsl(parse.urlsplit(url).query))
@@ -67,12 +66,6 @@ class TestAuthorizationCode:
 
     @pytest.mark.happy_path
     @pytest.mark.token_endpoint
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "656005750104"},
-    #     force_new_token=True,
-    # )
     @pytest.mark.parametrize("username, level", combined_auth_params)
     def test_token_endpoint(self, _nhsd_apim_auth_token_data, username, level):
         assert _nhsd_apim_auth_token_data["expires_in"] == "599"
@@ -91,12 +84,6 @@ class TestAuthorizationCode:
 
     @pytest.mark.errors
     @pytest.mark.token_endpoint
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "656005750104"},
-    #     force_new_token=True,
-    # )
     @pytest.mark.parametrize("username, level", combined_auth_params)
     @pytest.mark.parametrize(
         "expected_response,expected_status_code,missing_or_invalid,update_data",
@@ -237,12 +224,6 @@ class TestAuthorizationCode:
         assert body == expected_response
 
     @pytest.mark.happy_path
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "656005750104"},
-    #     force_new_token=True,
-    # )
     @pytest.mark.parametrize("username, level", combined_auth_params)
     def test_refresh_token(
         self, nhsd_apim_proxy_url, refresh_token_data, _nhsd_apim_auth_token_data, username, level
@@ -271,12 +252,6 @@ class TestAuthorizationCode:
         ]
 
     @pytest.mark.happy_path
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "656005750104"},
-    #     force_new_token=True
-    # )
     @pytest.mark.parametrize("username, level", combined_auth_params)
     def test_refresh_token_expiry_calculated_correctly(
         self,
@@ -393,12 +368,7 @@ class TestAuthorizationCode:
             ),
         ],
     )
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "656005750104"},
-    #     force_new_token=True,
-    # )
+    
     @pytest.mark.parametrize("username, level", combined_auth_params)
     def test_refresh_token_error_conditions(
         self,
@@ -464,12 +434,6 @@ class TestAuthorizationCode:
 
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "656005750104"},
-    #     force_new_token=True,
-    # )
     @pytest.mark.parametrize("username, level", combined_auth_params)
     def test_cache_invalidation(self, nhsd_apim_proxy_url, authorize_params, username, level):
         # Make authorize request, which includes callback call to retrieve used state
@@ -719,12 +683,6 @@ class TestAuthorizationCode:
 
     @pytest.mark.errors
     @pytest.mark.token_endpoint
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "656005750104"},
-    #     force_new_token=True,
-    # )
     @pytest.mark.parametrize("username, level", combined_auth_params)
     def test_token_unsubscribed_error_condition(
         self,
@@ -804,14 +762,13 @@ class TestAuthorizationCode:
         }
 
     @pytest.mark.happy_path
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "656005750104"},
-    #     force_new_token=True,
-    # )
-    @pytest.mark.parametrize("username, level", combined_auth_params)
-    def test_userinfo(self, nhsd_apim_proxy_url, nhsd_apim_auth_headers, username, level):
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True,
+    )
+    def test_userinfo(self, nhsd_apim_proxy_url, nhsd_apim_auth_headers):
         resp = requests.get(
             nhsd_apim_proxy_url + "/userinfo", headers=nhsd_apim_auth_headers
         )
@@ -820,12 +777,6 @@ class TestAuthorizationCode:
         assert resp.status_code == 200
         assert body == BANK.get("test_userinfo")["response"]
 
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "656005750104"},
-    #     force_new_token=True,
-    # )
     @pytest.mark.parametrize("username, level", combined_auth_params)
     @pytest.mark.happy_path
     def test_access_token(
@@ -930,12 +881,6 @@ class TestAuthorizationCode:
         assert body == expected_response
 
     @pytest.mark.errors
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "656005750104"},
-    #     force_new_token=True,
-    # )
     @pytest.mark.parametrize("username, level", combined_auth_params)
     def test_expired_access_token(
         self, nhsd_apim_proxy_url, authorize_params, token_data_authorization_code, username, level
@@ -977,12 +922,6 @@ class TestAuthorizationCode:
         }
 
     @pytest.mark.errors
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "656005750104"},
-    #     force_new_token=True,
-    # )
     @pytest.mark.parametrize("username, level", combined_auth_params)
     @pytest.mark.parametrize(
         "token_expiry_ms, expected_time",
@@ -1017,12 +956,6 @@ class TestAuthorizationCode:
         assert int(body["expires_in"]) <= expected_time
 
     @pytest.mark.errors
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "656005750104"},
-    #     force_new_token=True,
-    # )
     @pytest.mark.parametrize("username, level", combined_auth_params)
     @pytest.mark.parametrize(
         "token_expiry_ms, expected_time",
@@ -1089,12 +1022,6 @@ class TestAuthorizationCode:
         }
 
     @pytest.mark.errors
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "656005750104"},
-    #     force_new_token=True,
-    # )
     @pytest.mark.parametrize("username, level", combined_auth_params)
     def test_access_token_with_params(
         self, nhsd_apim_proxy_url, authorize_params, token_data_authorization_code, username, level
@@ -1124,12 +1051,6 @@ class TestAuthorizationCode:
         }
 
     @pytest.mark.errors
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "656005750104"},
-    #     force_new_token=True,
-    # )
     @pytest.mark.parametrize("username, level", combined_auth_params)
     def test_refresh_token_does_expire(
         self, nhsd_apim_proxy_url, refresh_token_data, _nhsd_apim_auth_token_data, username, level
@@ -1171,12 +1092,6 @@ class TestAuthorizationCode:
         }
 
     @pytest.mark.errors
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "656005750104"},
-    #     force_new_token=True,
-    # )
     @pytest.mark.parametrize("username, level", combined_auth_params)
     def test_refresh_tokens_validity_expires(
         self, nhsd_apim_proxy_url, refresh_token_data, _nhsd_apim_auth_token_data, username, level
@@ -1204,12 +1119,6 @@ class TestAuthorizationCode:
         }
 
     @pytest.mark.errors
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "656005750104"},
-    #     force_new_token=True,
-    # )
     @pytest.mark.parametrize("username, level", combined_auth_params)
     def test_re_use_of_refresh_token(
         self, nhsd_apim_proxy_url, refresh_token_data, _nhsd_apim_auth_token_data, username, level
@@ -1254,12 +1163,6 @@ class TestAuthorizationCode:
         }
 
     @pytest.mark.happy_path
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "656005750104"},
-    #     force_new_token=True,
-    # )
     @pytest.mark.parametrize("username, level", combined_auth_params)
     def test_cis2_refresh_tokens_generated_with_expected_expiry_combined_auth(
         self, _nhsd_apim_auth_token_data, username, level
