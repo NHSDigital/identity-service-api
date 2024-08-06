@@ -368,7 +368,6 @@ class TestAuthorizationCode:
             ),
         ],
     )
-    
     @pytest.mark.parametrize("username, level", combined_auth_params)
     def test_refresh_token_error_conditions(
         self,
