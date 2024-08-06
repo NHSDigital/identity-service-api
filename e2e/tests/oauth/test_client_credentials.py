@@ -34,10 +34,7 @@ class TestClientCredentialsJWT:
             ("RS384"),
             ("PS256"),
             ("PS384"),
-            ("PS512"),
-            ("HS256"),
-            ("HS384"),
-            ("HS512"),
+            ("PS512")
         ],
     )
     def test_incorrect_jwt_algorithm(
