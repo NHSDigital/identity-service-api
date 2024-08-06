@@ -3,29 +3,6 @@ import pytest
 
 class TestAttachLoggingFields:
     """Test logging fields are attached as attributes to access tokens"""
-    # We are on our second generation of mock identity provider for
-    # healthcare_worker access (CIS2). This allows you to log-in using a
-    # username.
-    MOCK_CIS2_USERNAMES = {
-     "aal1": ["656005750110"],
-     "aal2": ["656005750109", "656005750111", "656005750112"],
-     "aal3": ["656005750104", "656005750105", "656005750106"],
-    }
-
-    # Create a list of pytest.param for each combination of username and level for combined auth
-    combined_auth_params = [
-        pytest.param(
-            username, level,
-            marks=pytest.mark.nhsd_apim_authorization(
-                access="healthcare_worker",
-                level=level,
-                login_form={"username": username},
-                force_new_token=True,
-            ),
-        )
-        for level, usernames in MOCK_CIS2_USERNAMES.items()
-        for username in usernames
-    ]
 
     def get_token_details(self, token_data):
         token_attributes = {}
@@ -36,7 +13,7 @@ class TestAttachLoggingFields:
     @pytest.mark.happy_path
     @pytest.mark.logging
     @pytest.mark.parametrize(
-        ("expected_token_attributes", "username, level", combined_auth_params),
+        ("expected_token_attributes"),
         [
             # User-restricted CIS2 combined aal3
             pytest.param(
@@ -186,7 +163,7 @@ class TestAttachLoggingFields:
         ],
     )
     def test_access_token_fields_for_logging(
-        self, _nhsd_apim_auth_token_data, access_token_api, expected_token_attributes, username, level
+        self, _nhsd_apim_auth_token_data, access_token_api, expected_token_attributes
     ):
         access_token = _nhsd_apim_auth_token_data["access_token"]
         token_data = access_token_api.get_token_details(access_token)
