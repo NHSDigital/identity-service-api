@@ -17,7 +17,7 @@ from e2e.tests.utils.helpers import (
 
 class TestTokenExchange:
     """A test suit to test the token exchange flow"""
-        # We are on our second generation of mock identity provider for
+    # We are on our second generation of mock identity provider for
     # healthcare_worker access (CIS2). This allows you to log-in using a
     # username.
     MOCK_CIS2_USERNAMES = {
@@ -43,13 +43,6 @@ class TestTokenExchange:
     ]
 
     @pytest.mark.happy_path
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "aal3"},
-    #     authentication="separate",
-    #     force_new_token=True,
-    # )
     @pytest.mark.parametrize("username, level", seperate_auth_params)
     def test_cis2_token_exchange_happy_path(self, _nhsd_apim_auth_token_data, username, level):
         assert _nhsd_apim_auth_token_data["expires_in"] == "599"
@@ -71,13 +64,6 @@ class TestTokenExchange:
         }
 
     @pytest.mark.happy_path
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "aal3"},
-    #     authentication="separate",
-    #     force_new_token=True,
-    # )
     @pytest.mark.parametrize("username, level", seperate_auth_params)
     def test_cis2_token_exchange_refresh_token(
         self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url, _test_app_credentials, username, level
@@ -340,12 +326,6 @@ class TestTokenExchange:
         del body["message_id"]
         assert body == expected_response
 
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "aal3"},
-    #     authentication="separate",
-    # )
     @pytest.mark.errors
     @pytest.mark.parametrize("username, level", seperate_auth_params)
     @pytest.mark.parametrize(
@@ -515,13 +495,6 @@ class TestTokenExchange:
         assert body == expected_response
 
     @pytest.mark.errors
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "aal3"},
-    #     authentication="separate",
-    #     force_new_token=True,
-    # )
     @pytest.mark.parametrize("username, level", seperate_auth_params)
     def test_token_exchange_claims_assertion_invalid_jti_claim(
         self,
@@ -1188,13 +1161,6 @@ class TestTokenExchange:
             "-and-authorisation",
         }
 
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "aal3"},
-    #     authentication="separate",
-    #     force_new_token=True,
-    # )
     @pytest.mark.parametrize("username, level", seperate_auth_params)
     def test_cis2_token_exchange_access_tokens_valid(
         self,
@@ -1318,13 +1284,6 @@ class TestTokenExchange:
         assert canary_resp.status_code == 200
         assert canary_resp.text == "Hello user!"
 
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "aal3"},
-    #     authentication="separate",
-    #     force_new_token=True,
-    # )
     @pytest.mark.parametrize("username, level", seperate_auth_params)
     def test_cis2_token_exchange_refresh_token_become_invalid(
         self,
@@ -1463,13 +1422,6 @@ class TestTokenExchange:
         assert int(body["expires_in"]) <= expected_time
 
     @pytest.mark.happy_path
-    # @pytest.mark.nhsd_apim_authorization(
-    #     access="healthcare_worker",
-    #     level="aal3",
-    #     login_form={"username": "aal3"},
-    #     authentication="separate",
-    #     force_new_token=True,
-    # )
     @pytest.mark.parametrize("username, level", seperate_auth_params)
     def test_cis2_refresh_tokens_generated_with_expected_expiry_separated_auth(
         self, _nhsd_apim_auth_token_data, username, level
