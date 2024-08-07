@@ -24,8 +24,8 @@ class TestAuthorizationCode:
     # username.
     MOCK_CIS2_USERNAMES = {
      "aal1": ["656005750110"],
-     "aal2": ["656005750109", "656005750111", "656005750112"],
-     "aal3": ["656005750104", "656005750105", "656005750106"],
+     "aal2": ["656005750109"],
+     "aal3": ["656005750104"],
     }
 
     # Create a list of pytest.param for each combination of username and level for combined auth

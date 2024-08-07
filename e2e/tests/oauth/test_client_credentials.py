@@ -61,7 +61,7 @@ class TestClientCredentialsJWT:
         assert resp.status_code == 400
         assert (
             "message_id" in body.keys()
-        )  # We assert the key but not he value for message_id
+        )  # We assert the key but not the value for message_id
         del body["message_id"]
         assert body == {
             "error": "invalid_request",
