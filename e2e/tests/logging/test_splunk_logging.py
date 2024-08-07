@@ -86,7 +86,7 @@ class TestSplunkLoggingFields:
             ),
         ],
     )
-    @pytest.mark.parametrize("username, level", combined_auth_params)
+    @pytest.mark.parametrize("level", combined_auth_params)
     def test_splunk_fields_for_authorize_endpoint(
         self,
         nhsd_apim_proxy_url,
