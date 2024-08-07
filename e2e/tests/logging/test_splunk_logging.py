@@ -39,9 +39,24 @@ class TestSplunkLoggingFields:
         for username in usernames
     ]
 
+    # Create a list of pytest.param for each combination of username and level for separate auth
+    separate_auth_params = [
+        pytest.param(
+            username, level,
+            marks=pytest.mark.nhsd_apim_authorization(
+                access="healthcare_worker",
+                level=level,
+                login_form={"username": username},
+                authentication="separate",
+                force_new_token=True,
+            ),
+        )
+        for level, usernames in MOCK_CIS2_USERNAMES.items()
+        for username in usernames
+    ]
+
     @pytest.mark.happy_path
     @pytest.mark.logging
-    @pytest.mark.parametrize("username, level", combined_auth_params)
     @pytest.mark.parametrize(
         "is_nhs_login,username,provider",
         [
@@ -71,6 +86,7 @@ class TestSplunkLoggingFields:
             ),
         ],
     )
+    @pytest.mark.parametrize("username, level", combined_auth_params)
     def test_splunk_fields_for_authorize_endpoint(
         self,
         nhsd_apim_proxy_url,
@@ -323,13 +339,14 @@ class TestSplunkLoggingFields:
 
     @pytest.mark.happy_path
     @pytest.mark.logging
-    @pytest.mark.nhsd_apim_authorization(
-        access="healthcare_worker",
-        level="aal3",
-        login_form={"username": "aal3"},
-        authentication="separate",
-        force_new_token=True,
-    )
+    # @pytest.mark.nhsd_apim_authorization(
+    #     access="healthcare_worker",
+    #     level="aal3",
+    #     login_form={"username": "aal3"},
+    #     authentication="separate",
+    #     force_new_token=True,
+    # )
+    @pytest.mark.parametrize("username, level", separate_auth_params)
     def test_splunk_fields_for_token_endpoint_token_exchange_cis2(
         self,
         nhsd_apim_proxy_url,
@@ -338,6 +355,8 @@ class TestSplunkLoggingFields:
         token_data_token_exchange,
         _jwt_keys,
         cis2_subject_token_claims,
+        username,
+        level
     ):
         token_data_token_exchange["client_assertion"] = create_client_assertion(
             claims, _jwt_keys["private_key_pem"]
