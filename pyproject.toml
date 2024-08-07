@@ -20,6 +20,7 @@ selenium = "^4.0.0"
 pytest-xdist = {extras = ["psutil"], version = "^2.4.0"}
 pytest-custom-exit-code = "^0.3.0"
 pytest-nhsd-apim = "^3.4.2"
+pyjwt = "^2.9.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -42,7 +43,7 @@ coverage = "^5.3"
 pytest-xdist = "^2.1.0"
 pytest-sugar = "^0.9.4"
 python-dotenv = "^0.17.1"
-PyJWT = "^2.3.0"
+PyJWT = "^2.9.0"
 cryptography = "^43.0.0"
 pytest-docker = "^3.1.1"
 
