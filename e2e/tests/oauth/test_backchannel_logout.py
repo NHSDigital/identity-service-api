@@ -10,7 +10,7 @@ from e2e.tests.utils.config import JWT_PRIVATE_KEY_ABSOLUTE_PATH
 
 
 class TestBackChannelLogout:
-    """A test suite for back-channel logout functionality"""
+    """A test suite for back-channel logout functionality """
 
     def create_logout_token(
         self,
