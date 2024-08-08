@@ -58,20 +58,20 @@ class TestSplunkLoggingFields:
     @pytest.mark.happy_path
     @pytest.mark.logging
     @pytest.mark.parametrize(
-        "is_nhs_login,username,provider",
+        "is_nhs_login,username,provider", combined_auth_params +
         [
-            # CIS2
-            pytest.param(
-                False,
-                "656005750104",
-                "apim-mock-nhs-cis2",
-                marks=pytest.mark.nhsd_apim_authorization(
-                    access="healthcare_worker",
-                    level="aal3",
-                    login_form={"username": "656005750104"},
-                    force_new_token=True,
-                ),
-            ),
+            # # CIS2
+            # pytest.param(
+            #     False,
+            #     "656005750104",
+            #     "apim-mock-nhs-cis2",
+            #     marks=pytest.mark.nhsd_apim_authorization(
+            #         access="healthcare_worker",
+            #         level="aal3",
+            #         login_form={"username": "656005750104"},
+            #         force_new_token=True,
+            #     ),
+            # ),
             # NHS Login
             pytest.param(
                 True,
@@ -84,7 +84,7 @@ class TestSplunkLoggingFields:
                     force_new_token=True,
                 ),
             ),
-        ],
+        ]
     )
     def test_splunk_fields_for_authorize_endpoint(
         self,
@@ -121,6 +121,9 @@ class TestSplunkLoggingFields:
         assert auth_meta["auth_type"] == "user"
         assert auth_meta["grant_type"] == "authorization_code"
         assert auth_meta["level"] == ""  # level is unknown when hitting /authorize
+        if provider is None:
+            provider = "apim-mock-nhs-cis2"
+        
         assert auth_meta["provider"] == provider
 
         auth_user = auth["user"]
