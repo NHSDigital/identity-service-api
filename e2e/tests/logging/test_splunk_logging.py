@@ -27,8 +27,8 @@ class TestSplunkLoggingFields:
     # Create a list of pytest.param for each combination of username and level for combined auth
     combined_auth_params = [
         pytest.param(
-            username, level,
-            marks=pytest.mark.nhsd_apim_authorization(
+           False, username, "apim-mock-nhs-cis2", level,
+           marks=pytest.mark.nhsd_apim_authorization(
                 access="healthcare_worker",
                 level=level,
                 login_form={"username": username},
@@ -58,7 +58,7 @@ class TestSplunkLoggingFields:
     @pytest.mark.happy_path
     @pytest.mark.logging
     @pytest.mark.parametrize(
-        "is_nhs_login,username,provider", combined_auth_params +
+        "is_nhs_login,username,provider,level", combined_auth_params +
         [
             # # CIS2
             # pytest.param(
@@ -77,6 +77,7 @@ class TestSplunkLoggingFields:
                 True,
                 "9912003071",
                 "apim-mock-nhs-login",
+                "P9",
                 marks=pytest.mark.nhsd_apim_authorization(
                     access="patient",
                     level="P9",
