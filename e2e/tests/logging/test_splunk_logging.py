@@ -60,18 +60,6 @@ class TestSplunkLoggingFields:
     @pytest.mark.parametrize(
         "is_nhs_login,username,level,provider", combined_auth_params
         [
-            # # CIS2
-            # pytest.param(
-            #     False,
-            #     "656005750104",
-            #     "apim-mock-nhs-cis2",
-            #     marks=pytest.mark.nhsd_apim_authorization(
-            #         access="healthcare_worker",
-            #         level="aal3",
-            #         login_form={"username": "656005750104"},
-            #         force_new_token=True,
-            #     ),
-            # ),
             # NHS Login
             pytest.param(
                 True,
