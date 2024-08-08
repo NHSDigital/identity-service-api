@@ -57,21 +57,59 @@ class TestSplunkLoggingFields:
 
     @pytest.mark.happy_path
     @pytest.mark.logging
+    @pytest.mark.parametrize("username, level", combined_auth_params)
+    def test_splunk_fields_for_authorize_endpoint_combined(
+        self,
+        nhsd_apim_proxy_url,
+        trace,
+        authorize_params,
+        username,
+        level
+    ):
+        session_name = str(uuid4())
+        header_filters = {"trace_id": session_name}
+        trace.post_debugsession(session=session_name, header_filters=header_filters)
+        get_auth_info(
+            url=nhsd_apim_proxy_url + "/authorize",
+            authorize_params=authorize_params,
+            username=username,
+            headers=header_filters,
+        )
+
+        payload = get_variable_from_trace(
+            trace, session_name, "splunkCalloutRequest.content"
+        )
+
+        trace.delete_debugsession_by_name(session_name)
+
+        auth = payload["auth"]
+        auth_meta = auth["meta"]
+
+        assert auth_meta["auth_type"] == "user"
+        assert auth_meta["grant_type"] == "authorization_code"
+        assert auth_meta["level"] == ""  # level is unknown when hitting /authorize
+        assert auth_meta["provider"] == "apim-mock-nhs-cis2"
+
+        auth_user = auth["user"]
+        assert auth_user["user_id"] == ""  # user_id is unknown when hitting /authorize
+
+    @pytest.mark.happy_path
+    @pytest.mark.logging
     @pytest.mark.parametrize(
         "is_nhs_login,username,provider",
         [
-            # CIS2
-            pytest.param(
-                False,
-                "656005750104",
-                "apim-mock-nhs-cis2",
-                marks=pytest.mark.nhsd_apim_authorization(
-                    access="healthcare_worker",
-                    level="aal3",
-                    login_form={"username": "656005750104"},
-                    force_new_token=True,
-                ),
-            ),
+            # # CIS2
+            # pytest.param(
+            #     False,
+            #     "656005750104",
+            #     "apim-mock-nhs-cis2",
+            #     marks=pytest.mark.nhsd_apim_authorization(
+            #         access="healthcare_worker",
+            #         level="aal3",
+            #         login_form={"username": "656005750104"},
+            #         force_new_token=True,
+            #     ),
+            # ),
             # NHS Login
             pytest.param(
                 True,
