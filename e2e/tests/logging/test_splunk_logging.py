@@ -58,8 +58,20 @@ class TestSplunkLoggingFields:
     @pytest.mark.happy_path
     @pytest.mark.logging
     @pytest.mark.parametrize(
-        "is_nhs_login,username,level,provider", combined_auth_params
+        "is_nhs_login,username,provider",
         [
+            # CIS2
+            pytest.param(
+                False,
+                "656005750104",
+                "apim-mock-nhs-cis2",
+                marks=pytest.mark.nhsd_apim_authorization(
+                    access="healthcare_worker",
+                    level="aal3",
+                    login_form={"username": "656005750104"},
+                    force_new_token=True,
+                ),
+            ),
             # NHS Login
             pytest.param(
                 True,
@@ -82,7 +94,6 @@ class TestSplunkLoggingFields:
         is_nhs_login,
         username,
         provider,
-        level
     ):
         session_name = str(uuid4())
         header_filters = {"trace_id": session_name}
