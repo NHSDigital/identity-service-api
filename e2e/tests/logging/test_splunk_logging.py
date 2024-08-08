@@ -95,6 +95,7 @@ class TestSplunkLoggingFields:
         is_nhs_login,
         username,
         provider,
+        level
     ):
         session_name = str(uuid4())
         header_filters = {"trace_id": session_name}
