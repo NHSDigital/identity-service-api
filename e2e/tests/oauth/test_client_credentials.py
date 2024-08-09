@@ -48,10 +48,11 @@ class TestClientCredentialsJWT:
         token_data_client_credentials,
         algorithm,
     ):
+        print(f"My current test app is - {_jwt_keys}")
         token_data_client_credentials["client_assertion"] = create_client_assertion(
             claims, _jwt_keys["private_key_pem"], algorithm=algorithm
         )
-
+     
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
             data=token_data_client_credentials,
