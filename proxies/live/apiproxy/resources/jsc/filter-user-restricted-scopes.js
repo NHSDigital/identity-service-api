@@ -5,8 +5,8 @@ if(idp == 'nhs-login'){
     id_token_acr = ':' + id_token_acr.slice(0, 2) + ':'; 
 }
 else{
-    var id_token_acr = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.decoded.claim.acr');
-    id_token_acr = ':' + id_token_acr.slice(0, 4).toLowerCase() + ':';
+    var id_token_acr = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.decoded.claim.authentication_assurance_level');
+    id_token_acr = ':aal' + id_token_acr + ':';
 }
 
 var api_product_scopes = String(context.getVariable('original_scope'));
