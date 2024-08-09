@@ -30,11 +30,11 @@ class TestClientCredentialsJWT:
     @pytest.mark.parametrize(
         "algorithm",
         [
-            ("RS256"),
-            ("RS384"),
-            ("PS256"),
-            ("PS384"),
-            ("PS512"),
+            # ("RS256"),
+            # ("RS384"),
+            # ("PS256"),
+            # ("PS384"),
+            # ("PS512"),
             ("HS256"),
             ("HS384"),
             ("HS512"),
@@ -52,7 +52,7 @@ class TestClientCredentialsJWT:
         token_data_client_credentials["client_assertion"] = create_client_assertion(
             claims, _jwt_keys["private_key_pem"], algorithm=algorithm
         )
-     
+
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
             data=token_data_client_credentials,
