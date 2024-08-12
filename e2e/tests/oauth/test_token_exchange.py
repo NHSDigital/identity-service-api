@@ -464,6 +464,8 @@ class TestTokenExchange:
         nhsd_apim_proxy_url,
         cis2_subject_token_claims,
         token_data_token_exchange,
+        username,
+        level
     ):
         if missing_or_invalid == "missing":
             claims = remove_keys(claims, update_claims)
