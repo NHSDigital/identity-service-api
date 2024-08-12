@@ -145,9 +145,16 @@ class TestClientCredentialsJWT:
         if missing_or_invalid == "invalid":
             additional_headers = replace_keys(additional_headers, update_headers)
 
-        token_data_client_credentials["client_assertion"] = create_client_assertion(
-            claims, _jwt_keys["private_key_pem"], additional_headers=additional_headers
-        )
+        if additional_headers.get("alg", "").startswith("HS"):
+            # Use symmetric key for HS algorithms
+            token_data_client_credentials["client_assertion"] = jwt.encode({"some": "payload"},
+                                                                           "test-secret",
+                                                                           algorithm="HS256")
+        else:
+            # Use asymmetric key for other algorithms
+            token_data_client_credentials["client_assertion"] = create_client_assertion(
+                claims, _jwt_keys["private_key_pem"], additional_headers=additional_headers
+            )
 
         # When
         resp = requests.post(
