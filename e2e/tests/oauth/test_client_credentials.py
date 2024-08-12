@@ -1,9 +1,8 @@
-import pytest
-import requests
-import jwt
-
 from time import time
 
+import jwt
+import pytest
+import requests
 
 from e2e.tests.utils.helpers import (
     change_jwks_url,
@@ -52,7 +51,9 @@ class TestClientCredentialsJWT:
     ):
         if algorithm.startswith("HS"):
             # Use symmetric key for HS algorithms
-            token_data_client_credentials["client_assertion"] = jwt.encode({"some": "payload"}, "test-secret", algorithm="HS256")
+            token_data_client_credentials["client_assertion"] = jwt.encode({"some": "payload"},
+                                                                           "test-secret",
+                                                                           algorithm="HS256")
         else:
             # Use asymmetric key for other algorithms
             token_data_client_credentials["client_assertion"] = create_client_assertion(
