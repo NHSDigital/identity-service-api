@@ -110,9 +110,7 @@ class TestSplunkLoggingFields:
         assert auth_meta["auth_type"] == "user"
         assert auth_meta["grant_type"] == "authorization_code"
         assert auth_meta["level"] == ""  # level is unknown when hitting /authorize
-        # if provider is None:
-        #     provider = "apim-mock-nhs-cis2"
-        
+    
         assert auth_meta["provider"] == provider
 
         auth_user = auth["user"]
