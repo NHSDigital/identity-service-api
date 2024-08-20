@@ -1,4 +1,5 @@
 <AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.SetDefaultAcrValues">
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
     <AssignVariable>
         <Name>cis2.acr_values</Name>
         <Template>{request.queryparam.acr_values}</Template>
