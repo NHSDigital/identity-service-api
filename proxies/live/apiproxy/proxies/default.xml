@@ -281,6 +281,10 @@
                     <Name>RaiseFault.VerifyResponseType</Name>
                     <Condition>request.queryparam.response_type != "code"</Condition>
                 </Step>
+                <!-- Extract the acr_values parameter for CIS2 auth redirect, using a default value if not provided  -->
+                <Step>
+                    <Name>AssignMessage.SetDefaultAcrValues</Name>
+                </Step>
                 <!-- introducte dummy token policy to get scopes, filter and save them into the cache -->
                 <Step>
                     <Name>AssignMessage.SetDummyGrantType</Name>

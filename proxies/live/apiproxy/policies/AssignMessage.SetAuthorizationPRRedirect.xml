@@ -2,7 +2,7 @@
   <Set>
     <StatusCode>302</StatusCode>
     <Headers>
-      <Header name="Location">{identity-service-config.cis2.authorize_endpoint}?response_type={request.queryparam.response_type}&amp;client_id={identity-service-config.cis2.client_id}&amp;redirect_uri={identity-service-config.cis2.redirect_uri}&amp;scope=openid&amp;state={apigee.state}&amp;prompt=login</Header>
+      <Header name="Location">{identity-service-config.cis2.authorize_endpoint}?response_type={request.queryparam.response_type}&amp;client_id={identity-service-config.cis2.client_id}&amp;redirect_uri={identity-service-config.cis2.redirect_uri}&amp;scope=openid&amp;state={apigee.state}&amp;prompt=login&amp;acr_values={cis2.acr_values}</Header>
     </Headers>
   </Set>
   <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>

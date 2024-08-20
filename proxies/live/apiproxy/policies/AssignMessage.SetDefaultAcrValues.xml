@@ -1,0 +1,7 @@
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.SetDefaultAcrValues">
+    <AssignVariable>
+        <Name>cis2.acr_values</Name>
+        <Template>{request.queryparam.acr_values}</Template>
+        <Default>AAL3_ANY</Default>
+    </AssignVariable>
+</AssignMessage>
