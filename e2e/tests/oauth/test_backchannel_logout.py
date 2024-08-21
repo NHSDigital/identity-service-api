@@ -11,9 +11,6 @@ from e2e.tests.utils.config import JWT_PRIVATE_KEY_ABSOLUTE_PATH, MOCK_CIS2_USER
 
 class TestBackChannelLogout:
     """A test suite for back-channel logout functionality"""
-    # We are on our second generation of mock identity provider for
-    # healthcare_worker access (CIS2). This allows you to log-in using a
-    # username.
 
     # Create a list of pytest.param for each combination of username and level for combined auth
     combined_auth_params = [

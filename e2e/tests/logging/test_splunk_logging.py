@@ -16,9 +16,6 @@ from e2e.tests.utils.helpers import (
 
 class TestSplunkLoggingFields:
     """Test suite for testing logging fields are sent to splunk"""
-    # We are on our second generation of mock identity provider for
-    # healthcare_worker access (CIS2). This allows you to log-in using a
-    # username.
 
     # Create a list of pytest.param for each combination of username and level for combined auth
     combined_auth_params = [

@@ -19,9 +19,6 @@ from e2e.tests.utils.helpers import (
 
 class TestAuthorizationCode:
     """A test suit to test the authorization code flow"""
-    # We are on our second generation of mock identity provider for
-    # healthcare_worker access (CIS2). This allows you to log-in using a
-    # username.
 
     # Create a list of pytest.param for each combination of username and level for combined auth
     combined_auth_params = [
@@ -899,7 +896,7 @@ class TestAuthorizationCode:
         force_new_token=True,
     )
     def test_expired_access_token(
-        self, nhsd_apim_proxy_url, authorize_params, token_data_authorization_code, username, level
+        self, nhsd_apim_proxy_url, authorize_params, token_data_authorization_code,
     ):
         # Set short expiry
         auth_info = get_auth_info(
