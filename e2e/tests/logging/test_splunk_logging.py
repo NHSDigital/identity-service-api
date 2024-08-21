@@ -3,6 +3,7 @@ import requests
 
 from uuid import uuid4
 
+from e2e.tests.utils.config import MOCK_CIS2_USERNAMES
 from e2e.tests.utils.helpers import (
     create_client_assertion,
     create_subject_token,
@@ -18,11 +19,6 @@ class TestSplunkLoggingFields:
     # We are on our second generation of mock identity provider for
     # healthcare_worker access (CIS2). This allows you to log-in using a
     # username.
-    MOCK_CIS2_USERNAMES = {
-     "aal1": ["656005750110"],
-     "aal2": ["656005750109"],
-     "aal3": ["656005750104"],
-    }
 
     # Create a list of pytest.param for each combination of username and level for combined auth
     combined_auth_params = [
@@ -110,7 +106,7 @@ class TestSplunkLoggingFields:
         assert auth_meta["auth_type"] == "user"
         assert auth_meta["grant_type"] == "authorization_code"
         assert auth_meta["level"] == ""  # level is unknown when hitting /authorize
-    
+
         assert auth_meta["provider"] == provider
 
         auth_user = auth["user"]
@@ -246,7 +242,7 @@ class TestSplunkLoggingFields:
         assert auth_meta["auth_type"] == "user"
         assert auth_meta["grant_type"] == "authorization_code"
         assert auth_meta["level"] == level
-        
+
         assert auth_meta["provider"] == provider
 
         auth_user = auth["user"]

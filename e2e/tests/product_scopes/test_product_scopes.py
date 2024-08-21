@@ -50,7 +50,12 @@ class TestProductScopes:
     def create_authorization_code_token_data(
         self, client_id, client_secret, callback_url, identity_url, auth_pattern
     ):
-        username = "656005750104"
+        auth_pattern_mock_cis2_usernames_map = {
+            "cis2_combined_aal1": "656005750110",
+            "cis2_combined_aal2": "656005750109",
+            "cis2_combined": "656005750104",
+        }
+        username = auth_pattern_mock_cis2_usernames_map.get(auth_pattern, "656005750104")
         authorize_params = {
             "client_id": client_id,
             "redirect_uri": callback_url,
@@ -106,7 +111,12 @@ class TestProductScopes:
     def hit_authorize_and_callback_endpoints(
         self, client_id, callback_url, identity_url, auth_pattern, header_filters
     ):
-        username = "656005750104"
+        auth_pattern_mock_cis2_usernames_map = {
+            "cis2_combined_aal1": "656005750110",
+            "cis2_combined_aal2": "656005750109",
+            "cis2_combined": "656005750104",
+        }
+        username = auth_pattern_mock_cis2_usernames_map.get(auth_pattern, "656005750104")
         authorize_params = {
             "client_id": client_id,
             "redirect_uri": callback_url,
@@ -215,7 +225,21 @@ class TestProductScopes:
                 [],
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
                 "cis2_combined",
-                id="User-restricted-CIS2-combined: one product with valid scope",
+                id="User-restricted-CIS2-combined: one product with valid scope (authed as aal3 user)",
+            ),
+            pytest.param(
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
+                [],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
+                "cis2_combined_aal2",
+                id="User-restricted-CIS2-combined: one product with valid scope (authed as aal2 user)",
+            ),
+            pytest.param(
+                ["urn:nhsd:apim:user-nhs-id:aal1:personal-demographics-service"],
+                [],
+                ["urn:nhsd:apim:user-nhs-id:aal1:personal-demographics-service"],
+                "cis2_combined_aal1",
+                id="User-restricted-CIS2-combined: one product with valid scope (authed as aal1 user)",
             ),
             pytest.param(
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
@@ -377,7 +401,21 @@ class TestProductScopes:
                 [],
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
                 "cis2_seperate",
-                id="User-restricted-CIS2-seperate: one product with valid scope",
+                id="User-restricted-CIS2-seperate: one product with valid scope (authed as aal3 user)",
+            ),
+            pytest.param(
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
+                [],
+                ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
+                "cis2_separate_aal2",
+                id="User-restricted-CIS2-separate: one product with valid scope (authed as aal2 user)",
+            ),
+            pytest.param(
+                ["urn:nhsd:apim:user-nhs-id:aal1:personal-demographics-service"],
+                [],
+                ["urn:nhsd:apim:user-nhs-id:aal1:personal-demographics-service"],
+                "cis2_separate_aal1",
+                id="User-restricted-CIS2-separate: one product with valid scope (authed as aal1 user)",
             ),
             pytest.param(
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
@@ -568,7 +606,7 @@ class TestProductScopes:
                 token_data=token_data_client_credentials,
                 private_key=_jwt_keys["private_key_pem"],
             )
-        elif auth_pattern == "cis2_combined" or auth_pattern == "nhs_login_combined":
+        elif auth_pattern in ["cis2_combined", "cis2_combined_aal2", "cis2_combined_aal1", "nhs_login_combined"]:
             token_data = self.create_authorization_code_token_data(
                 client_id=app["credentials"][0]["consumerKey"],
                 client_secret=app["credentials"][0]["consumerSecret"],
@@ -576,7 +614,14 @@ class TestProductScopes:
                 identity_url=nhsd_apim_proxy_url,
                 auth_pattern=auth_pattern,
             )
-        elif auth_pattern == "cis2_seperate":
+        elif auth_pattern in ["cis2_seperate", "cis2_separate_aal2", "cis2_separate_aal1"]:
+            auth_pattern_aal_map = {
+                "cis2_separate_aal1": 1,
+                "cis2_separate_aal2": 2,
+                "cis2_seperate": 3,
+            }
+
+            cis2_subject_token_claims["authentication_assurance_level"] = auth_pattern_aal_map.get(auth_pattern)
             token_data = self.create_token_exchange_token_data(
                 client_id=app["credentials"][0]["consumerKey"],
                 identity_url=nhsd_apim_proxy_url,
@@ -910,7 +955,19 @@ class TestProductScopes:
                 ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 [],
                 "cis2_combined",
-                id="User-restricted-CIS2-combined: one product with invalid scope, one product with no scope",
+                id="User-restricted-CIS2-combined: one product with invalid scope (authed as aal3 user), one product with no scope",
+            ),
+            pytest.param(
+                ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                [],
+                "cis2_combined_aal2",
+                id="User-restricted-CIS2-combined: one product with invalid scope (authed as aal2 user), one product with no scope",
+            ),
+            pytest.param(
+                ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                [],
+                "cis2_combined_aal1",
+                id="User-restricted-CIS2-combined: one product with invalid scope (authed as aal1 user), one product with no scope",
             ),
             pytest.param(
                 ["urn:nhsd:apim:app:level3:personal-demographics-service"],
@@ -1048,7 +1105,19 @@ class TestProductScopes:
                 ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 [],
                 "cis2_seperate",
-                id="User-restricted-CIS2-seperate: one product with invalid scope, one product with no scope",
+                id="User-restricted-CIS2-seperate: one product with invalid scope (authed as aal3 user), one product with no scope",
+            ),
+            pytest.param(
+                ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                [],
+                "cis2_separate_aal2",
+                id="User-restricted-CIS2-separate: one product with invalid scope (authed as aal2 user), one product with no scope",
+            ),
+            pytest.param(
+                ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
+                [],
+                "cis2_separate_aal1",
+                id="User-restricted-CIS2-separate: one product with invalid scope (authed as aal1 user), one product with no scope",
             ),
             pytest.param(
                 ["urn:nhsd:apim:app:level3:personal-demographics-service"],
@@ -1217,13 +1286,13 @@ class TestProductScopes:
             status_code = resp.status_code
             error_content = resp.json()
 
-        elif auth_pattern == "cis2_combined" or auth_pattern == "nhs_login_combined":
+        elif auth_pattern in ["cis2_combined", "cis2_combined_aal2", "cis2_combined_aal1", "nhs_login_combined"]:
             # Set up trace
             session_name = str(uuid4())
             header_filters = {"trace_id": session_name}
             trace.post_debugsession(session=session_name, header_filters=header_filters)
 
-            token_data = self.hit_authorize_and_callback_endpoints(
+            self.hit_authorize_and_callback_endpoints(
                 client_id=app["credentials"][0]["consumerKey"],
                 callback_url=app["callbackUrl"],
                 identity_url=nhsd_apim_proxy_url,
@@ -1240,7 +1309,14 @@ class TestProductScopes:
 
             trace.delete_debugsession_by_name(session_name)
 
-        elif auth_pattern == "cis2_seperate":
+        elif auth_pattern in ["cis2_seperate", "cis2_separate_aal2", "cis2_separate_aal1"]:
+            auth_pattern_aal_map = {
+                "cis2_separate_aal1": 1,
+                "cis2_separate_aal2": 2,
+                "cis2_seperate": 3,
+            }
+
+            cis2_subject_token_claims["authentication_assurance_level"] = auth_pattern_aal_map.get(auth_pattern)
             token_data = self.create_token_exchange_token_data(
                 client_id=app["credentials"][0]["consumerKey"],
                 identity_url=nhsd_apim_proxy_url,

@@ -4,7 +4,7 @@ import jwt
 
 from time import time
 
-from e2e.tests.utils.config import CANARY_API_URL, CANARY_PRODUCT_NAME
+from e2e.tests.utils.config import CANARY_API_URL, CANARY_PRODUCT_NAME, MOCK_CIS2_USERNAMES
 from e2e.tests.utils.helpers import (
     change_jwks_url,
     create_client_assertion,
@@ -21,11 +21,6 @@ class TestTokenExchange:
     # We are on our second generation of mock identity provider for
     # healthcare_worker access (CIS2). This allows you to log-in using a
     # username.
-    MOCK_CIS2_USERNAMES = {
-     "aal1": ["656005750110"],
-     "aal2": ["656005750109"],
-     "aal3": ["656005750104"],
-    }
 
     # Create a list of pytest.param for each combination of username and level for combined auth
     seperate_auth_params = [

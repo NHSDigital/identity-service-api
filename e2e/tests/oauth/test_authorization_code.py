@@ -6,7 +6,7 @@ from time import sleep
 from urllib import parse
 
 from e2e.tests.utils.response_bank import BANK
-from e2e.tests.utils.config import CANARY_API_URL, CANARY_PRODUCT_NAME
+from e2e.tests.utils.config import CANARY_API_URL, CANARY_PRODUCT_NAME, MOCK_CIS2_USERNAMES
 from e2e.tests.utils.helpers import (
     remove_keys,
     replace_keys,
@@ -18,15 +18,10 @@ from e2e.tests.utils.helpers import (
 
 
 class TestAuthorizationCode:
-    """A test suit to test the token exchange flow"""
+    """A test suit to test the authorization code flow"""
     # We are on our second generation of mock identity provider for
     # healthcare_worker access (CIS2). This allows you to log-in using a
     # username.
-    MOCK_CIS2_USERNAMES = {
-     "aal1": ["656005750110"],
-     "aal2": ["656005750109"],
-     "aal3": ["656005750104"],
-    }
 
     # Create a list of pytest.param for each combination of username and level for combined auth
     combined_auth_params = [
@@ -42,7 +37,7 @@ class TestAuthorizationCode:
         for level, usernames in MOCK_CIS2_USERNAMES.items()
         for username in usernames
     ]
-    
+
     def get_params_from_url(self, url: str) -> dict:
         """Returns all the params and param values from a given url as a dictionary"""
         return dict(parse.parse_qsl(parse.urlsplit(url).query))
