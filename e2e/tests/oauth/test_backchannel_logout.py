@@ -172,7 +172,12 @@ class TestBackChannelLogout:
         assert post_refresh_userinfo_resp.status_code == 401
 
     # Request sends a JWT has missing or invalid claims of the following problems, returns a 400
-    @pytest.mark.parametrize("username, level", combined_auth_params)
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True,
+    )
     @pytest.mark.parametrize(
         "claims,status_code,error_message",
         [
@@ -297,9 +302,7 @@ class TestBackChannelLogout:
         nhsd_apim_proxy_url,
         claims,
         status_code,
-        error_message,
-        username,
-        level
+        error_message
     ):
         access_token = _nhsd_apim_auth_token_data["access_token"]
 
@@ -323,8 +326,13 @@ class TestBackChannelLogout:
         assert back_channel_resp.json()["error_description"] == error_message
 
     # Request sends JWT that cannot be verified returns a  400
-    @pytest.mark.parametrize("username, level", combined_auth_params)
-    def test_invalid_jwt(self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url, username, level):
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "656005750104"},
+        force_new_token=True,
+    )
+    def test_invalid_jwt(self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url):
         access_token = _nhsd_apim_auth_token_data["access_token"]
 
         # Test token can be used to access identity service

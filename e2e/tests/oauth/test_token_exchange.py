@@ -330,7 +330,12 @@ class TestTokenExchange:
         assert body == expected_response
 
     @pytest.mark.errors
-    @pytest.mark.parametrize("username, level", seperate_auth_params)
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "aal3"},
+        authentication="separate",
+    )
     @pytest.mark.parametrize(
         "expected_response,expected_status_code,missing_or_invalid,update_claims",
         [
@@ -467,8 +472,6 @@ class TestTokenExchange:
         nhsd_apim_proxy_url,
         cis2_subject_token_claims,
         token_data_token_exchange,
-        username,
-        level
     ):
         if missing_or_invalid == "missing":
             claims = remove_keys(claims, update_claims)
@@ -500,7 +503,12 @@ class TestTokenExchange:
         assert body == expected_response
 
     @pytest.mark.errors
-    @pytest.mark.parametrize("username, level", seperate_auth_params)
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "aal3"},
+        authentication="separate",
+    )
     def test_token_exchange_claims_assertion_invalid_jti_claim(
         self,
         _jwt_keys,
@@ -508,8 +516,6 @@ class TestTokenExchange:
         cis2_subject_token_claims,
         claims,
         token_data_token_exchange,
-        username,
-        level
     ):
         token_data_token_exchange["client_assertion"] = create_client_assertion(
             claims, _jwt_keys["private_key_pem"]
@@ -1289,7 +1295,12 @@ class TestTokenExchange:
         assert canary_resp.status_code == 200
         assert canary_resp.text == "Hello user!"
 
-    @pytest.mark.parametrize("username, level", seperate_auth_params)
+    @pytest.mark.nhsd_apim_authorization(
+        access="healthcare_worker",
+        level="aal3",
+        login_form={"username": "aal3"},
+        authentication="separate",
+    )
     def test_cis2_token_exchange_refresh_token_become_invalid(
         self,
         nhsd_apim_proxy_url,
@@ -1298,8 +1309,6 @@ class TestTokenExchange:
         _jwt_keys,
         cis2_subject_token_claims,
         token_data_token_exchange,
-        username,
-        level
     ):
         token_data_token_exchange["client_assertion"] = create_client_assertion(
             claims, _jwt_keys["private_key_pem"]
