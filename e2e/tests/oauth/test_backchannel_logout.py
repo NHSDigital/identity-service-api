@@ -6,11 +6,26 @@ from time import time, sleep
 from typing import Dict, Optional
 from uuid import uuid4
 
-from e2e.tests.utils.config import JWT_PRIVATE_KEY_ABSOLUTE_PATH
+from e2e.tests.utils.config import JWT_PRIVATE_KEY_ABSOLUTE_PATH, MOCK_CIS2_USERNAMES
 
 
 class TestBackChannelLogout:
     """A test suite for back-channel logout functionality"""
+
+    # Create a list of pytest.param for each combination of username and level for combined auth
+    combined_auth_params = [
+        pytest.param(
+            username, level,
+            marks=pytest.mark.nhsd_apim_authorization(
+                access="healthcare_worker",
+                level=level,
+                login_form={"username": username},
+                force_new_token=True,
+            ),
+        )
+        for level, usernames in MOCK_CIS2_USERNAMES.items()
+        for username in usernames
+    ]
 
     def create_logout_token(
         self,
@@ -60,14 +75,9 @@ class TestBackChannelLogout:
         return logout_token_jwt
 
     @pytest.mark.happy_path
-    @pytest.mark.nhsd_apim_authorization(
-        access="healthcare_worker",
-        level="aal3",
-        login_form={"username": "656005750104"},
-        force_new_token=True,
-    )
+    @pytest.mark.parametrize("username, level", combined_auth_params)
     def test_backchannel_logout_happy_path(
-        self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url
+        self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url, username, level
     ):
         access_token = _nhsd_apim_auth_token_data["access_token"]
         sid = _nhsd_apim_auth_token_data["sid"]
@@ -100,14 +110,9 @@ class TestBackChannelLogout:
         assert userinfo_resp.status_code == 401
 
     @pytest.mark.happy_path
-    @pytest.mark.nhsd_apim_authorization(
-        access="healthcare_worker",
-        level="aal3",
-        login_form={"username": "656005750104"},
-        force_new_token=True,
-    )
+    @pytest.mark.parametrize("username, level", combined_auth_params)
     def test_backchannel_logout_user_refresh_token(
-        self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url, _test_app_credentials
+        self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url, _test_app_credentials, username, level
     ):
         access_token = _nhsd_apim_auth_token_data["access_token"]
         sid = _nhsd_apim_auth_token_data["sid"]
@@ -294,7 +299,7 @@ class TestBackChannelLogout:
         nhsd_apim_proxy_url,
         claims,
         status_code,
-        error_message,
+        error_message
     ):
         access_token = _nhsd_apim_auth_token_data["access_token"]
 

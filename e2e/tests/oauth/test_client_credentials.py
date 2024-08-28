@@ -1,7 +1,8 @@
+from time import time
+
+import jwt
 import pytest
 import requests
-
-from time import time
 
 from e2e.tests.utils.helpers import (
     change_jwks_url,
@@ -48,9 +49,16 @@ class TestClientCredentialsJWT:
         token_data_client_credentials,
         algorithm,
     ):
-        token_data_client_credentials["client_assertion"] = create_client_assertion(
-            claims, _jwt_keys["private_key_pem"], algorithm=algorithm
-        )
+        if algorithm.startswith("HS"):
+            # Use symmetric key for HS algorithms
+            token_data_client_credentials["client_assertion"] = jwt.encode({"some": "payload"},
+                                                                           "test-secret",
+                                                                           algorithm="HS256")
+        else:
+            # Use asymmetric key for other algorithms
+            token_data_client_credentials["client_assertion"] = create_client_assertion(
+                claims, _jwt_keys["private_key_pem"], algorithm=algorithm
+            )
 
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
@@ -61,7 +69,7 @@ class TestClientCredentialsJWT:
         assert resp.status_code == 400
         assert (
             "message_id" in body.keys()
-        )  # We assert the key but not he value for message_id
+        )  # We assert the key but not the value for message_id
         del body["message_id"]
         assert body == {
             "error": "invalid_request",
@@ -137,9 +145,16 @@ class TestClientCredentialsJWT:
         if missing_or_invalid == "invalid":
             additional_headers = replace_keys(additional_headers, update_headers)
 
-        token_data_client_credentials["client_assertion"] = create_client_assertion(
-            claims, _jwt_keys["private_key_pem"], additional_headers=additional_headers
-        )
+        if additional_headers.get("alg", "").startswith("HS"):
+            # Use symmetric key for HS algorithms
+            token_data_client_credentials["client_assertion"] = jwt.encode({"some": "payload"},
+                                                                           "test-secret",
+                                                                           algorithm="HS256")
+        else:
+            # Use asymmetric key for other algorithms
+            token_data_client_credentials["client_assertion"] = create_client_assertion(
+                claims, _jwt_keys["private_key_pem"], additional_headers=additional_headers
+            )
 
         # When
         resp = requests.post(
