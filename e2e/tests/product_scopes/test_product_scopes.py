@@ -53,7 +53,7 @@ class TestProductScopes:
         auth_pattern_mock_cis2_usernames_map = {
             "cis2_combined_aal1": "656005750110",
             "cis2_combined_aal2": "656005750109",
-            "cis2_combined": "656005750104",
+            "cis2_combined_aal3": "656005750104",
         }
         username = auth_pattern_mock_cis2_usernames_map.get(auth_pattern, "656005750104")
         authorize_params = {
@@ -114,7 +114,7 @@ class TestProductScopes:
         auth_pattern_mock_cis2_usernames_map = {
             "cis2_combined_aal1": "656005750110",
             "cis2_combined_aal2": "656005750109",
-            "cis2_combined": "656005750104",
+            "cis2_combined_aal3": "656005750104",
         }
         username = auth_pattern_mock_cis2_usernames_map.get(auth_pattern, "656005750104")
         authorize_params = {
@@ -224,7 +224,7 @@ class TestProductScopes:
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
                 [],
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
-                "cis2_combined",
+                "cis2_combined_aal3",
                 id="User-restricted-CIS2-combined: one product with valid scope (authed as aal3 user)",
             ),
             pytest.param(
@@ -245,7 +245,7 @@ class TestProductScopes:
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
                 ["urn:nhsd:apim:app:level3:ambulance-analytics"],
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
-                "cis2_combined",
+                "cis2_combined_aal3",
                 id="User-restricted-CIS2-combined: one product with valid scope, one product with invalid scope",
             ),
             pytest.param(
@@ -255,7 +255,7 @@ class TestProductScopes:
                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
                     "urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics",
                 ],
-                "cis2_combined",
+                "cis2_combined_aal3",
                 id="User-restricted-CIS2-combined: multiple products with valid scopes",
             ),
             pytest.param(
@@ -268,7 +268,7 @@ class TestProductScopes:
                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
                     "urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics",
                 ],
-                "cis2_combined",
+                "cis2_combined_aal3",
                 id="User-restricted-CIS2-combined: one product with multiple valid scopes",
             ),
             pytest.param(
@@ -286,7 +286,7 @@ class TestProductScopes:
                     "urn:nhsd:apim:user-nhs-id:aal3:example-1",
                     "urn:nhsd:apim:user-nhs-id:aal3:example-2",
                 ],
-                "cis2_combined",
+                "cis2_combined_aal3",
                 id="User-restricted-CIS2-combined: multiple products with multiple valid scopes",
             ),
             pytest.param(
@@ -296,7 +296,7 @@ class TestProductScopes:
                 ],
                 [],
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
-                "cis2_combined",
+                "cis2_combined_aal3",
                 id="User-restricted-CIS2-combined: one product with multiple scopes (valid and invalid)",
             ),
             pytest.param(
@@ -312,7 +312,7 @@ class TestProductScopes:
                     "urn:nhsd:apim:user-nhs-id:aal3:example-1",
                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
                 ],
-                "cis2_combined",
+                "cis2_combined_aal3",
                 id="User-restricted-CIS2-combined: multiple products with multiple scopes (valid and invalid)",
             ),
             pytest.param(
@@ -400,7 +400,7 @@ class TestProductScopes:
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
                 [],
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
-                "cis2_seperate",
+                "cis2_seperate_aal3",
                 id="User-restricted-CIS2-seperate: one product with valid scope (authed as aal3 user)",
             ),
             pytest.param(
@@ -421,7 +421,7 @@ class TestProductScopes:
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
                 ["urn:nhsd:apim:app:level3:ambulance-analytics"],
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
-                "cis2_seperate",
+                "cis2_seperate_aal3",
                 id="User-restricted-CIS2-seperate: one product with valid scope, one product with invalid scope",
             ),
             pytest.param(
@@ -431,7 +431,7 @@ class TestProductScopes:
                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
                     "urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics",
                 ],
-                "cis2_seperate",
+                "cis2_seperate_aal3",
                 id="User-restricted-CIS2-seperate: multiple products with valid scopes",
             ),
             pytest.param(
@@ -444,7 +444,7 @@ class TestProductScopes:
                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
                     "urn:nhsd:apim:user-nhs-id:aal3:ambulance-analytics",
                 ],
-                "cis2_seperate",
+                "cis2_seperate_aal3",
                 id="User-restricted-CIS2-seperate: one product with multiple valid scopes",
             ),
             pytest.param(
@@ -462,7 +462,7 @@ class TestProductScopes:
                     "urn:nhsd:apim:user-nhs-id:aal3:example-1",
                     "urn:nhsd:apim:user-nhs-id:aal3:example-2",
                 ],
-                "cis2_seperate",
+                "cis2_seperate_aal3",
                 id="User-restricted-CIS2-seperate: multiple products with multiple valid scopes",
             ),
             pytest.param(
@@ -472,7 +472,7 @@ class TestProductScopes:
                 ],
                 [],
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
-                "cis2_seperate",
+                "cis2_seperate_aal3",
                 id="User-restricted-CIS2-seperate: one product with multiple scopes (valid and invalid)",
             ),
             pytest.param(
@@ -488,7 +488,7 @@ class TestProductScopes:
                     "urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service",
                     "urn:nhsd:apim:user-nhs-id:aal3:example-1",
                 ],
-                "cis2_seperate",
+                "cis2_seperate_aal3",
                 id="User-restricted-CIS2-seperate: multiple products with multiple scopes (valid and invalid)",
             ),
             pytest.param(
@@ -606,7 +606,7 @@ class TestProductScopes:
                 token_data=token_data_client_credentials,
                 private_key=_jwt_keys["private_key_pem"],
             )
-        elif auth_pattern in ["cis2_combined", "cis2_combined_aal2", "cis2_combined_aal1", "nhs_login_combined"]:
+        elif auth_pattern in ["cis2_combined_aal3", "cis2_combined_aal2", "cis2_combined_aal1", "nhs_login_combined"]:
             token_data = self.create_authorization_code_token_data(
                 client_id=app["credentials"][0]["consumerKey"],
                 client_secret=app["credentials"][0]["consumerSecret"],
@@ -614,11 +614,11 @@ class TestProductScopes:
                 identity_url=nhsd_apim_proxy_url,
                 auth_pattern=auth_pattern,
             )
-        elif auth_pattern in ["cis2_seperate", "cis2_separate_aal2", "cis2_separate_aal1"]:
+        elif auth_pattern in ["cis2_seperate_aal3", "cis2_separate_aal2", "cis2_separate_aal1"]:
             auth_pattern_aal_map = {
                 "cis2_separate_aal1": 1,
                 "cis2_separate_aal2": 2,
-                "cis2_seperate": 3,
+                "cis2_seperate_aal3": 3,
             }
 
             cis2_subject_token_claims["authentication_assurance_level"] = auth_pattern_aal_map.get(auth_pattern)
@@ -691,19 +691,19 @@ class TestProductScopes:
             pytest.param(
                 "invalid_scope",
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
-                "cis2_combined",
+                "cis2_combined_aal3",
                 id="User-restricted-CIS2-combined: form param scope removed (not a real scope)",
             ),
             pytest.param(
                 "$£$12vdg@@fd",
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
-                "cis2_combined",
+                "cis2_combined_aal3",
                 id="User-restricted-CIS2-combined: form param scope removed (special characters)",
             ),
             pytest.param(
                 "   external  scope",
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
-                "cis2_combined",
+                "cis2_combined_aal3",
                 id="User-restricted-CIS2-combined: form param scope removed (white space)",
             ),
             pytest.param(
@@ -712,7 +712,7 @@ class TestProductScopes:
                     "urn:nhsd:apim:app:level3:example-2",
                 ],
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
-                "cis2_combined",
+                "cis2_combined_aal3",
                 id="User-restricted-CIS2-combined: form param scope removed (invalid scopes)",
             ),
             pytest.param(
@@ -745,19 +745,19 @@ class TestProductScopes:
             pytest.param(
                 "invalid_scope",
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
-                "cis2_seperate",
+                "cis2_seperate_aal3",
                 id="User-restricted-CIS2-seperate: form param scope removed (not a real scope)",
             ),
             pytest.param(
                 "$£$12vdg@@fd",
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
-                "cis2_seperate",
+                "cis2_seperate_aal3",
                 id="User-restricted-CIS2-seperate: form param scope removed (special characters)",
             ),
             pytest.param(
                 "   external  scope",
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
-                "cis2_seperate",
+                "cis2_seperate_aal3",
                 id="User-restricted-CIS2-seperate: form param scope removed (white space)",
             ),
             pytest.param(
@@ -766,7 +766,7 @@ class TestProductScopes:
                     "urn:nhsd:apim:app:level3:example-2",
                 ],
                 ["urn:nhsd:apim:user-nhs-id:aal3:personal-demographics-service"],
-                "cis2_seperate",
+                "cis2_seperate_aal3",
                 id="User-restricted-CIS2-seperate: form param scope removed (invalid scopes)",
             ),
             pytest.param(
@@ -826,7 +826,7 @@ class TestProductScopes:
                 token_data=token_data_client_credentials,
                 private_key=_jwt_keys["private_key_pem"],
             )
-        elif auth_pattern == "cis2_combined" or auth_pattern == "nhs_login_combined":
+        elif auth_pattern == "cis2_combined_aal3" or auth_pattern == "nhs_login_combined":
             token_data = self.create_authorization_code_token_data(
                 client_id=app["credentials"][0]["consumerKey"],
                 client_secret=app["credentials"][0]["consumerSecret"],
@@ -834,7 +834,7 @@ class TestProductScopes:
                 identity_url=nhsd_apim_proxy_url,
                 auth_pattern=auth_pattern,
             )
-        elif auth_pattern == "cis2_seperate":
+        elif auth_pattern == "cis2_seperate_aal3":
             token_data = self.create_token_exchange_token_data(
                 client_id=app["credentials"][0]["consumerKey"],
                 identity_url=nhsd_apim_proxy_url,
@@ -948,13 +948,13 @@ class TestProductScopes:
             pytest.param(
                 [],
                 [],
-                "cis2_combined",
+                "cis2_combined_aal3",
                 id="User-restricted-CIS2-combined: multiple products with no scopes",
             ),
             pytest.param(
                 ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 [],
-                "cis2_combined",
+                "cis2_combined_aal3",
                 id="User-restricted-CIS2-combined: one product with invalid scope (authed as aal3 user), one product with no scope",
             ),
             pytest.param(
@@ -972,7 +972,7 @@ class TestProductScopes:
             pytest.param(
                 ["urn:nhsd:apim:app:level3:personal-demographics-service"],
                 ["urn:nhsd:apim:app:level3:ambulance-analytics"],
-                "cis2_combined",
+                "cis2_combined_aal3",
                 id="User-restricted-CIS2-combined: multiple products with invalid scopes",
             ),
             pytest.param(
@@ -981,7 +981,7 @@ class TestProductScopes:
                     "urn:nhsd:apim:app:level3:ambulance-analytics",
                 ],
                 [],
-                "cis2_combined",
+                "cis2_combined_aal3",
                 id="User-restricted-CIS2-combined: one product with multiple invalid scopes",
             ),
             pytest.param(
@@ -993,37 +993,37 @@ class TestProductScopes:
                     "urn:nhsd:apim:app:level3:example-1",
                     "urn:nhsd:apim:app:level3:example-2",
                 ],
-                "cis2_combined",
+                "cis2_combined_aal3",
                 id="User-restricted-CIS2-combined: multiple products with multiple invalid scopes",
             ),
             pytest.param(
                 ["ThisDoesNotExist"],
                 [],
-                "cis2_combined",
+                "cis2_combined_aal3",
                 id="User-restricted-CIS2-combined: one product with invalid scope (wrong formation)",
             ),
             pytest.param(
                 ["#£$?!&%*.;@~_-"],
                 [],
-                "cis2_combined",
+                "cis2_combined_aal3",
                 id="User-restricted-CIS2-combined: one product with invalid scope (special characters)",
             ),
             pytest.param(
                 [""],
                 [],
-                "cis2_combined",
+                "cis2_combined_aal3",
                 id="User-restricted-CIS2-combined: one product with invalid scope (empty string)",
             ),
             pytest.param(
                 [None],
                 [],
-                "cis2_combined",
+                "cis2_combined_aal3",
                 id="User-restricted-CIS2-combined: one product with invalid scope (None object)",
             ),
             pytest.param(
                 ["urn:nhsd:apim:user:aal3personal-demographics-service"],
                 [],
-                "cis2_combined",
+                "cis2_combined_aal3",
                 id="User-restricted-CIS2-combined: one product with invalid scope (missing colon), one product with no scope",
             ),
             pytest.param(
@@ -1098,13 +1098,13 @@ class TestProductScopes:
             pytest.param(
                 [],
                 [],
-                "cis2_seperate",
+                "cis2_seperate_aal3",
                 id="User-restricted-CIS2-seperate: multiple products with no scopes",
             ),
             pytest.param(
                 ["urn:nhsd:apim:user-nhs-id:aal2:personal-demographics-service"],
                 [],
-                "cis2_seperate",
+                "cis2_seperate_aal3",
                 id="User-restricted-CIS2-seperate: one product with invalid scope (authed as aal3 user), one product with no scope",
             ),
             pytest.param(
@@ -1122,7 +1122,7 @@ class TestProductScopes:
             pytest.param(
                 ["urn:nhsd:apim:app:level3:personal-demographics-service"],
                 ["urn:nhsd:apim:app:level3:ambulance-analytics"],
-                "cis2_seperate",
+                "cis2_seperate_aal3",
                 id="User-restricted-CIS2-seperate: multiple products with invalid scopes",
             ),
             pytest.param(
@@ -1131,7 +1131,7 @@ class TestProductScopes:
                     "urn:nhsd:apim:app:level3:ambulance-analytics",
                 ],
                 [],
-                "cis2_seperate",
+                "cis2_seperate_aal3",
                 id="User-restricted-CIS2-seperate: one product with multiple invalid scopes",
             ),
             pytest.param(
@@ -1143,37 +1143,37 @@ class TestProductScopes:
                     "urn:nhsd:apim:app:level3:example-1",
                     "urn:nhsd:apim:app:level3:example-2",
                 ],
-                "cis2_seperate",
+                "cis2_seperate_aal3",
                 id="User-restricted-CIS2-seperate: multiple products with multiple invalid scopes",
             ),
             pytest.param(
                 ["ThisDoesNotExist"],
                 [],
-                "cis2_seperate",
+                "cis2_seperate_aal3",
                 id="User-restricted-CIS2-seperate: one product with invalid scope (wrong formation)",
             ),
             pytest.param(
                 ["#£$?!&%*.;@~_-"],
                 [],
-                "cis2_seperate",
+                "cis2_seperate_aal3",
                 id="User-restricted-CIS2-seperate: one product with invalid scope (special characters)",
             ),
             pytest.param(
                 [""],
                 [],
-                "cis2_seperate",
+                "cis2_seperate_aal3",
                 id="User-restricted-CIS2-seperate: one product with invalid scope (empty string)",
             ),
             pytest.param(
                 [None],
                 [],
-                "cis2_seperate",
+                "cis2_seperate_aal3",
                 id="User-restricted-CIS2-seperate: one product with invalid scope (None object)",
             ),
             pytest.param(
                 ["urn:nhsd:apim:user:aal3personal-demographics-service"],
                 [],
-                "cis2_seperate",
+                "cis2_seperate_aal3",
                 id="User-restricted-CIS2-seperate: one product with invalid scope (missing colon), one product with no scope",
             ),
             pytest.param(
@@ -1286,7 +1286,7 @@ class TestProductScopes:
             status_code = resp.status_code
             error_content = resp.json()
 
-        elif auth_pattern in ["cis2_combined", "cis2_combined_aal2", "cis2_combined_aal1", "nhs_login_combined"]:
+        elif auth_pattern in ["cis2_combined_aal3", "cis2_combined_aal2", "cis2_combined_aal1", "nhs_login_combined"]:
             # Set up trace
             session_name = str(uuid4())
             header_filters = {"trace_id": session_name}
@@ -1309,11 +1309,11 @@ class TestProductScopes:
 
             trace.delete_debugsession_by_name(session_name)
 
-        elif auth_pattern in ["cis2_seperate", "cis2_separate_aal2", "cis2_separate_aal1"]:
+        elif auth_pattern in ["cis2_seperate_aal3", "cis2_separate_aal2", "cis2_separate_aal1"]:
             auth_pattern_aal_map = {
                 "cis2_separate_aal1": 1,
                 "cis2_separate_aal2": 2,
-                "cis2_seperate": 3,
+                "cis2_seperate_aal3": 3,
             }
 
             cis2_subject_token_claims["authentication_assurance_level"] = auth_pattern_aal_map.get(auth_pattern)
