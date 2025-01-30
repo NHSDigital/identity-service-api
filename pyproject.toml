@@ -1,5 +1,5 @@
 [project]
-python = "^3.8"
+python = "^3.9"
 
 [tool.poetry]
 name = "auth-service"
@@ -8,13 +8,12 @@ description = ""
 authors = []
 readme = 'README.md'
 license = "MIT"
-package-mode = false
 repository = "https://github.com/NHSDigital/identity-service-api"
 homepage = "https://github.com/NHSDigital/identity-service-api"
 keywords = ["healthcare", "uk", "nhs"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 pytest-rerunfailures = "^10.0"
 beautifulsoup4 = "^4.10.0"
 selenium = "^4.0.0"
