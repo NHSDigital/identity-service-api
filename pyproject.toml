@@ -8,7 +8,6 @@ description = ""
 authors = []
 readme = 'README.md'
 license = "MIT"
-package-mode = false
 repository = "https://github.com/NHSDigital/identity-service-api"
 homepage = "https://github.com/NHSDigital/identity-service-api"
 keywords = ["healthcare", "uk", "nhs"]
