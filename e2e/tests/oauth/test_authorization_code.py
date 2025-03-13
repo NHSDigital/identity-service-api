@@ -6,7 +6,7 @@ from time import sleep
 from urllib import parse
 
 from e2e.tests.utils.response_bank import BANK
-from e2e.tests.utils.config import CANARY_API_URL, CANARY_PRODUCT_NAME
+from e2e.tests.utils.config import CANARY_API_URL, CANARY_PRODUCT_NAME, MOCK_CIS2_USERNAMES
 from e2e.tests.utils.helpers import (
     remove_keys,
     replace_keys,
@@ -18,7 +18,22 @@ from e2e.tests.utils.helpers import (
 
 
 class TestAuthorizationCode:
-    """A test suit to test the token exchange flow"""
+    """A test suit to test the authorization code flow"""
+
+    # Create a list of pytest.param for each combination of username and level for combined auth
+    combined_auth_params = [
+        pytest.param(
+            username, level,
+            marks=pytest.mark.nhsd_apim_authorization(
+                access="healthcare_worker",
+                level=level,
+                login_form={"username": username},
+                force_new_token=True,
+            ),
+        )
+        for level, usernames in MOCK_CIS2_USERNAMES.items()
+        for username in usernames
+    ]
 
     def get_params_from_url(self, url: str) -> dict:
         """Returns all the params and param values from a given url as a dictionary"""
@@ -43,13 +58,8 @@ class TestAuthorizationCode:
 
     @pytest.mark.happy_path
     @pytest.mark.token_endpoint
-    @pytest.mark.nhsd_apim_authorization(
-        access="healthcare_worker",
-        level="aal3",
-        login_form={"username": "656005750104"},
-        force_new_token=True,
-    )
-    def test_token_endpoint(self, _nhsd_apim_auth_token_data):
+    @pytest.mark.parametrize("username, level", combined_auth_params)
+    def test_token_endpoint(self, _nhsd_apim_auth_token_data, username, level):
         assert _nhsd_apim_auth_token_data["expires_in"] == "599"
         assert _nhsd_apim_auth_token_data["token_type"] == "Bearer"
         assert _nhsd_apim_auth_token_data["refresh_count"] == "0"
@@ -209,14 +219,9 @@ class TestAuthorizationCode:
         assert body == expected_response
 
     @pytest.mark.happy_path
-    @pytest.mark.nhsd_apim_authorization(
-        access="healthcare_worker",
-        level="aal3",
-        login_form={"username": "656005750104"},
-        force_new_token=True,
-    )
+    @pytest.mark.parametrize("username, level", combined_auth_params)
     def test_refresh_token(
-        self, nhsd_apim_proxy_url, refresh_token_data, _nhsd_apim_auth_token_data
+        self, nhsd_apim_proxy_url, refresh_token_data, _nhsd_apim_auth_token_data, username, level
     ):
         refresh_token_data["refresh_token"] = _nhsd_apim_auth_token_data[
             "refresh_token"
@@ -246,13 +251,13 @@ class TestAuthorizationCode:
         access="healthcare_worker",
         level="aal3",
         login_form={"username": "656005750104"},
-        force_new_token=True
+        force_new_token=True,
     )
     def test_refresh_token_expiry_calculated_correctly(
         self,
         nhsd_apim_proxy_url,
         refresh_token_data,
-        _nhsd_apim_auth_token_data
+        _nhsd_apim_auth_token_data,
     ):
         '''
         refresh_token_expires_in should reduce on subsequent calls
@@ -281,8 +286,6 @@ class TestAuthorizationCode:
         second_expiry = int(body["refresh_token_expires_in"])
         assert second_expiry < first_expiry
         assert first_expiry - second_expiry == wait_time_between_refresh_token_calls
-
-
 
     @pytest.mark.errors
     @pytest.mark.authorize_endpoint
@@ -782,12 +785,7 @@ class TestAuthorizationCode:
         assert resp.status_code == 200
         assert body == BANK.get("test_userinfo")["response"]
 
-    @pytest.mark.nhsd_apim_authorization(
-        access="healthcare_worker",
-        level="aal3",
-        login_form={"username": "656005750104"},
-        force_new_token=True,
-    )
+    @pytest.mark.parametrize("username, level", combined_auth_params)
     @pytest.mark.happy_path
     def test_access_token(
         self,
@@ -796,6 +794,8 @@ class TestAuthorizationCode:
         _proxy_product_with_scope,
         _apigee_edge_session,
         _apigee_app_base_url,
+        username,
+        level
     ):
         # Subscribe app to canary and identity service
         app = _create_function_scoped_test_app
@@ -821,7 +821,7 @@ class TestAuthorizationCode:
         auth_info = get_auth_info(
             url=nhsd_apim_proxy_url + "/authorize",
             authorize_params=params,
-            username="656005750104",
+            username=username,
         )
 
         token_data = {
@@ -896,7 +896,7 @@ class TestAuthorizationCode:
         force_new_token=True,
     )
     def test_expired_access_token(
-        self, nhsd_apim_proxy_url, authorize_params, token_data_authorization_code
+        self, nhsd_apim_proxy_url, authorize_params, token_data_authorization_code,
     ):
         # Set short expiry
         auth_info = get_auth_info(
@@ -1160,7 +1160,7 @@ class TestAuthorizationCode:
         force_new_token=True,
     )
     def test_re_use_of_refresh_token(
-        self, nhsd_apim_proxy_url, refresh_token_data, _nhsd_apim_auth_token_data
+        self, nhsd_apim_proxy_url, refresh_token_data, _nhsd_apim_auth_token_data,
     ):
         refresh_token_data["refresh_token"] = _nhsd_apim_auth_token_data[
             "refresh_token"
@@ -1202,14 +1202,9 @@ class TestAuthorizationCode:
         }
 
     @pytest.mark.happy_path
-    @pytest.mark.nhsd_apim_authorization(
-        access="healthcare_worker",
-        level="aal3",
-        login_form={"username": "656005750104"},
-        force_new_token=True,
-    )
+    @pytest.mark.parametrize("username, level", combined_auth_params)
     def test_cis2_refresh_tokens_generated_with_expected_expiry_combined_auth(
-        self, _nhsd_apim_auth_token_data
+        self, _nhsd_apim_auth_token_data, username, level
     ):
         """
         Test that refresh tokens generated via CIS2 have an expiry time of 12 hours for combined authentication.
