@@ -4,7 +4,7 @@
       <Headers/>
       <Payload contentType="application/json">{
   "error": "invalid_request",
-  "error_description": "Content-Type header must be application/x-www-urlencoded",
+  "error_description": "Content-Type header must be application/x-www-form-urlencoded",
   "message_id": "{messageid}"
 }</Payload>
       <StatusCode>415</StatusCode>

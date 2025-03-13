@@ -51,7 +51,7 @@ release: clean publish build-proxy
 
 .PHONY: e2e e2e-mock
 
-pytest := PYTEST_ADDOPTS="--color=yes" poetry run pytest --reruns 5 --reruns-delay 2 $$f --suppress-no-test-exit-code
+pytest := PYTEST_ADDOPTS="--color=yes" poetry run pytest --reruns 3 --reruns-delay 2 $$f --suppress-no-test-exit-code
 
 # Since different fixtures are used in diferent files to create and modify test
 # apps and products, is quite difficult to handle the state of the resources
@@ -65,12 +65,5 @@ e2e:
 	rm -f reports/e2e.xml  > /dev/null || true 
 	@for f in  $$(find  e2e/tests  -name "test_*.py") ; do \
 		echo $$f; \
-		$(pytest) -m "not mock_auth" || exit 1; \
-	done
-
-e2e-mock:
-	rm -f reports/e2e.xml  > /dev/null || true 
-	@for f in  $$(find  e2e/tests  -name "test_*.py") ; do \
-		echo $$f; \
-		$(pytest) -m "not simulated_auth" || exit 1; \
+		$(pytest) || exit 1; \
 	done
