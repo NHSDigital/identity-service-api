@@ -1,4 +1,4 @@
-<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.FailedToDecodeJWTError">
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.FailedToDecodeClientAssertionJWTError">
   <Set>
     <StatusCode>400</StatusCode>
     <!-- TODO: Check error code to see if more suitable one is available -->
