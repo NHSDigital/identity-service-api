@@ -1,43 +1,71 @@
 import pytest
 import requests
-import json
 
 from uuid import uuid4
 
-from e2e.tests.oauth.utils.helpers import (
+from e2e.tests.utils.config import MOCK_CIS2_USERNAMES
+from e2e.tests.utils.helpers import (
     create_client_assertion,
     create_subject_token,
     create_nhs_login_subject_token,
     get_auth_info,
     get_auth_item,
+    get_variable_from_trace,
 )
 
 
-def get_payload_sent_to_splunk(debug, session_name):
-    trace_ids = debug.get_transaction_data(session_name=session_name)
-    trace_data = debug.get_transaction_data_by_id(
-        session_name=session_name, transaction_id=trace_ids[0]
-    )
-
-    payload = debug.get_apigee_variable_from_trace(
-        name="splunkCalloutRequest.content", data=trace_data
-    )
-
-    return json.loads(payload)
-
-
-@pytest.mark.mock_auth
 class TestSplunkLoggingFields:
+    """Test suite for testing logging fields are sent to splunk"""
+
+    # Create a list of pytest.param for each combination of username and level for combined auth
+    combined_auth_params = [
+        pytest.param(
+           False, username, "apim-mock-nhs-cis2", level,
+           marks=pytest.mark.nhsd_apim_authorization(
+                access="healthcare_worker",
+                level=level,
+                login_form={"username": username},
+                force_new_token=True,
+            ),
+        )
+        for level, usernames in MOCK_CIS2_USERNAMES.items()
+        for username in usernames
+    ]
+
+    # Create a list of pytest.param for each combination of username and level for separate auth
+    separate_auth_params = [
+        pytest.param(
+            username, level,
+            marks=pytest.mark.nhsd_apim_authorization(
+                access="healthcare_worker",
+                level=level,
+                login_form={"username": username},
+                authentication="separate",
+                force_new_token=True,
+            ),
+        )
+        for level, usernames in MOCK_CIS2_USERNAMES.items()
+        for username in usernames
+    ]
+
     @pytest.mark.happy_path
     @pytest.mark.logging
     @pytest.mark.parametrize(
-        "is_nhs_login,username,provider",
+        "is_nhs_login,username,provider,level", combined_auth_params +
         [
-            # CIS2
-            (False, "656005750104", "apim-mock-nhs-cis2"),
-            # NHS Login
-            (True, "9912003071", "apim-mock-nhs-login"),
-        ],
+            pytest.param(
+                True,
+                "9912003071",
+                "apim-mock-nhs-login",
+                "P9",
+                marks=pytest.mark.nhsd_apim_authorization(
+                    access="patient",
+                    level="P9",
+                    login_form={"username": "9912003071"},
+                    force_new_token=True,
+                ),
+            ),
+        ]
     )
     def test_splunk_fields_for_authorize_endpoint(
         self,
@@ -47,6 +75,7 @@ class TestSplunkLoggingFields:
         is_nhs_login,
         username,
         provider,
+        level
     ):
         session_name = str(uuid4())
         header_filters = {"trace_id": session_name}
@@ -62,7 +91,9 @@ class TestSplunkLoggingFields:
             headers=header_filters,
         )
 
-        payload = get_payload_sent_to_splunk(trace, session_name)
+        payload = get_variable_from_trace(
+            trace, session_name, "splunkCalloutRequest.content"
+        )
 
         trace.delete_debugsession_by_name(session_name)
 
@@ -72,6 +103,7 @@ class TestSplunkLoggingFields:
         assert auth_meta["auth_type"] == "user"
         assert auth_meta["grant_type"] == "authorization_code"
         assert auth_meta["level"] == ""  # level is unknown when hitting /authorize
+
         assert auth_meta["provider"] == provider
 
         auth_user = auth["user"]
@@ -80,13 +112,22 @@ class TestSplunkLoggingFields:
     @pytest.mark.happy_path
     @pytest.mark.logging
     @pytest.mark.parametrize(
-        "is_nhs_login,username,provider,level",
+        "is_nhs_login,username,provider,level", combined_auth_params +
         [
-            # CIS2
-            (False, "656005750104", "apim-mock-nhs-cis2", "aal3"),
             # NHS Login
-            (True, "9912003071", "apim-mock-nhs-login", "p9"),
-        ],
+            pytest.param(
+                True,
+                "9912003071",
+                "apim-mock-nhs-login",
+                "p9",
+                marks=pytest.mark.nhsd_apim_authorization(
+                    access="patient",
+                    level="P9",
+                    login_form={"username": "9912003071"},
+                    force_new_token=True,
+                ),
+            ),
+        ]
     )
     def test_splunk_fields_for_callback_endpoint(
         self,
@@ -113,7 +154,9 @@ class TestSplunkLoggingFields:
             callback_headers=header_filters,
         )
 
-        payload = get_payload_sent_to_splunk(trace, session_name)
+        payload = get_variable_from_trace(
+            trace, session_name, "splunkCalloutRequest.content"
+        )
 
         trace.delete_debugsession_by_name(session_name)
 
@@ -131,12 +174,21 @@ class TestSplunkLoggingFields:
     @pytest.mark.happy_path
     @pytest.mark.logging
     @pytest.mark.parametrize(
-        "is_nhs_login,username,provider,level",
+        "is_nhs_login,username,provider,level", combined_auth_params +
         [
-            # CIS2
-            (False, "656005750104", "apim-mock-nhs-cis2", "aal3"),
             # NHS Login
-            (True, "9912003071", "apim-mock-nhs-login", "p9"),
+            pytest.param(
+                True,
+                "9912003071",
+                "apim-mock-nhs-login",
+                "p9",
+                marks=pytest.mark.nhsd_apim_authorization(
+                    access="patient",
+                    level="P9",
+                    login_form={"username": "9912003071"},
+                    force_new_token=True,
+                ),
+            ),
         ],
     )
     def test_splunk_fields_for_token_endpoint_authorization_code(
@@ -173,7 +225,9 @@ class TestSplunkLoggingFields:
             data=token_data_authorization_code,
         )
 
-        payload = get_payload_sent_to_splunk(trace, session_name)
+        payload = get_variable_from_trace(
+            trace, session_name, "splunkCalloutRequest.content"
+        )
 
         trace.delete_debugsession_by_name(session_name)
 
@@ -185,6 +239,7 @@ class TestSplunkLoggingFields:
         assert auth_meta["auth_type"] == "user"
         assert auth_meta["grant_type"] == "authorization_code"
         assert auth_meta["level"] == level
+
         assert auth_meta["provider"] == provider
 
         auth_user = auth["user"]
@@ -192,6 +247,9 @@ class TestSplunkLoggingFields:
 
     @pytest.mark.happy_path
     @pytest.mark.logging
+    @pytest.mark.nhsd_apim_authorization(
+        access="application", level="level3", force_new_token=True
+    )
     def test_splunk_fields_for_token_endpoint_client_credentials(
         self,
         nhsd_apim_proxy_url,
@@ -216,7 +274,9 @@ class TestSplunkLoggingFields:
             data=token_data_client_credentials,
         )
 
-        payload = get_payload_sent_to_splunk(trace, session_name)
+        payload = get_variable_from_trace(
+            trace, session_name, "splunkCalloutRequest.content"
+        )
 
         trace.delete_debugsession_by_name(session_name)
 
@@ -235,6 +295,7 @@ class TestSplunkLoggingFields:
 
     @pytest.mark.happy_path
     @pytest.mark.logging
+    @pytest.mark.parametrize("username, level", separate_auth_params)
     def test_splunk_fields_for_token_endpoint_token_exchange_cis2(
         self,
         nhsd_apim_proxy_url,
@@ -243,6 +304,8 @@ class TestSplunkLoggingFields:
         token_data_token_exchange,
         _jwt_keys,
         cis2_subject_token_claims,
+        username,
+        level
     ):
         token_data_token_exchange["client_assertion"] = create_client_assertion(
             claims, _jwt_keys["private_key_pem"]
@@ -264,7 +327,9 @@ class TestSplunkLoggingFields:
             data=token_data_token_exchange,
         )
 
-        payload = get_payload_sent_to_splunk(trace, session_name)
+        payload = get_variable_from_trace(
+            trace, session_name, "splunkCalloutRequest.content"
+        )
 
         trace.delete_debugsession_by_name(session_name)
 
@@ -279,10 +344,17 @@ class TestSplunkLoggingFields:
         assert auth_meta["provider"] == "apim-mock-nhs-cis2"
 
         auth_user = auth["user"]
-        assert auth_user["user_id"] == "787807429511"
+        assert auth_user["user_id"] == "787807429511"  # sub on subject-token claims
 
     @pytest.mark.happy_path
     @pytest.mark.logging
+    @pytest.mark.nhsd_apim_authorization(
+        access="patient",
+        level="P9",
+        login_form={"username": "9912003071"},
+        authentication="separate",
+        force_new_token=True,
+    )
     def test_splunk_fields_for_token_endpoint_token_exchange_nhs_login(
         self,
         nhsd_apim_proxy_url,
@@ -315,7 +387,9 @@ class TestSplunkLoggingFields:
             data=token_data_token_exchange,
         )
 
-        payload = get_payload_sent_to_splunk(trace, session_name)
+        payload = get_variable_from_trace(
+            trace, session_name, "splunkCalloutRequest.content"
+        )
 
         trace.delete_debugsession_by_name(session_name)
 

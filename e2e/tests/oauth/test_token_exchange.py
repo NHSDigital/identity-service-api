@@ -1,34 +1,50 @@
-from time import time
-
 import pytest
 import requests
+import jwt
 
-from e2e.scripts.config import (CANARY_API_URL, CANARY_PRODUCT_NAME)
-from e2e.tests.oauth.utils.helpers import (change_jwks_url,
-                                           create_client_assertion,
-                                           remove_keys, replace_keys,
-                                           subscribe_app_to_products,
-                                           create_subject_token,
-                                           create_nhs_login_subject_token)
+from time import time
+
+from e2e.tests.utils.config import CANARY_API_URL, CANARY_PRODUCT_NAME, MOCK_CIS2_USERNAMES
+from e2e.tests.utils.helpers import (
+    change_jwks_url,
+    create_client_assertion,
+    remove_keys,
+    replace_keys,
+    subscribe_app_to_products,
+    create_subject_token,
+    create_nhs_login_subject_token,
+)
 
 
-@pytest.mark.mock_auth
 class TestTokenExchange:
-    """ A test suit to test the token exchange flow """
+    """A test suit to test the token exchange flow"""
+
+    # Create a list of pytest.param for each combination of username and level for combined auth
+    seperate_auth_params = [
+        pytest.param(
+            username, level,
+            marks=pytest.mark.nhsd_apim_authorization(
+                access="healthcare_worker",
+                level=level,
+                login_form={"username": username},
+                authentication="separate",
+                force_new_token=True,
+            ),
+        )
+        for level, usernames in MOCK_CIS2_USERNAMES.items()
+        for username in usernames
+    ]
 
     @pytest.mark.happy_path
-    @pytest.mark.nhsd_apim_authorization(
-        access="healthcare_worker",
-        level="aal3",
-        login_form={"username": "aal3"},
-        authentication="separate",
-        force_new_token=True
-    )
-    def test_cis2_token_exchange_happy_path(self, _nhsd_apim_auth_token_data):
+    @pytest.mark.parametrize("username, level", seperate_auth_params)
+    def test_cis2_token_exchange_happy_path(self, _nhsd_apim_auth_token_data, username, level):
         assert _nhsd_apim_auth_token_data["expires_in"] == "599"
         assert _nhsd_apim_auth_token_data["token_type"] == "Bearer"
         assert _nhsd_apim_auth_token_data["refresh_count"] == "0"
-        assert _nhsd_apim_auth_token_data["issued_token_type"] == "urn:ietf:params:oauth:token-type:access_token"
+        assert (
+            _nhsd_apim_auth_token_data["issued_token_type"]
+            == "urn:ietf:params:oauth:token-type:access_token"
+        )
         assert set(_nhsd_apim_auth_token_data.keys()) == {
             "access_token",
             "expires_in",
@@ -37,32 +53,23 @@ class TestTokenExchange:
             "refresh_token_expires_in",
             "token_type",
             "issued_token_type",
-            "issued_at"  # Added by pytest_nhsd_apim
+            "issued_at",  # Added by pytest_nhsd_apim
         }
 
     @pytest.mark.happy_path
-    @pytest.mark.nhsd_apim_authorization(
-        access="healthcare_worker",
-        level="aal3",
-        login_form={"username": "aal3"},
-        authentication="separate",
-        force_new_token=True
-    )
+    @pytest.mark.parametrize("username, level", seperate_auth_params)
     def test_cis2_token_exchange_refresh_token(
-        self,
-        _nhsd_apim_auth_token_data,
-        nhsd_apim_proxy_url,
-        _test_app_credentials
+        self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url, _test_app_credentials, username, level
     ):
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
             data={
                 "client_id": _test_app_credentials["consumerKey"],
                 "client_secret": _test_app_credentials["consumerSecret"],
-                "grant_type":  "refresh_token",
-                "refresh_token": _nhsd_apim_auth_token_data["refresh_token"]
+                "grant_type": "refresh_token",
+                "refresh_token": _nhsd_apim_auth_token_data["refresh_token"],
             },
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
         refresh_resp = resp.json()
 
@@ -76,7 +83,7 @@ class TestTokenExchange:
             "refresh_count",
             "refresh_token",
             "refresh_token_expires_in",
-            "token_type"
+            "token_type",
         }
 
     @pytest.mark.errors
@@ -86,98 +93,98 @@ class TestTokenExchange:
             (  # Test invalid client_assertion_type
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or invalid client_assertion_type - " \
-                                         "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'"
+                    "error_description": "Missing or invalid client_assertion_type - "
+                    "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'",
                 },
                 400,
                 "invalid",
-                {"client_assertion_type": "invalid"}
+                {"client_assertion_type": "invalid"},
             ),
             (  # Test missing client_assertion_type
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or invalid client_assertion_type - " \
-                                         "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'"
+                    "error_description": "Missing or invalid client_assertion_type - "
+                    "must be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'",
                 },
                 400,
                 "missing",
-                {"client_assertion_type"}
+                {"client_assertion_type"},
             ),
             (  # Test invalid subject_token_type
                 {
                     "error": "invalid_request",
-                    "error_description": "missing or invalid subject_token_type - " \
-                                         "must be 'urn:ietf:params:oauth:token-type:id_token'"
+                    "error_description": "missing or invalid subject_token_type - "
+                    "must be 'urn:ietf:params:oauth:token-type:id_token'",
                 },
                 400,
                 "invalid",
-                {"subject_token_type": "invalid"}
+                {"subject_token_type": "invalid"},
             ),
             (  # Test missing subject_token_type
                 {
                     "error": "invalid_request",
-                    "error_description": "missing or invalid subject_token_type - " \
-                                         "must be 'urn:ietf:params:oauth:token-type:id_token'"
+                    "error_description": "missing or invalid subject_token_type - "
+                    "must be 'urn:ietf:params:oauth:token-type:id_token'",
                 },
                 400,
                 "missing",
-                {"subject_token_type"}
+                {"subject_token_type"},
             ),
             (  # Test invalid grant_type
                 {
                     "error": "invalid_request",
-                    "error_description": "grant_type is invalid"
+                    "error_description": "grant_type is invalid",
                 },
                 400,
                 "invalid",
-                {"grant_type": "invalid"}
+                {"grant_type": "invalid"},
             ),
             (  # Test missing grant_type
                 {
                     "error": "invalid_request",
-                    "error_description": "grant_type is invalid"
+                    "error_description": "grant_type is invalid",
                 },
                 400,
                 "missing",
-                {"grant_type"}
+                {"grant_type"},
             ),
             (  # Test invalid subject_token
                 {
                     "error": "invalid_request",
-                    "error_description": "subject_token is invalid"
+                    "error_description": "Malformed JWT in subject_token",
                 },
                 400,
                 "invalid",
-                {"subject_token": "invalid"}
+                {"subject_token": "invalid"},
             ),
             (  # Test missing subject_token
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing subject_token"
+                    "error_description": "Missing subject_token",
                 },
                 400,
                 "missing",
-                {"subject_token"}
+                {"subject_token"},
             ),
             (  # Test invalid client_assertion
                 {
                     "error": "invalid_request",
-                    "error_description": "Malformed JWT in client_assertion"
+                    "error_description": "Malformed JWT in client_assertion",
                 },
                 400,
                 "invalid",
-                {"client_assertion": "invalid"}
+                {"client_assertion": "invalid"},
             ),
             (  # Test missing client_assertion
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing client_assertion"
+                    "error_description": "Missing client_assertion",
                 },
                 400,
                 "missing",
-                {"client_assertion"}
+                {"client_assertion"},
             ),
-        ]
+        ],
     )
     def test_token_exchange_form_param_errors(
         self,
@@ -189,20 +196,27 @@ class TestTokenExchange:
         _jwt_keys,
         nhsd_apim_proxy_url,
         cis2_subject_token_claims,
-        token_data_token_exchange
+        token_data_token_exchange,
     ):
-        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
-        token_data_token_exchange["subject_token"] = create_subject_token(cis2_subject_token_claims)
+        token_data_token_exchange["client_assertion"] = create_client_assertion(
+            claims, _jwt_keys["private_key_pem"]
+        )
+        token_data_token_exchange["subject_token"] = create_subject_token(
+            cis2_subject_token_claims
+        )
 
         if missing_or_invalid == "missing":
-            token_data_token_exchange = remove_keys(token_data_token_exchange, update_data)
+            token_data_token_exchange = remove_keys(
+                token_data_token_exchange, update_data
+            )
         if missing_or_invalid == "invalid":
-            token_data_token_exchange = replace_keys(token_data_token_exchange, update_data)
+            token_data_token_exchange = replace_keys(
+                token_data_token_exchange, update_data
+            )
 
         # When
         resp = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data=token_data_token_exchange
+            nhsd_apim_proxy_url + "/token", data=token_data_token_exchange
         )
 
         # Then
@@ -221,49 +235,49 @@ class TestTokenExchange:
             (  # Test missing kid
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing 'kid' header in client_assertion JWT"
+                    "error_description": "Missing 'kid' header in client_assertion JWT",
                 },
                 400,
                 "missing",
-                {"kid"}
+                {"kid"},
             ),
             (  # Test invalid kid
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid 'kid' header in client_assertion JWT - no matching public key"
+                    "error_description": "Invalid 'kid' header in client_assertion JWT - no matching public key",
                 },
                 401,
                 "invalid",
-                {"kid": "invalid"}
+                {"kid": "invalid"},
             ),
             (  # Test invalid typ
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid 'typ' header in client_assertion JWT - must be 'JWT'"
+                    "error_description": "Invalid 'typ' header in client_assertion JWT - must be 'JWT'",
                 },
                 400,
                 "invalid",
-                {"typ": "invalid"}
+                {"typ": "invalid"},
             ),
             (  # Test None typ
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid 'typ' header in client_assertion JWT - must be 'JWT'"
+                    "error_description": "Invalid 'typ' header in client_assertion JWT - must be 'JWT'",
                 },
                 400,
                 "invalid",
-                {"typ": None}
+                {"typ": None},
             ),
             (  # Test invalid alg
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid 'alg' header in client_assertion JWT - unsupported JWT algorithm - must be 'RS512'"
+                    "error_description": "Invalid 'alg' header in client_assertion JWT - unsupported JWT algorithm - must be 'RS512'",
                 },
                 400,
                 "invalid",
-                {"alg": "HS512"}
+                {"alg": "HS512"},
             ),
-        ]
+        ],
     )
     def test_token_exchange_client_assertion_header_errors(
         self,
@@ -275,7 +289,7 @@ class TestTokenExchange:
         _jwt_keys,
         nhsd_apim_proxy_url,
         cis2_subject_token_claims,
-        token_data_token_exchange
+        token_data_token_exchange,
     ):
         additional_headers = {"kid": "test-1", "alg": "RS512"}
 
@@ -284,17 +298,23 @@ class TestTokenExchange:
         if missing_or_invalid == "invalid":
             additional_headers = replace_keys(additional_headers, update_headers)
 
-        token_data_token_exchange["client_assertion"] = create_client_assertion(
-            claims,
-            _jwt_keys["private_key_pem"],
-            additional_headers=additional_headers
+        if additional_headers.get("alg", "").startswith("HS"):
+            # Use symmetric key for HS algorithms
+            token_data_token_exchange["client_assertion"] = jwt.encode({"some": "payload"},
+                                                                           "test-secret",
+                                                                           algorithm="HS256")
+        else:
+            # Use asymmetric key for other algorithms
+            token_data_token_exchange["client_assertion"] = create_client_assertion(
+               claims, _jwt_keys["private_key_pem"], additional_headers=additional_headers
+            )
+        token_data_token_exchange["subject_token"] = create_subject_token(
+            cis2_subject_token_claims
         )
-        token_data_token_exchange["subject_token"] = create_subject_token(cis2_subject_token_claims)
 
         # When
         resp = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data=token_data_token_exchange
+            nhsd_apim_proxy_url + "/token", data=token_data_token_exchange
         )
 
         # Then
@@ -306,13 +326,13 @@ class TestTokenExchange:
         del body["message_id"]
         assert body == expected_response
 
+    @pytest.mark.errors
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
         level="aal3",
         login_form={"username": "aal3"},
-        authentication="separate"
+        authentication="separate",
     )
-    @pytest.mark.errors
     @pytest.mark.parametrize(
         "expected_response,expected_status_code,missing_or_invalid,update_claims",
         [
@@ -328,47 +348,47 @@ class TestTokenExchange:
             (  # Test invalid iss
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching 'iss'/'sub' claims in client_assertion JWT"
+                    "error_description": "Missing or non-matching 'iss'/'sub' claims in client_assertion JWT",
                 },
                 400,
                 "invalid",
-                {"iss": "invalid"}
+                {"iss": "invalid"},
             ),
             (  # Test missing iss
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching 'iss'/'sub' claims in client_assertion JWT"
+                    "error_description": "Missing or non-matching 'iss'/'sub' claims in client_assertion JWT",
                 },
                 400,
                 "missing",
-                {"iss"}
+                {"iss"},
             ),
             (  # Test invalid sub
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching 'iss'/'sub' claims in client_assertion JWT"
+                    "error_description": "Missing or non-matching 'iss'/'sub' claims in client_assertion JWT",
                 },
                 400,
                 "invalid",
-                {"sub": "invalid"}
+                {"sub": "invalid"},
             ),
             (  # Test missing sub
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing or non-matching 'iss'/'sub' claims in client_assertion JWT"
+                    "error_description": "Missing or non-matching 'iss'/'sub' claims in client_assertion JWT",
                 },
                 400,
                 "missing",
-                {"sub"}
+                {"sub"},
             ),
             (  # Test missing jti
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing 'jti' claim in client_assertion JWT"
+                    "error_description": "Missing 'jti' claim in client_assertion JWT",
                 },
                 400,
                 "missing",
-                {"jti"}
+                {"jti"},
             ),
             (
                 # Test invalid jti - integer
@@ -402,29 +422,29 @@ class TestTokenExchange:
             (  # Test missing exp
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing 'exp' claim in client_assertion JWT"
+                    "error_description": "Missing 'exp' claim in client_assertion JWT",
                 },
                 400,
                 "missing",
-                {"exp"}
+                {"exp"},
             ),
             (  # Test invalid exp - more than 5 minutes
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid 'exp' claim in client_assertion JWT - more than 5 minutes in future"
+                    "error_description": "Invalid 'exp' claim in client_assertion JWT - more than 5 minutes in future",
                 },
                 400,
                 "invalid",
-                {"exp": int(time()) + 50000}
+                {"exp": int(time()) + 50000},
             ),
             (  # Test invalid exp - string
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid 'exp' claim in client_assertion JWT - must be an integer"
+                    "error_description": "Invalid 'exp' claim in client_assertion JWT - must be an integer",
                 },
                 400,
                 "invalid",
-                {"exp": str(int(time()) + 300)}
+                {"exp": str(int(time()) + 300)},
             ),
             (
                 # Test exp in the past
@@ -436,7 +456,7 @@ class TestTokenExchange:
                 "invalid",
                 {"exp": int(time()) - 20},
             ),
-        ]
+        ],
     )
     def test_token_exchange_client_assertion_claims_errors(
         self,
@@ -448,7 +468,7 @@ class TestTokenExchange:
         _jwt_keys,
         nhsd_apim_proxy_url,
         cis2_subject_token_claims,
-        token_data_token_exchange
+        token_data_token_exchange,
     ):
         if missing_or_invalid == "missing":
             claims = remove_keys(claims, update_claims)
@@ -459,16 +479,15 @@ class TestTokenExchange:
         headers = {"typ": "jwt", "kid": "test-1"}
 
         token_data_token_exchange["client_assertion"] = create_client_assertion(
-            claims,
-            _jwt_keys["private_key_pem"],
-            additional_headers=headers
+            claims, _jwt_keys["private_key_pem"], additional_headers=headers
         )
-        token_data_token_exchange["subject_token"] = create_subject_token(cis2_subject_token_claims)
+        token_data_token_exchange["subject_token"] = create_subject_token(
+            cis2_subject_token_claims
+        )
 
         # When
         resp = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data=token_data_token_exchange
+            nhsd_apim_proxy_url + "/token", data=token_data_token_exchange
         )
 
         # Then
@@ -486,7 +505,6 @@ class TestTokenExchange:
         level="aal3",
         login_form={"username": "aal3"},
         authentication="separate",
-        force_new_token=True
     )
     def test_token_exchange_claims_assertion_invalid_jti_claim(
         self,
@@ -494,24 +512,26 @@ class TestTokenExchange:
         nhsd_apim_proxy_url,
         cis2_subject_token_claims,
         claims,
-        token_data_token_exchange
+        token_data_token_exchange,
     ):
-        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
-        token_data_token_exchange["subject_token"] = create_subject_token(cis2_subject_token_claims)
+        token_data_token_exchange["client_assertion"] = create_client_assertion(
+            claims, _jwt_keys["private_key_pem"]
+        )
+        token_data_token_exchange["subject_token"] = create_subject_token(
+            cis2_subject_token_claims
+        )
 
         # When
         response = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data=token_data_token_exchange
+            nhsd_apim_proxy_url + "/token", data=token_data_token_exchange
         )
         resp = response.json()
 
         assert response.status_code == 200
-        assert 'access_token' in resp['issued_token_type']
+        assert "access_token" in resp["issued_token_type"]
 
         resp = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data=token_data_token_exchange
+            nhsd_apim_proxy_url + "/token", data=token_data_token_exchange
         )
 
         body = resp.json()
@@ -522,7 +542,7 @@ class TestTokenExchange:
         del body["message_id"]
         assert body == {
             "error": "invalid_request",
-            "error_description": "Non-unique 'jti' claim in client_assertion JWT"
+            "error_description": "Non-unique 'jti' claim in client_assertion JWT",
         }
 
     @pytest.mark.errors
@@ -532,49 +552,49 @@ class TestTokenExchange:
             (  # Test missing iss
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing 'iss' claim in subject_token JWT"
+                    "error_description": "Missing 'iss' claim in subject_token JWT",
                 },
                 400,
                 "missing",
-                {"iss"}
+                {"iss"},
             ),
             (  # Test missing aud
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing 'aud' claim in subject_token JWT"
+                    "error_description": "Missing 'aud' claim in subject_token JWT",
                 },
                 401,
                 "missing",
-                {"aud"}
+                {"aud"},
             ),
             (  # Test missing exp
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing 'exp' claim in subject_token JWT"
+                    "error_description": "Missing 'exp' claim in subject_token JWT",
                 },
                 400,
                 "missing",
-                {"exp"}
+                {"exp"},
             ),
             (  # Test invalid exp - string
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid 'exp' claim in subject_token JWT - must be an integer"
+                    "error_description": "Invalid 'exp' claim in subject_token JWT - must be an integer",
                 },
                 400,
                 "invalid",
-                {"exp": str(int(time()) + 300)}
+                {"exp": str(int(time()) + 300)},
             ),
             (  # Test invalid exp - JWT expired
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid 'exp' claim in subject_token JWT - JWT has expired"
+                    "error_description": "Invalid 'exp' claim in subject_token JWT - JWT has expired",
                 },
                 400,
                 "invalid",
-                {"exp": int(time()) + 1}
+                {"exp": int(time()) + 1},
             ),
-        ]
+        ],
     )
     def test_token_exchange_cis2_subject_token_claims_errors(
         self,
@@ -586,20 +606,27 @@ class TestTokenExchange:
         _jwt_keys,
         nhsd_apim_proxy_url,
         cis2_subject_token_claims,
-        token_data_token_exchange
+        token_data_token_exchange,
     ):
         if missing_or_invalid == "missing":
-            cis2_subject_token_claims = remove_keys(cis2_subject_token_claims, update_claims)
+            cis2_subject_token_claims = remove_keys(
+                cis2_subject_token_claims, update_claims
+            )
         if missing_or_invalid == "invalid":
-            cis2_subject_token_claims = replace_keys(cis2_subject_token_claims, update_claims)
+            cis2_subject_token_claims = replace_keys(
+                cis2_subject_token_claims, update_claims
+            )
 
-        token_data_token_exchange["subject_token"] = create_subject_token(cis2_subject_token_claims)
-        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data_token_exchange["subject_token"] = create_subject_token(
+            cis2_subject_token_claims
+        )
+        token_data_token_exchange["client_assertion"] = create_client_assertion(
+            claims, _jwt_keys["private_key_pem"]
+        )
 
         # When
         resp = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data=token_data_token_exchange
+            nhsd_apim_proxy_url + "/token", data=token_data_token_exchange
         )
 
         # Then
@@ -617,13 +644,16 @@ class TestTokenExchange:
         level="P0",
         login_form={"username": "9912003073"},
         authentication="separate",
-        force_new_token=True
+        force_new_token=True,
     )
     def test_nhs_login_happy_path_P0(self, _nhsd_apim_auth_token_data):
         assert _nhsd_apim_auth_token_data["expires_in"] == "599"
         assert _nhsd_apim_auth_token_data["token_type"] == "Bearer"
         assert _nhsd_apim_auth_token_data["refresh_count"] == "0"
-        assert _nhsd_apim_auth_token_data["issued_token_type"] == "urn:ietf:params:oauth:token-type:access_token"
+        assert (
+            _nhsd_apim_auth_token_data["issued_token_type"]
+            == "urn:ietf:params:oauth:token-type:access_token"
+        )
         assert set(_nhsd_apim_auth_token_data.keys()) == {
             "access_token",
             "expires_in",
@@ -632,7 +662,7 @@ class TestTokenExchange:
             "refresh_token_expires_in",
             "token_type",
             "issued_token_type",
-            "issued_at"  # Added by pytest_nhsd_apim
+            "issued_at",  # Added by pytest_nhsd_apim
         }
 
     @pytest.mark.happy_path
@@ -641,13 +671,16 @@ class TestTokenExchange:
         level="P5",
         login_form={"username": "9912003072"},
         authentication="separate",
-        force_new_token=True
+        force_new_token=True,
     )
     def test_nhs_login_happy_path_P5(self, _nhsd_apim_auth_token_data):
         assert _nhsd_apim_auth_token_data["expires_in"] == "599"
         assert _nhsd_apim_auth_token_data["token_type"] == "Bearer"
         assert _nhsd_apim_auth_token_data["refresh_count"] == "0"
-        assert _nhsd_apim_auth_token_data["issued_token_type"] == "urn:ietf:params:oauth:token-type:access_token"
+        assert (
+            _nhsd_apim_auth_token_data["issued_token_type"]
+            == "urn:ietf:params:oauth:token-type:access_token"
+        )
         assert set(_nhsd_apim_auth_token_data.keys()) == {
             "access_token",
             "expires_in",
@@ -656,7 +689,7 @@ class TestTokenExchange:
             "refresh_token_expires_in",
             "token_type",
             "issued_token_type",
-            "issued_at"  # Added by pytest_nhsd_apim
+            "issued_at",  # Added by pytest_nhsd_apim
         }
 
     @pytest.mark.happy_path
@@ -665,13 +698,16 @@ class TestTokenExchange:
         level="P9",
         login_form={"username": "9912003071"},
         authentication="separate",
-        force_new_token=True
+        force_new_token=True,
     )
     def test_nhs_login_happy_path_P9(self, _nhsd_apim_auth_token_data):
         assert _nhsd_apim_auth_token_data["expires_in"] == "599"
         assert _nhsd_apim_auth_token_data["token_type"] == "Bearer"
         assert _nhsd_apim_auth_token_data["refresh_count"] == "0"
-        assert _nhsd_apim_auth_token_data["issued_token_type"] == "urn:ietf:params:oauth:token-type:access_token"
+        assert (
+            _nhsd_apim_auth_token_data["issued_token_type"]
+            == "urn:ietf:params:oauth:token-type:access_token"
+        )
         assert set(_nhsd_apim_auth_token_data.keys()) == {
             "access_token",
             "expires_in",
@@ -680,7 +716,7 @@ class TestTokenExchange:
             "refresh_token_expires_in",
             "token_type",
             "issued_token_type",
-            "issued_at"  # Added by pytest_nhsd_apim
+            "issued_at",  # Added by pytest_nhsd_apim
         }
 
     @pytest.mark.happy_path
@@ -689,23 +725,20 @@ class TestTokenExchange:
         level="P0",
         login_form={"username": "9912003073"},
         authentication="separate",
-        force_new_token=True
+        force_new_token=True,
     )
     def test_nhs_login_refresh_token_P0(
-        self,
-        _nhsd_apim_auth_token_data,
-        nhsd_apim_proxy_url,
-        _test_app_credentials
+        self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url, _test_app_credentials
     ):
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
             data={
                 "client_id": _test_app_credentials["consumerKey"],
                 "client_secret": _test_app_credentials["consumerSecret"],
-                "grant_type":  "refresh_token",
-                "refresh_token": _nhsd_apim_auth_token_data["refresh_token"]
+                "grant_type": "refresh_token",
+                "refresh_token": _nhsd_apim_auth_token_data["refresh_token"],
             },
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
         refresh_resp = resp.json()
 
@@ -719,7 +752,7 @@ class TestTokenExchange:
             "refresh_count",
             "refresh_token",
             "refresh_token_expires_in",
-            "token_type"
+            "token_type",
         }
 
     @pytest.mark.happy_path
@@ -728,23 +761,20 @@ class TestTokenExchange:
         level="P5",
         login_form={"username": "9912003072"},
         authentication="separate",
-        force_new_token=True
+        force_new_token=True,
     )
     def test_nhs_login_refresh_token_P5(
-        self,
-        _nhsd_apim_auth_token_data,
-        nhsd_apim_proxy_url,
-        _test_app_credentials
+        self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url, _test_app_credentials
     ):
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
             data={
                 "client_id": _test_app_credentials["consumerKey"],
                 "client_secret": _test_app_credentials["consumerSecret"],
-                "grant_type":  "refresh_token",
-                "refresh_token": _nhsd_apim_auth_token_data["refresh_token"]
+                "grant_type": "refresh_token",
+                "refresh_token": _nhsd_apim_auth_token_data["refresh_token"],
             },
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
         refresh_resp = resp.json()
 
@@ -758,7 +788,7 @@ class TestTokenExchange:
             "refresh_count",
             "refresh_token",
             "refresh_token_expires_in",
-            "token_type"
+            "token_type",
         }
 
     @pytest.mark.happy_path
@@ -767,23 +797,20 @@ class TestTokenExchange:
         level="P9",
         login_form={"username": "9912003071"},
         authentication="separate",
-        force_new_token=True
+        force_new_token=True,
     )
     def test_nhs_login_refresh_token_P9(
-        self,
-        _nhsd_apim_auth_token_data,
-        nhsd_apim_proxy_url,
-        _test_app_credentials
+        self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url, _test_app_credentials
     ):
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
             data={
                 "client_id": _test_app_credentials["consumerKey"],
                 "client_secret": _test_app_credentials["consumerSecret"],
-                "grant_type":  "refresh_token",
-                "refresh_token": _nhsd_apim_auth_token_data["refresh_token"]
+                "grant_type": "refresh_token",
+                "refresh_token": _nhsd_apim_auth_token_data["refresh_token"],
             },
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
         refresh_resp = resp.json()
 
@@ -797,7 +824,7 @@ class TestTokenExchange:
             "refresh_count",
             "refresh_token",
             "refresh_token_expires_in",
-            "token_type"
+            "token_type",
         }
 
     @pytest.mark.errors
@@ -807,31 +834,31 @@ class TestTokenExchange:
             (  # Test missing kid
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing 'kid' header in subject_token JWT"
+                    "error_description": "Missing 'kid' header in subject_token JWT",
                 },
                 400,
                 "missing",
-                {"kid"}
+                {"kid"},
             ),
             (  # Test invalid typ
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid 'typ' header in subject_token JWT - must be 'JWT'"
+                    "error_description": "Invalid 'typ' header in subject_token JWT - must be 'JWT'",
                 },
                 400,
                 "invalid",
-                {"typ": "invalid"}
+                {"typ": "invalid"},
             ),
             (  # Test None typ
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid 'typ' header in subject_token JWT - must be 'JWT'"
+                    "error_description": "Invalid 'typ' header in subject_token JWT - must be 'JWT'",
                 },
                 400,
                 "invalid",
-                {"typ": None}
+                {"typ": None},
             ),
-        ]
+        ],
     )
     def test_token_exchange_nhs_login_subject_token_header_errors(
         self,
@@ -843,7 +870,7 @@ class TestTokenExchange:
         _jwt_keys,
         nhsd_apim_proxy_url,
         nhs_login_id_token,
-        token_data_token_exchange
+        token_data_token_exchange,
     ):
         id_token_claims = nhs_login_id_token["claims"]
         id_token_headers = nhs_login_id_token["headers"]
@@ -853,13 +880,16 @@ class TestTokenExchange:
         if missing_or_invalid == "invalid":
             id_token_headers = replace_keys(id_token_headers, update_headers)
 
-        token_data_token_exchange["subject_token"] = create_nhs_login_subject_token(id_token_claims, id_token_headers)
-        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data_token_exchange["subject_token"] = create_nhs_login_subject_token(
+            id_token_claims, id_token_headers
+        )
+        token_data_token_exchange["client_assertion"] = create_client_assertion(
+            claims, _jwt_keys["private_key_pem"]
+        )
 
         # When
         resp = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data=token_data_token_exchange
+            nhsd_apim_proxy_url + "/token", data=token_data_token_exchange
         )
 
         # Then
@@ -878,49 +908,49 @@ class TestTokenExchange:
             (  # Test missing iss
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing 'iss' claim in subject_token JWT"
+                    "error_description": "Missing 'iss' claim in subject_token JWT",
                 },
                 400,
                 "missing",
-                {"iss"}
+                {"iss"},
             ),
             (  # Test missing aud
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing 'aud' claim in subject_token JWT"
+                    "error_description": "Missing 'aud' claim in subject_token JWT",
                 },
                 401,
                 "missing",
-                {"aud"}
+                {"aud"},
             ),
             (  # Test missing exp
                 {
                     "error": "invalid_request",
-                    "error_description": "Missing 'exp' claim in subject_token JWT"
+                    "error_description": "Missing 'exp' claim in subject_token JWT",
                 },
                 400,
                 "missing",
-                {"exp"}
+                {"exp"},
             ),
             (  # Test invalid exp - string
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid 'exp' claim in subject_token JWT - must be an integer"
+                    "error_description": "Invalid 'exp' claim in subject_token JWT - must be an integer",
                 },
                 400,
                 "invalid",
-                {"exp": str(int(time()) + 300)}
+                {"exp": str(int(time()) + 300)},
             ),
             (  # Test invalid exp - JWT expired
                 {
                     "error": "invalid_request",
-                    "error_description": "Invalid 'exp' claim in subject_token JWT - JWT has expired"
+                    "error_description": "Invalid 'exp' claim in subject_token JWT - JWT has expired",
                 },
                 400,
                 "invalid",
-                {"exp": int(time()) + 1}
+                {"exp": int(time()) + 1},
             ),
-        ]
+        ],
     )
     def test_token_exchange_nhs_login_subject_token_claims_errors(
         self,
@@ -932,7 +962,7 @@ class TestTokenExchange:
         _jwt_keys,
         nhsd_apim_proxy_url,
         nhs_login_id_token,
-        token_data_token_exchange
+        token_data_token_exchange,
     ):
         id_token_claims = nhs_login_id_token["claims"]
         id_token_headers = nhs_login_id_token["headers"]
@@ -942,13 +972,16 @@ class TestTokenExchange:
         if missing_or_invalid == "invalid":
             id_token_claims = replace_keys(id_token_claims, update_claims)
 
-        token_data_token_exchange["subject_token"] = create_nhs_login_subject_token(id_token_claims, id_token_headers)
-        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data_token_exchange["subject_token"] = create_nhs_login_subject_token(
+            id_token_claims, id_token_headers
+        )
+        token_data_token_exchange["client_assertion"] = create_client_assertion(
+            claims, _jwt_keys["private_key_pem"]
+        )
 
         # When
         resp = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data=token_data_token_exchange
+            nhsd_apim_proxy_url + "/token", data=token_data_token_exchange
         )
         body = resp.json()
 
@@ -997,7 +1030,7 @@ class TestTokenExchange:
         _create_function_scoped_test_app,
         jwks_resource_url,
         expected_status_code,
-        expected_error_body
+        expected_error_body,
     ):
         app = _create_function_scoped_test_app
         credential = app["credentials"][0]
@@ -1008,17 +1041,20 @@ class TestTokenExchange:
             _apigee_edge_session,
             _apigee_app_base_url,
             _create_function_scoped_test_app,
-            new_jwks_resource_url=jwks_resource_url
+            new_jwks_resource_url=jwks_resource_url,
         )
         assert jwks_resp.status_code == 200
 
-        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
-        token_data_token_exchange["subject_token"] = create_subject_token(cis2_subject_token_claims)
+        token_data_token_exchange["client_assertion"] = create_client_assertion(
+            claims, _jwt_keys["private_key_pem"]
+        )
+        token_data_token_exchange["subject_token"] = create_subject_token(
+            cis2_subject_token_claims
+        )
 
         # When
         resp = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data=token_data_token_exchange
+            nhsd_apim_proxy_url + "/token", data=token_data_token_exchange
         )
 
         # Then
@@ -1040,7 +1076,7 @@ class TestTokenExchange:
         token_data_token_exchange,
         _apigee_edge_session,
         _apigee_app_base_url,
-        _create_function_scoped_test_app
+        _create_function_scoped_test_app,
     ):
         app = _create_function_scoped_test_app
         credential = app["credentials"][0]
@@ -1051,17 +1087,20 @@ class TestTokenExchange:
             _apigee_edge_session,
             _apigee_app_base_url,
             _create_function_scoped_test_app,
-            should_remove=True
+            should_remove=True,
         )
         assert jwks_resp.status_code == 200
 
-        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
-        token_data_token_exchange["subject_token"] = create_subject_token(cis2_subject_token_claims)
+        token_data_token_exchange["client_assertion"] = create_client_assertion(
+            claims, _jwt_keys["private_key_pem"]
+        )
+        token_data_token_exchange["subject_token"] = create_subject_token(
+            cis2_subject_token_claims
+        )
 
         # When
         resp = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data=token_data_token_exchange
+            nhsd_apim_proxy_url + "/token", data=token_data_token_exchange
         )
 
         # Then
@@ -1074,7 +1113,7 @@ class TestTokenExchange:
         assert body == {
             "error": "public_key error",
             "error_description": "You need to register a public key to use this authentication method "
-                                 "- please contact support to configure"
+            "- please contact support to configure",
         }
 
     @pytest.mark.nhsd_apim_authorization(
@@ -1082,7 +1121,7 @@ class TestTokenExchange:
         level="P9",
         login_form={"username": "9912003071"},
         authentication="separate",
-        force_new_token=True
+        force_new_token=True,
     )
     def test_userinfo_nhs_login_exchanged_token(
         self,
@@ -1090,26 +1129,29 @@ class TestTokenExchange:
         nhsd_apim_proxy_url,
         claims,
         nhs_login_id_token,
-        token_data_token_exchange
+        token_data_token_exchange,
     ):
         id_token_claims = nhs_login_id_token["claims"]
         id_token_headers = nhs_login_id_token["headers"]
 
-        token_data_token_exchange["subject_token"] = create_nhs_login_subject_token(id_token_claims, id_token_headers)
-        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data_token_exchange["subject_token"] = create_nhs_login_subject_token(
+            id_token_claims, id_token_headers
+        )
+        token_data_token_exchange["client_assertion"] = create_client_assertion(
+            claims, _jwt_keys["private_key_pem"]
+        )
 
         # When
         resp = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data=token_data_token_exchange
+            nhsd_apim_proxy_url + "/token", data=token_data_token_exchange
         )
         token_resp = resp.json()
 
         # Then
         token = token_resp["access_token"]
         user_info_resp = requests.get(
-            nhsd_apim_proxy_url + '/userinfo',
-            headers={"Authorization": f"Bearer {token}"}
+            nhsd_apim_proxy_url + "/userinfo",
+            headers={"Authorization": f"Bearer {token}"},
         )
         assert user_info_resp.status_code == 400
 
@@ -1121,19 +1163,13 @@ class TestTokenExchange:
         assert body == {
             "error": "invalid_request",
             "error_description": "The Userinfo endpoint is only supported for Combined Auth integrations. "
-                                 "Currently this is only for NHS CIS2 authentications - for more guidance see "
-                                 "https://digital.nhs.uk/developer/guides-and-documentation/security-and"
-                                 "-authorisation/user-restricted-restful-apis-nhs-cis2-combined-authentication"
-                                 "-and-authorisation"
+            "Currently this is only for NHS CIS2 authentications - for more guidance see "
+            "https://digital.nhs.uk/developer/guides-and-documentation/security-and"
+            "-authorisation/user-restricted-restful-apis-nhs-cis2-combined-authentication"
+            "-and-authorisation",
         }
 
-    @pytest.mark.nhsd_apim_authorization(
-        access="healthcare_worker",
-        level="aal3",
-        login_form={"username": "aal3"},
-        authentication="separate",
-        force_new_token=True
-    )
+    @pytest.mark.parametrize("username, level", seperate_auth_params)
     def test_cis2_token_exchange_access_tokens_valid(
         self,
         nhsd_apim_proxy_url,
@@ -1144,7 +1180,9 @@ class TestTokenExchange:
         claims,
         _jwt_keys,
         token_data_token_exchange,
-        cis2_subject_token_claims
+        cis2_subject_token_claims,
+        username,
+        level
     ):
         """
         Using a refresh token that was generated via token exchange, fetch and use
@@ -1159,19 +1197,22 @@ class TestTokenExchange:
             _apigee_app_base_url,
             credential,
             app["name"],
-            [CANARY_PRODUCT_NAME, _proxy_product_with_scope["name"]]
+            [CANARY_PRODUCT_NAME, _proxy_product_with_scope["name"]],
         )
         assert product_resp.status_code == 200
         claims["sub"] = credential["consumerKey"]
         claims["iss"] = credential["consumerKey"]
 
-        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
-        token_data_token_exchange["subject_token"] = create_subject_token(cis2_subject_token_claims)
+        token_data_token_exchange["client_assertion"] = create_client_assertion(
+            claims, _jwt_keys["private_key_pem"]
+        )
+        token_data_token_exchange["subject_token"] = create_subject_token(
+            cis2_subject_token_claims
+        )
 
         # When
         resp = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data=token_data_token_exchange
+            nhsd_apim_proxy_url + "/token", data=token_data_token_exchange
         )
 
         body = resp.json()
@@ -1180,8 +1221,7 @@ class TestTokenExchange:
 
         # Call Canary
         canary_resp = requests.get(
-            CANARY_API_URL,
-            headers={"Authorization": f"Bearer {token}"}
+            CANARY_API_URL, headers={"Authorization": f"Bearer {token}"}
         )
 
         assert canary_resp.status_code == 200
@@ -1192,7 +1232,7 @@ class TestTokenExchange:
         level="P9",
         login_form={"username": "9912003071"},
         authentication="separate",
-        force_new_token=True
+        force_new_token=True,
     )
     def test_nhs_login_token_exchange_access_tokens_valid(
         self,
@@ -1204,7 +1244,7 @@ class TestTokenExchange:
         claims,
         _jwt_keys,
         token_data_token_exchange,
-        nhs_login_id_token
+        nhs_login_id_token,
     ):
         """
         Using a refresh token that was generated via token exchange, fetch and use
@@ -1219,7 +1259,7 @@ class TestTokenExchange:
             _apigee_app_base_url,
             credential,
             app["name"],
-            [CANARY_PRODUCT_NAME, _proxy_product_with_scope["name"]]
+            [CANARY_PRODUCT_NAME, _proxy_product_with_scope["name"]],
         )
         assert product_resp.status_code == 200
         claims["sub"] = credential["consumerKey"]
@@ -1228,13 +1268,16 @@ class TestTokenExchange:
         id_token_claims = nhs_login_id_token["claims"]
         id_token_headers = nhs_login_id_token["headers"]
 
-        token_data_token_exchange["subject_token"] = create_nhs_login_subject_token(id_token_claims, id_token_headers)
-        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
+        token_data_token_exchange["subject_token"] = create_nhs_login_subject_token(
+            id_token_claims, id_token_headers
+        )
+        token_data_token_exchange["client_assertion"] = create_client_assertion(
+            claims, _jwt_keys["private_key_pem"]
+        )
 
         # When
         resp = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data=token_data_token_exchange
+            nhsd_apim_proxy_url + "/token", data=token_data_token_exchange
         )
 
         body = resp.json()
@@ -1243,8 +1286,7 @@ class TestTokenExchange:
 
         # Call Canary
         canary_resp = requests.get(
-            CANARY_API_URL,
-            headers={"Authorization": f"Bearer {token}"}
+            CANARY_API_URL, headers={"Authorization": f"Bearer {token}"}
         )
 
         assert canary_resp.status_code == 200
@@ -1255,7 +1297,6 @@ class TestTokenExchange:
         level="aal3",
         login_form={"username": "aal3"},
         authentication="separate",
-        force_new_token=True
     )
     def test_cis2_token_exchange_refresh_token_become_invalid(
         self,
@@ -1264,31 +1305,34 @@ class TestTokenExchange:
         claims,
         _jwt_keys,
         cis2_subject_token_claims,
-        token_data_token_exchange
+        token_data_token_exchange,
     ):
-        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
-        token_data_token_exchange["subject_token"] = create_subject_token(cis2_subject_token_claims)
+        token_data_token_exchange["client_assertion"] = create_client_assertion(
+            claims, _jwt_keys["private_key_pem"]
+        )
+        token_data_token_exchange["subject_token"] = create_subject_token(
+            cis2_subject_token_claims
+        )
 
         # When
         resp = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data=token_data_token_exchange
+            nhsd_apim_proxy_url + "/token", data=token_data_token_exchange
         )
         token_resp = resp.json()
 
         assert resp.status_code == 200
-        assert token_resp['access_token']
-        assert token_resp['refresh_token']
+        assert token_resp["access_token"]
+        assert token_resp["refresh_token"]
 
         refresh_resp = requests.post(
             nhsd_apim_proxy_url + "/token",
             data={
                 "client_id": _test_app_credentials["consumerKey"],
                 "client_secret": _test_app_credentials["consumerSecret"],
-                "grant_type":  "refresh_token",
-                "refresh_token": token_resp["refresh_token"]
+                "grant_type": "refresh_token",
+                "refresh_token": token_resp["refresh_token"],
             },
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
         refresh_body = refresh_resp.json()
         assert refresh_body["access_token"]
@@ -1299,10 +1343,10 @@ class TestTokenExchange:
             data={
                 "client_id": _test_app_credentials["consumerKey"],
                 "client_secret": _test_app_credentials["consumerSecret"],
-                "grant_type":  "refresh_token",
-                "refresh_token": token_resp["refresh_token"]
+                "grant_type": "refresh_token",
+                "refresh_token": token_resp["refresh_token"],
             },
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
         body2 = resp2.json()
 
@@ -1313,7 +1357,7 @@ class TestTokenExchange:
         del body2["message_id"]
         assert body2 == {
             "error": "invalid_grant",
-            "error_description": "refresh_token is invalid"
+            "error_description": "refresh_token is invalid",
         }
 
     @pytest.mark.errors
@@ -1330,12 +1374,9 @@ class TestTokenExchange:
             "client_secret": _test_app_credentials["consumerSecret"],
             "grant_type": "password",
             "username": "username",
-            "password": "password"
+            "password": "password",
         }
-        resp = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data=form_data
-        )
+        resp = requests.post(nhsd_apim_proxy_url + "/token", data=form_data)
         body = resp.json()
 
         assert resp.status_code == 400
@@ -1345,7 +1386,7 @@ class TestTokenExchange:
         del body["message_id"]
         assert body == {
             "error": "unsupported_grant_type",
-            "error_description": "grant_type is invalid"
+            "error_description": "grant_type is invalid",
         }
 
     @pytest.mark.happy_path
@@ -1354,11 +1395,11 @@ class TestTokenExchange:
         level="P9",
         login_form={"username": "9912003071"},
         authentication="separate",
-        force_new_token=True
+        force_new_token=True,
     )
     @pytest.mark.parametrize(
         "token_expiry_ms, expected_time",
-        [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)]
+        [(100000, 100), (500000, 500), (700000, 600), (1000000, 600)],
     )
     def test_access_token_override_with_token_exchange(
         self,
@@ -1368,40 +1409,36 @@ class TestTokenExchange:
         nhsd_apim_proxy_url,
         claims,
         token_data_token_exchange,
-        cis2_subject_token_claims
+        cis2_subject_token_claims,
     ):
         """
         Test token exchange flow access token can be overridden with a time less than 10 min(600000ms or 600s)
         and NOT be overridden with a time greater than 10 min(600000ms or 600s)
         """
-        token_data_token_exchange["client_assertion"] = create_client_assertion(claims, _jwt_keys["private_key_pem"])
-        token_data_token_exchange["subject_token"] = create_subject_token(cis2_subject_token_claims)
+        token_data_token_exchange["client_assertion"] = create_client_assertion(
+            claims, _jwt_keys["private_key_pem"]
+        )
+        token_data_token_exchange["subject_token"] = create_subject_token(
+            cis2_subject_token_claims
+        )
         token_data_token_exchange["_access_token_expiry_ms"] = token_expiry_ms
 
         # When
         resp = requests.post(
-            nhsd_apim_proxy_url + "/token",
-            data=token_data_token_exchange
+            nhsd_apim_proxy_url + "/token", data=token_data_token_exchange
         )
         body = resp.json()
 
         assert resp.status_code == 200
-        assert int(body['expires_in']) <= expected_time
+        assert int(body["expires_in"]) <= expected_time
 
     @pytest.mark.happy_path
-    @pytest.mark.nhsd_apim_authorization(
-        access="healthcare_worker",
-        level="aal3",
-        login_form={"username": "aal3"},
-        authentication="separate",
-        force_new_token=True
-    )
+    @pytest.mark.parametrize("username, level", seperate_auth_params)
     def test_cis2_refresh_tokens_generated_with_expected_expiry_separated_auth(
-        self,
-        _nhsd_apim_auth_token_data
+        self, _nhsd_apim_auth_token_data, username, level
     ):
         """
         Test that refresh tokens generated via CIS2 have an expiry time of 12 hours for separated authentication.
         """
-        assert _nhsd_apim_auth_token_data['expires_in'] == '599'
-        assert _nhsd_apim_auth_token_data['refresh_token_expires_in'] == '43199'
+        assert _nhsd_apim_auth_token_data["expires_in"] == "599"
+        assert _nhsd_apim_auth_token_data["refresh_token_expires_in"] == "43199"
