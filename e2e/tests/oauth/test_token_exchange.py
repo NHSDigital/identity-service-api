@@ -1,9 +1,10 @@
 import pytest
 import requests
+import jwt
 
 from time import time
 
-from e2e.tests.utils.config import CANARY_API_URL, CANARY_PRODUCT_NAME
+from e2e.tests.utils.config import CANARY_API_URL, CANARY_PRODUCT_NAME, MOCK_CIS2_USERNAMES
 from e2e.tests.utils.helpers import (
     change_jwks_url,
     create_client_assertion,
@@ -18,15 +19,25 @@ from e2e.tests.utils.helpers import (
 class TestTokenExchange:
     """A test suit to test the token exchange flow"""
 
+    # Create a list of pytest.param for each combination of username and level for combined auth
+    seperate_auth_params = [
+        pytest.param(
+            username, level,
+            marks=pytest.mark.nhsd_apim_authorization(
+                access="healthcare_worker",
+                level=level,
+                login_form={"username": username},
+                authentication="separate",
+                force_new_token=True,
+            ),
+        )
+        for level, usernames in MOCK_CIS2_USERNAMES.items()
+        for username in usernames
+    ]
+
     @pytest.mark.happy_path
-    @pytest.mark.nhsd_apim_authorization(
-        access="healthcare_worker",
-        level="aal3",
-        login_form={"username": "aal3"},
-        authentication="separate",
-        force_new_token=True,
-    )
-    def test_cis2_token_exchange_happy_path(self, _nhsd_apim_auth_token_data):
+    @pytest.mark.parametrize("username, level", seperate_auth_params)
+    def test_cis2_token_exchange_happy_path(self, _nhsd_apim_auth_token_data, username, level):
         assert _nhsd_apim_auth_token_data["expires_in"] == "599"
         assert _nhsd_apim_auth_token_data["token_type"] == "Bearer"
         assert _nhsd_apim_auth_token_data["refresh_count"] == "0"
@@ -46,15 +57,9 @@ class TestTokenExchange:
         }
 
     @pytest.mark.happy_path
-    @pytest.mark.nhsd_apim_authorization(
-        access="healthcare_worker",
-        level="aal3",
-        login_form={"username": "aal3"},
-        authentication="separate",
-        force_new_token=True,
-    )
+    @pytest.mark.parametrize("username, level", seperate_auth_params)
     def test_cis2_token_exchange_refresh_token(
-        self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url, _test_app_credentials
+        self, _nhsd_apim_auth_token_data, nhsd_apim_proxy_url, _test_app_credentials, username, level
     ):
         resp = requests.post(
             nhsd_apim_proxy_url + "/token",
@@ -146,7 +151,7 @@ class TestTokenExchange:
             (  # Test invalid subject_token
                 {
                     "error": "invalid_request",
-                    "error_description": "subject_token is invalid",
+                    "error_description": "Malformed JWT in subject_token",
                 },
                 400,
                 "invalid",
@@ -293,9 +298,16 @@ class TestTokenExchange:
         if missing_or_invalid == "invalid":
             additional_headers = replace_keys(additional_headers, update_headers)
 
-        token_data_token_exchange["client_assertion"] = create_client_assertion(
-            claims, _jwt_keys["private_key_pem"], additional_headers=additional_headers
-        )
+        if additional_headers.get("alg", "").startswith("HS"):
+            # Use symmetric key for HS algorithms
+            token_data_token_exchange["client_assertion"] = jwt.encode({"some": "payload"},
+                                                                           "test-secret",
+                                                                           algorithm="HS256")
+        else:
+            # Use asymmetric key for other algorithms
+            token_data_token_exchange["client_assertion"] = create_client_assertion(
+               claims, _jwt_keys["private_key_pem"], additional_headers=additional_headers
+            )
         token_data_token_exchange["subject_token"] = create_subject_token(
             cis2_subject_token_claims
         )
@@ -314,13 +326,13 @@ class TestTokenExchange:
         del body["message_id"]
         assert body == expected_response
 
+    @pytest.mark.errors
     @pytest.mark.nhsd_apim_authorization(
         access="healthcare_worker",
         level="aal3",
         login_form={"username": "aal3"},
         authentication="separate",
     )
-    @pytest.mark.errors
     @pytest.mark.parametrize(
         "expected_response,expected_status_code,missing_or_invalid,update_claims",
         [
@@ -493,7 +505,6 @@ class TestTokenExchange:
         level="aal3",
         login_form={"username": "aal3"},
         authentication="separate",
-        force_new_token=True,
     )
     def test_token_exchange_claims_assertion_invalid_jti_claim(
         self,
@@ -1158,13 +1169,7 @@ class TestTokenExchange:
             "-and-authorisation",
         }
 
-    @pytest.mark.nhsd_apim_authorization(
-        access="healthcare_worker",
-        level="aal3",
-        login_form={"username": "aal3"},
-        authentication="separate",
-        force_new_token=True,
-    )
+    @pytest.mark.parametrize("username, level", seperate_auth_params)
     def test_cis2_token_exchange_access_tokens_valid(
         self,
         nhsd_apim_proxy_url,
@@ -1176,6 +1181,8 @@ class TestTokenExchange:
         _jwt_keys,
         token_data_token_exchange,
         cis2_subject_token_claims,
+        username,
+        level
     ):
         """
         Using a refresh token that was generated via token exchange, fetch and use
@@ -1290,7 +1297,6 @@ class TestTokenExchange:
         level="aal3",
         login_form={"username": "aal3"},
         authentication="separate",
-        force_new_token=True,
     )
     def test_cis2_token_exchange_refresh_token_become_invalid(
         self,
@@ -1427,15 +1433,9 @@ class TestTokenExchange:
         assert int(body["expires_in"]) <= expected_time
 
     @pytest.mark.happy_path
-    @pytest.mark.nhsd_apim_authorization(
-        access="healthcare_worker",
-        level="aal3",
-        login_form={"username": "aal3"},
-        authentication="separate",
-        force_new_token=True,
-    )
+    @pytest.mark.parametrize("username, level", seperate_auth_params)
     def test_cis2_refresh_tokens_generated_with_expected_expiry_separated_auth(
-        self, _nhsd_apim_auth_token_data
+        self, _nhsd_apim_auth_token_data, username, level
     ):
         """
         Test that refresh tokens generated via CIS2 have an expiry time of 12 hours for separated authentication.
