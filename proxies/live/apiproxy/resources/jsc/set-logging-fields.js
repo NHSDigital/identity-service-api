@@ -19,8 +19,7 @@ if (grant_type === 'authorization_code' || pathsuffix === '/authorize' || pathsu
       level = getLevel(proofing_level)
       user_id = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.nhs_number')
     } else {
-      claim_acr = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.acr')
-
+      claim_acr = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.authentication_assurance_level')
       level = getLevel(claim_acr)
       user_id = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.subject')
     }
@@ -95,8 +94,14 @@ function getLevel(level) {
   if (level) {
     level = level.toLowerCase()
 
-    if (level.includes('aal3')) {
+    if (level === '3' || level.includes('aal3')) {
       return 'aal3'
+    }
+    if (level === '2' || level.includes('aal2')) {
+      return 'aal2'
+    }
+    if (level === '1' || level.includes('aal1')) {
+      return 'aal1'
     }
     if (level.includes('level3')) {
       return 'level3'
