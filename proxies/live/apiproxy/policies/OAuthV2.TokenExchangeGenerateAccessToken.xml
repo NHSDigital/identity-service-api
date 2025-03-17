@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<OAuthV2 async="false" continueOnError="false" enabled="true" name="OAuthV2.TokenExchangeGenerateAccessToken">
+<OAuthV2 async="false" continueOnError="false" enabled="true"
+    name="OAuthV2.TokenExchangeGenerateAccessToken">
     <DisplayName>OAuthV2.TokenExchangeGenerateAccessToken</DisplayName>
     <!-- This policy generates an OAuth 2.0 access token using the password grant type
          because token exchange isn't supported -->
@@ -12,10 +13,10 @@
     <GrantType>request.formparam.grant_type</GrantType>
     <PassWord>request.formparam.password</PassWord>
     <UserName>request.formparam.username</UserName>
-    <GenerateResponse enabled="false"/>
+    <GenerateResponse enabled="false" />
     <Attributes>
-        <Attribute name="id_token-subject" display="true"/>
-        <Attribute name="id_token-issuer" display="true"/>
+        <Attribute name="id_token-subject" display="true" />
+        <Attribute name="id_token-issuer" display="true" />
         <Attribute name="grant_type" display="true">urn:ietf:params:oauth:grant-type:token-exchange</Attribute>
     </Attributes>
 </OAuthV2>

@@ -1,0 +1,3 @@
+<Javascript async="false" continueOnError="false" enabled="true" timeLimit="200" name="JavaScript.CalculateRefreshTokenExpiresIn">
+  <ResourceURL>jsc://calculate-refresh-token-expires-in.js</ResourceURL>
+</Javascript>

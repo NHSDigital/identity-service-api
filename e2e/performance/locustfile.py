@@ -9,6 +9,7 @@ from locust import HttpUser, task, between, tag
 
 
 class IdentityServiceUser(HttpUser):
+    """Configuration for performance testing identity service"""
     wait_time = between(2, 5)
 
     def on_start(self):
@@ -29,7 +30,7 @@ class IdentityServiceUser(HttpUser):
             return "oauth2"
 
     @task
-    @tag('user_restricted')
+    @tag("user_restricted")
     def user_restricated_auth(self):
         state = self._get_state()
         redirect_uri = self._get_redirect_callback(state)
@@ -42,11 +43,13 @@ class IdentityServiceUser(HttpUser):
             "client_id": self.client_id,
             "redirect_uri": self.callback_url,
             "response_type": "code",
-            "state": "1234567890"
+            "state": "1234567890",
         }
-        with self.client.get(f"/{self.identity_proxy}/authorize", params=params, catch_response=True) as response:
+        with self.client.get(
+            f"/{self.identity_proxy}/authorize", params=params, catch_response=True
+        ) as response:
             parsed = urlparse.urlparse(response.url)
-            return parse_qs(parsed.query)['state'][0]
+            return parse_qs(parsed.query)["state"][0]
 
     def _get_redirect_callback(self, state):
         if state is None:
@@ -57,34 +60,34 @@ class IdentityServiceUser(HttpUser):
             "client_id": "some-client-id",
             "redirect_uri": f"{self.base_url}/callback",
             "scope": "openid",
-            "state": state
+            "state": state,
         }
         headers = {
             "Accept": "*/*",
             "Accept-Encoding": "gzip,deflate",
             "Cache-Control": "no-cache",
-            "Content-Type": "application/x-www-form-urlencoded"
+            "Content-Type": "application/x-www-form-urlencoded",
         }
-        payload = {
-            "state": state
-        }
+        payload = {"state": state}
         with self.client.post(
             url,
             params=params,
             data=payload,
             headers=headers,
             allow_redirects=False,
-            catch_response=True
+            catch_response=True,
         ) as response:
-            redirect_uri = response.headers['Location']
+            redirect_uri = response.headers["Location"]
             redirect_uri = redirect_uri.replace("oauth2", self.identity_proxy)
             return redirect_uri
 
     def _get_auth_code(self, redirect_uri):
         if redirect_uri is None:
             return
-        with self.client.get(redirect_uri, allow_redirects=False, catch_response=True) as response:
-            parsed = urlparse.urlparse(response.headers['Location'])
+        with self.client.get(
+            redirect_uri, allow_redirects=False, catch_response=True
+        ) as response:
+            parsed = urlparse.urlparse(response.headers["Location"])
             return parse_qs(parsed.query)["code"][0]
 
     def _get_access_token(self, auth_code):
@@ -101,38 +104,40 @@ class IdentityServiceUser(HttpUser):
             "code": auth_code,
             "redirect_uri": self.callback_url,
             "client_id": self.client_id,
-            "client_secret": self.client_secret
+            "client_secret": self.client_secret,
         }
-        with self.client.post(url, data=payload, headers=headers, catch_response=True) as response:
+        with self.client.post(
+            url, data=payload, headers=headers, catch_response=True
+        ) as response:
             credentials = json.loads(response.text)
             return credentials
 
     def _refresh_token(self, credentials):
         if credentials is None:
             return
-        headers = {
-            "Content-Type": "application/x-www-form-urlencoded"
-        }
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
         payload = {
             "grant_type": "refresh_token",
             "client_id": self.client_id,
             "client_secret": self.client_secret,
-            "refresh_token": credentials["refresh_token"]
+            "refresh_token": credentials["refresh_token"],
         }
         self.client.post(f"/{self.identity_proxy}/token", headers=headers, data=payload)
 
     @task
-    @tag('app_restricted')
+    @tag("app_restricted")
     def app_restricted_auth(self):
         jwt = self.create_jwt()
 
         form_data = {
             "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
             "client_assertion": jwt,
-            "grant_type": "client_credentials"
+            "grant_type": "client_credentials",
         }
 
-        with self.client.post(f"/{self.identity_proxy}/token", data=form_data) as response:
+        with self.client.post(
+            f"/{self.identity_proxy}/token", data=form_data
+        ) as response:
             print(response)
 
     def create_jwt(self):
@@ -149,4 +154,6 @@ class IdentityServiceUser(HttpUser):
         with open(self.signing_key, "r") as f:
             private_key = f.read()
 
-        return jwt.encode(payload=claims, key=private_key, headers=headers, algorithm="RS512")
+        return jwt.encode(
+            payload=claims, key=private_key, headers=headers, algorithm="RS512"
+        )
