@@ -1,0 +1,15 @@
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.FailedToDecodeSubjectTokenJWTError">
+  <Set>
+    <StatusCode>400</StatusCode>
+    <!-- TODO: Check error code to see if more suitable one is available -->
+    <Payload contentType="application/json">
+      {
+        "error": "invalid_request",
+        "error_description": "Malformed JWT in subject_token",
+        "message_id": "{messageid}"
+      }
+</Payload>
+  </Set>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <AssignTo createNew="false" transport="http" type="response" />
+</AssignMessage>

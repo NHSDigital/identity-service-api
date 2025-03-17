@@ -11,9 +11,9 @@ locust = "^1.1.1"
 pyjwt = "^2.0.0"
 cryptography = "^3.3.1"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 flake8 = "^3.8.3"
-black = "^19.10b0"
+black = "^24.3"
 
 [build-system]
 requires = ["poetry>=0.12"]
