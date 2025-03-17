@@ -1,12 +1,12 @@
-# Api-Tests
+# Identity Service Tests
 
 This is a collection of end-to-end test suites to verify the oauth api is working as intended.
 
-* `scripts/` A set of methods, classes and scripts to help facilitate the test cases
-* `scripts/config.py` This contains all the configuration for running the tests.
-* `performance/` A set of requests to stimulate multiple users on the service
-* `steps/` Reusable steps for a set of test cases
 * `tests/` The tests are defined here.
+* `tests/utils/` configuration and helper functions used by the tests are defined here.
+* `tests/utils/config.py` This contains environment configuration for running the tests.
+* `tests/conftest.py` Fixtures used by the tests are defined here. Some fixtures are predefined by the pytest_nhsd_apim package.
+* `performance/` A set of requests to stimulate multiple users on the service
 
 We are using pytest as our test runner, you can find out more about pytest by visiting
 the [pytest docs](https://docs.pytest.org/en/latest/).
@@ -21,19 +21,23 @@ the [pytest docs](https://docs.pytest.org/en/latest/).
 Before you can start creating and running tests you need to configure all the required environment variables.
 
 Variables required for running non performance tests are listed below:
-(these are all described in the scripts/config.py file).
+ * `APIGEE_ENVIRONMENT` - The Apigee environment you're running the tests against
+ * `PROXY_NAME` -  This will be the fully-qualified-service-name of the identity service proxy you're using (sometimes a pull request)
+ * `API_NAME` -  In this case will be "identity-service"
+ * `JWT_PRIVATE_KEY_ABSOLUTE_PATH` - Stored in AWS Secrets Manager at ptl/app-credentials/jwt_testing/non-prod/JWT_TESTING_PRIVATE_KEY
+ * `ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH` -  Stored in AWS Secrets Manager at ptl/app-credentials/jwt_testing/non-prod/ID_TOKEN_NHS_LOGIN_PRIVATE_KEY
+ * ``APIGEE_ACCESS_TOKEN=`get_token -u YOUR_APIGEE_USERNAME` `` -   uses the Apigee [get token](https://docs.apigee.com/api-platform/system-administration/auth-tools#install) utility.
 
- * `OAUTH_BASE_URI` The base url for the OAuth api
- * `OAUTH_PROXY` Used to build oauth url. If testing against the internal-dev environment the value will be `oauth2`, if pointing to your PR, add your pr number as follows `oauth2-pr-{pr number}`
- * `JWT_PRIVATE_KEY_ABSOLUTE_PATH`
- * `ID_TOKEN_PRIVATE_KEY_ABSOLUTE_PATH`
- * `ID_TOKEN_NHS_LOGIN_PRIVATE_KEY_ABSOLUTE_PATH`
- * `SSO_LOGIN_URL=https://login.apigee.com` needed for APIGEE_API_TOKEN
- * ``APIGEE_API_TOKEN=`get_token -u YOUR_APIGEE_USERNAME` ``  uses the Apigee [get token](https://docs.apigee.com/api-platform/system-administration/auth-tools#install) utility.
-  * `STATUS_ENDPOINT_API_KEY` This value is required if running status endpoint test.
+## pytest_nhsd_apim test package
+The end to end tests for identity service use the API Management Platforms's testing package `pytest_nhsd_apim`. The package provides fixtures and markers that allow easy integration with Apigee and Platform resources.
+
+For details on how to use these features see:
+* [API Producer Zone documentation](https://nhsd-confluence.digital.nhs.uk/display/APM/APIM+Test+Utils+2.0+plugin) - for how to use it
+* [pytest_nhsd_apim repo](https://github.com/NHSDigital/pytest-nhsd-apim) - for how it works
+* [pytest_nhsd_apim test examples](https://github.com/NHSDigital/pytest-nhsd-apim/blob/main/tests/test_examples.py)  - to see the features in action
 
 ## Running tests
-Test can be either executed using a virtual env and from a terminal/command window or from within an IDE (preferably PyCharm). These are explained below.
+Test can be either executed using a virtual env and from a terminal/command window or from within an IDE. These are explained below.
 
 ### Execute locally
 In order to run the tests, make sure you have a command window or terminal open and activate your virtualenv.
@@ -42,16 +46,16 @@ Follow the pytest example commands below to begin running your tests:
 
 ```shell
 # Runs all tests
-pytest -v tests/
+make e2e
 
 # Runs specific test file
-pytest -v tests/filename.py
+poetry run pytest <path_to_file>
 
 # Runs tests in a class in a test file
-pytest tests/filename.py::TestClassSuite
+poetry run pytest <path_to_file>::TestClassSuite
 
 # Runs a single test method
-pytest tests/filename.py::TestClassSuite::test_method
+poetry run pytest <path_to_file>::TestClassSuite::test_method
 ```
 ### Other useful Pytest commands
  * `quiet mode` --pytest -q
@@ -60,38 +64,6 @@ pytest tests/filename.py::TestClassSuite::test_method
  * `marks` -- pytest -m MARK
  * `stop after first failure` -- pytest -x
  * `display print statements` -- pytest -s
-### Running in Pycharm
-When developing scripts, it can be incredibly useful to run from inside Pycharm in order to add
-breakpoints, debug and follow the code a lot easier etc.
-
-#### Virtual env instance
-To set this up, open the project inside the IDE.
-
-1. In the setting menu, select the Project then Project interpreter sub-menu.
-
-2. There is a dropdown box at the top with a small cog button next to it.
-
-3. Click the cog and then add local. Navigate to the folder where your
-
-4. virtualenv is and select the Python.exe from inside the script folder.
-
-This will make sure Pycharm knows to run the tests with the libraries and Python interpreter from the virtualenv.
-You should now be able to right click any function/test and run or debug from inside the IDE and
-PyCharm features like autocompletion, code inspections, and checks will be driven by this interpreter.
-
-## Developing New Tests
-The test runner pytest will pick up any file which start with "test_*.py". New tests should be created
-in these files inside a class that follows the convention 'Test*Suite' and individual tests should be in functions
-that start with "test_".
-
-Tests are split into various layers. The top layer is in the tests folder and is any file
-ending with '_test'. These call reusable steps from files in the steps folder and perform an
-assertion. An assertion merely checks if something is true. Therefore, steps from the test layer
-should return True or False. These reusable steps are split into classes which represent an api or a
-group of smaller functions of an api.
-
-There is one final layer which are the files located in the scripts folder, there are steps that are
-reusable across multiple apis. Here we have a parent Base class that all other api checks would inherit from.
 
 ### Marks
 Tests can be marked with specific 'marks'. Think of marks as tagging a test with some metadata.
@@ -121,35 +93,9 @@ pytest -m name_of_mark -v tests/
 ### Fixtures
 pytest has which we can utilise to help us setup and teardown each test. We use a decorator to assign a fixture to a
 function, method or class. A fixture can also be scoped to run either at session time or per function/method.
-The fixtures are defined in the conftest.py file. To learn more about fixtures please visit
+The fixtures are defined in the e2e/conftest.py file. To learn more about fixtures please visit
 the [pytest docs](https://docs.pytest.org/en/latest/fixture.html)
 
-### Examples
-Class fixture
-```python
-@pytest.mark.usefixtures("setup")
-class TestOauthEndpointSuite:
-```
-Method fixture
-```python
-@pytest.mark.usefixtures('get_token')
-def test_something(self):
-    assert self.test.check_endpoint()
-```
-Test Case
-```python
-def test_something(self):
-    assert self.test.check_endpoint(), "Message if assertion failed"
-```
-Test methods
-```python
-@pytest.mark.usefixtures('get_token')
-def test_something(self):
-    # This will check the endpoint is returning the correct status, response data and headers
-    assert self.test.check_endpoint()
-
-    # This will check all the redirects the response had to take and makes sure they were as expected
-    assert self.test.check_response_history()
 ```
 ## Contributing
 Contributions to this project are welcome from anyone, providing that they conform to
