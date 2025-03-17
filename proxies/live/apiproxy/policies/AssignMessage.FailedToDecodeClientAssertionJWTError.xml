@@ -1,11 +1,11 @@
-<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.NoMatchingPublicKey">
+<AssignMessage async="false" continueOnError="false" enabled="true" name="AssignMessage.FailedToDecodeClientAssertionJWTError">
   <Set>
-    <StatusCode>401</StatusCode>
+    <StatusCode>400</StatusCode>
     <!-- TODO: Check error code to see if more suitable one is available -->
     <Payload contentType="application/json">
       {
         "error": "invalid_request",
-        "error_description": "Invalid 'kid' header in JWT - no matching public key",
+        "error_description": "Malformed JWT in client_assertion",
         "message_id": "{messageid}"
       }
 </Payload>

@@ -19,8 +19,7 @@ if (grant_type === 'authorization_code' || pathsuffix === '/authorize' || pathsu
       level = getLevel(proofing_level)
       user_id = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.nhs_number')
     } else {
-      claim_acr = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.acr')
-
+      claim_acr = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.authentication_assurance_level')
       level = getLevel(claim_acr)
       user_id = context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.subject')
     }
@@ -64,10 +63,10 @@ context.setVariable('accesstoken.auth_user_id', user_id)
 
 function getProvider() {
   var cis2_issuer = context.getVariable('identity-service-config.cis2.issuer')
-  var is_mock_cis2_provider = cis2_issuer.includes('api.service.nhs.uk')
+  var is_mock_cis2_provider = cis2_issuer.includes('api.service.nhs.uk') || cis2_issuer.includes('identity.ptl.api.platform.nhs.uk')
 
   var nhs_login_issuer = context.getVariable('identity-service-config.nhs_login.issuer')
-  var is_mock_nhs_login_provider = nhs_login_issuer.includes('api.service.nhs.uk')
+  var is_mock_nhs_login_provider = nhs_login_issuer.includes('api.service.nhs.uk') || nhs_login_issuer.includes('identity.ptl.api.platform.nhs.uk')
 
   var is_nhs_login = context.getVariable('idp') === 'nhs-login'
     || context.getVariable('jwt.DecodeJWT.FromExternalIdToken.claim.nhs_number')
@@ -95,8 +94,14 @@ function getLevel(level) {
   if (level) {
     level = level.toLowerCase()
 
-    if (level.includes('aal3')) {
+    if (level === '3' || level.includes('aal3')) {
       return 'aal3'
+    }
+    if (level === '2' || level.includes('aal2')) {
+      return 'aal2'
+    }
+    if (level === '1' || level.includes('aal1')) {
+      return 'aal1'
     }
     if (level.includes('level3')) {
       return 'level3'

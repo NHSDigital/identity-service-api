@@ -19,13 +19,13 @@ aud_claim = JSON.parse(aud_claim);
 if(aud_claim != client_id)
     {
         context.setVariable('claims_validation.error', "invalid_request")
-        context.setVariable('claims_validation.error_description', "Invalid aud claim in JWT")
+        context.setVariable('claims_validation.error_description', "Invalid 'aud' claim in external ID token JWT")
         context.setVariable('claims_validation.is_valid', false)
     }
     
 else if(iss_claim.toLowerCase() != base_url.toLowerCase())
     {
       context.setVariable('claims_validation.error', "invalid_request")
-      context.setVariable('claims_validation.error_description', "Invalid iss claim in JWT")
+      context.setVariable('claims_validation.error_description', "Invalid iss claim in external ID token JWT")
       context.setVariable('claims_validation.is_valid', false)
     }

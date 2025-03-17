@@ -5,7 +5,7 @@
     <Payload contentType="application/json">
       {
         "error": "invalid_request",
-        "error_description": "Missing or invalid aud claim in JWT",
+        "error_description": "Missing or invalid 'aud' claim in client_assertion JWT",
         "message_id": "{messageid}"
       }
 </Payload>

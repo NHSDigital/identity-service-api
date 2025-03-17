@@ -65,11 +65,32 @@
                 <Name>AssignMessage.MissingApiKey</Name>
             </Step>
         </FaultRule>
-        <FaultRule name="failed_decoding_jwt">
-            <Condition>(JWT.failed Equals true) And (fault.name Equals "FailedToDecode")</Condition>
+        <FaultRule name="failed_decoding_jwt_client_assertion">
+            <Condition>(JWT.failed Equals true) And (jwt.DecodeJWT.FromClientAssertionFormParam.error IsNot null) And (fault.name Equals "FailedToDecode")</Condition>
             <Step>
                 <!-- DecodeJWT will throw this error where the JWT's *header* is invalid -->
-                <Name>AssignMessage.FailedToDecodeJWTError</Name>
+                <Name>AssignMessage.FailedToDecodeClientAssertionJWTError</Name>
+            </Step>
+        </FaultRule>
+        <FaultRule name="failed_decoding_jwt_subject_token">
+            <Condition>(JWT.failed Equals true) And (jwt.DecodeJWT.FromSubjectTokenFormParam.error IsNot null) And (fault.name Equals "FailedToDecode")</Condition>
+            <Step>
+                <!-- DecodeJWT will throw this error where the JWT's *header* is invalid -->
+                <Name>AssignMessage.FailedToDecodeSubjectTokenJWTError</Name>
+            </Step>
+        </FaultRule>
+        <FaultRule name="failed_decoding_jwt_external_id_token">
+            <Condition>(JWT.failed Equals true) And (jwt.DecodeJWT.FromExternalIdToken.error IsNot null) And (fault.name Equals "FailedToDecode")</Condition>
+            <Step>
+                <!-- DecodeJWT will throw this error where the JWT's *header* is invalid -->
+                <Name>AssignMessage.FailedToDecodeExternalIdTokenJWTError</Name>
+            </Step>
+        </FaultRule>
+        <FaultRule name="failed_decoding_jwt_logout_token">
+            <Condition>(JWT.failed Equals true) And (jwt.DecodeJWT.LogoutToken.error IsNot null) And (fault.name Equals "FailedToDecode")</Condition>
+            <Step>
+                <!-- DecodeJWT will throw this error where the JWT's *header* is invalid -->
+                <Name>AssignMessage.FailedToDecodeLogoutTokenJWTError</Name>
             </Step>
         </FaultRule>
         <FaultRule name="invalid_jwt_signature">
@@ -90,12 +111,6 @@
                 <Name>AssignMessage.MissingSubjectToken</Name>
             </Step>
         </FaultRule>
-        <FaultRule name="invalid_subject_token_jwt">
-            <Condition>(JWT.failed Equals true) And (jwt.DecodeJWT.FromSubjectTokenFormParam.error IsNot null) And (request.formparam.subject_token_type IsNot null) And (request.formparam.subject_token Equals "invalid")</Condition>
-            <Step>
-                <Name>AssignMessage.InvalidSubjectToken</Name>
-            </Step>
-        </FaultRule>
         <FaultRule name="cc_verify_api_key">
             <Condition>(oauthV2.VerifyAPIKey.FromJWT.failed Equals true)</Condition>
             <Step>
@@ -109,9 +124,27 @@
             </Step>
         </FaultRule>
         <FaultRule name="cc_no_matching_pub_key">
-            <Condition>(JWT.failed Equals true) and (fault.name Equals "NoMatchingPublicKey")</Condition>
+            <Condition>(JWT.failed Equals true) and (jwt.VerifyJWT.ClientCredentials.error IsNot null) and (fault.name Equals "NoMatchingPublicKey")</Condition>
             <Step>
-                <Name>AssignMessage.NoMatchingPublicKey</Name>
+                <Name>AssignMessage.NoMatchingPublicKeyClientCredentials</Name>
+            </Step>
+        </FaultRule>
+        <FaultRule name="tx_no_matching_pub_key">
+            <Condition>(JWT.failed Equals true) and (jwt.VerifyJWT.SubjectToken.error IsNot null) and (fault.name Equals "NoMatchingPublicKey")</Condition>
+            <Step>
+                <Name>AssignMessage.NoMatchingPublicKeySubjectToken</Name>
+            </Step>
+        </FaultRule>
+        <FaultRule name="bcl_no_matching_pub_key">
+            <Condition>(JWT.failed Equals true) and (jwt.VerifyJWT.LogoutToken.error IsNot null) and (fault.name Equals "NoMatchingPublicKey")</Condition>
+            <Step>
+                <Name>AssignMessage.NoMatchingPublicKeyLogoutToken</Name>
+            </Step>
+        </FaultRule>
+        <FaultRule name="id_no_matching_pub_key">
+            <Condition>(JWT.failed Equals true) and (jwt.VerifyJWT.FromExternalIdToken.error IsNot null) and (fault.name Equals "NoMatchingPublicKey")</Condition>
+            <Step>
+                <Name>AssignMessage.NoMatchingPublicKeyExternalIdToken</Name>
             </Step>
         </FaultRule>
         <FaultRule name="refresh_token_expired">
@@ -248,6 +281,10 @@
                     <Name>RaiseFault.VerifyResponseType</Name>
                     <Condition>request.queryparam.response_type != "code"</Condition>
                 </Step>
+                <!-- Extract the acr_values parameter for CIS2 auth redirect, using a default value if not provided  -->
+                <Step>
+                    <Name>AssignMessage.SetDefaultAcrValues</Name>
+                </Step>
                 <!-- introducte dummy token policy to get scopes, filter and save them into the cache -->
                 <Step>
                     <Name>AssignMessage.SetDummyGrantType</Name>
@@ -326,7 +363,7 @@
                 </Step>
                 <Step>
                     <Name>RaiseFault.InvalidJwt</Name>
-                    <Condition>InvalidJwt.ErrorMessage NotEquals ""</Condition>
+                    <Condition>invalid_jwt.error_message NotEquals ""</Condition>
                 </Step>
                 <Step>
                     <Name>PopulateCache.JTIClaim</Name>
@@ -429,7 +466,7 @@
                 </Step>
                 <Step>
                     <Name>RaiseFault.InvalidJwt</Name>
-                    <Condition>InvalidJwt.ErrorMessage NotEquals ""</Condition>
+                    <Condition>invalid_jwt.error_message NotEquals ""</Condition>
                 </Step>
                 <Step>
                     <Name>PopulateCache.JTIClaim</Name>
@@ -471,6 +508,13 @@
                 </Step>
                 <Step>
                     <Name>DecodeJWT.FromSubjectTokenFormParam</Name>
+                </Step>
+                <Step>
+                    <Name>JavaScript.ValidateSubjectTokenClaims</Name>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.InvalidJwt</Name>
+                    <Condition>invalid_jwt.error_message NotEquals ""</Condition>
                 </Step>
                 <Step>
                     <Name>AssignMessage.SelectIdTokenFieldsTokenExchange</Name>
@@ -619,7 +663,7 @@
                     <Name>AssignMessage.BackchannelLogoutResponse</Name>
                 </Step>
             </Response>
-            <Condition>((proxy.pathsuffix MatchesPath "/backchannel_logout") and (request.verb Equals "POST")</Condition>
+            <Condition>(proxy.pathsuffix MatchesPath "/backchannel_logout") and (request.verb Equals "POST")</Condition>
         </Flow>
         <Flow name="Flow.PostTokenAuthorizationCode">
             <Description>OAuth Token Endpoint - Authorization Code Flow</Description>
@@ -707,11 +751,11 @@
                 </Step>
                 <Step>
                     <Name>PopulateCache.SessionId</Name>
-                    <Condition>accesstoken.auth_provider = "nhs-cis2"</Condition>
+                    <Condition>(accesstoken.auth_provider = "nhs-cis2") or (accesstoken.auth_provider = "apim-mock-nhs-cis2")</Condition>
                 </Step>
                 <Step>
                     <Name>PopulateCache.RefreshTokenSessionId</Name>
-                    <Condition>accesstoken.auth_provider = "nhs-cis2"</Condition>
+                    <Condition>(accesstoken.auth_provider = "nhs-cis2") or (accesstoken.auth_provider = "apim-mock-nhs-cis2")</Condition>
                 </Step>
             </Request>
             <Response>
@@ -790,8 +834,12 @@
                     <Condition>(apigee.can_override_refresh_token_validity != null) and (apigee.can_override_refresh_token_validity = true)</Condition>
                 </Step>
                 <Step>
+                    <Name>JavaScript.CalculateRefreshTokenExpiresIn</Name>
+                </Step>
+                <Step>
                     <Name>OAuthV2.GenerateRefreshToken</Name>
                 </Step>
+                <!-- Following two steps should no longer be necessary now we are calculating the true refresh token expiry time using JavaScript.CalculateRefreshTokenExpiresIn -->
                 <Step>
                     <Name>JavaScript.CalculateAccessTokenAge</Name>
                 </Step>
@@ -801,11 +849,11 @@
                 </Step>
                 <Step>
                     <Name>LookupCache.RefreshTokenSessionID</Name>
-                    <Condition>(apigee.auth_provider != null) and (apigee.auth_provider = "nhs-cis2")</Condition>
+                    <Condition>(apigee.auth_provider != null) and ((apigee.auth_provider = "nhs-cis2") or (apigee.auth_provider = "apim-mock-nhs-cis2"))</Condition>
                 </Step>
                 <Step>
                     <Name>PopulateCache.LookedUpSessionId</Name>
-                    <Condition>(apigee.auth_provider != null) and (apigee.auth_provider = "nhs-cis2")</Condition>
+                    <Condition>(apigee.auth_provider != null) and ((apigee.auth_provider = "nhs-cis2") or (apigee.auth_provider = "apim-mock-nhs-cis2"))</Condition>
                 </Step>
             </Request>
             <Response>

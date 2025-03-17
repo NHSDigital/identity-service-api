@@ -4,11 +4,11 @@
       <Payload contentType="application/json">
         {
           "error": "invalid_request",
-          "error_description": "{InvalidJwt.ErrorMessage}",
+          "error_description": "{invalid_jwt.error_message}",
           "message_id": "{messageid}"
         }
 </Payload>
-      <StatusCode>400</StatusCode>
+      <StatusCode>{invalid_jwt.error_status_code}</StatusCode>
       <ReasonPhrase>Bad Request</ReasonPhrase>
     </Set>
   </FaultResponse>
