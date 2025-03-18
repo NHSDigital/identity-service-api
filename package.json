@@ -12,14 +12,17 @@
   "license": "MIT",
   "homepage": "https://github.com/NHSDigital/template-api",
   "dependencies": {
+    "dompurify": "^2.0.7",
+    "ejs": "^3.1.7",
     "handlebars": "^4.7.7",
     "loader-utils": "^1.4.1",
+    "set-getter": "^0.1.1",
     "speccy": "^0.11.0"
   },
   "devDependencies": {
     "apigeetool": "^0.16.4",
     "license-checker": "^25.0.1",
-    "minimist": "^1.2.6",
+    "minimist": "^0.2.4",
     "newman": "^6.2.1",
     "newman-reporter-html": "^1.0.5",
     "newman-reporter-htmlextra": "^1.11.3"
