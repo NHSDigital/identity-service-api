@@ -3,9 +3,8 @@
   "version": "0.0.1",
   "description": "OAS (Swagger v3) API Definition for Template API",
   "scripts": {
-    "lint": "node_modules/.bin/speccy lint specification/identity-service.yaml --skip default-and-example-are-redundant",
-    "publish": "mkdir -p build && node_modules/.bin/speccy resolve specification/identity-service.yaml -i | poetry run python scripts/yaml2json.py | poetry run python scripts/set_version.py > build/identity-service.json",
-    "serve": "node_modules/.bin/speccy serve build/identity-service.json",
+    "lint": "node_modules/.bin/openapi-generator-cli validate -i specification/identity-service.yaml",
+    "publish": "./node_modules/.bin/openapi-generator-cli generate -i specification/identity-service.yaml --generator-key v3.0  -g openapi -o build && rm openapitools.json && mv build/openapi.json build/identity-service.json",
     "check-licenses": "node_modules/.bin/license-checker --failOn GPL --failOn LGPL"
   },
   "author": "NHS Digital",
@@ -33,11 +32,9 @@
     "yargs-parser": "^13.1.2"
   },
   "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.5.1",
     "apigeetool": "^0.16.4",
     "license-checker": "^25.0.1",
-    "minimist": "^0.2.4",
-    "newman": "^6.2.1",
-    "newman-reporter-html": "^1.0.5",
-    "newman-reporter-htmlextra": "^1.11.3"
+    "minimist": "^0.2.4"
   }
 }
