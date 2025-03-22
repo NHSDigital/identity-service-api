@@ -8,6 +8,16 @@
     affected clients before doing so. Therefore I think it’s safe for you to always expect RS256. -->
     <Algorithm>RS256,RS512</Algorithm>
     <PublicKey>
-        <JWKS ref="jwks"/>
+        <JWKS>{
+    "keys": [
+      {
+        "n": "wcSyzWPEEhgRBvFPDl-sdvh54PjU3PO639O4j-Siy1u9ooHTXa7dOY15h7kDUBxnmRwhfihxSGyNL8vqmvOMMZLJ51a13tegJQQvqS21Fn6ihi46FIwDh4PhKkz_1kVJPaYgEg21A75MCgBOkOmXF7e3VocFLEVhzT1jWcWDuyt7rqEs2ImZg8ZHlkYYweFaKW75D34QM96u7ZUKtg2HQGHhVaY3gkjRuj_FBzHh3A6rCxiXIPopVUR3pFH3nXE5d8-exdSphg90MfI4YtJxRq802Le-wlC8Vqbf0IUvf_e2preFPAKUH7v2Gv5OkktNDh_eO5LGAqrz4GjSnaZA-1Fk5_0Zf2_bEKiucKyxnej5SfpQmsGNXSdsYrG33b6WTL_9Jn5UqfKE3OKpMsLYhbPKKinJFaIVyjcBoQVuB28LGEefwOnplBZFknSxgLAki14d_sUKuW5grqj_7DnKSeDtUNMvbtob9utj1gzX5hK0afjoqLxJm3lgTjIK5zYGAzhKMdX-KCucudKNtVYyiKUp1B1vjnA8e-upUXLuJgnPiUXBOiMZuQSfTgdQ9yrf4C79C0_-n-_fjgZmnHAl1Cr_KbaedG2_GR78HKLcirwfeKalxMR33pouqp7sjfz3vfNyY-b9DcfWtU7lYMwdc1OOMfMooO1LnM1pZ6fpGa0",
+        "e": "AQAB",
+        "kty": "RSA",
+        "kid": "B86zGrfcoloO13rnjKYDyAJcqj2iZAMrS49jyleL0Fo",
+        "use": "sig"
+      }
+    ]
+  }</JWKS>
     </PublicKey>
 </VerifyJWT>
