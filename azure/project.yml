@@ -1,4 +1,5 @@
 variables:
+  python_version: 3.9
   service_name: identity-service
   short_service_name: ids
   service_base_path: oauth2
