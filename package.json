@@ -10,12 +10,10 @@
   "author": "NHS Digital",
   "license": "MIT",
   "homepage": "https://github.com/NHSDigital/template-api",
-  "dependencies": {
-  },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.5.1",
     "apigeetool": "^0.16.4",
     "license-checker": "^25.0.1",
-    "minimist": "^1.2.6"
+    "minimist": "^0.2.1"
   }
 }
