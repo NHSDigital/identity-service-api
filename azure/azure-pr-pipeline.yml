@@ -33,6 +33,7 @@ extends:
     short_service_name: ${{ variables.short_service_name }}
     service_base_path: ${{ variables.service_base_path }}
     ping: false
+    python_version: ${{ variables.python_version }}
     jinja_templates:
       IDENTITY_PROVIDER_CIS2: cis2-keycloak
       IDENTITY_PROVIDER_NHS_LOGIN: nhs-login-keycloak
