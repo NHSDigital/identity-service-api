@@ -66,7 +66,8 @@ function validateJwt(header, payload) {
     return createError(jwtExpiredMessage, 400);
   if (!payload.iss) return createError(missingIssClaimMessage, 400);
   if (!payload.aud) return createError(missingAudMessage, 401);
-  return createError(noErrorMessage, 200);
+
+  return null;
 }
 
 function validateActJwt(header, payload) {
@@ -79,13 +80,15 @@ function validateActJwt(header, payload) {
     return createError(actInvalidExpiryTimeMessage, 400);
   if (!payload.iss) return createError(actMissingIssMessage, 400);
   if (!payload.aud) return createError(actMissingAudMessage, 401);
-  return createError(noErrorMessage, 200);
+
+  return null;
 }
 
 // === Main Execution ===
 const jwtHeaders = extractJsonVariable("header-json");
 const jwtPayload = extractJsonVariable("payload-json");
-const err = validateJwt(jwtHeaders, jwtPayload);
+var err = validateJwt(jwtHeaders, jwtPayload);
+if (!err) err = createError(noErrorMessage, 200);
 
 // === Conditional act.sub Validation ===
 if (
@@ -95,9 +98,10 @@ if (
 ) {
   const nestedJwt = decodeNestedJWT(jwtPayload.act.sub);
   if (!nestedJwt) {
-    const actErr = createError(actCorruptJwtMessage, 400);
+    err = createError(actCorruptJwtMessage, 400);
   } else {
-    const actNestedErr = validateActJwt(nestedJwt.header, nestedJwt.payload);
+    const nestedErr = validateActJwt(nestedJwt.header, nestedJwt.payload);
+    if (nestedErr) err = nestedErr;
   }
 }
 
