@@ -1,3 +1,4 @@
+// === Utility Functions ===
 function extractJsonVariable(contextVariableName) {
   return JSON.parse(
     context.getVariable(
@@ -17,9 +18,11 @@ function decodeNestedJWT(jwt) {
   const parts = jwt.split(".");
   if (parts.length !== 3) return null;
   try {
-    const header = JSON.parse(atob(parts[0]));
-    const payload = JSON.parse(atob(parts[1]));
-    return ({ header: header, payload: payload });
+    const headerJson = atob(parts[0]);
+    const payloadJson = atob(parts[1]);
+    const header = JSON.parse(headerJson);
+    const payload = JSON.parse(payloadJson);
+    return { header, payload };
   } catch (e) {
     return null;
   }
@@ -30,7 +33,6 @@ const missingKidMessage = "Missing 'kid' header in subject_token JWT";
 const missingOrInvalidTypMessage =
   "Invalid 'typ' header in subject_token JWT - must be 'JWT'";
 const missingAlgHeaderMessage = "Missing 'alg' header in subject_token JWT";
-// Claims
 const missingExpClaimMessage = "Missing 'exp' claim in subject_token JWT";
 const invalidExpiryTimeMessage =
   "Invalid 'exp' claim in subject_token JWT - must be an integer";
@@ -42,22 +44,23 @@ const noErrorMessage = "";
 
 // === act.sub JWT Error Messages ===
 const actMissingKidMessage = "Missing 'kid' header in act.sub JWT";
-const actMissingOrInvalidTypMessage = "Invalid 'typ' header in act.sub JWT - must be 'JWT'";
+const actMissingOrInvalidTypMessage =
+  "Invalid 'typ' header in act.sub JWT - must be 'JWT'";
 const actMissingAlgHeaderMessage = "Missing 'alg' header in act.sub JWT";
 const actMissingExpClaimMessage = "Missing 'exp' claim in act.sub JWT";
-const actInvalidExpiryTimeMessage = "Invalid 'exp' claim in act.sub JWT - must be an integer";
+const actInvalidExpiryTimeMessage =
+  "Invalid 'exp' claim in act.sub JWT - must be an integer";
 const actMissingIssMessage = "Missing 'iss' claim in act.sub JWT";
 const actMissingAudMessage = "Missing 'aud' claim in act.sub JWT";
 const actCorruptJwtMessage = "act.sub JWT is corrupt or unparseable";
 
-// === Main JWT Validations ===
+// === JWT Validation Functions ===
 function validateJwt(header, payload) {
-  // header validations
   if (!header.kid) return createError(missingKidMessage, 400);
   if (typeof header.typ !== "string" || header.typ.toLowerCase() !== "jwt")
     return createError(missingOrInvalidTypMessage, 400);
   if (!header.alg) return createError(missingAlgHeaderMessage, 400);
-  // payload validations
+
   if (!payload.exp) return createError(missingExpClaimMessage, 400);
   if (typeof payload.exp !== "number")
     return createError(invalidExpiryTimeMessage, 400);
@@ -69,14 +72,12 @@ function validateJwt(header, payload) {
   return null;
 }
 
-// === Nested JWT Validations ===
 function validateActJwt(header, payload) {
-  // header validations
   if (!header.kid) return createError(actMissingKidMessage, 400);
   if (typeof header.typ !== "string" || header.typ.toLowerCase() !== "jwt")
     return createError(actMissingOrInvalidTypMessage, 400);
   if (!header.alg) return createError(actMissingAlgHeaderMessage, 400);
-  // payload validations
+
   if (!payload.exp) return createError(actMissingExpClaimMessage, 400);
   if (typeof payload.exp !== "number")
     return createError(actInvalidExpiryTimeMessage, 400);
@@ -86,23 +87,28 @@ function validateActJwt(header, payload) {
   return null;
 }
 
-// === Process Subject Token ===
+// === Main Execution ===
 const jwtHeaders = extractJsonVariable("header-json");
 const jwtPayload = extractJsonVariable("payload-json");
+
 let err = validateJwt(jwtHeaders, jwtPayload);
 if (!err) err = createError(noErrorMessage, 200);
 
-// ===  Conditional act.sub Validation (only if no error above) ===
-if (err.errorMessage === "" && (jwtPayload.act && typeof jwtPayload.act.sub === "string")) {
+// === Conditional act.sub Validation ===
+if (
+  err.errorMessage === "" &&
+  jwtPayload.act &&
+  typeof jwtPayload.act.sub === "string"
+) {
   const nestedJwt = decodeNestedJWT(jwtPayload.act.sub);
   if (!nestedJwt) {
     err = createError(actCorruptJwtMessage, 400);
   } else {
-    const nestedErr = validateJwt(nestedJwt.header, nestedJwt.payload);
+    const nestedErr = validateActJwt(nestedJwt.header, nestedJwt.payload);
     if (nestedErr) err = nestedErr;
   }
 }
 
-// === Unified Output ===
+// === Output to Apigee Variables ===
 context.setVariable("invalid_jwt.error_message", err.errorMessage);
 context.setVariable("invalid_jwt.error_status_code", err.statusCode);
