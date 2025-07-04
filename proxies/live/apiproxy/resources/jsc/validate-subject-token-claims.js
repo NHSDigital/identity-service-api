@@ -20,9 +20,9 @@ function decodeNestedJWT(jwt) {
   try {
     const headerJson = atob(parts[0]);
     const payloadJson = atob(parts[1]);
-    const header = JSON.parse(headerJson);
-    const payload = JSON.parse(payloadJson);
-    return { header, payload };
+    const jwtheader = JSON.parse(headerJson);
+    const jwtpayload = JSON.parse(payloadJson);
+    return { header: jwtheader, payload: jwtpayload };
   } catch (e) {
     return null;
   }
