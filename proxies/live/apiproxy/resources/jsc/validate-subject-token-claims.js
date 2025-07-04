@@ -60,7 +60,6 @@ function validateJwt(header, payload) {
   if (typeof header.typ !== "string" || header.typ.toLowerCase() !== "jwt")
     return createError(missingOrInvalidTypMessage, 400);
   if (!header.alg) return createError(missingAlgHeaderMessage, 400);
-
   if (!payload.exp) return createError(missingExpClaimMessage, 400);
   if (typeof payload.exp !== "number")
     return createError(invalidExpiryTimeMessage, 400);
@@ -68,7 +67,6 @@ function validateJwt(header, payload) {
     return createError(jwtExpiredMessage, 400);
   if (!payload.iss) return createError(missingIssClaimMessage, 400);
   if (!payload.aud) return createError(missingAudMessage, 401);
-
   return null;
 }
 
@@ -77,20 +75,17 @@ function validateActJwt(header, payload) {
   if (typeof header.typ !== "string" || header.typ.toLowerCase() !== "jwt")
     return createError(actMissingOrInvalidTypMessage, 400);
   if (!header.alg) return createError(actMissingAlgHeaderMessage, 400);
-
   if (!payload.exp) return createError(actMissingExpClaimMessage, 400);
   if (typeof payload.exp !== "number")
     return createError(actInvalidExpiryTimeMessage, 400);
   if (!payload.iss) return createError(actMissingIssMessage, 400);
   if (!payload.aud) return createError(actMissingAudMessage, 401);
-
   return null;
 }
 
 // === Main Execution ===
 const jwtHeaders = extractJsonVariable("header-json");
 const jwtPayload = extractJsonVariable("payload-json");
-
 let err = validateJwt(jwtHeaders, jwtPayload);
 if (!err) err = createError(noErrorMessage, 200);
 
