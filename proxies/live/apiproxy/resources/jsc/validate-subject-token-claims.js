@@ -1,4 +1,3 @@
-// === Utility Functions ===
 function extractJsonVariable(contextVariableName) {
   return JSON.parse(
     context.getVariable(
@@ -26,7 +25,7 @@ function decodeNestedJWT(jwt) {
   } catch (e) {
     return null;
   }
-}
+};
 
 // === Subject Token Error Messages ===
 const missingKidMessage = "Missing 'kid' header in subject_token JWT";
@@ -68,7 +67,7 @@ function validateJwt(header, payload) {
   if (!payload.iss) return createError(missingIssClaimMessage, 400);
   if (!payload.aud) return createError(missingAudMessage, 401);
   return null;
-}
+};
 
 function validateActJwt(header, payload) {
   if (!header.kid) return createError(actMissingKidMessage, 400);
@@ -81,7 +80,7 @@ function validateActJwt(header, payload) {
   if (!payload.iss) return createError(actMissingIssMessage, 400);
   if (!payload.aud) return createError(actMissingAudMessage, 401);
   return null;
-}
+};
 
 // === Main Execution ===
 const jwtHeaders = extractJsonVariable("header-json");
