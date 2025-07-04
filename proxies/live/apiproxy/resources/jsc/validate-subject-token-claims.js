@@ -25,7 +25,7 @@ function decodeNestedJWT(jwt) {
   } catch (e) {
     return null;
   }
-};
+}
 
 // === Subject Token Error Messages ===
 const missingKidMessage = "Missing 'kid' header in subject_token JWT";
@@ -66,8 +66,8 @@ function validateJwt(header, payload) {
     return createError(jwtExpiredMessage, 400);
   if (!payload.iss) return createError(missingIssClaimMessage, 400);
   if (!payload.aud) return createError(missingAudMessage, 401);
-  return null;
-};
+  return createError(noErrorMessage, 200);
+}
 
 function validateActJwt(header, payload) {
   if (!header.kid) return createError(actMissingKidMessage, 400);
@@ -79,14 +79,13 @@ function validateActJwt(header, payload) {
     return createError(actInvalidExpiryTimeMessage, 400);
   if (!payload.iss) return createError(actMissingIssMessage, 400);
   if (!payload.aud) return createError(actMissingAudMessage, 401);
-  return null;
-};
+  return createError(noErrorMessage, 200);
+}
 
 // === Main Execution ===
 const jwtHeaders = extractJsonVariable("header-json");
 const jwtPayload = extractJsonVariable("payload-json");
-let err = validateJwt(jwtHeaders, jwtPayload);
-if (!err) err = createError(noErrorMessage, 200);
+const err = validateJwt(jwtHeaders, jwtPayload);
 
 // === Conditional act.sub Validation ===
 if (
@@ -96,10 +95,9 @@ if (
 ) {
   const nestedJwt = decodeNestedJWT(jwtPayload.act.sub);
   if (!nestedJwt) {
-    err = createError(actCorruptJwtMessage, 400);
+    const actErr = createError(actCorruptJwtMessage, 400);
   } else {
-    const nestedErr = validateActJwt(nestedJwt.header, nestedJwt.payload);
-    if (nestedErr) err = nestedErr;
+    const actNestedErr = validateActJwt(nestedJwt.header, nestedJwt.payload);
   }
 }
 
