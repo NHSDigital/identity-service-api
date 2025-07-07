@@ -57,7 +57,7 @@ context.setVariable('splunk.auth.type', auth_type)
 context.setVariable('splunk.auth.provider', provider)
 context.setVariable('splunk.auth.level', level)
 context.setVariable('splunk.auth.user_id', user_id)
-context.setVariable('splunk.user.actor.id', actor_id)
+context.setVariable('splunk.user.actor.user_id', actor_id)
 context.setVariable('splunk.auth.meta.delegated', delegated)
 
 // Populate variables; these are used in LogToSplunk shared-flow. IS doesn't have VerifyAccessToken that's why we need to populate these manually.
