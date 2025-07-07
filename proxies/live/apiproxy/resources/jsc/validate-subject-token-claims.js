@@ -88,6 +88,8 @@ function validateActJwt(header, payload) {
 const jwtHeaders = extractJsonVariable("header-json");
 const jwtPayload = extractJsonVariable("payload-json");
 var err = validateJwt(jwtHeaders, jwtPayload);
+var actor_id = 'na';
+var delegated = 'false';
 if (!err) err = createError(noErrorMessage, 200);
 
 // === Conditional act.sub Validation ===
@@ -101,10 +103,19 @@ if (
     err = createError(actCorruptJwtMessage, 400);
   } else {
     const nestedErr = validateActJwt(nestedJwt.header, nestedJwt.payload);
-    if (nestedErr) err = nestedErr;
+    if (nestedErr) {
+      err = nestedErr;
+    }
+    else {
+      // If act.sub is valid, set the decoded claims in context variables
+      actor_id = nestedJwt.payload.nhs_number;
+      delegated = 'true';
+    }
   }
 }
 
 // === Output to Apigee Variables ===
+context.setVariable("jwt.DecodeJWT.FromActSubJWT.decoded.act.nhs_number", nestedJwt.payload.nhs_number);
+context.setVariable("jwt.DecodeJWT.FromActSubJWT.decoded.act.delegation", delegated);
 context.setVariable("invalid_jwt.error_message", err.errorMessage);
 context.setVariable("invalid_jwt.error_status_code", err.statusCode);
