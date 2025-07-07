@@ -115,7 +115,7 @@ if (
 }
 
 // === Output to Apigee Variables ===
-context.setVariable("jwt.DecodeJWT.FromActSubJWT.decoded.act.nhs_number", nestedJwt.payload.nhs_number);
+context.setVariable("jwt.DecodeJWT.FromActSubJWT.decoded.act.nhs_number", actor_id);
 context.setVariable("jwt.DecodeJWT.FromActSubJWT.decoded.act.delegation", delegated);
 context.setVariable("invalid_jwt.error_message", err.errorMessage);
 context.setVariable("invalid_jwt.error_status_code", err.statusCode);
