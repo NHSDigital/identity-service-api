@@ -1,0 +1,153 @@
+<Flow name="Flow.PostTokenTokenExchange">
+            <Description>OAuth Token Endpoint - Token-Exchange</Description>
+            <Request>
+                <Step>
+                    <Name>RaiseFault.MissingOrInvalidClientAssertionType</Name>
+                    <Condition>(request.formparam.client_assertion_type NotEquals "urn:ietf:params:oauth:client-assertion-type:jwt-bearer")</Condition>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.InvalidGrantType</Name>
+                    <Condition>request.formparam.grant_type NotEquals "urn:ietf:params:oauth:grant-type:token-exchange"</Condition>
+                </Step>
+                <Step>
+                    <Name>DecodeJWT.FromClientAssertionFormParam</Name>
+                </Step>
+                <Step>
+                    <Name>LookupCache.JTIClaim</Name>
+                </Step>
+                <!-- Validate the decoded JWT with custom JS policy and raise faults based on the variables created by that script-->
+                <Step>
+                    <Name>JavaScript.ValidateClientAssertionClaims</Name>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.InvalidJwt</Name>
+                    <Condition>invalid_jwt.error_message NotEquals ""</Condition>
+                </Step>
+                <Step>
+                    <Name>PopulateCache.JTIClaim</Name>
+                </Step>
+                <Step>
+                    <Name>VerifyAPIKey.FromJWT</Name>
+                </Step>
+                <Step>
+                    <Name>FlowCallout.ApplyRatelimitingFromJWT</Name>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.PublicKeyMisconfigured</Name>
+                    <Condition>verifyapikey.VerifyAPIKey.FromJWT.jwks-resource-url = null</Condition>
+                </Step>
+                <Step>
+                    <Name>Javascript.SetServiceCalloutUrl</Name>
+                </Step>
+                <Step>
+                    <Name>LookupCache.CCJWKS</Name>
+                </Step>
+                <Step>
+                    <Name>ServiceCallout.ClientCredentialsGrantGetJWKS</Name>
+                    <Condition>ccjwks = null</Condition>
+                </Step>
+                <Step>
+                    <Name>PopulateCache.CCJWKS</Name>
+                    <Condition>ccjwks = null</Condition>
+                </Step>
+                <Step>
+                    <Name>AssignMessage.CCJWKS</Name>
+                    <Condition>ccjwks = null</Condition>
+                </Step>
+                <Step>
+                    <Name>VerifyJWT.ClientCredentials</Name>
+                </Step>
+                <Step>
+                    <!-- Needed because OAuthV2 'GenerateAccessToken' has to have the Client ID and Client Secret in a specific place -->
+                    <Name>AssignMessage.SetClientCredentials</Name>
+                </Step>
+                <Step>
+                    <Name>DecodeJWT.FromSubjectTokenFormParam</Name>
+                </Step>
+                <Step>
+                    <Name>JavaScript.ValidateSubjectTokenClaims</Name>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.InvalidJwt</Name>
+                    <Condition>invalid_jwt.error_message NotEquals ""</Condition>
+                </Step>
+                <Step>
+                    <Name>AssignMessage.SelectIdTokenFieldsTokenExchange</Name>
+                </Step>
+                <Step>
+                    <Name>Javascript.SelectIdTokenIssuer</Name>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.InvalidRequest</Name>
+                    <Condition>isError = true</Condition>
+                </Step>
+                <Step>
+                    <Name>LookupCache.TokenExchangeJWKS</Name>
+                </Step>
+                <Step>
+                    <Name>Javascript.ValidateClaim</Name>
+                    <Condition>jwks != null</Condition>
+                </Step>
+                <Step>
+                    <Name>ServiceCallout.cis2GetJWKS</Name>
+                    <Condition>jwks = null Or jwks_kid_found = false and idTokenIssuer Equals "nhs-cis2"</Condition>
+                </Step>
+                <Step>
+                    <Name>ServiceCallout.nhsLoginGetJWKS</Name>
+                    <Condition>jwks = null Or jwks_kid_found = false and idTokenIssuer Equals "nhs-login"</Condition>
+                </Step>
+                <Step>
+                    <Name>PopulateCache.TokenExchangeJWKS</Name>
+                    <Condition>jwks = null Or jwks_kid_found = false</Condition>
+                </Step>
+                <Step>
+                    <Name>AssignMessage.JWKS</Name>
+                    <Condition>jwks = null Or jwks_kid_found = false</Condition>
+                </Step>
+                <Step>
+                    <Name>VerifyJWT.SubjectToken</Name>
+                </Step>
+                <Step>
+                    <Name>Javascript.SetDefaultAccessAndRefreshTokenTimes</Name>
+                </Step>
+                <!-- Using JavaScript to evaluate the requested override time, due to apigee conditional failing to evaluate properly -->
+                <Step>
+                    <Name>JavaScript.CalculateAccessTokenOverride</Name>
+                    <Condition>request.formparam._access_token_expiry_ms != null</Condition>
+                </Step>
+                <Step>
+                    <Name>AssignMessage.AccessTokenExpiryOverride</Name>
+                    <Condition>(apigee.can_override_access_token != null) and (apigee.can_override_access_token = true)</Condition>
+                </Step>
+                <!-- grant type needs changing from Token Exchange because apigee doesn't support it !-->
+                <Step>
+                    <Name>AssignMessage.SetGrantTypeToPassword</Name>
+                </Step>
+                <!-- An access token is generated to fetch all the scopes for filtering -->
+                <Step>
+                    <Name>OAuthV2.TokenExchangeGenerateAccessToken</Name>
+                </Step>
+                <Step>
+                    <Name>JavaScript.FilterScopesTokenExchange</Name>
+                </Step>
+                <Step>
+                    <Name>RaiseFault.VerifyAccessLevel</Name>
+                    <Condition>(apigee.user_restricted_scopes = "")</Condition>
+                </Step>
+                <Step>
+                    <Name>JavaScript.SetLoggingFields</Name>
+                </Step>
+                <Step>
+                    <Name>AssignMessage.SetIssuerUri</Name>
+                </Step>
+                <Step>
+                    <Name>OAuthV2.TokenExchangeGenerateAccessTokenFilteredScopes</Name>
+                </Step>
+            </Request>
+            <Response>
+                <Step>
+                    <Name>AssignMessage.TokenExchangeGenerateTokenResponse</Name>
+                </Step>
+            </Response>
+            <Condition>((proxy.pathsuffix MatchesPath "/token") and (request.verb Equals "POST") and (request.formparam.subject_token_type Equals "urn:ietf:params:oauth:token-type:id_token") and (apim.feature_toggles.enable-token-exchange = true))</Condition>
+        </Flow>
