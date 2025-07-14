@@ -88,7 +88,7 @@ function validateActJwt(header, payload) {
 const jwtHeaders = extractJsonVariable("header-json");
 const jwtPayload = extractJsonVariable("payload-json");
 var err = validateJwt(jwtHeaders, jwtPayload);
-var actor_id = 'na';
+var actor_id = '';
 var delegated = 'false';
 if (!err) err = createError(noErrorMessage, 200);
 

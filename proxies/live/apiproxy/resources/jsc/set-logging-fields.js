@@ -2,7 +2,7 @@ var auth_grant_type = '' // apigee doesn't support token_exchange. This variable
 var auth_type = 'app'
 var level = ''
 var user_id = ''
-var actor_id = 'na'
+var actor_id = ''
 var delegated = 'false'
 
 var grant_type = context.getVariable('request.formparam.grant_type')
