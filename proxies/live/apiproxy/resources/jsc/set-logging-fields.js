@@ -57,8 +57,6 @@ context.setVariable('splunk.auth.type', auth_type)
 context.setVariable('splunk.auth.provider', provider)
 context.setVariable('splunk.auth.level', level)
 context.setVariable('splunk.auth.user_id', user_id)
-context.setVariable('splunk.user.actor.user_id', actor_id)
-context.setVariable('splunk.auth.meta.delegated', delegated)
 
 // Populate variables; these are used in LogToSplunk shared-flow. IS doesn't have VerifyAccessToken that's why we need to populate these manually.
 context.setVariable('accesstoken.auth_grant_type', auth_grant_type)
@@ -66,6 +64,8 @@ context.setVariable('accesstoken.auth_type', auth_type)
 context.setVariable('accesstoken.auth_level', level)
 context.setVariable('accesstoken.auth_provider', provider)
 context.setVariable('accesstoken.auth_user_id', user_id)
+context.setVariable('accesstoken.actor_user_id', actor_id)
+context.setVariable('accesstoken.actor_delegated', delegated)
 
 function getProvider() {
   var cis2_issuer = context.getVariable('identity-service-config.cis2.issuer')
