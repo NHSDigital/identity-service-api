@@ -110,6 +110,7 @@ if (
       // If act.sub is valid, set the decoded claims in context variables
       actor_id = nestedJwt.payload.nhs_number;
       delegated = 'true';
+      context.setVariable("jwt.DecodeJWT.FromExternalIdToken.decoded.claim.identity_proofing_level", 'P9');
     }
   }
 }
