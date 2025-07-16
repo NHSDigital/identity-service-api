@@ -40,8 +40,6 @@ if (grant_type === 'authorization_code' || pathsuffix === '/authorize' || pathsu
     delegated = context.getVariable('jwt.act.delegation')
   } else {
     user_id = context.getVariable('jwt.VerifyJWT.SubjectToken.claim.subject')
-    actor_id = context.getVariable('jwt.act.nhs_number')
-    delegated = context.getVariable('jwt.act.delegation')
   }
 
 } else {
