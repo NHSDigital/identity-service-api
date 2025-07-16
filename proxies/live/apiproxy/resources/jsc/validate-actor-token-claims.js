@@ -51,7 +51,7 @@ var delegated = 'true';
 if (!err) err = createError(noErrorMessage, 200);
 
 // === Output to Apigee Variables ===
-context.setVariable("jwt.DecodeJWT.FromActSubJWT.decoded.act.nhs_number", actor_id);
-context.setVariable("jwt.DecodeJWT.FromActSubJWT.decoded.act.delegation", delegated);
+context.setVariable("jwt.act.nhs_number", actor_id);
+context.setVariable("jwt.act.delegation", delegated);
 context.setVariable("invalid_jwt.error_message", err.errorMessage);
 context.setVariable("invalid_jwt.error_status_code", err.statusCode);

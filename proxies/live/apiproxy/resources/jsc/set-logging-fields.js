@@ -36,10 +36,12 @@ if (grant_type === 'authorization_code' || pathsuffix === '/authorize' || pathsu
 
   if (provider.includes('nhs-login')) {
     user_id = user_id = context.getVariable('jwt.VerifyJWT.SubjectToken.claim.nhs_number')
-    actor_id = context.getVariable('jwt.DecodeJWT.FromActSubJWT.decoded.act.nhs_number')
-    delegated = context.getVariable('jwt.DecodeJWT.FromActSubJWT.decoded.act.delegation')
+    actor_id = context.getVariable('jwt.act.nhs_number')
+    delegated = context.getVariable('jwt.act.delegation')
   } else {
     user_id = context.getVariable('jwt.VerifyJWT.SubjectToken.claim.subject')
+    actor_id = context.getVariable('jwt.act.nhs_number')
+    delegated = context.getVariable('jwt.act.delegation')
   }
 
 } else {
