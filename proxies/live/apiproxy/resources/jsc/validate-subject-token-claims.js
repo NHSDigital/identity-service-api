@@ -13,20 +13,6 @@ function createError(message, statusCode) {
   };
 }
 
-function decodeNestedJWT(jwt) {
-  const parts = jwt.split(".");
-  if (parts.length !== 3) return null;
-  try {
-    const headerJson = atob(parts[0]);
-    const payloadJson = atob(parts[1]);
-    const jwtheader = JSON.parse(headerJson);
-    const jwtpayload = JSON.parse(payloadJson);
-    return { header: jwtheader, payload: jwtpayload };
-  } catch (e) {
-    return null;
-  }
-}
-
 // === Subject Token Error Messages ===
 const missingKidMessage = "Missing 'kid' header in subject_token JWT";
 const missingOrInvalidTypMessage =
@@ -41,17 +27,6 @@ const missingIssClaimMessage = "Missing 'iss' claim in subject_token JWT";
 const missingAudMessage = "Missing 'aud' claim in subject_token JWT";
 const noErrorMessage = "";
 
-// === act.sub JWT Error Messages ===
-const actMissingKidMessage = "Missing 'kid' header in act.sub JWT";
-const actMissingOrInvalidTypMessage =
-  "Invalid 'typ' header in act.sub JWT - must be 'JWT'";
-const actMissingAlgHeaderMessage = "Missing 'alg' header in act.sub JWT";
-const actMissingExpClaimMessage = "Missing 'exp' claim in act.sub JWT";
-const actInvalidExpiryTimeMessage =
-  "Invalid 'exp' claim in act.sub JWT - must be an integer";
-const actMissingIssMessage = "Missing 'iss' claim in act.sub JWT";
-const actMissingAudMessage = "Missing 'aud' claim in act.sub JWT";
-const actCorruptJwtMessage = "act.sub JWT is corrupt or unparseable";
 
 // === JWT Validation Functions ===
 function validateJwt(header, payload) {
@@ -70,26 +45,10 @@ function validateJwt(header, payload) {
   return null;
 }
 
-function validateActJwt(header, payload) {
-  if (!header.kid) return createError(actMissingKidMessage, 400);
-  if (typeof header.typ !== "string" || header.typ.toLowerCase() !== "jwt")
-    return createError(actMissingOrInvalidTypMessage, 400);
-  if (!header.alg) return createError(actMissingAlgHeaderMessage, 400);
-  if (!payload.exp) return createError(actMissingExpClaimMessage, 400);
-  if (typeof payload.exp !== "number")
-    return createError(actInvalidExpiryTimeMessage, 400);
-  if (!payload.iss) return createError(actMissingIssMessage, 400);
-  if (!payload.aud) return createError(actMissingAudMessage, 401);
-
-  return null;
-}
-
 // === Main Execution ===
 const jwtHeaders = extractJsonVariable("header-json");
 const jwtPayload = extractJsonVariable("payload-json");
 var err = validateJwt(jwtHeaders, jwtPayload);
-var actor_id = '';
-var delegated = 'false';
 if (!err) err = createError(noErrorMessage, 200);
 
 // === Conditional act.sub Validation ===
@@ -98,24 +57,9 @@ if (
   jwtPayload.act &&
   typeof jwtPayload.act.sub === "string"
 ) {
-  const nestedJwt = decodeNestedJWT(jwtPayload.act.sub);
-  if (!nestedJwt) {
-    err = createError(actCorruptJwtMessage, 400);
-  } else {
-    const nestedErr = validateActJwt(nestedJwt.header, nestedJwt.payload);
-    if (nestedErr) {
-      err = nestedErr;
-    }
-    else {
-      // If act.sub is valid, set the decoded claims in context variables
-      actor_id = nestedJwt.payload.nhs_number;
-      delegated = 'true';
-    }
-  }
+  context.setVariable("act_jwt_token", jwtPayload.act.sub);
 }
 
 // === Output to Apigee Variables ===
-context.setVariable("jwt.DecodeJWT.FromActSubJWT.decoded.act.nhs_number", actor_id);
-context.setVariable("jwt.DecodeJWT.FromActSubJWT.decoded.act.delegation", delegated);
 context.setVariable("invalid_jwt.error_message", err.errorMessage);
 context.setVariable("invalid_jwt.error_status_code", err.statusCode);
