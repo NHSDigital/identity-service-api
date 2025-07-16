@@ -49,13 +49,20 @@ function validateJwt(header, payload) {
 const jwtHeaders = extractJsonVariable("header-json");
 const jwtPayload = extractJsonVariable("payload-json");
 var err = validateJwt(jwtHeaders, jwtPayload);
-if (!err) err = createError(noErrorMessage, 200);
+var is_nhs_login = false;
+if (!err) {
+  err = createError(noErrorMessage, 200);
+  if (jwtPayload.nhs_number) {
+    is_nhs_login = true;
+  }
+}
 
 // === Conditional act.sub Validation ===
 if (
   err.errorMessage === "" &&
   jwtPayload.act &&
-  typeof jwtPayload.act.sub === "string"
+  typeof jwtPayload.act.sub === "string" &&
+  is_nhs_login
 ) {
   context.setVariable("act_jwt_token", jwtPayload.act.sub);
 }
