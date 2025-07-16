@@ -514,11 +514,11 @@
                 </Step>
                 <Step>
                     <Name>DecodeJWT.FromActToken</Name>
-                    <Condition>act_jwt_token != "" or act_jwt_token != null</Condition>
+                    <Condition>act_jwt_token != "" and act_jwt_token != null</Condition>
                 </Step>
                 <Step>
                     <Name>JavaScript.ValidateActorTokenClaims</Name>
-                    <Condition>act_jwt_token != "" or act_jwt_token != null</Condition>
+                    <Condition>act_jwt_token != "" and act_jwt_token != null</Condition>
                 </Step>
                 <Step>
                     <Name>RaiseFault.InvalidJwt</Name>
