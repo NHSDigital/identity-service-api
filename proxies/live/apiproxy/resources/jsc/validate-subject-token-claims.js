@@ -40,7 +40,7 @@ function validateJwt(header, payload) {
   if (new Date() > new Date(payload.exp * 1000))
     return createError(jwtExpiredMessage, 400);
   if (!payload.iss) return createError(missingIssClaimMessage, 400);
-  if (!payload.aud) return createError(missingAudMessage, 400);
+  if (!payload.aud) return createError(missingAudMessage, 401);
 
   return null;
 }
