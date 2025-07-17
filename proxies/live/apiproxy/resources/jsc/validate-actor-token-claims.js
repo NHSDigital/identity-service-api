@@ -24,6 +24,7 @@ const actInvalidExpiryTimeMessage =
   "Invalid 'exp' claim in act.sub JWT - must be an integer";
 const actMissingIssMessage = "Missing 'iss' claim in act.sub JWT";
 const actMissingAudMessage = "Missing 'aud' claim in act.sub JWT";
+const actMissingNhsNumMessage = "Missing 'nhs_number' claim in act.sub JWT";
 const actCorruptJwtMessage = "act.sub JWT is corrupt or unparseable";
 const noErrorMessage = "";
 
@@ -38,6 +39,8 @@ function validateActJwt(header, payload) {
     return createError(actInvalidExpiryTimeMessage, 400);
   if (!payload.iss) return createError(actMissingIssMessage, 400);
   if (!payload.aud) return createError(actMissingAudMessage, 401);
+  if (!payload.nhs_number)
+    return createError(actMissingNhsNumMessage, 401);
 
   return null;
 }
@@ -46,9 +49,12 @@ function validateActJwt(header, payload) {
 const jwtHeaders = extractJsonVariable("header-json");
 const jwtPayload = extractJsonVariable("payload-json");
 var err = validateActJwt(jwtHeaders, jwtPayload);
-var actor_id = jwtPayload.nhs_number;
+var actor_id = '';
 var delegated = 'true';
-if (!err) err = createError(noErrorMessage, 200);
+if (!err) {
+  err = createError(noErrorMessage, 200);
+  actor_id = jwtPayload.nhs_number;
+}
 
 // === Output to Apigee Variables ===
 context.setVariable("jwt.act.nhs_number", actor_id);
