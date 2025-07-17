@@ -38,9 +38,9 @@ function validateActJwt(header, payload) {
   if (typeof payload.exp !== "number")
     return createError(actInvalidExpiryTimeMessage, 400);
   if (!payload.iss) return createError(actMissingIssMessage, 400);
-  if (!payload.aud) return createError(actMissingAudMessage, 401);
+  if (!payload.aud) return createError(actMissingAudMessage, 400);
   if (!payload.nhs_number)
-    return createError(actMissingNhsNumMessage, 401);
+    return createError(actMissingNhsNumMessage, 400);
 
   return null;
 }
