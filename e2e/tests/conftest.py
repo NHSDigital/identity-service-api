@@ -9,9 +9,6 @@ from pytest_nhsd_apim.apigee_apis import (
     AccessTokensAPI,
     ApiProductsAPI,
 )
-from pytest_nhsd_apim.apigee_edge import (
-    nhsd_apim_unsubscribe_test_app_from_all_products,
-)
 
 from e2e.tests.utils.config import API_NAME, PROXY_NAME, ENVIRONMENT
 
