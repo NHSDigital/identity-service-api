@@ -165,7 +165,7 @@ def products_api():
     return ApiProductsAPI(client=client)
 
 
-# APIGEE RESOURCES FOR WHEN STANDARD TEST_APP FROM PACKAGE IS NOT APPLICABLE
+# APIGEE RESOURCES FOR WHEN THE STANDARD TEST_APP FROM PACKAGE IS NOT APPLICABLE
 @pytest.fixture(scope="function")
 def test_app_and_products_for_scopes(
     nhsd_apim_test_app,
