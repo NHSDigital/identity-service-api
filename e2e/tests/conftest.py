@@ -10,11 +10,8 @@ from pytest_nhsd_apim.apigee_apis import (
     ApiProductsAPI,
 )
 
-from e2e.tests.utils.config import (
-    API_NAME,
-    PROXY_NAME,
-    ENVIRONMENT
-)
+from e2e.tests.utils.config import API_NAME, PROXY_NAME, ENVIRONMENT
+
 
 # FIXTURES FOR USE IN SET UP OF pytest_nhsd_apim
 @pytest.fixture(scope="session")
@@ -203,9 +200,7 @@ def test_app_and_products_for_scopes(
         products_api.post_products(body=product)
 
     app["apiProducts"] = product_names
-    add_products_to_app_resp = _apigee_edge_session.post(
-        f"{_apigee_app_base_url}/{app_name}", json=app
-    )
+    add_products_to_app_resp = _apigee_edge_session.post(f"{_apigee_app_base_url}/{app_name}", json=app)
     assert add_products_to_app_resp.status_code == 200
 
     app = add_products_to_app_resp.json()

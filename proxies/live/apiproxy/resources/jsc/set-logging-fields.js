@@ -2,6 +2,8 @@ var auth_grant_type = '' // apigee doesn't support token_exchange. This variable
 var auth_type = 'app'
 var level = ''
 var user_id = ''
+var actor_id = ''
+var delegated = 'false'
 
 var grant_type = context.getVariable('request.formparam.grant_type')
 var pathsuffix = context.getVariable('proxy.pathsuffix')
@@ -34,6 +36,8 @@ if (grant_type === 'authorization_code' || pathsuffix === '/authorize' || pathsu
 
   if (provider.includes('nhs-login')) {
     user_id = user_id = context.getVariable('jwt.VerifyJWT.SubjectToken.claim.nhs_number')
+    actor_id = context.getVariable('jwt.act.nhs_number')
+    delegated = context.getVariable('jwt.act.delegation')
   } else {
     user_id = context.getVariable('jwt.VerifyJWT.SubjectToken.claim.subject')
   }
@@ -60,6 +64,8 @@ context.setVariable('accesstoken.auth_type', auth_type)
 context.setVariable('accesstoken.auth_level', level)
 context.setVariable('accesstoken.auth_provider', provider)
 context.setVariable('accesstoken.auth_user_id', user_id)
+context.setVariable('accesstoken.actor_user_id', actor_id)
+context.setVariable('accesstoken.actor_delegated', delegated)
 
 function getProvider() {
   var cis2_issuer = context.getVariable('identity-service-config.cis2.issuer')

@@ -13,16 +13,11 @@ function createError(message, statusCode) {
   };
 }
 
-const jwtHeaders = extractJsonVariable("header-json");
-const jwtPayload = extractJsonVariable("payload-json");
-
-// Declare error message strings
-// Headers
+// === Subject Token Error Messages ===
 const missingKidMessage = "Missing 'kid' header in subject_token JWT";
 const missingOrInvalidTypMessage =
   "Invalid 'typ' header in subject_token JWT - must be 'JWT'";
 const missingAlgHeaderMessage = "Missing 'alg' header in subject_token JWT";
-// Claims
 const missingExpClaimMessage = "Missing 'exp' claim in subject_token JWT";
 const invalidExpiryTimeMessage =
   "Invalid 'exp' claim in subject_token JWT - must be an integer";
@@ -32,31 +27,46 @@ const missingIssClaimMessage = "Missing 'iss' claim in subject_token JWT";
 const missingAudMessage = "Missing 'aud' claim in subject_token JWT";
 const noErrorMessage = "";
 
-// Set conditions for triggering error messages
-// Headers
-const missingKidCondition = !jwtHeaders.kid;
-const missingOrInvalidTypCondition =
-  typeof jwtHeaders.typ != "string" || jwtHeaders.typ.toLowerCase() != "jwt";
-const missingAlgHeaderCondition = !jwtHeaders.alg;
-// Claims
-const missingExpClaimCondition = !jwtPayload.exp;
-const invalidExpiryTimeCondition = typeof jwtPayload.exp != "number";
-// JS Date constructor uses milliseconds, exp uses seconds, so multiply exp by 1000 to convert to ms
-const jwtExpiredCondition = new Date() > new Date(jwtPayload.exp * 1000);
-const missingIssClaimCondition = !jwtPayload.iss;
-const missingAudCondtion = !jwtPayload.aud;
 
-// Set the error message to the first error condition that returns true
-const err =
-  (jwtExpiredCondition && createError(jwtExpiredMessage, 400)) ||
-  (missingAlgHeaderCondition && createError(missingAlgHeaderMessage, 400)) ||
-  (missingKidCondition && createError(missingKidMessage, 400)) ||
-  (missingOrInvalidTypCondition && createError(missingOrInvalidTypMessage, 400)) ||
-  (missingExpClaimCondition && createError(missingExpClaimMessage, 400)) ||
-  (invalidExpiryTimeCondition && createError(invalidExpiryTimeMessage, 400)) ||
-  (missingIssClaimCondition && createError(missingIssClaimMessage, 400)) ||
-  (missingAudCondtion && createError(missingAudMessage, 401)) ||
-  createError(noErrorMessage, 200);
+// === JWT Validation Functions ===
+function validateJwt(header, payload) {
+  if (!header.kid) return createError(missingKidMessage, 400);
+  if (typeof header.typ !== "string" || header.typ.toLowerCase() !== "jwt")
+    return createError(missingOrInvalidTypMessage, 400);
+  if (!header.alg) return createError(missingAlgHeaderMessage, 400);
+  if (!payload.exp) return createError(missingExpClaimMessage, 400);
+  if (typeof payload.exp !== "number")
+    return createError(invalidExpiryTimeMessage, 400);
+  if (new Date() > new Date(payload.exp * 1000))
+    return createError(jwtExpiredMessage, 400);
+  if (!payload.iss) return createError(missingIssClaimMessage, 400);
+  if (!payload.aud) return createError(missingAudMessage, 401);
 
+  return null;
+}
+
+// === Main Execution ===
+const jwtHeaders = extractJsonVariable("header-json");
+const jwtPayload = extractJsonVariable("payload-json");
+var err = validateJwt(jwtHeaders, jwtPayload);
+var is_nhs_login = false;
+if (!err) {
+  err = createError(noErrorMessage, 200);
+  if (jwtPayload.nhs_number) {
+    is_nhs_login = true;
+  }
+}
+
+// === Conditional act.sub Validation ===
+if (
+  err.errorMessage === "" &&
+  jwtPayload.act &&
+  typeof jwtPayload.act.sub === "string" &&
+  is_nhs_login
+) {
+  context.setVariable("act_jwt_token", jwtPayload.act.sub);
+}
+
+// === Output to Apigee Variables ===
 context.setVariable("invalid_jwt.error_message", err.errorMessage);
 context.setVariable("invalid_jwt.error_status_code", err.statusCode);
