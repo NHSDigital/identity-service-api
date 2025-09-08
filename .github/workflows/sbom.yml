@@ -8,9 +8,9 @@ on:
         required: true
         type: choice
         options:
-          - yes
-          - no
-        default: yes
+          - "yes"
+          - "no"
+        default: "yes"
 
 jobs:
   deploy:
