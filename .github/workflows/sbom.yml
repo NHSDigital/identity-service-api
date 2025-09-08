@@ -36,8 +36,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sbom-action-${{ github.run_id }}
-          path: identity-repo-sbom.cdx.json
+          path: /tmp/sbom-action-*/identity-repo-sbom.cdx.json
+          if-no-files-found: warn
 
       - name: Clean up SBOM file
-        run: rm identity-repo-sbom.cdx.json
+        run: rm /tmp/sbom-action-*/identity-repo-sbom.cdx.json || true
 
