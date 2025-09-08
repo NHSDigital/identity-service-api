@@ -30,13 +30,13 @@ jobs:
         with:
           path: ./
           format: cyclonedx-json
-          artifact-name: sbom-repo.cdx.json
+          artifact-name: sbom.json
 
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v4
         with:
           name: sbom-${{ github.run_id }}
-          path: sbom-repo.cdx.json
+          path: sbom.json
 
       - name: Clean up SBOM file
-        run: rm sbom-repo.cdx.json
+        run: rm sbom.json
