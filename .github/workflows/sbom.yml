@@ -31,7 +31,13 @@ jobs:
           path: ./
           format: cyclonedx-json
           artifact-name: identity-repo-sbom.cdx.json
-          upload-artifact: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-action-${{ github.run_id }}
+          path: identity-repo-sbom.cdx.json
 
+      - name: Clean up SBOM file
+        run: rm identity-repo-sbom.cdx.json
 
