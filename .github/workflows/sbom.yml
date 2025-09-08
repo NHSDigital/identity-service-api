@@ -32,5 +32,6 @@ jobs:
           format: cyclonedx-json
           artifact-name: sbom-repo.cdx.json
           upload-artifact: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
 
