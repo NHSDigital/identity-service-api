@@ -172,10 +172,10 @@ extends:
           NUM_RANDOM_LONG_INTS_FOR_STATE: 4
           RATELIMITING: ${{ variables.ratelimiting }}
       - environment: dev # both mocked
-        service_name: ${{ variables.service_name }}-mock
-        short_service_name: ${{ variables.short_service_name }}-mock
-        stage_name: dev_mock
-        service_base_path: ${{ variables.service_base_path }}-mock
+        service_name: ${{ variables.service_name }}-mock-dep
+        short_service_name: ${{ variables.short_service_name }}-mock-dep
+        stage_name: dev_mock-dep
+        service_base_path: ${{ variables.service_base_path }}-mock-dep
       - environment: dev # dep
         service_name: ${{ variables.service_name }}-dep
         short_service_name: ${{ variables.short_service_name }}-dep
