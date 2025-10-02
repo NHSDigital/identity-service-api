@@ -1,4 +1,4 @@
-name: SBOM Check
+name: SBOM Vulnerability Scanning
 
 on:
   workflow_dispatch:
@@ -32,14 +32,10 @@ jobs:
           python-version: "3.13"
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
 
-      - uses: terraform-linters/setup-tflint@v5
+      - uses: terraform-linters/setup-tflint@ae78205cfffec9e8d93fd2b3115c7e9d3166d4b6
         name: Setup TFLint
-        with:
-          tflint_version: v0.58.0
 
       - name: Set architecture variable
         id: os-arch
@@ -60,13 +56,55 @@ jobs:
           chmod +x syft
 
           # Add to PATH for subsequent steps
-          echo "$(pwd)" >> $GITHUB_PATH
+          echo "$(pwd)" >> $GITHUB_PATH       
 
       - name: Create SBOM
         run: bash scripts/create-sbom.sh terraform python tflint
 
-      - name: Upload SBOM as artifact
+      - name: Convert SBOM JSON to CSV
+        run: |
+          pip install --upgrade pip
+          pip install tabulate  
+          REPO_NAME=$(basename $GITHUB_REPOSITORY)
+          python .github/scripts/sbom_json_to_csv.py sbom.json SBOM_${REPO_NAME}.csv
+
+      - name: Upload SBOM CSV as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: sbom
-          path: sbom.json
+          name: sbom-csv
+          path: SBOM_${{ github.event.repository.name }}.csv
+
+      - name: Install Grype
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Scan SBOM for Vulnerabilities (JSON)
+        run: |
+          grype sbom:sbom.json -o json > grype-report.json
+          
+      
+
+      - name: Convert Grype JSON to CSV
+        run: |
+          pip install --upgrade pip
+          REPO_NAME=$(basename $GITHUB_REPOSITORY)
+          python .github/scripts/grype_json_to_csv.py grype-report.json grype-report-${REPO_NAME}.csv
+
+
+      - name: Upload Vulnerability Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: grype-report
+          path: grype-report-${{ github.event.repository.name }}.csv
+
+      - name: Generate Package Inventory CSV
+        run: |
+          pip install --upgrade pip
+          REPO_NAME=$(basename $GITHUB_REPOSITORY)
+          python .github/scripts/sbom_packages_to_csv.py sbom.json $REPO_NAME
+
+      - name: Upload Package Inventory CSV
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-packages
+          path: sbom-packages-${{ github.event.repository.name }}.csv
