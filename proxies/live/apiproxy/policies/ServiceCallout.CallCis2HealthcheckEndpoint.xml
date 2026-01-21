@@ -12,6 +12,7 @@
     <HTTPTargetConnection>
         <SSLInfo>
             <Enabled>true</Enabled>
+            <TrustStore>ref://bars-client</TrustStore>
         </SSLInfo>
         <TrustStore>ref://identity-service-truststore</TrustStore>
         <URL>https://{identity-service-config.cis2.host}/{identity-service-config.cis2.health_check_path}</URL>
