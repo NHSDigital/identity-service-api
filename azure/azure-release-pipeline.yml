@@ -51,6 +51,8 @@ extends:
         service_base_path: ${{ variables.service_base_path }}-mock
         post_deploy:
           - template: ./templates/run-integration-tests.yml
+            parameters:
+              python_version: ${{ variables.python_version }}
       - environment: internal-dev
         service_name: ${{ variables.service_name }}
         short_service_name: ${{ variables.short_service_name }}
