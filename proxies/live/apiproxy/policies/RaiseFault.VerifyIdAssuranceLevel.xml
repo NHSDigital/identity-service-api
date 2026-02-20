@@ -1,0 +1,16 @@
+<RaiseFault async="false" continueOnError="false" enabled="true" name="RaiseFault.VVerifyIdAssuranceLevel">
+    <FaultResponse>
+      <Set>
+        <Payload contentType="application/json">
+          {
+            "error" : "unauthorized_client",
+            "error_description" :"Your Care Identity Profile (CIS login) does not meet the required identity assurance level. You have to carry out additional identity verification with your RA (Registration Authority) and have your CIS login updated.",
+            "message_id": "{messageid}"
+          }
+        </Payload>
+        <StatusCode>403</StatusCode>
+        <ReasonPhrase>Forbidden</ReasonPhrase>
+      </Set>
+    </FaultResponse>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  </RaiseFault>
