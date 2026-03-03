@@ -2041,14 +2041,14 @@ pytest = ">=3.10"
 
 [[package]]
 name = "pytest-nhsd-apim"
-version = "5.0.3"
+version = "5.0.6"
 description = "Pytest plugin accessing NHSDigital's APIM proxies"
 optional = false
 python-versions = "<4.0,>=3.8"
 groups = ["main"]
 files = [
-    {file = "pytest_nhsd_apim-5.0.3-py3-none-any.whl", hash = "sha256:1aa230a207fec792ae77959fdb0e0950daa9608a099e0033d00d164c7e18862f"},
-    {file = "pytest_nhsd_apim-5.0.3.tar.gz", hash = "sha256:9fe29e2088194da994b1a506ebf5d0883030ec04fc7423e13f254667654b444e"},
+    {file = "pytest_nhsd_apim-5.0.6-py3-none-any.whl", hash = "sha256:b562297c62594275dcce5b08187d7cea4f56e2704f2354f1beb80c8f3db8202e"},
+    {file = "pytest_nhsd_apim-5.0.6.tar.gz", hash = "sha256:77be049fe6f840c7b37bb7607ee1650ef6cea17806c29051eab5721c6b272be4"},
 ]
 
 [package.dependencies]
@@ -2675,4 +2675,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9"
-content-hash = "f91ab48ed870118fd099ac50f9388d66379223e14ae500783ccee26e67b92448"
+content-hash = "9dcb7829e168386ef9d351f305d1ca066ee4617d261e9de985ecd3726b220342"
