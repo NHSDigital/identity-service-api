@@ -45,7 +45,7 @@ pytest-sugar = "^0.9.4"
 python-dotenv = "^0.21.1"
 PyJWT = "^2.9.0"
 cryptography = "^43.0.0"
-pytest-docker = "^3.1.1"
+pytest-docker = "^3.2.5"
 
 [tool.poetry.scripts]
 
